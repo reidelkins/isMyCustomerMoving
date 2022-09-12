@@ -17,6 +17,7 @@ class CustomUserAdmin(UserAdmin):
                            'email',
                            'role',
                            'company',
+                           'accessToken',
                            )}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff',
          'is_superuser', 'groups', 'user_permissions')}),
@@ -30,8 +31,8 @@ class CustomUserAdmin(UserAdmin):
     )
 
     list_display = ('first_name', 'last_name', 'email',
-                    'isVerified', 'role', 'company',)
-    search_fields = ('id', 'first_name', 'last_name', 'email')
+                    'isVerified', 'role', 'company', 'accessToken',)
+    search_fields = ('id', 'first_name', 'last_name', 'email', 'company')
     ordering = ('id',)
     list_filter = ('is_staff', 'role', 'isVerified', 'company',)
 
