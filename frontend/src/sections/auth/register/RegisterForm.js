@@ -27,12 +27,16 @@ export default function RegisterForm() {
   const RegisterSchema = Yup.object().shape({
     firstName: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('First name required'),
     lastName: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Last name required'),
+    company: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Company required'),
+    accessToken: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Access token required'),
     email: Yup.string().email('Email must be a valid email address').required('Email is required'),
     password: Yup.string().required('Password is required'),
   });
 
   const formik = useFormik({
     initialValues: {
+      company: '',
+      accessToken: '',
       firstName: '',
       lastName: '',
       email: '',
@@ -40,7 +44,7 @@ export default function RegisterForm() {
     },
     validationSchema: RegisterSchema,
     onSubmit: () => {
-      dispatch(register(values.firstName, values.lastName, values.email, values.password));
+      dispatch(register(values.company, values.accessToken, values.firstName, values.lastName, values.email, values.password));
     },
   });
 
@@ -55,6 +59,24 @@ export default function RegisterForm() {
       <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
         <Stack spacing={3}>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+            <TextField
+              fullWidth
+              label="Company Name"
+              {...getFieldProps('company')}
+              error={Boolean(touched.company && errors.company)}
+              helperText={touched.company && errors.company}
+            />
+            <TextField
+              fullWidth
+              label="Access Token"
+              {...getFieldProps('accessToken')}
+              error={Boolean(touched.accessToken && errors.accessToken)}
+              helperText={touched.accessToken && errors.accessToken}
+            />
+          </Stack>
+          
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+
             <TextField
               fullWidth
               label="First name"

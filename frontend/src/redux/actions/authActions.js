@@ -39,7 +39,7 @@ export const login = (email, password) => async (dispatch) => {
   }
 };
 
-export const register = (firstName, lastName, email, password) => async (dispatch) => {
+export const register = (company, accessToken, firstName, lastName, email, password) => async (dispatch) => {
   try {
     dispatch({
       type: REGISTER_REQUEST,
@@ -53,7 +53,7 @@ export const register = (firstName, lastName, email, password) => async (dispatc
 
     const { data } = await axios.post(
       `${DOMAIN}/api/v1/accounts/register/`,
-      { firstName, lastName, email, password },
+      { firstName, lastName, email, password, company, accessToken },
       config
     );
 

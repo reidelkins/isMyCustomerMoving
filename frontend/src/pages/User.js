@@ -93,7 +93,7 @@ export default function User() {
 
   const [filterName, setFilterName] = useState('');
 
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -245,7 +245,7 @@ export default function User() {
           </Scrollbar>
 
           <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
+            rowsPerPageOptions={[10, 50, 100]}
             component="div"
             count={USERLIST.length}
             rowsPerPage={rowsPerPage}
@@ -254,6 +254,13 @@ export default function User() {
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </Card>
+        <Stack direction="row" alignItems="right" justifyContent="space-between" mb={5}>
+
+          <Button variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />} sx={{marginTop:'2%'}}>
+            Add Customers
+          </Button>
+        </Stack>
+        
       </Container>
     </Page>
   );
