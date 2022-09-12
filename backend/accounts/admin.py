@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext as _
-from .models import CustomUser
+from .models import CustomUser, Company, Client
 
 
 class CustomUserAdmin(UserAdmin):
@@ -16,8 +16,7 @@ class CustomUserAdmin(UserAdmin):
                            'status',
                            'email',
                            'role',
-                           'company',
-                           'accessToken',
+                           'company'
                            )}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff',
          'is_superuser', 'groups', 'user_permissions')}),
@@ -31,10 +30,19 @@ class CustomUserAdmin(UserAdmin):
     )
 
     list_display = ('first_name', 'last_name', 'email',
-                    'isVerified', 'role', 'company', 'accessToken',)
-    search_fields = ('id', 'first_name', 'last_name', 'email', 'company')
+                    'isVerified', 'role')
+    search_fields = ('id', 'first_name', 'last_name', 'email')
     ordering = ('id',)
-    list_filter = ('is_staff', 'role', 'isVerified', 'company',)
+    list_filter = ('is_staff', 'role', 'isVerified',)
 
+class CompanyAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'accessToken', 'avatarUrl')
 
+class ClientAdmin(admin.ModelAdmin):
+    list_display = ('name', 'address', 'zipCode','status')
+
+# Register your models here.
+
+admin.site.register(Client, ClientAdmin)
+admin.site.register(Company, CompanyAdmin)
 admin.site.register(CustomUser, CustomUserAdmin)

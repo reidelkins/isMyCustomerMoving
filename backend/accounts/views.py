@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.hashers import make_password
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
-from rest_framework import permissions, status
+from rest_framework import permissions, status, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -11,8 +11,9 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
-from .models import CustomUser
-from .serializers import UserSerializer, UserSerializerWithToken
+import io, csv, pandas as pd
+from .models import CustomUser, Client, Company
+from .serializers import UserSerializer, UserSerializerWithToken, ClientListSerializer
 
 
 class RegisterView(APIView):
@@ -116,3 +117,36 @@ class UserViewSet(ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     queryset = CustomUser.objects.all()
     permission_classes = [IsAuthenticated]
+
+class ClientListView(generics.CreateAPIView):
+    serializer_class = ClientListSerializer
+    
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            # self.perform_create(serializer)
+            file = serializer.validated_data['file']
+            company = serializer.validated_data['company']
+            try:
+                company = Company.objects.get(name=company)
+            except:
+                return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                reader = pd.read_csv(file)
+                reader.columns= reader.columns.str.lower()
+            except:
+                return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
+            for _, row in reader.iterrows():
+                try:
+                    Client.objects.update_or_create(
+                            name= row["name"],
+                            address= row['street'],
+                            zipCode= row["zip"],
+                            company= company
+                            )
+                except:
+                    pass
+            return Response({"status": "success"},
+                            status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

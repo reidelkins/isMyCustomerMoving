@@ -23,6 +23,27 @@ STATUS_CHOICES = (
     ('banned', 'BANNED'),
 )
 
+COMPANY_NAME = (
+
+    ('test', 'test'),
+    ('kinetico_knoxville', 'kinetico_knoxville'),
+)
+
+COMPANY_TOKEN = (
+
+    ('test', 'test'),
+    ('1qaz2wsx', '1qaz2wsx'),
+)
+
+STATUS = [
+    ('For Sale','For Sale'),
+    ('For Rent','For Rent'),
+    ('Recently Sold (6)','Recently Sold (6)'),
+    ('Recently Sold (12)','Recently Sold (12)'),
+    ('Off Market', 'Off Market'),
+    ('No Change', 'No Change')
+]
+
 
 class CustomUserManager(BaseUserManager):
     """Define a model manager for User model with no username field."""
@@ -54,6 +75,32 @@ class CustomUserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
+class Company(models.Model):
+    id = models.UUIDField(primary_key=True, unique=True,
+                          default=uuid.uuid4, editable=False)
+    name = models.CharField(
+        max_length=100, choices=COMPANY_NAME)
+    accessToken = models.CharField(
+        max_length=100, choices=COMPANY_TOKEN)
+    avatarUrl = models.ImageField(
+        upload_to='customers', null=True, blank=True, default='/placeholder.png')
+
+class Client(models.Model):
+    id = models.UUIDField(primary_key=True, unique=True,
+                          default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100)
+    address = models.CharField(max_length=100)
+    zipCode = models.IntegerField()
+    company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.SET_NULL)
+    status = models.CharField(max_length=20, choices=STATUS, default='No Change')
+
+class ClientList(models.Model):
+    id = models.UUIDField(primary_key=True, unique=True,
+                          default=uuid.uuid4, editable=False)
+    file = models.FileField(upload_to='files')
+    # company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.SET_NULL)
+
+
 class CustomUser(AbstractUser):
     username = None
     id = models.UUIDField(primary_key=True, unique=True,
@@ -66,8 +113,7 @@ class CustomUser(AbstractUser):
         max_length=100, choices=STATUS_CHOICES, default='active')
     role = models.CharField(
         max_length=100, choices=ROLE_CHOICES, default='Full Stack Developer')
-    company = models.CharField(max_length=100, default='NA')
-    accessToken = models.CharField(max_length=100, default='NA')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', "last_name"]
 
@@ -78,3 +124,4 @@ class CustomUser(AbstractUser):
 
     class Meta:
         ordering = ["-id"]
+

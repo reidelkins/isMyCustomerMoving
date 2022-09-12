@@ -10,6 +10,7 @@ router = routers.DefaultRouter()
 router.register(r"users", views.UserViewSet)
 
 urlpatterns = [
+    path('upload/', views.ClientListView.as_view(), name='upload-file'),
     path('register/', views.RegisterView.as_view(), name='register'),
     path('login/', views.MyTokenObtainPairView.as_view(), name='login'),
     path('refresh_token/', TokenRefreshView.as_view(), name='refresh_token'),
