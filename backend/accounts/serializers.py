@@ -11,6 +11,7 @@ class UserSerializer(serializers.Serializer):
     status = serializers.CharField(read_only=True)
     role = serializers.CharField(read_only=True)
     company = serializers.CharField(read_only=True)
+    accessToken = serializers.CharField(read_only=True)
 
     def get_name(self, obj):
         return str(obj.first_name + " " + obj.last_name)

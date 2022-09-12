@@ -26,6 +26,8 @@ class RegisterView(APIView):
         last_name = data.get('lastName')
         email = data.get('email')
         password = data.get('password')
+        company = data.get('company')
+        accessToken = data.get('accessToken')
         messages = {'errors': []}
         if first_name == None:
             messages['errors'].append('first_name can\'t be empty')
@@ -35,6 +37,11 @@ class RegisterView(APIView):
             messages['errors'].append('Email can\'t be empty')
         if password == None:
             messages['errors'].append('Password can\'t be empty')
+        if company == None:
+            messages['errors'].append('Company can\'t be empty')
+        if accessToken == None:
+            messages['errors'].append('Access Token can\'t be empty')
+
         if CustomUser.objects.filter(email=email).exists():
             messages['errors'].append(
                 "Account already exists with this email id.")
@@ -45,7 +52,9 @@ class RegisterView(APIView):
                 first_name=first_name,
                 last_name=last_name,
                 email=email,
-                password=make_password(password)
+                password=make_password(password),
+                company=company,
+                accessToken=accessToken
             )
             current_site = get_current_site(request)
             mail_subject = 'Activation link has been sent to your email id'

@@ -67,6 +67,7 @@ class CustomUser(AbstractUser):
     role = models.CharField(
         max_length=100, choices=ROLE_CHOICES, default='Full Stack Developer')
     company = models.CharField(max_length=100, default='NA')
+    accessToken = models.CharField(max_length=100, default='NA')
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', "last_name"]
 
