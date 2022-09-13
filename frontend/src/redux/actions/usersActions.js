@@ -19,7 +19,7 @@ export const users = () => async (dispatch, getState) => {
       },
     };
 
-    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/users/`, config);
+    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company}`, config);
 
     dispatch({
       type: LIST_SUCCESS,

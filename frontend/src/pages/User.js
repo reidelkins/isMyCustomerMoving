@@ -35,8 +35,6 @@ import SearchNotFound from '../components/SearchNotFound';
 import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashboard/user';
 import { DOMAIN } from '../redux/constants';
 
-import { uploadClients } from '../redux/actions/uploadClients';
-
 import UsersListCall from '../redux/calls/UsersListCall';
 
 
@@ -46,9 +44,8 @@ import UsersListCall from '../redux/calls/UsersListCall';
 
 const TABLE_HEAD = [
   { id: 'name', label: 'Name', alignRight: false },
-  { id: 'company', label: 'Company', alignRight: false },
-  { id: 'role', label: 'Role', alignRight: false },
-  { id: 'isVerified', label: 'Verified', alignRight: false },
+  { id: 'address', label: 'Address', alignRight: false },
+  { id: 'zipCode', label: 'Zip Code', alignRight: false },
   { id: 'status', label: 'Status', alignRight: false },
   { id: '' },
 ];
@@ -198,7 +195,7 @@ export default function User() {
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, role, status, company, avatarUrl, isVerified } = row;
+                    const { id, name, address, zipCode, status } = row;
                     const isItemSelected = selected.indexOf(name) !== -1;
 
                     return (
@@ -215,15 +212,13 @@ export default function User() {
                         </TableCell>
                         <TableCell component="th" scope="row" padding="none">
                           <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar alt={name} src={avatarUrl} />
                             <Typography variant="subtitle2" noWrap>
                               {name}
                             </Typography>
                           </Stack>
                         </TableCell>
-                        <TableCell align="left">{company}</TableCell>
-                        <TableCell align="left">{role}</TableCell>
-                        <TableCell align="left">{isVerified ? 'Yes' : 'No'}</TableCell>
+                        <TableCell align="left">{address}</TableCell>
+                        <TableCell align="left">{zipCode}</TableCell>
                         <TableCell align="left">
                           <Label variant="ghost" color={(status === 'banned' && 'error') || 'success'}>
                             {sentenceCase(status)}
@@ -266,11 +261,6 @@ export default function User() {
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </Card>
-        <Stack direction="row" alignItems="right" justifyContent="space-between" mb={5}>
-          <Button onClick={()=>(console.log(userInfo))} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />} sx={{marginTop:'2%'}}>
-            Add Customers
-          </Button>
-        </Stack>
         <FilePond
           files={files}
           onupdatefiles={setFiles}
