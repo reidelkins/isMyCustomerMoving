@@ -42,7 +42,6 @@ def getHomesForSale(zipCode):
     #     print("t2")
     #     json.dump(data, f)
     
-    
     for d in data:
         HomeData.objects.update_or_create(address=d['location']['address']['line'], zipCode=zipCode, status='For Sale', listDate=d['list_date'][:-10], property_id=d['property_id'])
     print("for sale")
