@@ -1,6 +1,6 @@
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // material
 import {
@@ -23,6 +23,8 @@ import {
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 import LinearProgress from '@mui/material/LinearProgress';
+import { FilePond } from 'react-filepond';
+import 'filepond/dist/filepond.min.css';
 
 // components
 import Page from '../components/Page';
@@ -31,9 +33,14 @@ import Scrollbar from '../components/Scrollbar';
 import Iconify from '../components/Iconify';
 import SearchNotFound from '../components/SearchNotFound';
 import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashboard/user';
+import { DOMAIN } from '../redux/constants';
+
 import { uploadClients } from '../redux/actions/uploadClients';
 
 import UsersListCall from '../redux/calls/UsersListCall';
+
+
+
 
 // ----------------------------------------------------------------------
 
@@ -79,7 +86,6 @@ function applySortFilter(array, comparator, query) {
 
 export default function User() {
   const dispatch = useDispatch();
-  // const navigate = useNavigate();
 
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
@@ -142,17 +148,13 @@ export default function User() {
     setFilterName(event.target.value);
   };
 
-  const handleUploadCSV = (event) => {
-    console.log("hello")
-    dispatch(uploadClients("test"));
-    
-  }
-
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
 
   const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
 
   const isUserNotFound = filteredUsers.length === 0;
+
+  const [files, setFiles] = useState([])
 
   return (
     <Page title="User">
@@ -265,12 +267,21 @@ export default function User() {
           />
         </Card>
         <Stack direction="row" alignItems="right" justifyContent="space-between" mb={5}>
-          
-          <Button onClick={handleUploadCSV} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />} sx={{marginTop:'2%'}}>
+          <Button onClick={()=>(console.log(userInfo))} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />} sx={{marginTop:'2%'}}>
             Add Customers
           </Button>
         </Stack>
-        
+        <FilePond
+          files={files}
+          onupdatefiles={setFiles}
+          // className="NONE"
+          maxFiles={1}
+          server={`${DOMAIN}/api/v1/accounts/upload/`}
+          name={`${userInfo.company}`}
+          labelIdle=' <span class="filepond--label-action">Upload Your Client List</span>'
+          credits='false'
+          storeAsFile='true'
+        />        
       </Container>
     </Page>
   );
