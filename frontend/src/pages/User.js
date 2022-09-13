@@ -24,7 +24,7 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import LinearProgress from '@mui/material/LinearProgress';
 import { FilePond } from 'react-filepond';
-import 'filepond/dist/filepond.min.css';
+import '../filepond.css';
 
 // components
 import Page from '../components/Page';
@@ -261,6 +261,7 @@ export default function User() {
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </Card>
+        <Button onClick={()=>(console.log(userInfo))}>Hi</Button>
         <FilePond
           files={files}
           onupdatefiles={setFiles}
