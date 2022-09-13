@@ -2,10 +2,10 @@ from datetime import timedelta
 import os
 from pathlib import Path
 
-import environ  # import environ
+# import environ  # import environ
 
-env = environ.Env()  # Initialise environment variables
-environ.Env.read_env()
+# env = environ.Env()  # Initialise environment variables
+# environ.Env.read_env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # Declared in your environment variables
-SECRET_KEY = env('SECRET_KEY')
+SECRET_KEY = os.environ('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -146,12 +146,12 @@ if IS_POSTGRESQL is True:
 
     DATABASES = {
         'default': {
-            'ENGINE': env('DATABASE_ENGINE'),
-            'NAME': env('DATABASE_NAME'),
-            'USER': env('DATABASE_USER'),
-            'PASSWORD': env('DATABASE_PASS'),
-            'HOST': env('DATABASE_HOST'),
-            'PORT': env('DATABASE_PORT'),
+            'ENGINE': os.environ('DATABASE_ENGINE'),
+            'NAME': os.environ('DATABASE_NAME'),
+            'USER': os.environ('DATABASE_USER'),
+            'PASSWORD': os.environ('DATABASE_PASS'),
+            'HOST': os.environ('DATABASE_HOST'),
+            'PORT': os.environ('DATABASE_PORT'),
         }
     }
 else:
@@ -206,7 +206,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = BASE_DIR / 'static'
 
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
