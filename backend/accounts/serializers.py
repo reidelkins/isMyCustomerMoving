@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Company
+from .models import CustomUser, Company, Client
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
@@ -31,6 +31,12 @@ class UserSerializerWithToken(UserSerializer):
         token = RefreshToken.for_user(obj)
         return str(token)
 
-class ClientListSerializer(serializers.Serializer):
+class UploadFileSerializer(serializers.Serializer):
     file = serializers.FileField()
     # company = serializers.CharField()
+
+class ClientListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Client
+        fields = ('id', 'name', 'address', 'zipCode', 'status')
+
