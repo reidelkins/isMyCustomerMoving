@@ -18,7 +18,7 @@ SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "https://is-my-customer-moving.herokuapp.com", "https://is-my-customer-moving.vercel.app"]
+ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "https://is-my-customer-moving.herokuapp.com", "https://is-my-customer-moving.vercel.app/"]
 
 # Application definition
 
@@ -225,7 +225,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     "http://localhost:3000",  # React App will be on this port
     "http://127.0.0.1:9000",
-    "https://is-my-customer-moving-czy5diwo1-reidmhac.vercel.app"
+    "https://is-my-customer-moving-czy5diwo1-reidmhac.vercel.app",
+    "https://is-my-customer-moving.vercel.app/"
 ]
 
 
