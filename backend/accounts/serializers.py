@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser
+from .models import CustomUser, Company
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
@@ -10,7 +10,8 @@ class UserSerializer(serializers.Serializer):
     isVerified = serializers.BooleanField(read_only=True)
     status = serializers.CharField(read_only=True)
     role = serializers.CharField(read_only=True)
-    company = serializers.CharField(read_only=True)
+    # company = serializers.CharField(read_only=True)
+    company = serializers.PrimaryKeyRelatedField(queryset=Company.objects.all())
     accessToken = serializers.CharField(read_only=True)
 
     def get_name(self, obj):
@@ -32,4 +33,4 @@ class UserSerializerWithToken(UserSerializer):
 
 class ClientListSerializer(serializers.Serializer):
     file = serializers.FileField()
-    company = serializers.CharField()
+    # company = serializers.CharField()

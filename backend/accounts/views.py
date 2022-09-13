@@ -49,13 +49,15 @@ class RegisterView(APIView):
         if len(messages['errors']) > 0:
             return Response({"detail": messages['errors']}, status=status.HTTP_400_BAD_REQUEST)
         try:
+            company = Company.objects.get(name=company)
+            print(company)
             user = CustomUser.objects.create(
                 first_name=first_name,
                 last_name=last_name,
                 email=email,
                 password=make_password(password),
                 company=company,
-                accessToken=accessToken
+                # accessToken=accessToken
             )
             current_site = get_current_site(request)
             mail_subject = 'Activation link has been sent to your email id'
@@ -122,31 +124,30 @@ class ClientListView(generics.CreateAPIView):
     serializer_class = ClientListSerializer
     
     def post(self, request, *args, **kwargs):
+        
         serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            # self.perform_create(serializer)
-            file = serializer.validated_data['file']
-            company = serializer.validated_data['company']
+        print(list(serializer.initial_data.dict().keys())[0])
+        company = list(serializer.initial_data.dict().keys())[0]
+        file = serializer.initial_data[company]
+        try:
+            company = Company.objects.get(id=company)
+        except:
+            return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            reader = pd.read_csv(file)
+            reader.columns= reader.columns.str.lower()
+        except:
+            return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
+        for _, row in reader.iterrows():
             try:
-                company = Company.objects.get(name=company)
-            except:
-                return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
-            try:
-                reader = pd.read_csv(file)
-                reader.columns= reader.columns.str.lower()
-            except:
-                return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
-            for _, row in reader.iterrows():
-                try:
-                    Client.objects.update_or_create(
-                            name= row["name"],
-                            address= row['street'],
-                            zipCode= row["zip"],
-                            company= company
-                            )
-                except:
-                    pass
-            return Response({"status": "success"},
-                            status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                Client.objects.update_or_create(
+                        name= row["name"],
+                        address= row['street'],
+                        zipCode= row["zip"],
+                        company= company
+                        )
+            except Exception as e:
+                print(e)
+                
+        return Response({"status": "success"},
+                        status.HTTP_201_CREATED)

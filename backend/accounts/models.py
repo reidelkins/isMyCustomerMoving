@@ -113,7 +113,7 @@ class CustomUser(AbstractUser):
         max_length=100, choices=STATUS_CHOICES, default='active')
     role = models.CharField(
         max_length=100, choices=ROLE_CHOICES, default='Full Stack Developer')
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', "last_name"]
 
