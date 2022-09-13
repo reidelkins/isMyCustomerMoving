@@ -129,3 +129,6 @@ dmypy.json
 .pyre/
 staticfiles
 node_modules
+
+package.json
+yarn.lock

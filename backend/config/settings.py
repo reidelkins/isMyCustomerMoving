@@ -224,7 +224,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://sub.example.com",
     "http://localhost:8080",
     "http://localhost:3000",  # React App will be on this port
-    "http://127.0.0.1:9000"
+    "http://127.0.0.1:9000",
+    "https://is-my-customer-moving-czy5diwo1-reidmhac.vercel.app"
 ]
 
 
