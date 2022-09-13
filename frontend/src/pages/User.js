@@ -1,7 +1,7 @@
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
 import { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // material
 import {
   Box,
@@ -21,7 +21,7 @@ import {
   TableContainer,
   TablePagination,
 } from '@mui/material';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import LinearProgress from '@mui/material/LinearProgress';
 
 // components
@@ -31,6 +31,7 @@ import Scrollbar from '../components/Scrollbar';
 import Iconify from '../components/Iconify';
 import SearchNotFound from '../components/SearchNotFound';
 import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashboard/user';
+import { uploadClients } from '../redux/actions/uploadClients';
 
 import UsersListCall from '../redux/calls/UsersListCall';
 
@@ -77,6 +78,9 @@ function applySortFilter(array, comparator, query) {
 }
 
 export default function User() {
+  const dispatch = useDispatch();
+  // const navigate = useNavigate();
+
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
 
@@ -137,6 +141,12 @@ export default function User() {
   const handleFilterByName = (event) => {
     setFilterName(event.target.value);
   };
+
+  const handleUploadCSV = (event) => {
+    console.log("hello")
+    dispatch(uploadClients("test"));
+    
+  }
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
 
@@ -255,8 +265,8 @@ export default function User() {
           />
         </Card>
         <Stack direction="row" alignItems="right" justifyContent="space-between" mb={5}>
-
-          <Button variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />} sx={{marginTop:'2%'}}>
+          
+          <Button onClick={handleUploadCSV} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />} sx={{marginTop:'2%'}}>
             Add Customers
           </Button>
         </Stack>
