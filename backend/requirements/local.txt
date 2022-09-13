@@ -1,3 +1,0 @@
--r ./base.txt
-
-black==22.3.0
