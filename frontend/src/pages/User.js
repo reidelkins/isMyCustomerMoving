@@ -36,6 +36,7 @@ import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashbo
 import { DOMAIN } from '../redux/constants';
 
 import UsersListCall from '../redux/calls/UsersListCall';
+import { update } from '../redux/actions/usersActions';
 
 
 
@@ -143,6 +144,11 @@ export default function User() {
 
   const handleFilterByName = (event) => {
     setFilterName(event.target.value);
+  };
+
+  const updateStatus = () => {
+    console.log("hello")
+    dispatch(update());
   };
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
@@ -261,7 +267,11 @@ export default function User() {
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </Card>
-        <Button onClick={()=>(console.log(userInfo))}>Hi</Button>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+          <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+            Update Status
+          </Button>
+        </Stack>
         <FilePond
           files={files}
           onupdatefiles={setFiles}
