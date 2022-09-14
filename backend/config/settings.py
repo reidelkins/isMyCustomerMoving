@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 IS_HEROKU = "DYNO" in os.environ
 if IS_HEROKU:
     SECRET_KEY = os.environ['SECRET_KEY']
-    RAPID_API = os.environ('RAPID_API')
+    RAPID_API = os.environ['RAPID_API']
 else:
     SECRET_KEY = env('SECRET_KEY')
     RAPID_API = env('RAPID_API')
