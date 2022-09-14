@@ -4,17 +4,7 @@ import os
 import http.client
 import json
 from datetime import datetime, timedelta
-
-# import environ
-# env = environ.Env()
-# environ.Env.read_env()
-# IS_HEROKU = "DYNO" in os.environ
-# if IS_HEROKU:
-#     RAPID_API = os.environ('RAPID_API')
-# else:
-#     RAPID_API = env('RAPID_API')
-
-RAPID_API = os.environ('RAPID_API')
+from django.conf import settings
 
 
 def getAllZipcodes(company):
@@ -40,7 +30,7 @@ def getHomesForSale(zipCodes):
             conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
 
             headers = {
-                'X-RapidAPI-Key': RAPID_API,
+                'X-RapidAPI-Key': settings.RAPID_API,
                 'X-RapidAPI-Host': "us-real-estate.p.rapidapi.com"
                 }
 
@@ -104,7 +94,7 @@ def getHomesForRent(zipCodes):
             conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
 
             headers = {
-                'X-RapidAPI-Key': RAPID_API,
+                'X-RapidAPI-Key': settings.RAPID_API,
                 'X-RapidAPI-Host': "us-real-estate.p.rapidapi.com"
                 }
 
@@ -152,7 +142,7 @@ def getSoldHomes(zipCodes):
             # conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
 
             # headers = {
-            #     'X-RapidAPI-Key': RAPID_API,
+            #     'X-RapidAPI-Key': settings.RAPID_API,
             #     'X-RapidAPI-Host': "us-real-estate.p.rapidapi.com"
             #     }
 
