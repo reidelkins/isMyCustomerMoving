@@ -1,17 +1,20 @@
 from .models import Client, Company, ZipCode, HomeListing
-import environ
+
 import os
 import http.client
 import json
 from datetime import datetime, timedelta
 
-env = environ.Env()
-environ.Env.read_env()
-IS_HEROKU = "DYNO" in os.environ
-if IS_HEROKU:
-    RAPID_API = os.environ('RAPID_API')
-else:
-    RAPID_API = env('RAPID_API')
+# import environ
+# env = environ.Env()
+# environ.Env.read_env()
+# IS_HEROKU = "DYNO" in os.environ
+# if IS_HEROKU:
+#     RAPID_API = os.environ('RAPID_API')
+# else:
+#     RAPID_API = env('RAPID_API')
+
+RAPID_API = os.environ('RAPID_API')
 
 
 def getAllZipcodes(company):
