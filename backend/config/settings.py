@@ -1,6 +1,7 @@
 from datetime import timedelta
 import os
 from pathlib import Path
+import dj_database_url
 
 # import environ  # import environ
 
@@ -138,30 +139,25 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Create a file named .env and Declare your environment variables for database in .env
-# Make sure you don’t use quotations around strings.
-IS_POSTGRESQL = False  # Set True if want to use PostgrSQL DB
 
-if IS_POSTGRESQL is True:
+# this part will be executed if IS_POSTGRESQL = False
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}
 
-    DATABASES = {
-        'default': {
-            'ENGINE': os.environ('DATABASE_ENGINE'),
-            'NAME': os.environ('DATABASE_NAME'),
-            'USER': os.environ('DATABASE_USER'),
-            'PASSWORD': os.environ('DATABASE_PASS'),
-            'HOST': os.environ('DATABASE_HOST'),
-            'PORT': os.environ('DATABASE_PORT'),
-        }
-    }
-else:
-    # this part will be executed if IS_POSTGRESQL = False
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
-    }
+MAX_CONN_AGE = 600
+
+if "DATABASE_URL" in os.environ:
+    # Configure Django for DATABASE_URL environment variable.
+    DATABASES["default"] = dj_database_url.config(
+        conn_max_age=MAX_CONN_AGE, ssl_require=True)
+
+    # Enable test database if found in CI environment.
+    if "CI" in os.environ:
+        DATABASES["default"]["TEST"] = DATABASES["default"]
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
