@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext as _
-from .models import CustomUser, Company, Client
+from .models import CustomUser, Company, Client, ZipCode, HomeListing
 
 
 class CustomUserAdmin(UserAdmin):
@@ -39,10 +39,17 @@ class CompanyAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'accessToken', 'avatarUrl')
 
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ('name', 'address', 'zipCode','status')
+    list_display = ('name', 'address', 'status')
+
+class ZipcodeAdmin(admin.ModelAdmin):
+    list_display = ('zipCode', 'lastUpdated')
+
+class HomeListingAdmin(admin.ModelAdmin):
+    list_display = ('address', 'zipCode', 'status')
 
 # Register your models here.
-
+admin.site.register(HomeListing, HomeListingAdmin)
+admin.site.register(ZipCode, ZipcodeAdmin)
 admin.site.register(Client, ClientAdmin)
 admin.site.register(Company, CompanyAdmin)
 admin.site.register(CustomUser, CustomUserAdmin)

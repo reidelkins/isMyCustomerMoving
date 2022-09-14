@@ -61,6 +61,7 @@ export default function AccountPopover() {
 
   const logoutHandler = () => {
     dispatch(logout());
+    navigate('/login', { replace: true });
   };
   return (
     <>

@@ -1,7 +1,7 @@
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState, useRef } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 // material
 import {
   Box,
@@ -10,7 +10,6 @@ import {
   AlertTitle,
   Table,
   Stack,
-  Avatar,
   Button,
   Checkbox,
   TableRow,
@@ -36,6 +35,7 @@ import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashbo
 import { DOMAIN } from '../redux/constants';
 
 import UsersListCall from '../redux/calls/UsersListCall';
+import { update } from '../redux/actions/usersActions';
 
 
 
@@ -143,6 +143,11 @@ export default function User() {
 
   const handleFilterByName = (event) => {
     setFilterName(event.target.value);
+  };
+
+  const updateStatus = () => {
+    console.log("hello")
+    dispatch(update());
   };
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
@@ -261,7 +266,18 @@ export default function User() {
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </Card>
-        <Button onClick={()=>(console.log(userInfo))}>Hi</Button>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+          <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+            Update Status
+          </Button>
+          {/* TODO change this to admin */}
+          {userInfo.status === 'active' && (
+            <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+              Download To CSV
+            </Button>
+          )}
+          
+        </Stack>
         <FilePond
           files={files}
           onupdatefiles={setFiles}

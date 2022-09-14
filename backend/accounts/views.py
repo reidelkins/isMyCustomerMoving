@@ -12,7 +12,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import io, csv, pandas as pd
-from .models import CustomUser, Client, Company
+from .utils import getAllZipcodes
+from .models import CustomUser, Client, Company, ZipCode
 from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer
 
 
@@ -125,17 +126,10 @@ class ClientListView(generics.ListAPIView):
     def get_queryset(self):
         return Client.objects.filter(company=self.kwargs['company'])
 
-    # queryset = Client.objects.all()
-
-    # def get(self, request, uuid):
-    #     serializer = self.get_serializer(data=request.data)
-    #     queryset = Client.objects.all()
-    #     if serializer.is_valid(raise_exception=True):
-    #         print(uuid)
-    #         return Response({"status": "success"},
-    #                         status.HTTP_201_CREATED)
-    #     else:
-    #         return Response("", status=status.HTTP_400_BAD_REQUEST)
+class UpdateStatusView(APIView):
+    def get(self, request, *args, **kwargs):
+        getAllZipcodes(self.kwargs['company'])
+        return Response("", status=status.HTTP_201_CREATED, headers="")
 
 class UploadFileView(generics.CreateAPIView):
     serializer_class = UploadFileSerializer
@@ -144,10 +138,10 @@ class UploadFileView(generics.CreateAPIView):
         
         serializer = self.get_serializer(data=request.data)
         print(list(serializer.initial_data.dict().keys())[0])
-        company = list(serializer.initial_data.dict().keys())[0]
-        file = serializer.initial_data[company]
+        company_id = list(serializer.initial_data.dict().keys())[0]
+        file = serializer.initial_data[company_id]
         try:
-            company = Company.objects.get(id=company)
+            company = Company.objects.get(id=company_id)
         except:
             return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
         try:
@@ -157,14 +151,15 @@ class UploadFileView(generics.CreateAPIView):
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
         for _, row in reader.iterrows():
             try:
+                zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
                 Client.objects.update_or_create(
                         name= row["name"],
                         address= row['street'],
-                        zipCode= row["zip"],
+                        zipCode= zipCode,
                         company= company
                         )
             except Exception as e:
                 print(e)
-                
+        # getAllZipcodes(company_id)
         return Response({"status": "success"},
                         status.HTTP_201_CREATED)

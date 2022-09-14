@@ -8,3 +8,8 @@ export const UPLOAD_SUCCESS = 'UPLOAD_SUCCESS';
 export const UPLOAD_FAIL = 'UPLOAD_FAIL';
 export const UPLOAD_RESET = 'UPLOAD_RESET';
 
+export const STATUS_REQUEST = 'STATUS_REQUEST';
+export const STATUS_SUCCESS = 'STATUS_SUCCESS';
+export const STATUS_FAIL = 'STATUS_FAIL';
+export const STATUS_RESET = 'STATUS_RESET';
+
