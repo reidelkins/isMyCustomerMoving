@@ -6,6 +6,7 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django.utils.translation import gettext as _
 import uuid
+from datetime import datetime, timedelta
 
 
 # This is just an example no need to keep them
@@ -21,18 +22,21 @@ STATUS_CHOICES = (
 
     ('active', 'ACTIVE'),
     ('banned', 'BANNED'),
+    ('admin', 'ADMIN'),
 )
 
 COMPANY_NAME = (
 
     ('test', 'test'),
     ('kinetico_knoxville', 'kinetico_knoxville'),
+    ('isMyCustomerMoving', 'isMyCustomerMoving')
 )
 
 COMPANY_TOKEN = (
 
     ('test', 'test'),
     ('1qaz2wsx', '1qaz2wsx'),
+    ('a29tp(u%hy@a5_p3x_d%!ct)m8r_@qj-skvksrz7id=k8nd9^m', 'a29tp(u%hy@a5_p3x_d%!ct)m8r_@qj-skvksrz7id=k8nd9^m')
 )
 
 STATUS = [
@@ -74,7 +78,6 @@ class CustomUserManager(BaseUserManager):
 
         return self._create_user(email, password, **extra_fields)
 
-
 class Company(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
@@ -85,12 +88,16 @@ class Company(models.Model):
     avatarUrl = models.ImageField(
         upload_to='customers', null=True, blank=True, default='/placeholder.png')
 
+class ZipCode(models.Model):
+    zipCode = models.IntegerField(primary_key=True, unique=True)
+    lastUpdated = models.DateField(default=(datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d'))
+
 class Client(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=100)
-    zipCode = models.IntegerField()
+    zipCode = models.ForeignKey(ZipCode, blank=True, null=True, on_delete=models.SET_NULL)
     company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.SET_NULL)
     status = models.CharField(max_length=20, choices=STATUS, default='No Change')
 
@@ -100,6 +107,13 @@ class ClientList(models.Model):
     file = models.FileField(upload_to='files')
     # company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.SET_NULL)
 
+class HomeListing(models.Model):
+    id = models.UUIDField(primary_key=True, unique=True,
+                          default=uuid.uuid4, editable=False)
+    zipCode = models.ForeignKey(ZipCode, blank=True, null=True, on_delete=models.SET_NULL)
+    address = models.CharField(max_length=100)
+    status = models.CharField(max_length=20, choices=STATUS, default='Off Market')
+    listed = models.CharField(max_length=25, default=str(datetime.now()))
 
 class CustomUser(AbstractUser):
     username = None
@@ -124,4 +138,5 @@ class CustomUser(AbstractUser):
 
     class Meta:
         ordering = ["-id"]
+
 

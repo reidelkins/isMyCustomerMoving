@@ -10,6 +10,7 @@ router = routers.DefaultRouter()
 router.register(r"users", views.UserViewSet)
 
 urlpatterns = [
+    path('update/<str:company>/', views.UpdateStatusView.as_view(), name='update-status'),
     path('clients/<str:company>/', views.ClientListView.as_view(), name='client-list'),
     path('upload/', views.UploadFileView.as_view(), name='upload-file'),
     path('register/', views.RegisterView.as_view(), name='register'),

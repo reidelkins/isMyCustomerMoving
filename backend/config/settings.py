@@ -3,6 +3,11 @@ import os
 from pathlib import Path
 import dj_database_url
 
+import environ  # import environ
+
+env = environ.Env()  # Initialise environment variables
+environ.Env.read_env()
+
 # import environ  # import environ
 
 # env = environ.Env()  # Initialise environment variables
@@ -14,7 +19,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # Declared in your environment variables
-SECRET_KEY = os.environ['SECRET_KEY']
+IS_HEROKU = "DYNO" in os.environ
+if IS_HEROKU:
+    SECRET_KEY = os.environ['SECRET_KEY']
+else:
+    SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -222,7 +231,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React App will be on this port
     "http://127.0.0.1:9000",
     "https://is-my-customer-moving-czy5diwo1-reidmhac.vercel.app",
-    "https://is-my-customer-moving.vercel.app"
+    "https://is-my-customer-moving.vercel.app",
+    "https://ismycustomermoving.com"
 ]
 
 
