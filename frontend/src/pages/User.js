@@ -1,7 +1,7 @@
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState, useRef } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 // material
 import {
   Box,
@@ -10,7 +10,6 @@ import {
   AlertTitle,
   Table,
   Stack,
-  Avatar,
   Button,
   Checkbox,
   TableRow,
@@ -271,6 +270,13 @@ export default function User() {
           <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
             Update Status
           </Button>
+          {/* TODO change this to admin */}
+          {userInfo.status === 'active' && (
+            <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+              Download To CSV
+            </Button>
+          )}
+          
         </Stack>
         <FilePond
           files={files}
