@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='homelisting',
             name='listed',
-            field=models.CharField(default='2022-09-14 21:34:12.894549', max_length=25),
+            field=models.CharField(default='2022-09-14 21:34:12.894549', max_length=30),
         ),
     ]
