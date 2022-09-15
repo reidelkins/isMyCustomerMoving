@@ -167,9 +167,9 @@ export default function User() {
           <Typography variant="h4" gutterBottom>
             User
           </Typography>
-          <Button variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+          {/* <Button variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
             New User
-          </Button>
+          </Button> */}
         </Stack>
 
         <Card>
@@ -271,24 +271,26 @@ export default function User() {
             Update Status
           </Button>
           {/* TODO change this to admin */}
-          {userInfo.status === 'active' && (
+          {userInfo.status === 'admin' && (
             <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
               Download To CSV
             </Button>
           )}
           
         </Stack>
-        <FilePond
-          files={files}
-          onupdatefiles={setFiles}
-          // className="NONE"
-          maxFiles={1}
-          server={`${DOMAIN}/api/v1/accounts/upload/`}
-          name={`${userInfo.company}`}
-          labelIdle=' <span class="filepond--label-action">Upload Your Client List</span>'
-          credits='false'
-          storeAsFile='true'
-        />        
+        {userInfo.status === 'admin' && (
+          <FilePond
+            files={files}
+            onupdatefiles={setFiles}
+            // className="NONE"
+            maxFiles={1}
+            server={`${DOMAIN}/api/v1/accounts/upload/`}
+            name={`${userInfo.company}`}
+            labelIdle=' <span class="filepond--label-action">Upload Your Client List</span>'
+            credits='false'
+            storeAsFile='true'
+          />
+        )}      
       </Container>
     </Page>
   );
