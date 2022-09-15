@@ -234,7 +234,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:9000",
     "https://is-my-customer-moving-czy5diwo1-reidmhac.vercel.app",
     "https://is-my-customer-moving.vercel.app",
-    "https://ismycustomermoving.com"
+    "https://ismycustomermoving.com",
+    "https://www.ismycustomermoving.com"
 ]
 
 
