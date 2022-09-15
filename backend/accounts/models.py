@@ -113,7 +113,7 @@ class HomeListing(models.Model):
     zipCode = models.ForeignKey(ZipCode, blank=True, null=True, on_delete=models.SET_NULL)
     address = models.CharField(max_length=100)
     status = models.CharField(max_length=20, choices=STATUS, default='Off Market')
-    listed = models.CharField(max_length=25, default=str(datetime.now()))
+    listed = models.CharField(max_length=30, default=str(datetime.now()))
 
 class CustomUser(AbstractUser):
     username = None
