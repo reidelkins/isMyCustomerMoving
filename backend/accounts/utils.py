@@ -11,10 +11,11 @@ def getAllZipcodes(company):
     company = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company).values('zipCode')
     zipCodes = list(ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=datetime.today().strftime('%Y-%m-%d')).values('zipCode'))
-    # getHomesForSale(zipCodes)
-    # getHomesForRent(zipCodes)
+    zipCodes = zipCodes[:3]
+    getHomesForSale(zipCodes)
+    getHomesForRent(zipCodes)
     getSoldHomes(zipCodes)
-    # updateStatus(company, zipCode_objects)
+    updateStatus(company, zipCode_objects)
 
     #TODO uncomment this
     # ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=datetime.today().strftime('%Y-%m-%d')).update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
@@ -139,31 +140,31 @@ def getSoldHomes(zipCodes):
         zip = zip['zipCode']
         moreListings = True
         while(moreListings):
-            # conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
+            conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
 
-            # headers = {
-            #     'X-RapidAPI-Key': settings.RAPID_API,
-            #     'X-RapidAPI-Host': "us-real-estate.p.rapidapi.com"
-            #     }
+            headers = {
+                'X-RapidAPI-Key': settings.RAPID_API,
+                'X-RapidAPI-Host': "us-real-estate.p.rapidapi.com"
+                }
 
-            # conn.request("GET", f"/v2/sold-homes-by-zipcode?zipcode={zip}&offset={offset}&limit=200&sort=sold_date&max_sold_days=365", headers=headers)
+            conn.request("GET", f"/v2/sold-homes-by-zipcode?zipcode={zip}&offset={offset}&limit=200&sort=sold_date&max_sold_days=365", headers=headers)
 
-            # res = conn.getresponse()
-            # data = res.read().decode("utf-8")
-            # data = json.loads(data)
+            res = conn.getresponse()
+            data = res.read().decode("utf-8")
+            data = json.loads(data)
             
 
-            # total = data['data']['home_search']['total']
-            # print(f"The total amount listed here is {total} and the current offset is {offset}")
-            # offset += data['data']['home_search']['count']
-            # print(f"The new offset is {offset}")
-            # if offset >= total:
-            #     moreListings = False
-            # with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep14_{count}_sold.json", "w+") as f:
-            #     count += 1
-            #     json.dump(data, f)
-            with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep14_{1}_sold.json", "r") as f:
-                data = json.load(f)
+            total = data['data']['home_search']['total']
+            print(f"The total amount listed here is {total} and the current offset is {offset}")
+            offset += data['data']['home_search']['count']
+            print(f"The new offset is {offset}")
+            if offset >= total:
+                moreListings = False
+            with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep14_{count}_sold.json", "w+") as f:
+                count += 1
+                json.dump(data, f)
+            # with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep14_{1}_sold.json", "r") as f:
+            #     data = json.load(f)
 
             data = data['data']['home_search']['results']
 
