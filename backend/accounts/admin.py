@@ -47,6 +47,7 @@ class ZipcodeAdmin(admin.ModelAdmin):
 class HomeListingAdmin(admin.ModelAdmin):
     list_display = ('address', 'zipCode', 'status')
 
+
 # Register your models here.
 admin.site.register(HomeListing, HomeListingAdmin)
 admin.site.register(ZipCode, ZipcodeAdmin)
