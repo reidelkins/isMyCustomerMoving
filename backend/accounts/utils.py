@@ -11,14 +11,13 @@ def getAllZipcodes(company):
     company = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company).values('zipCode')
     zipCodes = list(ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=datetime.today().strftime('%Y-%m-%d')).values('zipCode'))
-    zipCodes = zipCodes[:3]
     getHomesForSale(zipCodes)
     getHomesForRent(zipCodes)
     getSoldHomes(zipCodes)
     updateStatus(company, zipCode_objects)
 
     #TODO uncomment this
-    # ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=datetime.today().strftime('%Y-%m-%d')).update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
+    ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=datetime.today().strftime('%Y-%m-%d')).update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
     
 
 def getHomesForSale(zipCodes):    
@@ -40,6 +39,12 @@ def getHomesForSale(zipCodes):
             res = conn.getresponse()
             data = res.read().decode("utf-8")
             data = json.loads(data)
+            total = data['data']['home_search']['total']
+            print(f"The total amount listed for sale at {zip} is {total} and the current offset is {offset}")
+            offset += data['data']['home_search']['count']
+            print(f"The new offset is {offset}")
+            if offset >= total:
+                moreListings = False
             data = data['data']['home_search']['results']
 
             for listing in data:
@@ -55,34 +60,29 @@ def getHomesForSale(zipCodes):
                     print(f"zip: {zip_object}")
                     print(f"address: {listing['location']['address']['line']}")
 
-                total = data['data']['home_search']['total']
-                print(f"The total amount listed here is {total} and the current offset is {offset}")
-                offset += data['data']['home_search']['count']
-                print(f"The new offset is {offset}")
-                if offset >= total:
-                    moreListings = False
-                with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep14_{count}.json", "w+") as f:
-                    count += 1
-                    json.dump(data, f)
+                
+            with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_sale.json", "w+") as f:
+                count += 1
+                json.dump(data, f)
 
 
-    #TODO remove this
-    for i in range(10):
-        with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep14_{i}.json", "r") as f:
-            data = json.load(f)
+    # #TODO remove this
+    # for i in range(10):
+    #     with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep14_{i}.json", "r") as f:
+    #         data = json.load(f)
 
-        data = data['data']['home_search']['results']
-        print(f"This is how much data in {i}: {len(data)}")
-        for listing in data:
-            zip_object = ZipCode.objects.get(zipCode = listing['location']['address']['postal_code'])
-            try:
-                HomeListing.objects.get_or_create(
-                            zipCode= zip_object,
-                            address= listing['location']['address']['line'],
-                            )
-            except:
-                print(f"zip: {zip_object}")
-                print(f"address: {listing['location']['address']['line']}")
+    #     data = data['data']['home_search']['results']
+    #     print(f"This is how much data in {i}: {len(data)}")
+    #     for listing in data:
+    #         zip_object = ZipCode.objects.get(zipCode = listing['location']['address']['postal_code'])
+    #         try:
+    #             HomeListing.objects.get_or_create(
+    #                         zipCode= zip_object,
+    #                         address= listing['location']['address']['line'],
+    #                         )
+    #         except:
+    #             print(f"zip: {zip_object}")
+    #             print(f"address: {listing['location']['address']['line']}")
 
 
 def getHomesForRent(zipCodes):
@@ -107,7 +107,7 @@ def getHomesForRent(zipCodes):
             
 
             total = data['data']['home_search']['total']
-            print(f"The total amount listed here is {total} and the current offset is {offset}")
+            print(f"The total amount listed for rent at {zip} is {total} and the current offset is {offset}")
             offset += data['data']['home_search']['count']
             print(f"The new offset is {offset}")
             if offset >= total:
@@ -121,16 +121,29 @@ def getHomesForRent(zipCodes):
             for listing in data:
                 zip_object, created  = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
                 try:
-                    HomeListing.objects.get_or_create(
-                                zipCode= zip_object,
-                                address= listing['location']['address']['line'],
-                                status= 'For Rent',
-                                listed= listing['list_date']
-                                )
-                except:
+                    if listing['list_date'] != None:
+                        HomeListing.objects.get_or_create(
+                                    zipCode= zip_object,
+                                    address= listing['location']['address']['line'],
+                                    status= 'For Rent',
+                                    listed= listing['list_date']
+                                    )
+                    else:
+                        HomeListing.objects.get_or_create(
+                                    zipCode= zip_object,
+                                    address= listing['location']['address']['line'],
+                                    status= 'For Rent',
+                                    )
+                except Exception as e:
+                    print(e)
+                    print(f"Listed: {listing['list_date']}")
                     print(f"zip: {zip_object}")
                     print(f"address: {listing['location']['address']['line']}")
 
+            with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_{zip}_rent.json", "w+") as f:
+                count += 1
+                json.dump(data, f)
+            
                 
 def getSoldHomes(zipCodes):
     zipCodes = zipCodes[-3:-2]
@@ -147,7 +160,7 @@ def getSoldHomes(zipCodes):
                 'X-RapidAPI-Host': "us-real-estate.p.rapidapi.com"
                 }
 
-            conn.request("GET", f"/v2/sold-homes-by-zipcode?zipcode={zip}&offset={offset}&limit=200&sort=sold_date&max_sold_days=365", headers=headers)
+            conn.request("GET", f"/v2/sold-homes-by-zipcode?zipcode={zip}&offset={offset}&limit=200&sort=sold_date&max_sold_days=400", headers=headers)
 
             res = conn.getresponse()
             data = res.read().decode("utf-8")
@@ -155,12 +168,12 @@ def getSoldHomes(zipCodes):
             
 
             total = data['data']['home_search']['total']
-            print(f"The total amount listed here is {total} and the current offset is {offset}")
+            print(f"The total amount that have been sold at {zip} is {total} and the current offset is {offset}")
             offset += data['data']['home_search']['count']
             print(f"The new offset is {offset}")
             if offset >= total:
                 moreListings = False
-            with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep14_{count}_sold.json", "w+") as f:
+            with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep14_{count}_{zip}_sold.json", "w+") as f:
                 count += 1
                 json.dump(data, f)
             # with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep14_{1}_sold.json", "r") as f:
@@ -187,7 +200,10 @@ def getSoldHomes(zipCodes):
                     print(e)
                     print(f"zip: {zip_object}")
                     print(f"address: {listing['location']['address']['line']}")
-            return
+            
+            with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_{zip}_sold.json", "w+") as f:
+                count += 1
+                json.dump(data, f)
 
 
 def updateStatus(company, zipCodes):

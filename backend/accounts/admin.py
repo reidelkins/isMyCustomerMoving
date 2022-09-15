@@ -40,9 +40,11 @@ class CompanyAdmin(admin.ModelAdmin):
 
 class ClientAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'status')
+    search_fields = ('name', 'address', 'status')
 
 class ZipcodeAdmin(admin.ModelAdmin):
     list_display = ('zipCode', 'lastUpdated')
+    search_fields = ['zipCode', 'lastUpdated']
 
 class HomeListingAdmin(admin.ModelAdmin):
     list_display = ('address', 'zipCode', 'status')
