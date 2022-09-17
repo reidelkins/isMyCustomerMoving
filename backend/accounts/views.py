@@ -131,8 +131,8 @@ class UpdateStatusView(APIView):
     def get(self, request, *args, **kwargs):
         try:
             print("hello")
-            getAllZipcodes(self.kwargs['company'])
-            celery.add
+            # getAllZipcodes(self.kwargs['company'])
+            celery.add(5, 5)
         except:
             pass
         print("there")
