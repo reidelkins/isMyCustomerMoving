@@ -11,7 +11,7 @@ def getAllZipcodes(company):
     company = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company).values('zipCode')
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=datetime.today().strftime('%Y-%m-%d'))
-    for i in range(100):
+    for i in range(16):
         print(i)
         sleep(2)
     # getHomesForSale(list(zipCodes.values('zipCode')))

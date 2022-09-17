@@ -12,11 +12,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import io, csv, pandas as pd
-from .utils import getAllZipcodes
+from .utils import getAllZipcodes, count_words_at_url
 from .models import CustomUser, Client, Company, ZipCode
 from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer
 from worker import conn
 from rq import Queue
+from rq.worker import HerokuWorker as Worker
 
 q = Queue(connection=conn)
 
@@ -133,8 +134,8 @@ class UpdateStatusView(APIView):
     def get(self, request, *args, **kwargs):
         try:
             print("hello")
-            result = q.enqueue(getAllZipcodes(self.kwargs['company']), 'http://heroku.com')
-            print("bye")
+            result = q.enqueue(count_words_at_url, 'http://heroku.com')
+            print(result.result)
         except:
             pass
         print("there")
