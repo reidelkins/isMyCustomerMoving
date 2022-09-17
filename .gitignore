@@ -165,7 +165,6 @@ frontend/.eslintcache
 frontend/package.json
 frontend/yarn.lock
 
-frontend/src/redux/constants.js
 oldJsons
 sep*
 .DS_Store

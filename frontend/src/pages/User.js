@@ -165,14 +165,16 @@ export default function User() {
 
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            User
+            {userInfo.status}
           </Typography>
-          {/* <Button variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
-            New User
-          </Button> */}
+          {userInfo.status === 'admin' && (
+            <Button variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+              New User
+            </Button>
+          )}
         </Stack>
 
-        <Card>
+        <Card sx={{marginBottom:"3%"}}>
           <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
           {error ? (
             <Alert severity="error">
@@ -270,27 +272,27 @@ export default function User() {
           <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
             Update Status
           </Button>
-          {/* TODO change this to admin */}
-          {/* {userInfo.status === 'admin' && ( */}
-          <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
-            Download To CSV
-          </Button>
-          {/* )} */}
+
+          {userInfo.status === 'admin' && (
+            <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+              Download To CSV
+            </Button>
+          )}
           
         </Stack>
-        {/* {userInfo.status === 'admin' && ( */}
-        <FilePond
-          files={files}
-          onupdatefiles={setFiles}
-          // className="NONE"
-          maxFiles={1}
-          server={`${DOMAIN}/api/v1/accounts/upload/`}
-          name={`${userInfo.company}`}
-          labelIdle=' <span class="filepond--label-action">Upload Your Client List</span>'
-          credits='false'
-          storeAsFile='true'
-        />
-        {/* )}       */}
+        {userInfo.status === 'admin' && (
+          <FilePond
+            files={files}
+            onupdatefiles={setFiles}
+            // className="NONE"
+            maxFiles={1}
+            server={`${DOMAIN}/api/v1/accounts/upload/`}
+            name={`${userInfo.company}`}
+            labelIdle=' <span class="filepond--label-action">Upload Your Client List</span>'
+            credits='false'
+            storeAsFile='true'
+          />
+        )} 
       </Container>
     </Page>
   );
