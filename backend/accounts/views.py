@@ -130,8 +130,9 @@ class UpdateStatusView(APIView):
     def get(self, request, *args, **kwargs):
         try:
             print("hello")
-            # getAllZipcodes(self.kwargs['company'])
-            add.delay(5, 5)
+            getAllZipcodes.delay(self.kwargs['company'])
+            # add.delay(5, 5)
+            print("hey")
         except:
             pass
         print("there")

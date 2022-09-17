@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from django.conf import settings
 
 
-# @shared_task
+@shared_task
 def getAllZipcodes(company):
     company = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company).values('zipCode')
@@ -16,9 +16,9 @@ def getAllZipcodes(company):
     for i in range(16):
         print(i)
         sleep(2)
-    # getHomesForSale(list(zipCodes.values('zipCode')))
-    # getHomesForRent(list(zipCodes.values('zipCode')))
-    # getSoldHomes(list(zipCodes.values('zipCode')))
+    getHomesForSale(list(zipCodes.values('zipCode')))
+    getHomesForRent(list(zipCodes.values('zipCode')))
+    getSoldHomes(list(zipCodes.values('zipCode')))
     updateStatus(company, zipCode_objects)
 
     #TODO uncomment this
