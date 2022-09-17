@@ -12,7 +12,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import io, csv, pandas as pd
-from .utils import getAllZipcodes, count_words_at_url
+from .utils import getAllZipcodes
 from .models import CustomUser, Client, Company, ZipCode
 from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer
 from django_rq import get_queue
