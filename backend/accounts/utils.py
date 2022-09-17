@@ -10,16 +10,14 @@ from django.conf import settings
 def getAllZipcodes(company):
     company = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company).values('zipCode')
-    print(len(zipCode_objects))
-    zipCodes = list(ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated=datetime.today().strftime('%Y-%m-%d')).values('zipCode'))
-    print(len(zipCodes))
-    # getHomesForSale(zipCodes)
-    # getHomesForRent(zipCodes)
-    getSoldHomes(zipCodes)
+    zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=datetime.today().strftime('%Y-%m-%d'))
+    getHomesForSale(list(zipCodes.values('zipCode')))
+    getHomesForRent(list(zipCodes.values('zipCode')))
+    getSoldHomes(list(zipCodes.values('zipCode')))
     updateStatus(company, zipCode_objects)
 
     #TODO uncomment this
-    ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=datetime.today().strftime('%Y-%m-%d')).update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
+    zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
 def getHomesForSale(zipCodes):    
     count = 0
