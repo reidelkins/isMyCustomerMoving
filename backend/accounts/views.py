@@ -134,7 +134,7 @@ class UpdateStatusView(APIView):
     def get(self, request, *args, **kwargs):
         try:
             print("hello")
-            result = q.enqueue(count_words_at_url, 'http://heroku.com')
+            result = q.enqueue(getAllZipcodes, 'http://heroku.com')
             print(result.result)
         except:
             pass
