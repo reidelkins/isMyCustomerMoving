@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from django.conf import settings
 
 
-@shared_task
+# @shared_task
 def getAllZipcodes(company):
     company = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company).values('zipCode')
