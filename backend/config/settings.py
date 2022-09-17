@@ -23,9 +23,11 @@ IS_HEROKU = "DYNO" in os.environ
 if IS_HEROKU:
     SECRET_KEY = os.environ['SECRET_KEY']
     RAPID_API = os.environ['RAPID_API']
+    REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
 else:
     SECRET_KEY = env('SECRET_KEY')
     RAPID_API = env('RAPID_API')
+    REDIS_URL = 'redis://localhost:6379'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

@@ -47,7 +47,7 @@ class ZipcodeAdmin(admin.ModelAdmin):
     search_fields = ['zipCode', 'lastUpdated']
 
 class HomeListingAdmin(admin.ModelAdmin):
-    list_display = ('address', 'zipCode', 'status')
+    list_display = ('address', 'zipCode', 'status', 'listed')
 
 
 # Register your models here.

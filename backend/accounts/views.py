@@ -15,7 +15,10 @@ import io, csv, pandas as pd
 from .utils import getAllZipcodes
 from .models import CustomUser, Client, Company, ZipCode
 from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer
+from worker import conn
+from rq import Queue
 
+q = Queue(connection=conn)
 
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -128,7 +131,10 @@ class ClientListView(generics.ListAPIView):
 
 class UpdateStatusView(APIView):
     def get(self, request, *args, **kwargs):
-        getAllZipcodes(self.kwargs['company'])
+        try:
+            result = q.enqueue(getAllZipcodes(self.kwargs['company']), 'http://heroku.com')
+        except:
+            pass
         return Response("", status=status.HTTP_201_CREATED, headers="")
 
 class UploadFileView(generics.CreateAPIView):
@@ -151,15 +157,31 @@ class UploadFileView(generics.CreateAPIView):
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
         for _, row in reader.iterrows():
             try:
-                zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
-                Client.objects.update_or_create(
-                        name= row["name"],
-                        address= row['street'],
-                        zipCode= zipCode,
-                        company= company
-                        )
-            except Exception as e:
-                print(e)
+                # if type(row['zip']) != int:
+                #     row['zip'] = (row['zip'].split('-'))[0]
+                #     print(row['zip'])
+                if int(row['zip']) > 500 and int(row['zip']) < 99951:
+                    zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
+                    Client.objects.update_or_create(
+                            name= row["name"],
+                            address= row['street'],
+                            zipCode= zipCode,
+                            company= company
+                            )
+            except:
+                try:
+                    if type(row['zip']) != int:
+                        row['zip'] = (row['zip'].split('-'))[0]
+                    if int(row['zip']) > 500 and int(row['zip']) < 99951:
+                        zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
+                        Client.objects.update_or_create(
+                                name= row["name"],
+                                address= row['street'],
+                                zipCode= zipCode,
+                                company= company
+                                )
+                except Exception as e:
+                    print(e)
         # getAllZipcodes(company_id)
         return Response({"status": "success"},
                         status.HTTP_201_CREATED)

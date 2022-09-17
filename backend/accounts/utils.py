@@ -10,15 +10,16 @@ from django.conf import settings
 def getAllZipcodes(company):
     company = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company).values('zipCode')
-    zipCodes = list(ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=datetime.today().strftime('%Y-%m-%d')).values('zipCode'))
-    getHomesForSale(zipCodes)
-    getHomesForRent(zipCodes)
+    print(len(zipCode_objects))
+    zipCodes = list(ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated=datetime.today().strftime('%Y-%m-%d')).values('zipCode'))
+    print(len(zipCodes))
+    # getHomesForSale(zipCodes)
+    # getHomesForRent(zipCodes)
     getSoldHomes(zipCodes)
     updateStatus(company, zipCode_objects)
 
     #TODO uncomment this
     ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=datetime.today().strftime('%Y-%m-%d')).update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
-    
 
 def getHomesForSale(zipCodes):    
     count = 0
@@ -60,30 +61,13 @@ def getHomesForSale(zipCodes):
                     print(f"zip: {zip_object}")
                     print(f"address: {listing['location']['address']['line']}")
 
+            try:
+                with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_sale.json", "w+") as f:
+                    count += 1
+                    json.dump(data, f)
+            except:
+                pass
                 
-            # with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_sale.json", "w+") as f:
-            #     count += 1
-            #     json.dump(data, f)
-
-
-    # #TODO remove this
-    # for i in range(10):
-    #     with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep14_{i}.json", "r") as f:
-    #         data = json.load(f)
-
-    #     data = data['data']['home_search']['results']
-    #     print(f"This is how much data in {i}: {len(data)}")
-    #     for listing in data:
-    #         zip_object = ZipCode.objects.get(zipCode = listing['location']['address']['postal_code'])
-    #         try:
-    #             HomeListing.objects.get_or_create(
-    #                         zipCode= zip_object,
-    #                         address= listing['location']['address']['line'],
-    #                         )
-    #         except:
-    #             print(f"zip: {zip_object}")
-    #             print(f"address: {listing['location']['address']['line']}")
-
 
 def getHomesForRent(zipCodes):
     count = 0
@@ -139,14 +123,15 @@ def getHomesForRent(zipCodes):
                     print(f"Listed: {listing['list_date']}")
                     print(f"zip: {zip_object}")
                     print(f"address: {listing['location']['address']['line']}")
-
-            # with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_{zip}_rent.json", "w+") as f:
-            #     count += 1
-            #     json.dump(data, f)
+            try:
+                with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_{zip}_rent.json", "w+") as f:
+                    count += 1
+                    json.dump(data, f)
+            except:
+                pass
             
                 
 def getSoldHomes(zipCodes):
-    zipCodes = zipCodes[-3:-2]
     count = 0
     for zip in zipCodes:
         offset = 0
@@ -173,11 +158,6 @@ def getSoldHomes(zipCodes):
             print(f"The new offset is {offset}")
             if offset >= total:
                 moreListings = False
-            # with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep14_{count}_{zip}_sold.json", "w+") as f:
-            #     count += 1
-            #     json.dump(data, f)
-            # with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep14_{1}_sold.json", "r") as f:
-            #     data = json.load(f)
 
             data = data['data']['home_search']['results']
 
@@ -201,9 +181,12 @@ def getSoldHomes(zipCodes):
                     print(f"zip: {zip_object}")
                     print(f"address: {listing['location']['address']['line']}")
             
-            # with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_{zip}_sold.json", "w+") as f:
-            #     count += 1
-            #     json.dump(data, f)
+            try:
+                with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_{zip}_sold.json", "w+") as f:
+                    count += 1
+                    json.dump(data, f)
+            except:
+                pass
 
 
 def updateStatus(company, zipCodes):

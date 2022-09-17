@@ -2,7 +2,7 @@ import os
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.contrib.auth.models import UnicodeUsernameValidator
-from django.core.validators import MinLengthValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils.translation import gettext as _
 import uuid
@@ -16,6 +16,7 @@ ROLE_CHOICES = (
     ('Full Stack Designer', 'Full Stack Designer'),
     ('Front End Developer', 'Front End Developer'),
     ('Full Stack Developer', 'Full Stack Developer'),
+    ('admin', 'admin')
 )
 
 STATUS_CHOICES = (
@@ -89,7 +90,7 @@ class Company(models.Model):
         upload_to='customers', null=True, blank=True, default='/placeholder.png')
 
 class ZipCode(models.Model):
-    zipCode = models.IntegerField(primary_key=True, unique=True)
+    zipCode = models.IntegerField(primary_key=True, unique=True, validators=[MinValueValidator(500), MaxValueValidator(99951)])
     lastUpdated = models.DateField(default=(datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d'))
 
 class Client(models.Model):
@@ -97,7 +98,7 @@ class Client(models.Model):
                           default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=100)
-    zipCode = models.ForeignKey(ZipCode, blank=True, null=True, on_delete=models.SET_NULL)
+    zipCode = models.ForeignKey(ZipCode, on_delete=models.CASCADE)
     company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.SET_NULL)
     status = models.CharField(max_length=20, choices=STATUS, default='No Change')
 
