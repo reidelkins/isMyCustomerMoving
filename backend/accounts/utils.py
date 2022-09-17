@@ -6,6 +6,17 @@ import json
 from datetime import datetime, timedelta
 from django.conf import settings
 
+import requests
+
+def count_words_at_url(url):
+    resp = requests.get(url)
+    return len(resp.text.split())
+
+from rq import Queue
+from worker import conn
+
+q = Queue(connection=conn)
+
 
 def getAllZipcodes(company):
     company = Company.objects.get(id=company)
