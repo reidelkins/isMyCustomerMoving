@@ -3,9 +3,12 @@ from time import sleep
 import os
 import http.client
 import json
+from celery import shared_task
 from datetime import datetime, timedelta
 from django.conf import settings
 
+
+@shared_task
 def getAllZipcodes(company):
     company = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company).values('zipCode')

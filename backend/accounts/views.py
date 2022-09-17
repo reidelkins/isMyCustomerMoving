@@ -15,7 +15,6 @@ import io, csv, pandas as pd
 from .utils import getAllZipcodes
 from .models import CustomUser, Client, Company, ZipCode
 from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer
-from django_rq import get_queue
 
 
 class RegisterView(APIView):
@@ -131,9 +130,8 @@ class UpdateStatusView(APIView):
     def get(self, request, *args, **kwargs):
         try:
             print("hello")
-            queue = get_queue('high', is_async=True, default_timeout=360)
-            result = queue.enqueue(getAllZipcodes(self.kwargs['company']))
-            print(result.result)
+            getAllZipcodes(self.kwargs['company'])
+            
         except:
             pass
         print("there")
