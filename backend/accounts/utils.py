@@ -1,5 +1,5 @@
 from .models import Client, Company, ZipCode, HomeListing
-
+from time import sleep
 import os
 import http.client
 import json
@@ -11,9 +11,12 @@ def getAllZipcodes(company):
     company = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company).values('zipCode')
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=datetime.today().strftime('%Y-%m-%d'))
-    getHomesForSale(list(zipCodes.values('zipCode')))
-    getHomesForRent(list(zipCodes.values('zipCode')))
-    getSoldHomes(list(zipCodes.values('zipCode')))
+    for i in range(100):
+        print(i)
+        sleep(2)
+    # getHomesForSale(list(zipCodes.values('zipCode')))
+    # getHomesForRent(list(zipCodes.values('zipCode')))
+    # getSoldHomes(list(zipCodes.values('zipCode')))
     updateStatus(company, zipCode_objects)
 
     #TODO uncomment this

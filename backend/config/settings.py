@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import dj_database_url
 
+
 import environ  # import environ
 
 env = environ.Env()  # Initialise environment variables
