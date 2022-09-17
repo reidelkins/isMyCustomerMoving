@@ -15,11 +15,8 @@ import io, csv, pandas as pd
 from .utils import getAllZipcodes, count_words_at_url
 from .models import CustomUser, Client, Company, ZipCode
 from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer
-from worker import conn
-from rq import Queue
-from rq.worker import HerokuWorker as Worker
+from django_rq import get_queue
 
-q = Queue(connection=conn)
 
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -134,7 +131,8 @@ class UpdateStatusView(APIView):
     def get(self, request, *args, **kwargs):
         try:
             print("hello")
-            result = q.enqueue(getAllZipcodes(self.kwargs['company']))
+            queue = get_queue('high', is_async=True, default_timeout=360)
+            result = queue.enqueue(getAllZipcodes(self.kwargs['company']))
             print(result.result)
         except:
             pass

@@ -37,6 +37,7 @@ urlpatterns = [
     ), name='openapi-schema'),
 
     path('api/v1/accounts/', include('accounts.urls')),
+    path('django-rq/', include('django_rq.urls'))
 
 ]
 
