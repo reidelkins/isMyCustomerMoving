@@ -13,17 +13,15 @@ def getAllZipcodes(company):
     company = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company).values('zipCode')
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=datetime.today().strftime('%Y-%m-%d'))
-    for i in range(16):
-        print(i)
-        sleep(2)
-    getHomesForSale(list(zipCodes.values('zipCode')))
-    getHomesForRent(list(zipCodes.values('zipCode')))
-    getSoldHomes(list(zipCodes.values('zipCode')))
+    getHomesForSale.delay(list(zipCodes.values('zipCode')))
+    getHomesForRent.delay(list(zipCodes.values('zipCode')))
+    getSoldHomes.delay(list(zipCodes.values('zipCode')))
     updateStatus(company, zipCode_objects)
 
     #TODO uncomment this
     zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
+@shared_task
 def getHomesForSale(zipCodes):    
     count = 0
     for zip in zipCodes:
@@ -71,7 +69,7 @@ def getHomesForSale(zipCodes):
             except:
                 pass
                 
-
+@shared_task
 def getHomesForRent(zipCodes):
     count = 0
     for zip in zipCodes:
@@ -133,7 +131,7 @@ def getHomesForRent(zipCodes):
             except:
                 pass
             
-                
+@shared_task               
 def getSoldHomes(zipCodes):
     count = 0
     for zip in zipCodes:
