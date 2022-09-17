@@ -131,10 +131,13 @@ class ClientListView(generics.ListAPIView):
 
 class UpdateStatusView(APIView):
     def get(self, request, *args, **kwargs):
-        # try:
-        result = q.enqueue(getAllZipcodes(self.kwargs['company']), 'http://heroku.com')
-        # except:
-        #     pass
+        try:
+            print("hello")
+            result = q.enqueue(getAllZipcodes(self.kwargs['company']), 'http://heroku.com')
+            print("bye")
+        except:
+            pass
+        print("there")
         return Response("", status=status.HTTP_201_CREATED, headers="")
 
 class UploadFileView(generics.CreateAPIView):
