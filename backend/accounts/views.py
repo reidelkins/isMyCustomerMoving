@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.hashers import make_password
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
+from isMyCustomerMoving.backend.config import celery
 from rest_framework import permissions, status, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -131,7 +132,7 @@ class UpdateStatusView(APIView):
         try:
             print("hello")
             getAllZipcodes(self.kwargs['company'])
-            
+            celery.add
         except:
             pass
         print("there")
