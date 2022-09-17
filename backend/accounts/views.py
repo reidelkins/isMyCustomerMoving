@@ -134,7 +134,7 @@ class UpdateStatusView(APIView):
     def get(self, request, *args, **kwargs):
         try:
             print("hello")
-            result = q.enqueue(getAllZipcodes, 'http://heroku.com')
+            result = q.enqueue(getAllZipcodes(self.kwargs['company']))
             print(result.result)
         except:
             pass
