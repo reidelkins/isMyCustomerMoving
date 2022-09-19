@@ -19,6 +19,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = False
+
 # Declared in your environment variables
 IS_HEROKU = "DYNO" in os.environ
 REDIS_URL = os.environ.get('REDIS_URL')
@@ -30,9 +33,6 @@ else:
     SECRET_KEY = env('SECRET_KEY')
     RAPID_API = env('RAPID_API')
     # REDIS_URL = 'redis://localhost:6379'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
 
 ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "is-my-customer-moving.herokuapp.com"]
 

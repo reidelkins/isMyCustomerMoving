@@ -145,6 +145,7 @@ class UploadFileView(generics.CreateAPIView):
         try:
             company = Company.objects.get(id=company_id)
         except:
+            print("This is 1")
             return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             reader = pd.read_csv(file, on_bad_lines='skip')
@@ -157,6 +158,7 @@ class UploadFileView(generics.CreateAPIView):
                 if "street" in column:
                     reader.columns = reader.columns.str.replace(column, 'street')
         except:
+            print("This is 2")
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
         for _, row in reader.iterrows():
             try:
