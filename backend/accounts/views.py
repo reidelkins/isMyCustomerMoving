@@ -162,8 +162,8 @@ class UploadFileView(generics.CreateAPIView):
         print("2")
         print("sup")
         for _, row in reader.iterrows():
-            print(type(row))
-            print(row)
+            print(type(row.to_dict()))
+            print(row.to_dict())
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
         #     saveClientList.delay(row, company_id)
         #     try:
