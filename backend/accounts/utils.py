@@ -14,8 +14,8 @@ def getAllZipcodes(company):
     zipCode_objects = Client.objects.filter(company=company).values('zipCode')
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=datetime.today().strftime('%Y-%m-%d'))
     getHomesForSale.delay(list(zipCodes.values('zipCode')), company, zipCode_objects)
-    getHomesForRent.delay(list(zipCodes.values('zipCode')), company, zipCode_objects)
-    getSoldHomes.delay(list(zipCodes.values('zipCode')), company, zipCode_objects)
+    # getHomesForRent.delay(list(zipCodes.values('zipCode')), company, zipCode_objects)
+    # getSoldHomes.delay(list(zipCodes.values('zipCode')), company, zipCode_objects)
     # updateStatus(company, zipCode_objects)
 
     #TODO uncomment this
@@ -62,12 +62,12 @@ def getHomesForSale(zipCodes, company, zipCode_objects):
                     print(f"zip: {zip_object}")
                     print(f"address: {listing['location']['address']['line']}")
 
-            try:
-                with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_sale.json", "w+") as f:
-                    count += 1
-                    json.dump(data, f)
-            except:
-                pass
+            # try:
+            #     with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_sale.json", "w+") as f:
+            #         count += 1
+            #         json.dump(data, f)
+            # except:
+            #     pass
     listedAddresses = HomeListing.objects.filter(zipCode__in=zipCode_objects, status='For Sale').values('address')
     print(len(listedAddresses))
     clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses)
@@ -128,12 +128,12 @@ def getHomesForRent(zipCodes, company, zipCode_objects):
                     print(f"Listed: {listing['list_date']}")
                     print(f"zip: {zip_object}")
                     print(f"address: {listing['location']['address']['line']}")
-            try:
-                with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_{zip}_rent.json", "w+") as f:
-                    count += 1
-                    json.dump(data, f)
-            except:
-                pass
+            # try:
+            #     with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_{zip}_rent.json", "w+") as f:
+            #         count += 1
+            #         json.dump(data, f)
+            # except:
+            #     pass
     listedAddresses = HomeListing.objects.filter(zipCode__in=zipCode_objects, status='For Rent').values('address')
     print(len(listedAddresses))
     clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses)
@@ -191,12 +191,12 @@ def getSoldHomes(zipCodes, company, zipCode_objects):
                     print(f"zip: {zip_object}")
                     print(f"address: {listing['location']['address']['line']}")
             
-            try:
-                with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_{zip}_sold.json", "w+") as f:
-                    count += 1
-                    json.dump(data, f)
-            except:
-                pass
+            # try:
+            #     with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_{zip}_sold.json", "w+") as f:
+            #         count += 1
+            #         json.dump(data, f)
+            # except:
+            #     pass
 
     listedAddresses = HomeListing.objects.filter(zipCode__in=zipCode_objects, status='Recently Sold (6)').values('address')
     print(len(listedAddresses))
