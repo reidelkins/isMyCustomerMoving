@@ -10,6 +10,9 @@ from django.conf import settings
 
 @shared_task
 def saveClientList(reader, company_id):
+    print("got here")
+    print(company_id)
+    return
     company = Company.objects.get(id=company_id)
     for _, row in reader.iterrows():
             try:
