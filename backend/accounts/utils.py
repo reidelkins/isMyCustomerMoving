@@ -24,7 +24,9 @@ def getAllZipcodes(company):
 @shared_task
 def getHomesForSale(zipCodes, company, zipCode_objects):    
     count = 0
+    print(len(zipCodes))
     for zip in zipCodes:
+        print(zip)
         offset = 0
         zip = zip['zipCode']
         moreListings = True
