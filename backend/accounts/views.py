@@ -12,7 +12,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import io, csv, pandas as pd
-from .utils import getAllZipcodes
+from .utils import getAllZipcodes, saveClientList
 from .models import CustomUser, Client, Company, ZipCode
 from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer
 
@@ -142,7 +142,7 @@ class UploadFileView(generics.CreateAPIView):
         company_id = list(serializer.initial_data.dict().keys())[0]
         file = serializer.initial_data[company_id]
         try:
-            company = Company.objects.get(id=company_id)
+            Company.objects.get(id=company_id)
         except:
             return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
         try:
@@ -157,31 +157,32 @@ class UploadFileView(generics.CreateAPIView):
                     reader.columns = reader.columns.str.replace(column, 'street')
         except:
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
-        for _, row in reader.iterrows():
-            try:
-                if int(row['zip']) > 500 and int(row['zip']) < 99951:
-                # if int(row['zip']) > 37770 and int(row['zip']) < 37775:
-                    zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
-                    Client.objects.update_or_create(
-                            name= row["name"],
-                            address= row['street'],
-                            zipCode= zipCode,
-                            company= company
-                            )
-            except:
-                try:
-                    if type(row['zip']) != int:
-                        row['zip'] = (row['zip'].split('-'))[0]
-                    if int(row['zip']) > 500 and int(row['zip']) < 99951:
-                    # if int(row['zip']) > 37770 and int(row['zip']) < 37775:
-                        zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
-                        Client.objects.update_or_create(
-                                name= row["name"],
-                                address= row['street'],
-                                zipCode= zipCode,
-                                company= company
-                                )
-                except Exception as e:
-                    print(e)
+        saveClientList.delay(reader, company_id)
+        # for _, row in reader.iterrows():
+        #     try:
+        #         if int(row['zip']) > 500 and int(row['zip']) < 99951:
+        #         # if int(row['zip']) > 37770 and int(row['zip']) < 37775:
+        #             zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
+        #             Client.objects.update_or_create(
+        #                     name= row["name"],
+        #                     address= row['street'],
+        #                     zipCode= zipCode,
+        #                     company= company
+        #                     )
+        #     except:
+        #         try:
+        #             if type(row['zip']) != int:
+        #                 row['zip'] = (row['zip'].split('-'))[0]
+        #             if int(row['zip']) > 500 and int(row['zip']) < 99951:
+        #             # if int(row['zip']) > 37770 and int(row['zip']) < 37775:
+        #                 zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
+        #                 Client.objects.update_or_create(
+        #                         name= row["name"],
+        #                         address= row['street'],
+        #                         zipCode= zipCode,
+        #                         company= company
+        #                         )
+        #         except Exception as e:
+        #             print(e)
         return Response({"status": "success"},
                         status.HTTP_201_CREATED)

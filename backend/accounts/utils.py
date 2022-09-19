@@ -9,6 +9,36 @@ from django.conf import settings
 
 
 @shared_task
+def saveClientList(reader, company_id):
+    company = Company.objects.get(id=company_id)
+    for _, row in reader.iterrows():
+            try:
+                if int(row['zip']) > 500 and int(row['zip']) < 99951:
+                # if int(row['zip']) > 37770 and int(row['zip']) < 37775:
+                    zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
+                    Client.objects.update_or_create(
+                            name= row["name"],
+                            address= row['street'],
+                            zipCode= zipCode,
+                            company= company
+                            )
+            except:
+                try:
+                    if type(row['zip']) != int:
+                        row['zip'] = (row['zip'].split('-'))[0]
+                    if int(row['zip']) > 500 and int(row['zip']) < 99951:
+                    # if int(row['zip']) > 37770 and int(row['zip']) < 37775:
+                        zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
+                        Client.objects.update_or_create(
+                                name= row["name"],
+                                address= row['street'],
+                                zipCode= zipCode,
+                                company= company
+                                )
+                except Exception as e:
+                    print(e)
+
+@shared_task
 def getAllZipcodes(company):
     company_object = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company_object).values('zipCode')
