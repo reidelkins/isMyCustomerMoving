@@ -157,14 +157,19 @@ class UploadFileView(generics.CreateAPIView):
                     reader.columns = reader.columns.str.replace(column, 'street')
         except:
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
-        print(company_id)
-        # saveClientList.delay(reader, company_id)
-        print("2")
-        print("sup")
+        # print(company_id)
+        # # saveClientList.delay(reader, company_id)
+        # print("2")
+        # print("sup")
+        # count = 0
         for _, row in reader.iterrows():
             print(type(row.to_dict()))
             print(row.to_dict())
             saveClientList.delay(row.to_dict(), company_id)
+
+            # count += 1
+            # if (count > 100):
+            #     return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
             # return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
         #     saveClientList.delay(row, company_id)
         #     try:
