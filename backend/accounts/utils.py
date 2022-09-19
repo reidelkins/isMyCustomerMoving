@@ -9,11 +9,12 @@ from django.conf import settings
 
 
 @shared_task
-def saveClientList(row, company_id):
+def saveClientList(company_id):
     print("got here")
     print(company_id)
-    # return
     company = Company.objects.get(id=company_id)
+    return
+    
     # for _, row in reader.iterrows():
     try:
         if int(row['zip']) > 500 and int(row['zip']) < 99951:
