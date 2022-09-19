@@ -70,10 +70,10 @@ def getHomesForSale(zipCodes, company, zipCode_objects):
             #         json.dump(data, f)
             # except:
             #     pass
-    listedAddresses = HomeListing.objects.filter(zipCode__in=zipCode_objects, status='For Sale').values('address')
-    print(len(listedAddresses))
-    clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses)
-    clientsToUpdate.update(status="For Sale")    
+    # listedAddresses = HomeListing.objects.filter(zipCode__in=zipCode_objects, status='For Sale').values('address')
+    # print(len(listedAddresses))
+    # clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses)
+    # clientsToUpdate.update(status="For Sale")    
 
 @shared_task
 def getHomesForRent(zipCodes, company, zipCode_objects):
@@ -136,10 +136,10 @@ def getHomesForRent(zipCodes, company, zipCode_objects):
             #         json.dump(data, f)
             # except:
             #     pass
-    listedAddresses = HomeListing.objects.filter(zipCode__in=zipCode_objects, status='For Rent').values('address')
-    print(len(listedAddresses))
-    clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses)
-    clientsToUpdate.update(status="For Rent")
+    # listedAddresses = HomeListing.objects.filter(zipCode__in=zipCode_objects, status='For Rent').values('address')
+    # print(len(listedAddresses))
+    # clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses)
+    # clientsToUpdate.update(status="For Rent")
 
 
 @shared_task               
@@ -200,15 +200,15 @@ def getSoldHomes(zipCodes, company, zipCode_objects):
             # except:
             #     pass
 
-    listedAddresses = HomeListing.objects.filter(zipCode__in=zipCode_objects, status='Recently Sold (6)').values('address')
-    print(len(listedAddresses))
-    clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses)
-    clientsToUpdate.update(status="Recently Sold (6)")
+    # listedAddresses = HomeListing.objects.filter(zipCode__in=zipCode_objects, status='Recently Sold (6)').values('address')
+    # print(len(listedAddresses))
+    # clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses)
+    # clientsToUpdate.update(status="Recently Sold (6)")
 
-    listedAddresses = HomeListing.objects.filter(zipCode__in=zipCode_objects, status='Recently Sold (12)').values('address')
-    print(len(listedAddresses))
-    clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses)
-    clientsToUpdate.update(status="Recently Sold (12)")
+    # listedAddresses = HomeListing.objects.filter(zipCode__in=zipCode_objects, status='Recently Sold (12)').values('address')
+    # print(len(listedAddresses))
+    # clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses)
+    # clientsToUpdate.update(status="Recently Sold (12)")
 
 # def updateStatus(company, zipCodes):
 #     listedAddresses = HomeListing.objects.filter(zipCode__in=zipCodes, status='For Rent').values('address')
