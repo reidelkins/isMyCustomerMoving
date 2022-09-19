@@ -158,10 +158,13 @@ class UploadFileView(generics.CreateAPIView):
         except:
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
         print(company_id)
-        saveClientList.delay(company_id)
+        # saveClientList.delay(reader, company_id)
         print("2")
         print("sup")
-        # for _, row in reader.iterrows():
+        for _, row in reader.iterrows():
+            print(type(row))
+            print(row)
+            return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
         #     saveClientList.delay(row, company_id)
         #     try:
         #         if int(row['zip']) > 500 and int(row['zip']) < 99951:
