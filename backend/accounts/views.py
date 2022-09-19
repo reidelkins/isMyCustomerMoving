@@ -163,8 +163,6 @@ class UploadFileView(generics.CreateAPIView):
         # print("sup")
         # count = 0
         for _, row in reader.iterrows():
-            print(type(row.to_dict()))
-            print(row.to_dict())
             saveClientList.delay(row.to_dict(), company_id)
 
             # count += 1

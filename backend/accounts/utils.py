@@ -57,7 +57,7 @@ def getAllZipcodes(company):
 def getHomesForSale(zip, company):#, company, zipCode_objects):        
     print(zip)
     offset = 0
-    # zip = zip['zipCode']
+    zip = zip['zipCode']
     moreListings = True
     while(moreListings):
         conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
@@ -160,7 +160,7 @@ def getHomesForRent(zip, company):
     count = 0
     # for zip in zipCodes:
     offset = 0
-    # zip = zip['zipCode']
+    zip = zip['zipCode']
     moreListings = True
     while(moreListings):
         conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
@@ -221,7 +221,7 @@ def getSoldHomes(zip, company):
     count = 0
     # for zip in zipCodes:
     offset = 0
-    # zip = zip['zipCode']
+    zip = zip['zipCode']
     moreListings = True
     while(moreListings):
         conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
