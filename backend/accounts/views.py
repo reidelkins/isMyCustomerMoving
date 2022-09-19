@@ -12,14 +12,10 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import io, csv, pandas as pd
-from .utils import getAllZipcodes, count_words_at_url
+from .utils import getAllZipcodes
 from .models import CustomUser, Client, Company, ZipCode
 from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer
-from worker import conn
-from rq import Queue
-from rq.worker import HerokuWorker as Worker
-
-q = Queue(connection=conn)
+from .tasks import add
 
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -54,8 +50,7 @@ class RegisterView(APIView):
         if len(messages['errors']) > 0:
             return Response({"detail": messages['errors']}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            company = Company.objects.get(name=company)
-            print(company)
+            company = Company.objects.get(name=company, accessToken=accessToken)
             user = CustomUser.objects.create(
                 first_name=first_name,
                 last_name=last_name,
@@ -64,16 +59,16 @@ class RegisterView(APIView):
                 company=company,
                 # accessToken=accessToken
             )
-            current_site = get_current_site(request)
-            mail_subject = 'Activation link has been sent to your email id'
-            tokenSerializer = UserSerializerWithToken(user, many=False)
+            # current_site = get_current_site(request)
+            # mail_subject = 'Activation link has been sent to your email id'
+            # tokenSerializer = UserSerializerWithToken(user, many=False)
 
             # Next version will add a HTML template
-            message = "Confirm your email {}/api/v1/accounts/confirmation{}/{}/".format(current_site, tokenSerializer.data['refresh'], user.id)
-            to_email = email
-            send_mail(
-                    mail_subject, message, "youremail@email.com", [to_email]
-            )
+            # message = "Confirm your email {}/api/v1/accounts/confirmation{}/{}/".format(current_site, tokenSerializer.data['refresh'], user.id)
+            # to_email = email
+            # send_mail(
+            #         mail_subject, message, "youremail@email.com", [to_email]
+            # )
             serializer = UserSerializerWithToken(user, many=False)
         except Exception as e:
             print(e)
@@ -132,22 +127,19 @@ class ClientListView(generics.ListAPIView):
 
 class UpdateStatusView(APIView):
     def get(self, request, *args, **kwargs):
+        print("sup")
         try:
-            print("hello")
-            result = q.enqueue(getAllZipcodes, 'http://heroku.com')
-            print(result.result)
+            getAllZipcodes(self.kwargs['company'])
+            print("double sup")
         except:
-            pass
-        print("there")
+            print("triple sup")
         return Response("", status=status.HTTP_201_CREATED, headers="")
 
 class UploadFileView(generics.CreateAPIView):
     serializer_class = UploadFileSerializer
     
     def post(self, request, *args, **kwargs):
-        
         serializer = self.get_serializer(data=request.data)
-        print(list(serializer.initial_data.dict().keys())[0])
         company_id = list(serializer.initial_data.dict().keys())[0]
         file = serializer.initial_data[company_id]
         try:
@@ -155,16 +147,21 @@ class UploadFileView(generics.CreateAPIView):
         except:
             return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            reader = pd.read_csv(file)
+            reader = pd.read_csv(file, on_bad_lines='skip')
             reader.columns= reader.columns.str.lower()
+            for column in reader.columns:
+                if "name" in column:
+                    reader.columns = reader.columns.str.replace(column, 'name')
+                if "zip" in column:
+                    reader.columns = reader.columns.str.replace(column, 'zip')
+                if "street" in column:
+                    reader.columns = reader.columns.str.replace(column, 'street')
         except:
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
         for _, row in reader.iterrows():
             try:
-                # if type(row['zip']) != int:
-                #     row['zip'] = (row['zip'].split('-'))[0]
-                #     print(row['zip'])
-                if int(row['zip']) > 500 and int(row['zip']) < 99951:
+                # if int(row['zip']) > 500 and int(row['zip']) < 99951:
+                if int(row['zip']) > 37770 and int(row['zip']) < 37775:
                     zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
                     Client.objects.update_or_create(
                             name= row["name"],
@@ -176,7 +173,8 @@ class UploadFileView(generics.CreateAPIView):
                 try:
                     if type(row['zip']) != int:
                         row['zip'] = (row['zip'].split('-'))[0]
-                    if int(row['zip']) > 500 and int(row['zip']) < 99951:
+                    # if int(row['zip']) > 500 and int(row['zip']) < 99951:
+                    if int(row['zip']) > 37770 and int(row['zip']) < 37775:
                         zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
                         Client.objects.update_or_create(
                                 name= row["name"],
@@ -186,6 +184,5 @@ class UploadFileView(generics.CreateAPIView):
                                 )
                 except Exception as e:
                     print(e)
-        # getAllZipcodes(company_id)
         return Response({"status": "success"},
                         status.HTTP_201_CREATED)

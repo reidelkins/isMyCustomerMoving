@@ -146,8 +146,27 @@ export default function User() {
   };
 
   const updateStatus = () => {
-    console.log("hello")
     dispatch(update());
+  };
+
+  const exportCSV = () => {
+    if (USERLIST.length === 0) { return }
+    console.log(USERLIST.length)
+    let csvContent = 'data:text/csv;charset=utf-8,';
+    csvContent += 'Name,Address,ZipCode,Status\r\n';
+    USERLIST.forEach((n) => {
+      csvContent += `${n.name}, ${n.address}, ${n.zipCode}, ${n.status}\r\n`
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    const d1 = new Date().toLocaleDateString('en-US')
+    const docName = `isMyCustomerMoving_${d1}`
+    link.setAttribute('download', `${docName}.csv`);
+    document.body.appendChild(link); // Required for FF
+    link.click();
+    document.body.removeChild(link);
   };
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
@@ -157,7 +176,6 @@ export default function User() {
   const isUserNotFound = filteredUsers.length === 0;
 
   const [files, setFiles] = useState([])
-
   return (
     <Page title="User">
       <Container>
@@ -274,7 +292,7 @@ export default function User() {
           </Button>
 
           {userInfo.status === 'admin' && (
-            <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+            <Button onClick={exportCSV} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
               Download To CSV
             </Button>
           )}
