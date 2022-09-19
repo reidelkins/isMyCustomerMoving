@@ -9,7 +9,7 @@ from django.conf import settings
 
 
 @shared_task
-def saveClientList(company_id):
+def saveClientList(reader, company_id):
     print("got here")
     print(company_id)
     company = Company.objects.get(id=company_id)
