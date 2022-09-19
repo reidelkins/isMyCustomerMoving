@@ -57,6 +57,7 @@ class RegisterView(APIView):
                 email=email,
                 password=make_password(password),
                 company=company,
+                status='admin'
                 # accessToken=accessToken
             )
             # current_site = get_current_site(request)
@@ -127,12 +128,11 @@ class ClientListView(generics.ListAPIView):
 
 class UpdateStatusView(APIView):
     def get(self, request, *args, **kwargs):
-        print("sup")
         try:
-            getAllZipcodes(self.kwargs['company'])
-            print("double sup")
-        except:
-            print("triple sup")
+            getAllZipcodes.delay(self.kwargs['company'])
+        except Exception as e:
+            print("Update Status View")
+            print(e)
         return Response("", status=status.HTTP_201_CREATED, headers="")
 
 class UploadFileView(generics.CreateAPIView):
@@ -148,8 +148,11 @@ class UploadFileView(generics.CreateAPIView):
             print("This is 1")
             return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
         try:
+            print("a")
             reader = pd.read_csv(file, on_bad_lines='skip')
+            print("b")
             reader.columns= reader.columns.str.lower()
+            print("c")
             for column in reader.columns:
                 if "name" in column:
                     reader.columns = reader.columns.str.replace(column, 'name')
