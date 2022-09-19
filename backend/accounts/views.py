@@ -159,8 +159,8 @@ class UploadFileView(generics.CreateAPIView):
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
         for _, row in reader.iterrows():
             try:
-                # if int(row['zip']) > 500 and int(row['zip']) < 99951:
-                if int(row['zip']) > 37770 and int(row['zip']) < 37775:
+                if int(row['zip']) > 500 and int(row['zip']) < 99951:
+                # if int(row['zip']) > 37770 and int(row['zip']) < 37775:
                     zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
                     Client.objects.update_or_create(
                             name= row["name"],
@@ -172,8 +172,8 @@ class UploadFileView(generics.CreateAPIView):
                 try:
                     if type(row['zip']) != int:
                         row['zip'] = (row['zip'].split('-'))[0]
-                    # if int(row['zip']) > 500 and int(row['zip']) < 99951:
-                    if int(row['zip']) > 37770 and int(row['zip']) < 37775:
+                    if int(row['zip']) > 500 and int(row['zip']) < 99951:
+                    # if int(row['zip']) > 37770 and int(row['zip']) < 37775:
                         zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
                         Client.objects.update_or_create(
                                 name= row["name"],
