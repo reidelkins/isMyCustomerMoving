@@ -15,7 +15,6 @@ import io, csv, pandas as pd
 from .utils import getAllZipcodes
 from .models import CustomUser, Client, Company, ZipCode
 from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer
-from .tasks import add
 
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
