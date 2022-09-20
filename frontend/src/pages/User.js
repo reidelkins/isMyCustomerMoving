@@ -45,6 +45,8 @@ import { update } from '../redux/actions/usersActions';
 const TABLE_HEAD = [
   { id: 'name', label: 'Name', alignRight: false },
   { id: 'address', label: 'Address', alignRight: false },
+  { id: 'city', label: 'City', alignRight: false },
+  { id: 'state', label: 'State', alignRight: false },
   { id: 'zipCode', label: 'Zip Code', alignRight: false },
   { id: 'status', label: 'Status', alignRight: false },
   { id: '' },
@@ -149,13 +151,14 @@ export default function User() {
     dispatch(update());
   };
 
+  
   const exportCSV = () => {
     if (USERLIST.length === 0) { return }
-    console.log(USERLIST.length)
+    // console.log(USERLIST.length)
     let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += 'Name,Address,ZipCode,Status\r\n';
+    csvContent += 'Name,Address,City,State,ZipCode,Status\r\n';
     USERLIST.forEach((n) => {
-      csvContent += `${n.name}, ${n.address}, ${n.zipCode}, ${n.status}\r\n`
+      csvContent += `${n.name}, ${n.address}, ${n.city}, ${n.state}, ${n.zipCode}, ${n.status}\r\n`
     });
 
     const encodedUri = encodeURI(csvContent);
@@ -220,7 +223,7 @@ export default function User() {
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, address, zipCode, status } = row;
+                    const { id, name, address, city, state, zipCode, status } = row;
                     const isItemSelected = selected.indexOf(name) !== -1;
 
                     return (
@@ -243,6 +246,8 @@ export default function User() {
                           </Stack>
                         </TableCell>
                         <TableCell align="left">{address}</TableCell>
+                        <TableCell align="left">{city}</TableCell>
+                        <TableCell align="left">{state}</TableCell>
                         <TableCell align="left">{zipCode}</TableCell>
                         <TableCell align="left">
                           <Label variant="ghost" color={(status === 'banned' && 'error') || 'success'}>
@@ -309,6 +314,7 @@ export default function User() {
             labelIdle=' <span class="filepond--label-action">Upload Your Client List</span>'
             credits='false'
             storeAsFile='true'
+            // acceptedFileTypes={['image/png', 'image/jpeg']}
           />
         )} 
       </Container>

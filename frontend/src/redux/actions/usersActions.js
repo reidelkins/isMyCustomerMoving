@@ -51,8 +51,6 @@ export const update = () => async (dispatch, getState) => {
     };
 
     const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/update/${userInfo.company}`, config);
-    console.log(data)
-    console.log("blah")
     dispatch({
       type: STATUS_SUCCESS,
       payload: data,

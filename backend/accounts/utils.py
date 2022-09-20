@@ -16,10 +16,12 @@ def saveClientList(row, company_id):
         # if int(row['zip']) > 37770 and int(row['zip']) < 37775:
             zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
             Client.objects.update_or_create(
-                    name= row["name"],
+                    name= row['name'],
                     address= row['street'],
                     zipCode= zipCode,
-                    company= company
+                    company= company,
+                    city= row['city'],
+                    state = row['state'],
                     )
     except:
         try:
@@ -32,7 +34,9 @@ def saveClientList(row, company_id):
                         name= row["name"],
                         address= row['street'],
                         zipCode= zipCode,
-                        company= company
+                        company= company,
+                        city= row['city'],
+                        state = row['state'],
                         )
         except Exception as e:
             print(e)

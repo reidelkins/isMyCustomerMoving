@@ -9,8 +9,6 @@ import { logout } from '../../redux/actions/authActions';
 import { LOGOUT } from '../../redux/types/auth';
 // components
 import MenuPopover from '../../components/MenuPopover';
-// mocks_
-import account from '../../_mock/account';
 
 // ----------------------------------------------------------------------
 
@@ -83,7 +81,7 @@ export default function AccountPopover() {
           }),
         }}
       >
-        <Avatar src={account.photoURL} alt="photoURL" />
+        <Avatar src={""} alt="photoURL" />
       </IconButton>
 
       <MenuPopover

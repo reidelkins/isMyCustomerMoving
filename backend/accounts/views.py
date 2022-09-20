@@ -155,6 +155,10 @@ class UploadFileView(generics.CreateAPIView):
                     reader.columns = reader.columns.str.replace(column, 'zip')
                 if "street" in column:
                     reader.columns = reader.columns.str.replace(column, 'street')
+                if "city" in column:
+                    reader.columns = reader.columns.str.replace(column, 'city')
+                if "state" in column:
+                    reader.columns = reader.columns.str.replace(column, 'state')
         except:
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
         # print(company_id)

@@ -169,3 +169,5 @@ oldJsons
 sep*
 .DS_Store
 venv/
+
+backend/accounts/migrations

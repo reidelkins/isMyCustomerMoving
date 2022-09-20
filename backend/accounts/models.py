@@ -101,6 +101,8 @@ class Client(models.Model):
     zipCode = models.ForeignKey(ZipCode, on_delete=models.CASCADE)
     company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.SET_NULL)
     status = models.CharField(max_length=20, choices=STATUS, default='No Change')
+    city = models.CharField(max_length=30, blank=True, null=True)
+    state = models.CharField(max_length=30, blank=True, null=True)
 
 class ClientList(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
