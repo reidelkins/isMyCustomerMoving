@@ -128,7 +128,7 @@ class ClientListView(generics.ListAPIView):
 class UpdateStatusView(APIView):
     def get(self, request, *args, **kwargs):
         try:
-            getAllZipcodes.delay(self.kwargs['company'])
+            getAllZipcodes(self.kwargs['company'])
         except Exception as e:
             print("Update Status View")
             print(e)
@@ -167,7 +167,7 @@ class UploadFileView(generics.CreateAPIView):
         # print("sup")
         # count = 0
         for _, row in reader.iterrows():
-            saveClientList.delay(row.to_dict(), company_id)
+            saveClientList(row.to_dict(), company_id)
 
             # count += 1
             # if (count > 100):

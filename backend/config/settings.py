@@ -20,11 +20,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 # Declared in your environment variables
 IS_HEROKU = "DYNO" in os.environ
-REDIS_URL = os.environ.get('REDIS_URL')
+# REDIS_URL = os.environ.get('REDIS_URL')
 if IS_HEROKU:
     SECRET_KEY = os.environ['SECRET_KEY']
     RAPID_API = os.environ['RAPID_API']
@@ -165,6 +165,7 @@ DATABASES = {
 MAX_CONN_AGE = 600
 
 if "DATABASE_URL" in os.environ:
+    print("somehow we got here")
     # Configure Django for DATABASE_URL environment variable.
     DATABASES["default"] = dj_database_url.config(
         conn_max_age=MAX_CONN_AGE, ssl_require=True)
@@ -233,7 +234,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://example.com",
     "https://sub.example.com",
     "http://localhost:8080",
-    "http://localhost:3000",  # React App will be on this port
+    "http://localhost:3000",
+    "http://localhost:3001",  # React App will be on this port
     "http://127.0.0.1:9000",
     "https://is-my-customer-moving-czy5diwo1-reidmhac.vercel.app",
     "https://is-my-customer-moving.vercel.app",
@@ -253,24 +255,24 @@ EMAIL_USE_SSL = True
 EMAIL_HOST_USER = 'youremail@domain.com'
 EMAIL_HOST_PASSWORD = "yourpassword"
 
-CELERY_BROKER_URL = os.environ['REDIS_URL']
-CELERY_RESULT_BACKEND = os.environ['REDIS_URL']
+# CELERY_BROKER_URL = os.environ['REDIS_URL']
+# CELERY_RESULT_BACKEND = os.environ['REDIS_URL']
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [os.environ['REDIS_URL']],
-        },
-    },
-}
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [os.environ['REDIS_URL']],
+#         },
+#     },
+# }
 
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": os.environ['REDIS_URL'],
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient"
-        }
-    }
-}
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": os.environ['REDIS_URL'],
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient"
+#         }
+#     }
+# }
