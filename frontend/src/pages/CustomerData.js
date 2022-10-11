@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 // material
 import {
+  IconButton,
   Box,
   Card,
   Alert,
@@ -26,6 +27,7 @@ import { FilePond } from 'react-filepond';
 import '../filepond.css';
 
 // components
+import AnimatedModal from '../components/AnimatedModal';
 import Page from '../components/Page';
 import Label from '../components/Label';
 import Scrollbar from '../components/Scrollbar';
@@ -40,6 +42,7 @@ import { update } from '../redux/actions/usersActions';
 
 
 
+
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
@@ -49,7 +52,8 @@ const TABLE_HEAD = [
   { id: 'state', label: 'State', alignRight: false },
   { id: 'zipCode', label: 'Zip Code', alignRight: false },
   { id: 'status', label: 'Status', alignRight: false },
-  { id: '' },
+  { id: 'contacted', label: 'Contacted', alignRight: false },
+  { id: 'note', label: 'Note', alignRight: false },
 ];
 
 // ----------------------------------------------------------------------
@@ -83,7 +87,7 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function User() {
+export default function CustomerData() {
   const dispatch = useDispatch();
 
   const userLogin = useSelector((state) => state.userLogin);
@@ -97,6 +101,8 @@ export default function User() {
   const [order, setOrder] = useState('asc');
 
   const [selected, setSelected] = useState([]);
+
+  const [contacted, setContacted] = useState([]);
 
   const [orderBy, setOrderBy] = useState('name');
 
@@ -134,6 +140,22 @@ export default function User() {
     setSelected(newSelected);
   };
 
+  const handleContacted = (event, name) => {
+    const selectedIndex = selected.indexOf(name);
+    let newSelected = [];
+    if (selectedIndex === -1) {
+      newSelected = newSelected.concat(selected, name);
+    } else if (selectedIndex === 0) {
+      newSelected = newSelected.concat(selected.slice(1));
+    } else if (selectedIndex === selected.length - 1) {
+      newSelected = newSelected.concat(selected.slice(0, -1));
+    } else if (selectedIndex > 0) {
+      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
+    }
+    setContacted(newSelected);
+    console.log(name);
+  };
+
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -147,11 +169,15 @@ export default function User() {
     setFilterName(event.target.value);
   };
 
+  const handleNote = (event, address, zipCode) => {
+    console.log(address);
+    console.log(zipCode);
+  };
+
   const updateStatus = () => {
     dispatch(update());
   };
 
-  
   const exportCSV = () => {
     if (USERLIST.length === 0) { return }
     // console.log(USERLIST.length)
@@ -189,8 +215,8 @@ export default function User() {
             {userInfo.status}
           </Typography>
           {userInfo.status === 'admin' && (
-            <Button variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
-              New User
+            <Button variant="contained" component={RouterLink} to="/dashboard/adduser" startIcon={<Iconify icon="eva:plus-fill" />}>
+              Add User
             </Button>
           )}
         </Stack>
@@ -224,6 +250,8 @@ export default function User() {
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                     const { id, name, address, city, state, zipCode, status } = row;
+                    const contacted = "True";
+                    const note = "sup";
                     const isItemSelected = selected.indexOf(name) !== -1;
 
                     return (
@@ -250,14 +278,38 @@ export default function User() {
                         <TableCell align="left">{state}</TableCell>
                         <TableCell align="left">{zipCode}</TableCell>
                         <TableCell align="left">
-                          <Label variant="ghost" color={(status === 'banned' && 'error') || 'success'}>
+                          <Label variant="ghost" color={(status === 'No Change' && 'warning') || (contacted === 'False' && 'error'  || 'success')}>
                             {sentenceCase(status)}
                           </Label>
                         </TableCell>
-
-                        <TableCell align="right">
-                          <UserMoreMenu />
+                        <TableCell>
+                          {status !== 'No Change' && (
+                            contacted === 'False' && (
+                              <IconButton color="error" aria-label="View/Edit Note" component="label">
+                                <Iconify icon="bi:x" />
+                              </IconButton>
+                            ) 
+                          )}
+                          {status !== 'No Change' && (
+                            contacted === 'True' && (
+                              <IconButton color="success" aria-label="View/Edit Note" component="label">
+                                <Iconify icon="bi:check-lg" />
+                              </IconButton>
+                            ) 
+                          )}
                         </TableCell>
+                        <TableCell>
+                          <AnimatedModal 
+                            passedNote={note}
+                            address={address}
+                            zipCode={zipCode}
+                            name={name}
+                          />
+                        </TableCell>
+
+                        {/* <TableCell align="right">
+                          <UserMoreMenu />
+                        </TableCell> */}
                       </TableRow>
                     );
                   })}

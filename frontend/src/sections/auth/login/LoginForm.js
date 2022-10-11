@@ -46,7 +46,7 @@ export default function LoginForm() {
 
   useEffect(() => {
     if (userInfo) {
-      navigate('/dashboard/user', { replace: true });
+      navigate('/dashboard/customers', { replace: true });
     }
   }, [navigate, userInfo]);
   return (
