@@ -249,9 +249,7 @@ export default function CustomerData() {
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, address, city, state, zipCode, status } = row;
-                    const contacted = "True";
-                    const note = "sup";
+                    const { id, name, address, city, state, zipCode, status, contacted, note } = row;
                     const isItemSelected = selected.indexOf(name) !== -1;
 
                     return (
@@ -283,6 +281,7 @@ export default function CustomerData() {
                           </Label>
                         </TableCell>
                         <TableCell>
+                          {contacted}
                           {status !== 'No Change' && (
                             contacted === 'False' && (
                               <IconButton color="error" aria-label="View/Edit Note" component="label">

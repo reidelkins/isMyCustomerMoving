@@ -58,15 +58,17 @@ export default function AnimatedModal({
             <FormikProvider value={formik}>
                 <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
                     <Stack spacing={3}>
-                    {passedNote !== "" ? (
+                    {passedNote ? (
                         <TextField
                         fullWidth
+                        multiline
                         defaultValue={passedNote}
                         {...getFieldProps('note')}
                     />
                     ) : (
                         <TextField
                             fullWidth
+                            multiline
                             defaultValue="Enter Note Here"
                             {...getFieldProps('note')}
                         />
