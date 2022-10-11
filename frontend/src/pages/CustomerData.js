@@ -212,7 +212,7 @@ export default function CustomerData() {
 
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            {userInfo.status}
+            Welcome {userInfo.name} 👋
           </Typography>
           {userInfo.status === 'admin' && (
             <Button variant="contained" component={RouterLink} to="/dashboard/adduser" startIcon={<Iconify icon="eva:plus-fill" />}>
