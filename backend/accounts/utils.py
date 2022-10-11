@@ -3,10 +3,13 @@ from time import sleep
 import os
 import http.client
 import json
-from celery import shared_task
+from celery import shared_task, Celery
+from celery.schedules import crontab
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.core.mail import send_mail
+
+app = Celery()
 
 
 @shared_task
@@ -230,31 +233,76 @@ def updateStatus(zip, company, status):
         company_objects = Company.objects.all()
 
     for company_object in company_objects:
-        zip = ZipCode.objects.get(zipCode=zip)
-        listedAddresses = HomeListing.objects.filter(zipCode=zip, status=status).values('address')
+        zipCode_object = ZipCode.objects.get(zipCode=zip)
+        listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')
         print(len(listedAddresses))
         Client.objects.filter(company=company_object, address__in=listedAddresses).update(status=status)
     
+def emailBody(company):
+    foundCustomers = Client.objects.filter(company=company).exclude(status='No Change', contacted=True)
+    body = ""
+    for customer in foundCustomers:
+        body += f"The home belonging to {customer.name} was found to be {customer.status}. No one from your team has contacted them yet, be the first!"
 
-@shared_task
+    return body
+
 def send_email(company):
+    #https://mailtrap.io/blog/django-send-email/
 
     next_email = (datetime.today() + timedelta(days=company.email_frequency)).strftime('%Y-%m-%d')
-    pass
+    emails = list(Client.objects.filter(company=company).values_list('email'))
+    subject = 'Did Your Customers Move?'
+    
+    message = emailBody(company)
+    if not message:
+        "There were no updates found today for your client list but look back tomorrow for new leads!"
+
+    for email in emails:
+        send_mail(
+            subject,
+            message,
+            settings.EMAIL_HOST_USER,
+            [email]
+        )
+
+@shared_task
+def email_reid():
+    #https://mailtrap.io/blog/django-send-email/
+    subject = 'Did Your Customers Move?'
+    
+    message = "There were no updates found today for your client list but look back tomorrow for new leads!"
+
+    send_mail(
+        subject,
+        message,
+        settings.EMAIL_HOST_USER,
+        ['reidelkins@outlook.com']
+    )
+    print("Just emailed reid")
+
+# @app.on_after_configure.connect
+# def setup_periodic_tasks(sender, **kwargs):
+#     # Executes every morning at 0400
+#     sender.add_periodic_task(
+#         crontab(hour=1, minute=55),
+#         auto_update.s(),
+#     )
+
+#     sender.add_periodic_task(30.0, email_reid.s(), expires=10)
 
 @shared_task
 def auto_update():
     zipCode_objects = Client.objects.all().values('zipCode').distinct()
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects)
     for zip in list(zipCodes.values('zipCode')):
-        getHomesForSale(zip)
-        getHomesForRent(zip)
-        getSoldHomes(zip)
+        getHomesForSale.delay(zip)
+        getHomesForRent.delay(zip)
+        getSoldHomes.delay(zip)
     zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
     today = datetime.today().strftime('%Y-%m-%d')
     companies = Company.objects.filter(next_email_date=today)
     for company in companies:
-        send_email(company)
+        send_email.delay(company)
      
     

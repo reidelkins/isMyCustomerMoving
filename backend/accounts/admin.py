@@ -17,8 +17,6 @@ class CustomUserAdmin(UserAdmin):
                            'email',
                            'role',
                            'company',
-                           'email_frequency',
-                           'next_email_date'
                            )}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff',
          'is_superuser', 'groups', 'user_permissions')}),

@@ -1,7 +1,6 @@
 import os
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-from django.contrib.auth.models import UnicodeUsernameValidator
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils.translation import gettext as _
@@ -128,7 +127,7 @@ class HomeListing(models.Model):
     zipCode = models.ForeignKey(ZipCode, blank=True, null=True, on_delete=models.SET_NULL)
     address = models.CharField(max_length=100)
     status = models.CharField(max_length=20, choices=STATUS, default='Off Market')
-    listed = models.CharField(max_length=30, default=str(datetime.now()))
+    listed = models.CharField(max_length=30, default=" ")
 
 class CustomUser(AbstractUser):
     username = None
