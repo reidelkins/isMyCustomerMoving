@@ -28,10 +28,12 @@ IS_HEROKU = "DYNO" in os.environ
 if IS_HEROKU:
     SECRET_KEY = os.environ['SECRET_KEY']
     RAPID_API = os.environ['RAPID_API']
+    EMAIL_HOST_PASSWORD = os.environ['EMAIL_PASSWD']
     
 else:
     SECRET_KEY = env('SECRET_KEY')
     RAPID_API = env('RAPID_API')
+    EMAIL_HOST_PASSWORD = env('EMAIL_PASSWD')
     # REDIS_URL = 'redis://localhost:6379'
 
 ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "is-my-customer-moving.herokuapp.com"]
@@ -165,7 +167,6 @@ DATABASES = {
 MAX_CONN_AGE = 600
 
 if "DATABASE_URL" in os.environ:
-    print("somehow we got here")
     # Configure Django for DATABASE_URL environment variable.
     DATABASES["default"] = dj_database_url.config(
         conn_max_age=MAX_CONN_AGE, ssl_require=True)
@@ -226,10 +227,6 @@ STATICFILES_DIRS = [
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST_USER = 'notifications@email.com'
-
 CORS_ALLOWED_ORIGINS = [
     "https://example.com",
     "https://sub.example.com",
@@ -252,8 +249,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = "smtp.gmail.com" # Your SMTP Provider or in this case gmail
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'youremail@domain.com'
-EMAIL_HOST_PASSWORD = "yourpassword"
+EMAIL_HOST_USER = 'reidelkins03@gmail.com'
+#assigned at the beginning
+# EMAIL_HOST_PASSWORD
 
 # CELERY_BROKER_URL = os.environ['REDIS_URL']
 # CELERY_RESULT_BACKEND = os.environ['REDIS_URL']

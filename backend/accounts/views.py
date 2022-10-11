@@ -16,6 +16,51 @@ from .utils import getAllZipcodes, saveClientList
 from .models import CustomUser, Client, Company, ZipCode
 from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer
 
+class AddUserView(APIView):
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [AnonRateThrottle]
+    authentication_classes = []
+
+    def post(self, request, *args, **kwargs):
+        company = self.kwargs['company']
+        data = request.data
+        print(data)
+        first_name = data.get('firstName')
+        last_name = data.get('lastName')
+        email = data.get('email')
+        messages = {'errors': []}
+
+        if first_name == None:
+            messages['errors'].append('first_name can\'t be empty')
+        if last_name == None:
+            messages['errors'].append('last_name can\'t be empty')
+        if email == None:
+            messages['errors'].append('Email can\'t be empty')
+        if company == None:
+            messages['errors'].append('Company can\'t be empty')
+
+        if CustomUser.objects.filter(email=email).exists():
+            messages['errors'].append(
+                "Account already exists with this email id.")
+        if len(messages['errors']) > 0:
+            print(messages['errors'])
+            return Response({"detail": messages['errors']}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            company = Company.objects.get(id=company)
+            user = CustomUser.objects.create(
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                company=company,
+                status='active'
+            )
+            print("how you doing")
+            serializer = UserSerializerWithToken(user, many=False)
+        except Exception as e:
+            print(e)
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data)
+
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
     throttle_classes = [AnonRateThrottle]
@@ -50,26 +95,30 @@ class RegisterView(APIView):
             return Response({"detail": messages['errors']}, status=status.HTTP_400_BAD_REQUEST)
         try:
             company = Company.objects.get(name=company, accessToken=accessToken)
-            user = CustomUser.objects.create(
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                password=make_password(password),
-                company=company,
-                status='admin'
-                # accessToken=accessToken
-            )
-            # current_site = get_current_site(request)
-            # mail_subject = 'Activation link has been sent to your email id'
-            # tokenSerializer = UserSerializerWithToken(user, many=False)
+            noAdmin = CustomUser.objects.filter(company=company)
+            if len(noAdmin) == 0:
+                user = CustomUser.objects.create(
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    password=make_password(password),
+                    company=company,
+                    status='admin',
+                    accessToken=accessToken
+                )
+                # current_site = get_current_site(request)
+                # mail_subject = 'Activation link has been sent to your email id'
+                # tokenSerializer = UserSerializerWithToken(user, many=False)
 
-            # Next version will add a HTML template
-            # message = "Confirm your email {}/api/v1/accounts/confirmation{}/{}/".format(current_site, tokenSerializer.data['refresh'], user.id)
-            # to_email = email
-            # send_mail(
-            #         mail_subject, message, "youremail@email.com", [to_email]
-            # )
-            serializer = UserSerializerWithToken(user, many=False)
+                # Next version will add a HTML template
+                # message = "Confirm your email {}/api/v1/accounts/confirmation{}/{}/".format(current_site, tokenSerializer.data['refresh'], user.id)
+                # to_email = email
+                # send_mail(
+                #         mail_subject, message, "youremail@email.com", [to_email]
+                # )
+                serializer = UserSerializerWithToken(user, many=False)
+            else:
+                return Response({'detail': f'Access Token Already Used. Ask an admin to login and create profile for you.'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             print(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
@@ -201,3 +250,19 @@ class UploadFileView(generics.CreateAPIView):
         #             print(e)
         return Response({"status": "success"},
                         status.HTTP_201_CREATED)
+
+class UpdateNoteView(generics.CreateAPIView):
+
+    def post(self, request, *args, **kwargs):
+        print(request.data)
+        try:
+            company_object = Company.objects.get(id = self.kwargs['company'])
+            zipcode_object = ZipCode.objects.get(zipCode = int(request.data['zipCode']))
+            customer = Client.objects.get(company=company_object, zipCode=zipcode_object, address=request.data['address'])
+            customer.note = request.data['note']
+            customer.save()
+        except Exception as e:
+            print(e)
+            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response("", status=status.HTTP_201_CREATED, headers="")
+

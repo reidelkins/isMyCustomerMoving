@@ -16,7 +16,9 @@ class CustomUserAdmin(UserAdmin):
                            'status',
                            'email',
                            'role',
-                           'company'
+                           'company',
+                           'email_frequency',
+                           'next_email_date'
                            )}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff',
          'is_superuser', 'groups', 'user_permissions')}),
@@ -39,7 +41,7 @@ class CompanyAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'accessToken', 'avatarUrl')
 
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ('name', 'address', 'status', 'city', 'state')
+    list_display = ('name', 'address', 'status', 'city', 'state', 'contacted', 'note')
     search_fields = ('name', 'address', 'status')
 
 class ZipcodeAdmin(admin.ModelAdmin):
