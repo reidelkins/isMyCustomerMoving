@@ -37,7 +37,7 @@ import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashbo
 import { DOMAIN } from '../redux/constants';
 
 import UsersListCall from '../redux/calls/UsersListCall';
-import { update } from '../redux/actions/usersActions';
+import { update, contact } from '../redux/actions/usersActions';
 
 
 
@@ -169,14 +169,15 @@ export default function CustomerData() {
     setFilterName(event.target.value);
   };
 
-  const handleNote = (event, address, zipCode) => {
-    console.log(address);
-    console.log(zipCode);
+  const updateContacted = (event, address, zipCode) => {
+    dispatch(contact(address, zipCode))
+    window.location.reload(false);
   };
 
   const updateStatus = () => {
     dispatch(update());
   };
+
 
   const exportCSV = () => {
     if (USERLIST.length === 0) { return }
@@ -205,6 +206,7 @@ export default function CustomerData() {
   const isUserNotFound = filteredUsers.length === 0;
 
   const [files, setFiles] = useState([])
+
   return (
     <Page title="User">
       <Container>
@@ -281,21 +283,23 @@ export default function CustomerData() {
                           </Label>
                         </TableCell>
                         <TableCell>
-                          {contacted}
-                          {status !== 'No Change' && (
-                            contacted === 'False' && (
-                              <IconButton color="error" aria-label="View/Edit Note" component="label">
-                                <Iconify icon="bi:x" />
-                              </IconButton>
-                            ) 
-                          )}
-                          {status !== 'No Change' && (
-                            contacted === 'True' && (
-                              <IconButton color="success" aria-label="View/Edit Note" component="label">
-                                <Iconify icon="bi:check-lg" />
-                              </IconButton>
-                            ) 
-                          )}
+                          {(() => {
+                            if (status !== 'No Change') {
+                              if (contacted) {
+                                return(
+                                  <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, address, zipCode)}>
+                                    <Iconify icon="bi:check-lg" />
+                                  </IconButton>
+                                )
+                              }
+                              return(
+                                <IconButton color="error" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, address, zipCode)}>
+                                  <Iconify icon="ps:check-box-empty" />
+                                </IconButton>
+                              )
+                            }
+                            
+                          })()}                          
                         </TableCell>
                         <TableCell>
                           <AnimatedModal 

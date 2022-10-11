@@ -266,3 +266,21 @@ class UpdateNoteView(generics.CreateAPIView):
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
         return Response("", status=status.HTTP_201_CREATED, headers="")
 
+class UpdateContactedView(generics.CreateAPIView):
+
+    def post(self, request, *args, **kwargs):
+        print(request.data)
+        try:
+            company_object = Company.objects.get(id = self.kwargs['company'])
+            zipcode_object = ZipCode.objects.get(zipCode = int(request.data['zipCode']))
+            customer = Client.objects.get(company=company_object, zipCode=zipcode_object, address=request.data['address'])
+            if customer.contacted:
+                customer.contacted = False
+            else:
+                customer.contacted = True
+            customer.save()
+        except Exception as e:
+            print(e)
+            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response("", status=status.HTTP_201_CREATED, headers="")
+
