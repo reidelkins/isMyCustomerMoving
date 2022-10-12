@@ -1,4 +1,4 @@
 web: gunicorn config.wsgi
 release: python manage.py migrate
-mainworker: REMAP_SIGTERM=SIGQUIT celery -A config worker -l INFO --concurrency 2
+mainworker: REMAP_SIGTERM=SIGQUIT celery -A config worker -l INFO --concurrency 4
 cronworker: REMAP_SIGTERM=SIGQUIT celery -A config beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
