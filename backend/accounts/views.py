@@ -177,7 +177,7 @@ class ClientListView(generics.ListAPIView):
 class UpdateStatusView(APIView):
     def get(self, request, *args, **kwargs):
         try:
-            getAllZipcodes(self.kwargs['company'])
+            getAllZipcodes.delay(self.kwargs['company'])
         except Exception as e:
             print("Update Status View")
             print(e)
