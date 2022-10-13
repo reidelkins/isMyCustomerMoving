@@ -220,12 +220,12 @@ export default function CustomerData() {
   return (
     <Page title="User">
       <Container>
-        {userInfo ? <UsersListCall /> : null}
+        {userInfo ? <UsersListCall /> : logoutHandler}
 
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            {/* Welcome {userInfo.name} 👋 */}
-            Welcome
+            Welcome {userInfo.name} 👋
+            {/* Welcome */}
           </Typography>
           {userInfo.status === 'admin' && (
             <Button variant="contained" component={RouterLink} to="/dashboard/adduser" startIcon={<Iconify icon="eva:plus-fill" />}>
