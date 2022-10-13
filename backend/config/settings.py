@@ -238,7 +238,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://is-my-customer-moving-czy5diwo1-reidmhac.vercel.app",
     "https://is-my-customer-moving.vercel.app",
     "https://ismycustomermoving.com",
-    "https://www.ismycustomermoving.com"
+    "https://www.ismycustomermoving.com",
+    "https://app.ismycustomermoving.com"
 ]
 
 
