@@ -210,44 +210,8 @@ class UploadFileView(generics.CreateAPIView):
                     reader.columns = reader.columns.str.replace(column, 'state')
         except:
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
-        # print(company_id)
-        # # saveClientList.delay(reader, company_id)
-        # print("2")
-        # print("sup")
-        # count = 0
         for _, row in reader.iterrows():
-            saveClientList(row.to_dict(), company_id)
-
-            # count += 1
-            # if (count > 100):
-            #     return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
-            # return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
-        #     saveClientList.delay(row, company_id)
-        #     try:
-        #         if int(row['zip']) > 500 and int(row['zip']) < 99951:
-        #         # if int(row['zip']) > 37770 and int(row['zip']) < 37775:
-        #             zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
-        #             Client.objects.update_or_create(
-        #                     name= row["name"],
-        #                     address= row['street'],
-        #                     zipCode= zipCode,
-        #                     company= company
-        #                     )
-        #     except:
-        #         try:
-        #             if type(row['zip']) != int:
-        #                 row['zip'] = (row['zip'].split('-'))[0]
-        #             if int(row['zip']) > 500 and int(row['zip']) < 99951:
-        #             # if int(row['zip']) > 37770 and int(row['zip']) < 37775:
-        #                 zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
-        #                 Client.objects.update_or_create(
-        #                         name= row["name"],
-        #                         address= row['street'],
-        #                         zipCode= zipCode,
-        #                         company= company
-        #                         )
-        #         except Exception as e:
-        #             print(e)
+            saveClientList.delay(row.to_dict(), company_id)
         return Response({"status": "success"},
                         status.HTTP_201_CREATED)
 

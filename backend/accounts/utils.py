@@ -11,17 +11,28 @@ from django.core.mail import send_mail
 
 app = Celery()
 
+def parseStreets(street):
+    conversions = {"Alley": "Aly", "Avenue": "Ave", "Boulevard": "Blvd", "Circle": "Cir", "Court": "Crt", "Cove": "Cv", "Canyon": "Cnyn", "Drive": "Dr", "Expressway": "Expy", "Highway": "Hwy", 
+        "Lane": "Ln", "Parkway": "Pkwy", "Place": "Pl", "Point": "Pt", "Road": "Rd", "Square": "Sq", "Street": "St", "Terrace": "Ter", "Trail": "Trl", "South": "S", "North": "N",
+        "West": "W", "East": "E", "Northeast": "NE", "Northwest": "NW", "Southeast": "SE", "Southwest":"SW", "Ne": "NE", "Nw": "NW", "Sw":"SW", "Se":"SE" }
+    for word in street.split():
+        if word in conversions:
+            street = street.replace(word, conversions[word])
+    return street
+
 
 @shared_task
 def saveClientList(row, company_id):
     company = Company.objects.get(id=company_id)
+    street = (row['street']).title()
+    street = parseStreets(street)
     try:
         if int(row['zip']) > 500 and int(row['zip']) < 99951:
         # if int(row['zip']) > 37770 and int(row['zip']) < 37775:
             zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
             Client.objects.update_or_create(
                     name= row['name'],
-                    address= row['street'],
+                    address= street,
                     zipCode= zipCode,
                     company= company,
                     city= row['city'],
@@ -36,7 +47,7 @@ def saveClientList(row, company_id):
                 zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
                 Client.objects.update_or_create(
                         name= row["name"],
-                        address= row['street'],
+                        address= street,
                         zipCode= zipCode,
                         company= company,
                         city= row['city'],
@@ -64,7 +75,6 @@ def getAllZipcodes(company):
 
 @shared_task
 def getHomesForSale(zip, company=None):       
-    print(zip)
     offset = 0
     zip = zip['zipCode']
     moreListings = True
@@ -83,9 +93,9 @@ def getHomesForSale(zip, company=None):
             data = res.read().decode("utf-8")
             data = json.loads(data)
             total = data['data']['home_search']['total']
-            print(f"The total amount listed for sale at {zip} is {total} and the current offset is {offset}")
+            # print(f"The total amount listed for sale at {zip} is {total} and the current offset is {offset}")
             offset += data['data']['home_search']['count']
-            print(f"The new offset is {offset}")
+            # print(f"The new offset is {offset}")
             if offset >= total:
                 moreListings = False
             data = data['data']['home_search']['results']
@@ -95,13 +105,13 @@ def getHomesForSale(zip, company=None):
                 try:
                     HomeListing.objects.get_or_create(
                                 zipCode= zip_object,
-                                address= listing['location']['address']['line'],
+                                address= parseStreets((listing['location']['address']['line']).title()),
                                 status= 'For Sale',
                                 listed= listing['list_date']
                                 )
                 except:
-                    print(f"zip: {zip_object}")
-                    print(f"address: {listing['location']['address']['line']}")
+                    print(f"ERROR zip: {zip_object}")
+                    print(f"ERROR address: {listing['location']['address']['line']}")
         except Exception as e:
             print(f"Error during getHomesForSale: {e}")
 
@@ -121,50 +131,53 @@ def getHomesForRent(zip, company=None):
     zip = zip['zipCode']
     moreListings = True
     while(moreListings):
-        conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
+        try:
+            conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
 
-        headers = {
-            'X-RapidAPI-Key': settings.RAPID_API,
-            'X-RapidAPI-Host': "us-real-estate.p.rapidapi.com"
-            }
+            headers = {
+                'X-RapidAPI-Key': settings.RAPID_API,
+                'X-RapidAPI-Host': "us-real-estate.p.rapidapi.com"
+                }
 
-        conn.request("GET", f"/v2/for-rent-by-zipcode?zipcode={zip}&offset={offset}&limit=200&sort=lowest_price", headers=headers)
+            conn.request("GET", f"/v2/for-rent-by-zipcode?zipcode={zip}&offset={offset}&limit=200&sort=lowest_price", headers=headers)
 
-        res = conn.getresponse()
-        data = res.read().decode("utf-8")
-        data = json.loads(data)
-        
+            res = conn.getresponse()
+            data = res.read().decode("utf-8")
+            data = json.loads(data)
+            
+            total = data['data']['home_search']['total']
+            
+            # print(f"The total amount listed for rent at {zip} is {total} and the current offset is {offset}")
+            offset += data['data']['home_search']['count']
+            # print(f"The new offset is {offset}")
+            if offset >= total:
+                moreListings = False
+            # with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep14_{count}_rent.json", "w+") as f:
+            #     count += 1
+            #     json.dump(data, f)
 
-        total = data['data']['home_search']['total']
-        print(f"The total amount listed for rent at {zip} is {total} and the current offset is {offset}")
-        offset += data['data']['home_search']['count']
-        print(f"The new offset is {offset}")
-        if offset >= total:
-            moreListings = False
-        # with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep14_{count}_rent.json", "w+") as f:
-        #     count += 1
-        #     json.dump(data, f)
+            data = data['data']['home_search']['results']
 
-        data = data['data']['home_search']['results']
-
-        for listing in data:
-            zip_object, created  = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
-            try:
-                if listing['list_date'] != None:
-                    HomeListing.objects.get_or_create(
-                                zipCode= zip_object,
-                                address= listing['location']['address']['line'],
-                                status= 'For Rent',
-                                listed= listing['list_date']
-                                )
-                else:
-                    HomeListing.objects.get_or_create(
-                                zipCode= zip_object,
-                                address= listing['location']['address']['line'],
-                                status= 'For Rent',
-                                )
-            except Exception as e:
-                print(e)
+            for listing in data:
+                zip_object, created  = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
+                try:
+                    if listing['list_date'] != None:
+                        HomeListing.objects.get_or_create(
+                                    zipCode= zip_object,
+                                    address= parseStreets((listing['location']['address']['line']).title()),
+                                    status= 'For Rent',
+                                    listed= listing['list_date']
+                                    )
+                    else:
+                        HomeListing.objects.get_or_create(
+                                    zipCode= zip_object,
+                                    address= parseStreets((listing['location']['address']['line']).title()),
+                                    status= 'For Rent',
+                                    )
+                except Exception as e:
+                    print(e)
+        except Exception as e:
+            print(f"Error during getHomesForRent: {e}")
             # try:
             #     with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_{zip}_rent.json", "w+") as f:
             #         count += 1
@@ -180,48 +193,51 @@ def getSoldHomes(zip, company=None):
     zip = zip['zipCode']
     moreListings = True
     while(moreListings):
-        conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
+        try:
+            conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
 
-        headers = {
-            'X-RapidAPI-Key': settings.RAPID_API,
-            'X-RapidAPI-Host': "us-real-estate.p.rapidapi.com"
-            }
+            headers = {
+                'X-RapidAPI-Key': settings.RAPID_API,
+                'X-RapidAPI-Host': "us-real-estate.p.rapidapi.com"
+                }
 
-        conn.request("GET", f"/v2/sold-homes-by-zipcode?zipcode={zip}&offset={offset}&limit=200&sort=sold_date&max_sold_days=400", headers=headers)
+            conn.request("GET", f"/v2/sold-homes-by-zipcode?zipcode={zip}&offset={offset}&limit=200&sort=sold_date&max_sold_days=400", headers=headers)
 
-        res = conn.getresponse()
-        data = res.read().decode("utf-8")
-        data = json.loads(data)
-        
+            res = conn.getresponse()
+            data = res.read().decode("utf-8")
+            data = json.loads(data)
+            
 
-        total = data['data']['home_search']['total']
-        print(f"The total amount that have been sold at {zip} is {total} and the current offset is {offset}")
-        offset += data['data']['home_search']['count']
-        print(f"The new offset is {offset}")
-        if offset >= total:
-            moreListings = False
+            total = data['data']['home_search']['total']
+            # print(f"The total amount that have been sold at {zip} is {total} and the current offset is {offset}")
+            offset += data['data']['home_search']['count']
+            # print(f"The new offset is {offset}")
+            if offset >= total:
+                moreListings = False
 
-        data = data['data']['home_search']['results']
+            data = data['data']['home_search']['results']
 
-        for listing in data:
-            zip_object, created  = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
-            sold_date = datetime.strptime(listing['description']['sold_date'], '%Y-%m-%d')
-            halfYear = datetime.today() - timedelta(days=180)
-            if sold_date > halfYear:
-                status = 'Recently Sold (6)'
-            else:
-                status = 'Recently Sold (12)'
-            try:
-                HomeListing.objects.get_or_create(
-                            zipCode= zip_object,
-                            address= listing['location']['address']['line'],
-                            status= status,
-                            listed= listing['description']['sold_date']
-                            )
-            except Exception as e:
-                print(e)
-                print(f"zip: {zip_object}")
-                print(f"address: {listing['location']['address']['line']}")
+            for listing in data:
+                zip_object, created  = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
+                sold_date = datetime.strptime(listing['description']['sold_date'], '%Y-%m-%d')
+                halfYear = datetime.today() - timedelta(days=180)
+                if sold_date > halfYear:
+                    status = 'Recently Sold (6)'
+                else:
+                    status = 'Recently Sold (12)'
+                try:
+                    HomeListing.objects.get_or_create(
+                                zipCode= zip_object,
+                                address= parseStreets((listing['location']['address']['line']).title()),
+                                status= status,
+                                listed= listing['description']['sold_date']
+                                )
+                except Exception as e:
+                    print(e)
+                    print(f"zip: {zip_object}")
+                    print(f"address: {listing['location']['address']['line']}")
+        except Exception as e:
+            print(f"Error during getSoldHomes: {e}")
         # try:
         #     with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_{zip}_sold.json", "w+") as f:
         #         count += 1
