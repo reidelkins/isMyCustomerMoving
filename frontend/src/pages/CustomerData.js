@@ -220,7 +220,8 @@ export default function CustomerData() {
   return (
     <Page title="User">
       <Container>
-        {userInfo ? <UsersListCall /> : logoutHandler}
+        {(logoutHandler)}
+        {userInfo ? <UsersListCall /> : <DefaultUser />}
 
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
