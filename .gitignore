@@ -171,3 +171,5 @@ sep*
 venv/
 
 backend/accounts/migrations/__pycache__
+
+website/

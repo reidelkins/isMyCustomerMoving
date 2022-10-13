@@ -1,7 +1,7 @@
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
 import { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // material
 import {
   IconButton,
@@ -38,6 +38,9 @@ import { DOMAIN } from '../redux/constants';
 
 import UsersListCall from '../redux/calls/UsersListCall';
 import { update, contact } from '../redux/actions/usersActions';
+
+import { logout } from '../redux/actions/authActions';
+import { LOGOUT } from '../redux/types/auth';
 
 
 
@@ -89,6 +92,7 @@ function applySortFilter(array, comparator, query) {
 
 export default function CustomerData() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
@@ -199,6 +203,12 @@ export default function CustomerData() {
     document.body.removeChild(link);
   };
 
+  const logoutHandler = () => {
+    dispatch(logout());
+    navigate('/login', { replace: true });
+    window.location.reload(false);
+  };
+
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
 
   const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
@@ -226,10 +236,11 @@ export default function CustomerData() {
         <Card sx={{marginBottom:"3%"}}>
           <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
           {error ? (
-            <Alert severity="error">
-              <AlertTitle>List Loading Error</AlertTitle>
-              {error}
-            </Alert>
+            // <Alert severity="error">
+            //   <AlertTitle>List Loading Error</AlertTitle>
+            //   {error}
+            // </Alert>
+            logoutHandler
           ) : null}
           {loading ? (
             <Box sx={{ width: '100%' }}>
