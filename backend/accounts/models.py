@@ -1,10 +1,10 @@
 import os
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-from django.contrib.auth.models import UnicodeUsernameValidator
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils.translation import gettext as _
+from django.utils.timezone import now
 import uuid
 from datetime import datetime, timedelta
 
@@ -49,6 +49,13 @@ STATUS = [
     ('No Change', 'No Change')
 ]
 
+CONTACTED_PROGRESS = [
+    ('Recently Updated', 'Recently Updated'),
+    ('Contacted, No Answer', 'Contacted, No Answer'),
+    ('Contacted, Not Interested', 'Contacted, Not Interested'),
+    ('Contacted, Interested', 'Contacted, Interested'),
+]
+
 
 class CustomUserManager(BaseUserManager):
     """Define a model manager for User model with no username field."""
@@ -88,6 +95,8 @@ class Company(models.Model):
         max_length=100, choices=COMPANY_TOKEN)
     avatarUrl = models.ImageField(
         upload_to='customers', null=True, blank=True, default='/placeholder.png')
+    email_frequency = models.IntegerField(default=0)
+    next_email_date = models.DateField(default=now)
 
 class ZipCode(models.Model):
     zipCode = models.IntegerField(primary_key=True, unique=True, validators=[MinValueValidator(500), MaxValueValidator(99951)])
@@ -102,7 +111,9 @@ class Client(models.Model):
     company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.SET_NULL)
     status = models.CharField(max_length=20, choices=STATUS, default='No Change')
     city = models.CharField(max_length=30, blank=True, null=True)
-    state = models.CharField(max_length=30, blank=True, null=True)
+    state = models.CharField(max_length=31, blank=True, null=True)
+    contacted = models.BooleanField(default=False)
+    note = models.TextField(default="")
 
 class ClientList(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
@@ -116,7 +127,7 @@ class HomeListing(models.Model):
     zipCode = models.ForeignKey(ZipCode, blank=True, null=True, on_delete=models.SET_NULL)
     address = models.CharField(max_length=100)
     status = models.CharField(max_length=20, choices=STATUS, default='Off Market')
-    listed = models.CharField(max_length=30, default=str(datetime.now()))
+    listed = models.CharField(max_length=30, default=" ")
 
 class CustomUser(AbstractUser):
     username = None

@@ -68,7 +68,7 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
         <Logo />
       </Box>
 
-      <Box sx={{ mb: 5, mx: 2.5 }}>
+      {/* <Box sx={{ mb: 5, mx: 2.5 }}>
         <Link underline="none" component={RouterLink} to="#">
           <AccountStyle>
             <Avatar src={userInfo ? userInfo.avatar : BlankPofile} alt="photoURL" />
@@ -85,38 +85,11 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
             </Box>
           </AccountStyle>
         </Link>
-      </Box>
+      </Box> */}
 
       <NavSection navConfig={navConfig} />
 
       <Box sx={{ flexGrow: 1 }} />
-
-      <Box sx={{ px: 2.5, pb: 3, mt: 10 }}>
-        <Stack alignItems="center" spacing={3} sx={{ pt: 5, borderRadius: 2, position: 'relative' }}>
-          <Box
-            component="img"
-            src="https://cdn.pixabay.com/photo/2021/09/11/12/17/github-6615451__340.png"
-            sx={{ width: 100, position: 'absolute', top: -50 }}
-          />
-
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography gutterBottom variant="h6">
-              GitHub
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              MIT License
-            </Typography>
-          </Box>
-
-          <Button
-            href="https://github.com/faisalnazik/Django-REST-Framework-React-BoilerPlate"
-            target="_blank"
-            variant="contained"
-          >
-            Make a Clone
-          </Button>
-        </Stack>
-      </Box>
     </Scrollbar>
   );
 

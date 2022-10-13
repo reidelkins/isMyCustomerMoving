@@ -1,9 +1,10 @@
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
 import { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // material
 import {
+  IconButton,
   Box,
   Card,
   Alert,
@@ -26,6 +27,7 @@ import { FilePond } from 'react-filepond';
 import '../filepond.css';
 
 // components
+import AnimatedModal from '../components/AnimatedModal';
 import Page from '../components/Page';
 import Label from '../components/Label';
 import Scrollbar from '../components/Scrollbar';
@@ -35,7 +37,11 @@ import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashbo
 import { DOMAIN } from '../redux/constants';
 
 import UsersListCall from '../redux/calls/UsersListCall';
-import { update } from '../redux/actions/usersActions';
+import { update, contact } from '../redux/actions/usersActions';
+
+import { logout } from '../redux/actions/authActions';
+import { LOGOUT } from '../redux/types/auth';
+
 
 
 
@@ -49,7 +55,8 @@ const TABLE_HEAD = [
   { id: 'state', label: 'State', alignRight: false },
   { id: 'zipCode', label: 'Zip Code', alignRight: false },
   { id: 'status', label: 'Status', alignRight: false },
-  { id: '' },
+  { id: 'contacted', label: 'Contacted', alignRight: false },
+  { id: 'note', label: 'Note', alignRight: false },
 ];
 
 // ----------------------------------------------------------------------
@@ -83,8 +90,9 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function User() {
+export default function CustomerData() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
@@ -97,6 +105,8 @@ export default function User() {
   const [order, setOrder] = useState('asc');
 
   const [selected, setSelected] = useState([]);
+
+  const [contacted, setContacted] = useState([]);
 
   const [orderBy, setOrderBy] = useState('name');
 
@@ -134,6 +144,22 @@ export default function User() {
     setSelected(newSelected);
   };
 
+  const handleContacted = (event, name) => {
+    const selectedIndex = selected.indexOf(name);
+    let newSelected = [];
+    if (selectedIndex === -1) {
+      newSelected = newSelected.concat(selected, name);
+    } else if (selectedIndex === 0) {
+      newSelected = newSelected.concat(selected.slice(1));
+    } else if (selectedIndex === selected.length - 1) {
+      newSelected = newSelected.concat(selected.slice(0, -1));
+    } else if (selectedIndex > 0) {
+      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
+    }
+    setContacted(newSelected);
+    console.log(name);
+  };
+
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -147,11 +173,16 @@ export default function User() {
     setFilterName(event.target.value);
   };
 
+  const updateContacted = (event, address, zipCode) => {
+    dispatch(contact(address, zipCode))
+    window.location.reload(false);
+  };
+
   const updateStatus = () => {
     dispatch(update());
   };
 
-  
+
   const exportCSV = () => {
     if (USERLIST.length === 0) { return }
     // console.log(USERLIST.length)
@@ -172,6 +203,12 @@ export default function User() {
     document.body.removeChild(link);
   };
 
+  const logoutHandler = () => {
+    dispatch(logout());
+    navigate('/login', { replace: true });
+    window.location.reload(false);
+  };
+
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
 
   const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
@@ -179,6 +216,7 @@ export default function User() {
   const isUserNotFound = filteredUsers.length === 0;
 
   const [files, setFiles] = useState([])
+
   return (
     <Page title="User">
       <Container>
@@ -186,11 +224,11 @@ export default function User() {
 
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            {userInfo.status}
+            Welcome {userInfo.name} 👋
           </Typography>
           {userInfo.status === 'admin' && (
-            <Button variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
-              New User
+            <Button variant="contained" component={RouterLink} to="/dashboard/adduser" startIcon={<Iconify icon="eva:plus-fill" />}>
+              Add User
             </Button>
           )}
         </Stack>
@@ -198,10 +236,11 @@ export default function User() {
         <Card sx={{marginBottom:"3%"}}>
           <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
           {error ? (
-            <Alert severity="error">
-              <AlertTitle>List Loading Error</AlertTitle>
-              {error}
-            </Alert>
+            // <Alert severity="error">
+            //   <AlertTitle>List Loading Error</AlertTitle>
+            //   {error}
+            // </Alert>
+            logoutHandler
           ) : null}
           {loading ? (
             <Box sx={{ width: '100%' }}>
@@ -223,7 +262,7 @@ export default function User() {
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, address, city, state, zipCode, status } = row;
+                    const { id, name, address, city, state, zipCode, status, contacted, note } = row;
                     const isItemSelected = selected.indexOf(name) !== -1;
 
                     return (
@@ -250,14 +289,41 @@ export default function User() {
                         <TableCell align="left">{state}</TableCell>
                         <TableCell align="left">{zipCode}</TableCell>
                         <TableCell align="left">
-                          <Label variant="ghost" color={(status === 'banned' && 'error') || 'success'}>
+                          <Label variant="ghost" color={(status === 'No Change' && 'warning') || (contacted === 'False' && 'error'  || 'success')}>
                             {sentenceCase(status)}
                           </Label>
                         </TableCell>
-
-                        <TableCell align="right">
-                          <UserMoreMenu />
+                        <TableCell>
+                          {(() => {
+                            if (status !== 'No Change') {
+                              if (contacted) {
+                                return(
+                                  <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, address, zipCode)}>
+                                    <Iconify icon="bi:check-lg" />
+                                  </IconButton>
+                                )
+                              }
+                              return(
+                                <IconButton color="error" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, address, zipCode)}>
+                                  <Iconify icon="ps:check-box-empty" />
+                                </IconButton>
+                              )
+                            }
+                            
+                          })()}                          
                         </TableCell>
+                        <TableCell>
+                          <AnimatedModal 
+                            passedNote={note}
+                            address={address}
+                            zipCode={zipCode}
+                            name={name}
+                          />
+                        </TableCell>
+
+                        {/* <TableCell align="right">
+                          <UserMoreMenu />
+                        </TableCell> */}
                       </TableRow>
                     );
                   })}

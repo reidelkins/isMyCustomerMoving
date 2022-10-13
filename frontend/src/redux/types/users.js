@@ -13,3 +13,11 @@ export const STATUS_SUCCESS = 'STATUS_SUCCESS';
 export const STATUS_FAIL = 'STATUS_FAIL';
 export const STATUS_RESET = 'STATUS_RESET';
 
+export const ADDUSER_REQUEST = 'ADDUSER_REQUEST';
+export const ADDUSER_SUCCESS = 'ADDUSER_SUCCESS';
+export const ADDUSER_FAIL = 'ADDUSER_FAIL';
+
+export const NOTE_REQUEST = 'NOTE_REQUEST';
+export const NOTE_SUCCESS = 'NOTE_SUCCESS';
+export const NOTE_FAIL = 'NOTE_FAIL';
+

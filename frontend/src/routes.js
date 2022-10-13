@@ -3,12 +3,13 @@ import { Navigate, useRoutes } from 'react-router-dom';
 import DashboardLayout from './layouts/dashboard';
 import LogoOnlyLayout from './layouts/LogoOnlyLayout';
 //
-import User from './pages/User';
+import CustomerData from './pages/CustomerData';
 import Login from './pages/Login';
 import NotFound from './pages/Page404';
 import Register from './pages/Register';
+import AddUser from './pages/AddUser';
 
-import DashboardApp from './pages/DashboardApp';
+import ProfileSettings from './pages/ProfileSettings';
 
 // ----------------------------------------------------------------------
 
@@ -18,19 +19,22 @@ export default function Router() {
       path: '/dashboard',
       element: <DashboardLayout />,
       children: [
-        { path: 'app', element: <DashboardApp /> },
-        { path: 'user', element: <User /> },
+        { path: '', element: <Navigate to="/dashboard/customers" /> },
+        { path: 'settings', element: <ProfileSettings /> },
+        { path: 'customers', element: <CustomerData /> },
+        { path: 'adduser', element: <AddUser />},
       ],
     },
     {
       path: '/',
       element: <LogoOnlyLayout />,
       children: [
-        { path: '/', element: <Navigate to="/dashboard/app" /> },
+        { path: '/', element: <Navigate to="/dashboard/customers" /> },
         { path: 'login', element: <Login /> },
         { path: 'register', element: <Register /> },
         { path: '404', element: <NotFound /> },
         { path: '*', element: <Navigate to="/404" /> },
+        
       ],
     },
     { path: '*', element: <Navigate to="/404" replace /> },

@@ -12,6 +12,9 @@ router.register(r"users", views.UserViewSet)
 urlpatterns = [
     path('update/<str:company>/', views.UpdateStatusView.as_view(), name='update-status'),
     path('clients/<str:company>/', views.ClientListView.as_view(), name='client-list'),
+    path('adduser/<str:company>/', views.AddUserView.as_view(), name='adduser'),
+    path('updatenote/<str:company>/', views.UpdateNoteView.as_view(), name='updatenote'),
+    path('contacted/<str:company>/', views.UpdateContactedView.as_view(), name='updatecontacted'),
     path('upload/', views.UploadFileView.as_view(), name='upload-file'),
     path('register/', views.RegisterView.as_view(), name='register'),
     path('login/', views.MyTokenObtainPairView.as_view(), name='login'),

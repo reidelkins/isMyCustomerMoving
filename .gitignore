@@ -170,4 +170,6 @@ sep*
 .DS_Store
 venv/
 
-backend/accounts/migrations
+backend/accounts/migrations/__pycache__
+
+website/

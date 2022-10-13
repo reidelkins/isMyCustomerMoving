@@ -38,5 +38,5 @@ class UploadFileSerializer(serializers.Serializer):
 class ClientListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
-        fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status')
+        fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status', 'contacted', 'note')
 

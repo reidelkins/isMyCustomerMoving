@@ -20,18 +20,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 # Declared in your environment variables
 IS_HEROKU = "DYNO" in os.environ
-REDIS_URL = os.environ.get('REDIS_URL')
+# REDIS_URL = os.environ.get('REDIS_URL')
 if IS_HEROKU:
     SECRET_KEY = os.environ['SECRET_KEY']
     RAPID_API = os.environ['RAPID_API']
+    EMAIL_HOST_PASSWORD = os.environ['EMAIL_PASSWD']
     
 else:
     SECRET_KEY = env('SECRET_KEY')
     RAPID_API = env('RAPID_API')
+    EMAIL_HOST_PASSWORD = env('EMAIL_PASSWD')
     # REDIS_URL = 'redis://localhost:6379'
 
 ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "is-my-customer-moving.herokuapp.com"]
@@ -59,6 +61,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',  # To Connect API with React App if required in seprate apps
+    'django_celery_beat',
 ]
 
 
@@ -225,15 +228,12 @@ STATICFILES_DIRS = [
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST_USER = 'notifications@email.com'
-
 CORS_ALLOWED_ORIGINS = [
     "https://example.com",
     "https://sub.example.com",
     "http://localhost:8080",
-    "http://localhost:3000",  # React App will be on this port
+    "http://localhost:3000",
+    "http://localhost:3001",  # React App will be on this port
     "http://127.0.0.1:9000",
     "https://is-my-customer-moving-czy5diwo1-reidmhac.vercel.app",
     "https://is-my-customer-moving.vercel.app",
@@ -246,15 +246,20 @@ CORS_ALLOWED_ORIGINS = [
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = "smtp.gmail.com" # Your SMTP Provider or in this case gmail
-EMAIL_PORT = 465
-EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'youremail@domain.com'
-EMAIL_HOST_PASSWORD = "yourpassword"
+EMAIL_PORT = 587
+EMAIL_USE_SSL = False
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'reidelkins3@gmail.com'
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+#assigned at the beginning
+# EMAIL_HOST_PASSWORD
 
 CELERY_BROKER_URL = os.environ['REDIS_URL']
 CELERY_RESULT_BACKEND = os.environ['REDIS_URL']
+CELERY_TIMEZONE = 'US/Central'
 
 CHANNEL_LAYERS = {
     'default': {
