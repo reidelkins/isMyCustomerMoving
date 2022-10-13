@@ -48,11 +48,12 @@ def saveClientList(row, company_id):
 
 @shared_task
 def getAllZipcodes(company):
-    print("sup")
     company_object = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company_object).values('zipCode')
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=datetime.today().strftime('%Y-%m-%d'))
+    count = 0
     for zip in list(zipCodes.values('zipCode')):
+        count +=1
         getHomesForSale.delay(zip, company)
         getHomesForRent.delay(zip, company)
         getSoldHomes.delay(zip, company)
@@ -68,38 +69,42 @@ def getHomesForSale(zip, company=None):
     zip = zip['zipCode']
     moreListings = True
     while(moreListings):
-        conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
+        try:
+            conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
 
-        headers = {
-            'X-RapidAPI-Key': settings.RAPID_API,
-            'X-RapidAPI-Host': "us-real-estate.p.rapidapi.com"
-            }
+            headers = {
+                'X-RapidAPI-Key': settings.RAPID_API,
+                'X-RapidAPI-Host': "us-real-estate.p.rapidapi.com"
+                }
 
-        conn.request("GET", f"/v2/for-sale-by-zipcode?zipcode={zip}&offset={offset}&limit=200&sort:newest", headers=headers)
+            conn.request("GET", f"/v2/for-sale-by-zipcode?zipcode={zip}&offset={offset}&limit=200&sort:newest", headers=headers)
 
-        res = conn.getresponse()
-        data = res.read().decode("utf-8")
-        data = json.loads(data)
-        total = data['data']['home_search']['total']
-        print(f"The total amount listed for sale at {zip} is {total} and the current offset is {offset}")
-        offset += data['data']['home_search']['count']
-        print(f"The new offset is {offset}")
-        if offset >= total:
-            moreListings = False
-        data = data['data']['home_search']['results']
+            res = conn.getresponse()
+            data = res.read().decode("utf-8")
+            data = json.loads(data)
+            total = data['data']['home_search']['total']
+            print(f"The total amount listed for sale at {zip} is {total} and the current offset is {offset}")
+            offset += data['data']['home_search']['count']
+            print(f"The new offset is {offset}")
+            if offset >= total:
+                moreListings = False
+            data = data['data']['home_search']['results']
 
-        for listing in data:
-            zip_object, created = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
-            try:
-                HomeListing.objects.get_or_create(
-                            zipCode= zip_object,
-                            address= listing['location']['address']['line'],
-                            status= 'For Sale',
-                            listed= listing['list_date']
-                            )
-            except:
-                print(f"zip: {zip_object}")
-                print(f"address: {listing['location']['address']['line']}")
+            for listing in data:
+                zip_object, created = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
+                try:
+                    HomeListing.objects.get_or_create(
+                                zipCode= zip_object,
+                                address= listing['location']['address']['line'],
+                                status= 'For Sale',
+                                listed= listing['list_date']
+                                )
+                except:
+                    print(f"zip: {zip_object}")
+                    print(f"address: {listing['location']['address']['line']}")
+        except Exception as e:
+            print(f"Error during getHomesForSale: {e}")
+
 
         # try:
         #     with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_sale.json", "w+") as f:
@@ -236,7 +241,6 @@ def updateStatus(zip, company, status):
     for company_object in company_objects:
         zipCode_object = ZipCode.objects.get(zipCode=zip)
         listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')
-        print(len(listedAddresses))
         Client.objects.filter(company=company_object, address__in=listedAddresses).update(status=status)
     
 def emailBody(company):
@@ -304,6 +308,7 @@ def auto_update():
     today = datetime.today().strftime('%Y-%m-%d')
     companies = Company.objects.filter(next_email_date=today)
     for company in companies:
-        send_email.delay(company)
+        send_email(company)
+
      
     
