@@ -22,7 +22,7 @@ export default function Router() {
         { path: '', element: <Navigate to="/dashboard/customers" /> },
         { path: 'settings', element: <ProfileSettings /> },
         { path: 'customers', element: <CustomerData /> },
-        { path: 'adduser', element: <AddUser />},
+        // { path: 'adduser', element: <AddUser />},
       ],
     },
     {

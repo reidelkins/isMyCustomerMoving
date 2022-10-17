@@ -220,171 +220,172 @@ export default function CustomerData() {
   return (
     <Page title="User">
       <Container>
-        {(logoutHandler)}
-        {userInfo ? <UsersListCall /> : <DefaultUser />}
+        {userInfo ? <UsersListCall /> : null}
+        {userInfo && (
+          <>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+              <Typography variant="h4" gutterBottom>
+                Welcome {userInfo.name} 👋
+                {/* Welcome */}
+              </Typography>
+              {userInfo.status === 'admin' && (
+                <Button variant="contained" component={RouterLink} to="/dashboard/adduser" startIcon={<Iconify icon="eva:plus-fill" />}>
+                  Add User
+                </Button>
+              )}
+            </Stack>
+            <Card sx={{marginBottom:"3%"}}>
+              <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
+              {error ? (
+                // <Alert severity="error">
+                //   <AlertTitle>List Loading Error</AlertTitle>
+                //   {error}
+                // </Alert>
+                logoutHandler
+              ) : null}
+              {loading ? (
+                <Box sx={{ width: '100%' }}>
+                  <LinearProgress />
+                </Box>
+              ) : null}
 
-        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-          <Typography variant="h4" gutterBottom>
-            Welcome {userInfo.name} 👋
-            {/* Welcome */}
-          </Typography>
-          {userInfo.status === 'admin' && (
-            <Button variant="contained" component={RouterLink} to="/dashboard/adduser" startIcon={<Iconify icon="eva:plus-fill" />}>
-              Add User
-            </Button>
-          )}
-        </Stack>
+              <Scrollbar>
+                <TableContainer sx={{ minWidth: 800 }}>
+                  <Table>
+                    <UserListHead
+                      order={order}
+                      orderBy={orderBy}
+                      headLabel={TABLE_HEAD}
+                      rowCount={USERLIST.length}
+                      numSelected={selected.length}
+                      onRequestSort={handleRequestSort}
+                      onSelectAllClick={handleSelectAllClick}
+                    />
+                    <TableBody>
+                      {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                        const { id, name, address, city, state, zipCode, status, contacted, note } = row;
+                        const isItemSelected = selected.indexOf(name) !== -1;
 
-        <Card sx={{marginBottom:"3%"}}>
-          <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
-          {error ? (
-            // <Alert severity="error">
-            //   <AlertTitle>List Loading Error</AlertTitle>
-            //   {error}
-            // </Alert>
-            logoutHandler
-          ) : null}
-          {loading ? (
-            <Box sx={{ width: '100%' }}>
-              <LinearProgress />
-            </Box>
-          ) : null}
+                        return (
+                          <TableRow
+                            hover
+                            key={id}
+                            tabIndex={-1}
+                            role="checkbox"
+                            selected={isItemSelected}
+                            aria-checked={isItemSelected}
+                          >
+                            <TableCell padding="checkbox">
+                              <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, name)} />
+                            </TableCell>
+                            <TableCell component="th" scope="row" padding="none">
+                              <Stack direction="row" alignItems="center" spacing={2}>
+                                <Typography variant="subtitle2" noWrap>
+                                  {name}
+                                </Typography>
+                              </Stack>
+                            </TableCell>
+                            <TableCell align="left">{address}</TableCell>
+                            <TableCell align="left">{city}</TableCell>
+                            <TableCell align="left">{state}</TableCell>
+                            <TableCell align="left">{zipCode}</TableCell>
+                            <TableCell align="left">
+                              <Label variant="ghost" color={(status === 'No Change' && 'warning') || (contacted === 'False' && 'error'  || 'success')}>
+                                {sentenceCase(status)}
+                              </Label>
+                            </TableCell>
+                            <TableCell>
+                              {(() => {
+                                if (status !== 'No Change') {
+                                  if (contacted) {
+                                    return(
+                                      <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, address, zipCode)}>
+                                        <Iconify icon="bi:check-lg" />
+                                      </IconButton>
+                                    )
+                                  }
+                                  return(
+                                    <IconButton color="error" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, address, zipCode)}>
+                                      <Iconify icon="ps:check-box-empty" />
+                                    </IconButton>
+                                  )
+                                }
+                                
+                              })()}                          
+                            </TableCell>
+                            <TableCell>
+                              <AnimatedModal 
+                                passedNote={note}
+                                address={address}
+                                zipCode={zipCode}
+                                name={name}
+                              />
+                            </TableCell>
 
-          <Scrollbar>
-            <TableContainer sx={{ minWidth: 800 }}>
-              <Table>
-                <UserListHead
-                  order={order}
-                  orderBy={orderBy}
-                  headLabel={TABLE_HEAD}
-                  rowCount={USERLIST.length}
-                  numSelected={selected.length}
-                  onRequestSort={handleRequestSort}
-                  onSelectAllClick={handleSelectAllClick}
-                />
-                <TableBody>
-                  {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, address, city, state, zipCode, status, contacted, note } = row;
-                    const isItemSelected = selected.indexOf(name) !== -1;
+                            {/* <TableCell align="right">
+                              <UserMoreMenu />
+                            </TableCell> */}
+                          </TableRow>
+                        );
+                      })}
+                      {emptyRows > 0 && (
+                        <TableRow style={{ height: 53 * emptyRows }}>
+                          <TableCell colSpan={6} />
+                        </TableRow>
+                      )}
+                    </TableBody>
 
-                    return (
-                      <TableRow
-                        hover
-                        key={id}
-                        tabIndex={-1}
-                        role="checkbox"
-                        selected={isItemSelected}
-                        aria-checked={isItemSelected}
-                      >
-                        <TableCell padding="checkbox">
-                          <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, name)} />
-                        </TableCell>
-                        <TableCell component="th" scope="row" padding="none">
-                          <Stack direction="row" alignItems="center" spacing={2}>
-                            <Typography variant="subtitle2" noWrap>
-                              {name}
-                            </Typography>
-                          </Stack>
-                        </TableCell>
-                        <TableCell align="left">{address}</TableCell>
-                        <TableCell align="left">{city}</TableCell>
-                        <TableCell align="left">{state}</TableCell>
-                        <TableCell align="left">{zipCode}</TableCell>
-                        <TableCell align="left">
-                          <Label variant="ghost" color={(status === 'No Change' && 'warning') || (contacted === 'False' && 'error'  || 'success')}>
-                            {sentenceCase(status)}
-                          </Label>
-                        </TableCell>
-                        <TableCell>
-                          {(() => {
-                            if (status !== 'No Change') {
-                              if (contacted) {
-                                return(
-                                  <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, address, zipCode)}>
-                                    <Iconify icon="bi:check-lg" />
-                                  </IconButton>
-                                )
-                              }
-                              return(
-                                <IconButton color="error" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, address, zipCode)}>
-                                  <Iconify icon="ps:check-box-empty" />
-                                </IconButton>
-                              )
-                            }
-                            
-                          })()}                          
-                        </TableCell>
-                        <TableCell>
-                          <AnimatedModal 
-                            passedNote={note}
-                            address={address}
-                            zipCode={zipCode}
-                            name={name}
-                          />
-                        </TableCell>
+                    {isUserNotFound && (
+                      <TableBody>
+                        <TableRow>
+                          <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
+                            <SearchNotFound searchQuery={filterName} />
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    )}
+                  </Table>
+                </TableContainer>
+              </Scrollbar>
 
-                        {/* <TableCell align="right">
-                          <UserMoreMenu />
-                        </TableCell> */}
-                      </TableRow>
-                    );
-                  })}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 53 * emptyRows }}>
-                      <TableCell colSpan={6} />
-                    </TableRow>
-                  )}
-                </TableBody>
+              <TablePagination
+                rowsPerPageOptions={[10, 50, 100]}
+                component="div"
+                count={USERLIST.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+              />
+            </Card>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+              <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+                Update Status
+              </Button>
 
-                {isUserNotFound && (
-                  <TableBody>
-                    <TableRow>
-                      <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                        <SearchNotFound searchQuery={filterName} />
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                )}
-              </Table>
-            </TableContainer>
-          </Scrollbar>
-
-          <TablePagination
-            rowsPerPageOptions={[10, 50, 100]}
-            component="div"
-            count={USERLIST.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </Card>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-          <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
-            Update Status
-          </Button>
-
-          {userInfo.status === 'admin' && (
-            <Button onClick={exportCSV} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
-              Download To CSV
-            </Button>
-          )}
-          
-        </Stack>
-        {userInfo.status === 'admin' && (
-          <FilePond
-            files={files}
-            onupdatefiles={setFiles}
-            // className="NONE"
-            maxFiles={1}
-            server={`${DOMAIN}/api/v1/accounts/upload/`}
-            name={`${userInfo.company}`}
-            labelIdle=' <span class="filepond--label-action">Upload Your Client List</span>'
-            credits='false'
-            storeAsFile='true'
-            // acceptedFileTypes={['image/png', 'image/jpeg']}
-          />
-        )} 
+              {userInfo.status === 'admin' && (
+                <Button onClick={exportCSV} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+                  Download To CSV
+                </Button>
+              )}
+              
+            </Stack>
+            {userInfo.status === 'admin' && (
+              <FilePond
+                files={files}
+                onupdatefiles={setFiles}
+                // className="NONE"
+                maxFiles={1}
+                server={`${DOMAIN}/api/v1/accounts/upload/`}
+                name={`${userInfo.company}`}
+                labelIdle=' <span class="filepond--label-action">Upload Your Client List</span>'
+                credits='false'
+                storeAsFile='true'
+                // acceptedFileTypes={['image/png', 'image/jpeg']}
+              />
+            )}
+          </>
+        )}
       </Container>
     </Page>
   );
