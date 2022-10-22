@@ -1,4 +1,4 @@
-from .models import Client, Company, ZipCode, HomeListing
+from .models import Client, Company, ZipCode, HomeListing, CustomUser
 from time import sleep
 import os
 import http.client
@@ -109,11 +109,10 @@ def getHomesForSale(zip, company=None):
                                 status= 'For Sale',
                                 listed= listing['list_date']
                                 )
-                except:
-                    print(f"ERROR zip: {zip_object}")
-                    print(f"ERROR address: {listing['location']['address']['line']}")
+                except Exception as e:
+                    print(f"ERROR during getHomesForSale Single Listing: {e}")
         except Exception as e:
-            print(f"Error during getHomesForSale: {e}")
+            print(f"ERROR during getHomesForSale: {e}")
 
 
         # try:
@@ -175,7 +174,7 @@ def getHomesForRent(zip, company=None):
                                     status= 'For Rent',
                                     )
                 except Exception as e:
-                    print(e)
+                    print(f"ERROR during getHomesForRent Single Listing: {e}")
         except Exception as e:
             print(f"Error during getHomesForRent: {e}")
             # try:
@@ -233,9 +232,7 @@ def getSoldHomes(zip, company=None):
                                 listed= listing['description']['sold_date']
                                 )
                 except Exception as e:
-                    print(e)
-                    print(f"zip: {zip_object}")
-                    print(f"address: {listing['location']['address']['line']}")
+                    print(f"ERROR during getSoldHomes Single Listing: {e}")
         except Exception as e:
             print(f"Error during getSoldHomes: {e}")
         # try:
@@ -271,7 +268,7 @@ def send_email(company):
     #https://mailtrap.io/blog/django-send-email/
 
     next_email = (datetime.today() + timedelta(days=company.email_frequency)).strftime('%Y-%m-%d')
-    emails = list(Client.objects.filter(company=company).values_list('email'))
+    emails = list(CustomUser.objects.filter(company=company).values_list('email'))
     subject = 'Did Your Customers Move?'
     
     message = emailBody(company)
@@ -313,18 +310,20 @@ def email_reid():
 
 @shared_task
 def auto_update():
-    zipCode_objects = Client.objects.all().values('zipCode').distinct()
-    zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects)
-    for zip in list(zipCodes.values('zipCode')):
-        getHomesForSale.delay(zip)
-        getHomesForRent.delay(zip)
-        getSoldHomes.delay(zip)
-    zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
+    print("hello")
+    # zipCode_objects = Client.objects.all().values('zipCode').distinct()
+    # zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects)
+    # for zip in list(zipCodes.values('zipCode')):
+    #     getHomesForSale.delay(zip)
+    #     getHomesForRent.delay(zip)
+    #     getSoldHomes.delay(zip)
+    # zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
     today = datetime.today().strftime('%Y-%m-%d')
     companies = Company.objects.filter(next_email_date=today)
     for company in companies:
-        send_email(company)
+        print(f"sending email to {company}")
+        # send_email(company)
 
      
     

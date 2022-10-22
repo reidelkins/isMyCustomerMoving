@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ['DEBUG']
 
 # Declared in your environment variables
 IS_HEROKU = "DYNO" in os.environ
@@ -253,7 +253,7 @@ EMAIL_HOST = "smtp.gmail.com" # Your SMTP Provider or in this case gmail
 EMAIL_PORT = 587
 EMAIL_USE_SSL = False
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'reidelkins3@gmail.com'
+EMAIL_HOST_USER = os.environ['EMAIL']
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 #assigned at the beginning
 # EMAIL_HOST_PASSWORD
