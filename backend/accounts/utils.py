@@ -271,8 +271,8 @@ def send_email():
     today = datetime.today().strftime('%Y-%m-%d')
     companies = Company.objects.filter(next_email_date=today)
     print("no errors yet")
-    # for company in companies:
-    #     print(f"sending email to {company}")
+    for company in companies:
+        print(f"sending email to {company.name}")
 
     #     next_email = (datetime.today() + timedelta(days=company.email_frequency)).strftime('%Y-%m-%d')
     #     emails = list(CustomUser.objects.filter(company=company).values_list('email'))
