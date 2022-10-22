@@ -266,27 +266,29 @@ def emailBody(company):
 
 @shared_task
 def send_email():
+    
     #https://mailtrap.io/blog/django-send-email/
     today = datetime.today().strftime('%Y-%m-%d')
     companies = Company.objects.filter(next_email_date=today)
-    for company in companies:
-        print(f"sending email to {company}")
+    print("no errors yet")
+    # for company in companies:
+    #     print(f"sending email to {company}")
 
-        next_email = (datetime.today() + timedelta(days=company.email_frequency)).strftime('%Y-%m-%d')
-        emails = list(CustomUser.objects.filter(company=company).values_list('email'))
-        subject = 'Did Your Customers Move?'
+    #     next_email = (datetime.today() + timedelta(days=company.email_frequency)).strftime('%Y-%m-%d')
+    #     emails = list(CustomUser.objects.filter(company=company).values_list('email'))
+    #     subject = 'Did Your Customers Move?'
         
-        message = emailBody(company)
-        if not message:
-            "There were no updates found today for your client list but look back tomorrow for new leads!"
+    #     message = emailBody(company)
+    #     if not message:
+    #         "There were no updates found today for your client list but look back tomorrow for new leads!"
 
-        for email in emails:
-            send_mail(
-                subject,
-                message,
-                settings.EMAIL_HOST_USER,
-                [email]
-            )
+    #     for email in emails:
+    #         send_mail(
+    #             subject,
+    #             message,
+    #             settings.EMAIL_HOST_USER,
+    #             [email]
+    #         )
 
 @shared_task
 def email_reid():
