@@ -260,7 +260,7 @@ def emailBody(company):
     foundCustomers = Client.objects.filter(company=company).exclude(status='No Change', contacted=True)
     body = f"{len(foundCustomers)}"
     # for customer in foundCustomers:
-    #     body += f"The home belonging to {customer.name} was found to be {customer.status}. No one from your team has contacted them yet, be the first!"
+    #     body += f"The home belonging to {customer.name} was found to be {customer.status}. No one from your team has contacted them yet, be the first!\n"
 
     return body
 
@@ -287,7 +287,7 @@ def send_email():
         print(f"the message is {message}")
 
         for email in emails:
-            email = email[2:-3]
+            email = email[0]
             print(email)
     #         send_mail(
     #             subject,
