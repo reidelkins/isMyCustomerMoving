@@ -275,8 +275,9 @@ def send_email():
         print(f"sending email to {company.name}")
 
     #     next_email = (datetime.today() + timedelta(days=company.email_frequency)).strftime('%Y-%m-%d')
-    #     emails = list(CustomUser.objects.filter(company=company).values_list('email'))
-    #     subject = 'Did Your Customers Move?'
+        emails = list(CustomUser.objects.filter(company=company).values_list('email'))
+        print(emails)
+        subject = 'Did Your Customers Move?'
         
     #     message = emailBody(company)
     #     if not message:
