@@ -286,7 +286,8 @@ def send_email():
         
         print(f"the message is {message}")
 
-    #     for email in emails:
+        for email in emails:
+            print(email)
     #         send_mail(
     #             subject,
     #             message,
