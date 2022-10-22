@@ -279,9 +279,12 @@ def send_email():
         print(emails)
         subject = 'Did Your Customers Move?'
         
-    #     message = emailBody(company)
-    #     if not message:
-    #         "There were no updates found today for your client list but look back tomorrow for new leads!"
+        message = emailBody(company)
+        
+        if not message:
+            message = "There were no updates found today for your client list but look back tomorrow for new leads!"
+        
+        print(f"the message is {message}")
 
     #     for email in emails:
     #         send_mail(
