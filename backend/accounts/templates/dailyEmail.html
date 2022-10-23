@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <br>
+        <a href="https://www.ismycustomermoving.com" target="_blank">
+            <img src="/static/logo.png" alt="logo">
+        </a>
+        <h1>Good Morning {{customer.name}}</h1>
+        {% if clients %}
+            {% for client in clients %}
+                <h2>The home belonging to <b>{{client.name}}</b> was found to be <b>{{client.status}}</b>. No one from your team has contacted them yet, be the first!\n"</h2>
+
+            {% endfor %}
+        {% else %}
+            <h2>There were no updates found today for your client list but look back tomorrow for new leads!</h2>
+        {% endif %}
+
+        {% comment %} <h2>Thank you for your order {{ order.full_name }}</h2>
+        <h3>Your Order ID: {{ order.short_uuid }}</h3>
+
+
+        <h3>Shipping Details:</h3>
+
+        {{ order.full_name }} </br>
+        {{ order.shipping_address.street }} <br/>
+        {{ order.shipping_address.city }} <br/>
+        {{ order.shipping_address.postcode }}
+
+        <h3>
+            Contact Details:
+        </h3>
+        Email: {{ order.email }} <br/>
+        Phone: {{ order.phone }}
+
+        <h2>Order Details:</h2>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total Price</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in order.order_items %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.price }}</td>
+                        <td>{{ item.total_price }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table> {% endcomment %}
+    </body>
+</html>

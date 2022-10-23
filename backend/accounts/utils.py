@@ -9,6 +9,9 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from django.core.mail import send_mail
 
+from django.template import Context
+from django.template.loader import get_template
+
 app = Celery()
 
 def parseStreets(street):
@@ -274,19 +277,25 @@ def send_email():
     today = datetime.today().strftime('%Y-%m-%d')
     # companies = Company.objects.filter(next_email_date=today)
     companies = Company.objects.all()
-    print("no errors yet")
+    # print("no errors yet")
     for company in companies:
-        print(f"sending email to {company.name}")
+        # print(f"sending email to {company.name}")
 
     #     next_email = (datetime.today() + timedelta(days=company.email_frequency)).strftime('%Y-%m-%d')
         emails = list(CustomUser.objects.filter(company=company).values_list('email'))
         print(emails)
         subject = 'Did Your Customers Move?'
         
-        message = emailBody(company)
+        # message = emailBody(company)
+        foundCustomers = Client.objects.filter(company=company).exclude(status='No Change')
+        foundCustomers = foundCustomers.exclude(contacted=True)
+        foundCustomers = foundCustomers.order_by('status')
+        message = get_template("accounts/templates/dailyEmail.html").render(Context({
+            'clients': foundCustomers.get_serialized_data(), 'customer': company.get_serialized_data()
+        }))
         
-        if not message:
-            message = "There were no updates found today for your client list but look back tomorrow for new leads!"
+        # if not message:
+        #     message = "There were no updates found today for your client list but look back tomorrow for new leads!"
         
         # print(f"the message is {message}")
 
