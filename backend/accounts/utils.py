@@ -291,7 +291,7 @@ def send_email():
         foundCustomers = foundCustomers.exclude(contacted=True)
         foundCustomers = foundCustomers.order_by('status')
         message = get_template("dailyEmail.html").render(Context({
-            'clients': foundCustomers.get_serialized_data(), 'customer': company.get_serialized_data()
+            'clients': foundCustomers, 'customer': company
         }))
         
         # if not message:
