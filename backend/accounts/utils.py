@@ -7,10 +7,11 @@ from celery import shared_task, Celery
 from celery.schedules import crontab
 from datetime import datetime, timedelta
 from django.conf import settings
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMessage
 
 from django.template import Context
 from django.template.loader import get_template
+from django.utils.html import strip_tags
 
 app = Celery()
 
@@ -303,12 +304,23 @@ def send_email():
             email = email[0]
             if "jb" not in email:
                 print(email)
-                send_mail(
+                msg = EmailMessage(
                     subject,
                     message,
                     settings.EMAIL_HOST_USER,
                     [email]
+                    # html_message=message,
                 )
+                msg.content_subtype ="html"# Main content is now text/html
+                msg.send()
+
+                # send_mail(
+                #     subject,
+                #     strip_tags(message)
+                #     settings.EMAIL_HOST_USER,
+                #     [email]
+                #     html_message=message
+                # )
 
 @shared_task
 def email_reid():
