@@ -290,9 +290,9 @@ def send_email():
         foundCustomers = Client.objects.filter(company=company).exclude(status='No Change')
         foundCustomers = foundCustomers.exclude(contacted=True)
         foundCustomers = foundCustomers.order_by('status')
-        message = get_template("dailyEmail.html").render(Context({
+        message = get_template("dailyEmail.html").render({
             'clients': foundCustomers, 'customer': company
-        }))
+        })
         
         # if not message:
         #     message = "There were no updates found today for your client list but look back tomorrow for new leads!"
