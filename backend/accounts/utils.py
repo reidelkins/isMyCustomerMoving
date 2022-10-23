@@ -290,7 +290,7 @@ def send_email():
         foundCustomers = Client.objects.filter(company=company).exclude(status='No Change')
         foundCustomers = foundCustomers.exclude(contacted=True)
         foundCustomers = foundCustomers.order_by('status')
-        message = get_template("accounts/templates/dailyEmail.html").render(Context({
+        message = get_template("dailyEmail.html").render(Context({
             'clients': foundCustomers.get_serialized_data(), 'customer': company.get_serialized_data()
         }))
         
