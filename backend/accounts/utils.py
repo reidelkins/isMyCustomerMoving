@@ -257,7 +257,8 @@ def updateStatus(zip, company, status):
         Client.objects.filter(company=company_object, address__in=listedAddresses).update(status=status)
     
 def emailBody(company):
-    foundCustomers = Client.objects.filter(company=company).exclude(status='No Change', contacted=True)
+    foundCustomers = Client.objects.filter(company=company).exclude(status='No Change')
+    foundCustomers = foundCustomers.exclude(contacted=True)
     body = f"{len(foundCustomers)}"
     # for customer in foundCustomers:
     #     body += f"The home belonging to {customer.name} was found to be {customer.status}. No one from your team has contacted them yet, be the first!\n"
@@ -288,7 +289,8 @@ def send_email():
 
         for email in emails:
             email = email[0]
-            print(email)
+            if "jb" not in email:
+                print(email)
     #         send_mail(
     #             subject,
     #             message,
