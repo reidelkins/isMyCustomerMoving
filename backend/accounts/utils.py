@@ -270,7 +270,8 @@ def send_email():
     
     #https://mailtrap.io/blog/django-send-email/
     today = datetime.today().strftime('%Y-%m-%d')
-    companies = Company.objects.filter(next_email_date=today)
+    # companies = Company.objects.filter(next_email_date=today)
+    companies = Company.objects.all()
     print("no errors yet")
     for company in companies:
         print(f"sending email to {company.name}")
