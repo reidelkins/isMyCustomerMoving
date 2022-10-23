@@ -1,9 +1,10 @@
 <!DOCTYPE html>
+{% load static %}
 <html>
     <body>
         <br>
         <a href="https://www.ismycustomermoving.com" target="_blank">
-            <img src="/logo.png" alt="logo">
+            <img src="{% static 'logo.png'}" alt="logo">
         </a>
         <h1>Good Morning {{customer.name}}</h1>
         {% if clients %}
