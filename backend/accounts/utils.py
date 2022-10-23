@@ -293,12 +293,12 @@ def send_email():
             email = email[0]
             if "jb" not in email:
                 print(email)
-    #         send_mail(
-    #             subject,
-    #             message,
-    #             settings.EMAIL_HOST_USER,
-    #             [email]
-    #         )
+                send_mail(
+                    subject,
+                    message,
+                    settings.EMAIL_HOST_USER,
+                    [email]
+                )
 
 @shared_task
 def email_reid():
