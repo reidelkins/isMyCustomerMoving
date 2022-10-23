@@ -3,12 +3,12 @@
     <body>
         <br>
         <a href="https://www.ismycustomermoving.com" target="_blank">
-            <img src="/static/logo.png" alt="logo">
+            <img src="/logo.png" alt="logo">
         </a>
         <h1>Good Morning {{customer.name}}</h1>
         {% if clients %}
             {% for client in clients %}
-                <h2>The home belonging to <b>{{client.name}}</b> at {{client.address}}was found to be <b>{{client.status}}</b>. No one from your team has contacted them yet, be the first!\n"</h2>
+                <p>The home belonging to <b>{{client.name}}</b> at {{client.address}}was found to be <b>{{client.status}}</b>. No one from your team has contacted them yet, be the first!"</p>
 
             {% endfor %}
         {% else %}
