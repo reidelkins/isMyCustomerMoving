@@ -259,6 +259,7 @@ def updateStatus(zip, company, status):
 def emailBody(company):
     foundCustomers = Client.objects.filter(company=company).exclude(status='No Change')
     foundCustomers = foundCustomers.exclude(contacted=True)
+    foundCustomers = foundCustomers.order_by('status')
     # body = f"{len(foundCustomers)}"
     body = ""
     for customer in foundCustomers:
@@ -287,7 +288,7 @@ def send_email():
         if not message:
             message = "There were no updates found today for your client list but look back tomorrow for new leads!"
         
-        print(f"the message is {message}")
+        # print(f"the message is {message}")
 
         for email in emails:
             email = email[0]
