@@ -10,6 +10,7 @@ router = routers.DefaultRouter()
 router.register(r"users", views.UserViewSet)
 
 urlpatterns = [
+    path('<int:question_id>/', views.testView, name='test'),
     path('update/<str:company>/', views.UpdateStatusView.as_view(), name='update-status'),
     path('clients/<str:company>/', views.ClientListView.as_view(), name='client-list'),
     path('adduser/<str:company>/', views.AddUserView.as_view(), name='adduser'),
@@ -21,4 +22,5 @@ urlpatterns = [
     path('refresh_token/', TokenRefreshView.as_view(), name='refresh_token'),
     path('confirmation/<str:pk>/<str:uid>/', views.confirmation, name='email_confirmation'),
     path("", include(router.urls)),
+    
 ]

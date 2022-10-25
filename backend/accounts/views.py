@@ -216,6 +216,7 @@ class UploadFileView(generics.CreateAPIView):
                         status.HTTP_201_CREATED)
 
 class UpdateNoteView(generics.CreateAPIView):
+    serializer_class = UserSerializer
 
     def post(self, request, *args, **kwargs):
         print(request.data)
@@ -248,3 +249,5 @@ class UpdateContactedView(generics.CreateAPIView):
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
         return Response("", status=status.HTTP_201_CREATED, headers="")
 
+def testView(request, question_id):
+    return HttpResponse("You're looking at question.")
