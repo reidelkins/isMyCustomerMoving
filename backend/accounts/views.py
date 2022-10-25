@@ -232,7 +232,7 @@ class UpdateNoteView(generics.CreateAPIView):
         return Response("", status=status.HTTP_201_CREATED, headers="")
 
 class UpdateContactedView(generics.CreateAPIView):
-
+    serializer_class = UserSerializer
     def post(self, request, *args, **kwargs):
         print(request.data)
         try:
