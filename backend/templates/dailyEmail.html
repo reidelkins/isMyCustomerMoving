@@ -1,10 +1,11 @@
-<!DOCTYPE html>
 {% load static %}
+
+<!DOCTYPE html>
 <html>
     <body>
         <br>
         <a href="https://www.ismycustomermoving.com" target="_blank">
-            <img src="/logo.png" alt="logo">
+            <img src="{% static 'my_app/example.jpg' %}" alt="logo">
         </a>
         <h1>Good Morning {{customer.name}}</h1>
         {% if clients %}
