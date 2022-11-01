@@ -284,7 +284,6 @@ def send_email():
 
     #     next_email = (datetime.today() + timedelta(days=company.email_frequency)).strftime('%Y-%m-%d')
         emails = list(CustomUser.objects.filter(company=company).values_list('email'))
-        print(emails)
         subject = 'Did Your Customers Move?'
         
         # message = emailBody(company)
@@ -302,17 +301,15 @@ def send_email():
 
         for email in emails:
             email = email[0]
-            if "jb" not in email:
-                print(email)
-                msg = EmailMessage(
-                    subject,
-                    message,
-                    settings.EMAIL_HOST_USER,
-                    [email]
-                    # html_message=message,
-                )
-                msg.content_subtype ="html"# Main content is now text/html
-                msg.send()
+            msg = EmailMessage(
+                subject,
+                message,
+                settings.EMAIL_HOST_USER,
+                [email]
+                # html_message=message,
+            )
+            msg.content_subtype ="html"# Main content is now text/html
+            msg.send()
 
                 # send_mail(
                 #     subject,
@@ -323,19 +320,19 @@ def send_email():
                 # )
 
 @shared_task
-def email_reid():
+def send_password_reset_email(email):
     #https://mailtrap.io/blog/django-send-email/
-    subject = 'Did Your Customers Move?'
+    subject = 'Password Reset: Did My Customers Move'
+    message = get_template("resetPassword.html").render()
     
-    message = "There were no updates found today for your client list but look back tomorrow for new leads!"
+    # message = "There were no updates found today for your client list but look back tomorrow for new leads!"
 
     send_mail(
         subject,
         message,
         settings.EMAIL_HOST_USER,
-        ['reidelkins@outlook.com']
+        [email]
     )
-    print("Just emailed reid")
 
 # @app.on_after_configure.connect
 # def setup_periodic_tasks(sender, **kwargs):

@@ -12,7 +12,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import io, csv, pandas as pd
-from .utils import getAllZipcodes, saveClientList
+from .utils import getAllZipcodes, saveClientList, send_password_reset_email
 from .models import CustomUser, Client, Company, ZipCode
 from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer
 
@@ -249,5 +249,19 @@ class UpdateContactedView(generics.CreateAPIView):
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
         return Response("", status=status.HTTP_201_CREATED, headers="")
 
-def testView(request, question_id):
-    return HttpResponse("You're looking at question.")
+# class ResetView()
+
+class ResetRequestView(generics.CreateAPIView):
+    serializer_class = UserSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            company_object = Company.objects.get(id = self.kwargs['company'])
+            user = CustomUser.objects.get(company=company_object, email=self.kwargs['email'])
+            send_password_reset_email(self.kwargs['email'])
+        except Exception as e:
+            print(e)
+            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response("", status=status.HTTP_201_CREATED, headers="")
+    
