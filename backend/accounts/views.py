@@ -1,3 +1,4 @@
+from msilib.schema import Error
 from django.shortcuts import render
 from django.contrib.auth.hashers import make_password
 from django.contrib.sites.shortcuts import get_current_site
@@ -208,7 +209,8 @@ class UploadFileView(generics.CreateAPIView):
                     reader.columns = reader.columns.str.replace(column, 'city')
                 if "state" in column:
                     reader.columns = reader.columns.str.replace(column, 'state')
-        except:
+        except Exception as e:
+            print(e)
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
         for _, row in reader.iterrows():
             saveClientList.delay(row.to_dict(), company_id)
