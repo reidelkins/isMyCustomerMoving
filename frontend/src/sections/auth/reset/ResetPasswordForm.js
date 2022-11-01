@@ -8,51 +8,52 @@ import { Link, Stack, TextField, IconButton, InputAdornment, Alert, AlertTitle }
 import { LoadingButton } from '@mui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 
-import { login } from '../../../redux/actions/authActions';
-import Iconify from '../../../components/Iconify';
+import { resetRequest } from '../../../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
 
-export default function LoginForm() {
+export default function ResetPasswordForm() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const userLogin = useSelector((state) => state.userLogin);
   const { error: loginError, loading: loginLoading, userInfo } = userLogin;
 
-  const [showPassword, setShowPassword] = useState(false);
-
-  const LoginSchema = Yup.object().shape({
+  const ResetPasswordSchema = Yup.object().shape({
     email: Yup.string().email('Email must be a valid email address').required('Email is required'),
-    password: Yup.string().required('Password is required'),
+    company: Yup.string().required('Company name is required'),
   });
 
   const formik = useFormik({
     initialValues: {
       email: '',
-      password: '',
+      company: '',
     },
-    validationSchema: LoginSchema,
+    validationSchema: ResetPasswordSchema,
     onSubmit: () => {
-      dispatch(login(values.email, values.password));
+      dispatch(resetRequest(values.email, values.company));
     },
   });
 
   const { errors, touched, values, isSubmitting, handleSubmit, getFieldProps } = formik;
 
-  const handleShowPassword = () => {
-    setShowPassword((show) => !show);
-  };
-
   useEffect(() => {
     if (userInfo) {
-      navigate('/dashboard/customers', { replace: true });
+      navigate('/login', { replace: true });
     }
   }, [navigate, userInfo]);
   return (
     <FormikProvider value={formik}>
       <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
         <Stack spacing={3}>
+          <TextField
+            fullWidth
+            label="Company"
+            {...getFieldProps('company')}
+            error={Boolean(touched.company && errors.company)}
+            helperText={touched.company && errors.company}
+          />
+
           <TextField
             fullWidth
             autoComplete="username"
@@ -62,35 +63,16 @@ export default function LoginForm() {
             error={Boolean(touched.email && errors.email)}
             helperText={touched.email && errors.email}
           />
-
-          <TextField
-            fullWidth
-            autoComplete="current-password"
-            type={showPassword ? 'text' : 'password'}
-            label="Password"
-            {...getFieldProps('password')}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={handleShowPassword} edge="end">
-                    <Iconify icon={showPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            error={Boolean(touched.password && errors.password)}
-            helperText={touched.password && errors.password}
-          />
         </Stack>
 
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ my: 2 }}>
-          <Link component={RouterLink} variant="subtitle2" to="/forgot_password" underline="hover">
-            Forgot password?
+          <Link component={RouterLink} variant="subtitle2" to="/login" underline="hover">
+            Return to login
           </Link>
         </Stack>
         {loginError ? (
           <Alert severity="error">
-            <AlertTitle>Login Error</AlertTitle>
+            <AlertTitle>Reset Password Error</AlertTitle>
             {loginError}
           </Alert>
         ) : null}
@@ -102,7 +84,7 @@ export default function LoginForm() {
           variant="contained"
           loading={loginLoading ? isSubmitting : null}
         >
-          Login
+          Submit Info
         </LoadingButton>
       </Form>
     </FormikProvider>

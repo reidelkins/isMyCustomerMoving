@@ -7,6 +7,9 @@ import {
   REGISTER_SUCCESS,
   REGISTER_FAIL,
   LOGOUT,
+  RESET_REQUEST_REQUEST,
+  RESET_REQUEST_SUCCESS,
+  RESET_REQUEST_FAIL
 } from '../types/auth';
 
 import { DOMAIN } from '../constants';
@@ -79,4 +82,32 @@ export const register = (company, accessToken, firstName, lastName, email, passw
 export const logout = () => (dispatch) => {
   localStorage.removeItem('userInfo');
   dispatch({ type: LOGOUT });
+};
+
+export const resetRequest = (email, company) => async (dispatch) => {
+  try {
+    dispatch({
+      type: RESET_REQUEST_REQUEST,
+    });
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+      },
+    };
+
+    const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/reset/`, { email, company }, config);
+
+    dispatch({
+      type: RESET_REQUEST_SUCCESS,
+      payload: data,
+    });
+
+    localStorage.setItem('userInfo', JSON.stringify(data));
+  } catch (error) {
+    dispatch({
+      type: RESET_REQUEST_FAIL,
+      payload: error.response && error.response.data.detail ? error.response.data.detail : error.message,
+    });
+  }
 };
