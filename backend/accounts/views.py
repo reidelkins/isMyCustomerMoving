@@ -1,4 +1,3 @@
-from msilib.schema import Error
 from django.shortcuts import render
 from django.contrib.auth.hashers import make_password
 from django.contrib.sites.shortcuts import get_current_site
