@@ -37,7 +37,7 @@ import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashbo
 import { DOMAIN } from '../redux/constants';
 
 import UsersListCall from '../redux/calls/UsersListCall';
-import { update, contact } from '../redux/actions/usersActions';
+import { update, contact, users } from '../redux/actions/usersActions';
 
 import { logout } from '../redux/actions/authActions';
 import { LOGOUT } from '../redux/types/auth';
@@ -60,7 +60,7 @@ const TABLE_HEAD = [
 ];
 
 // ----------------------------------------------------------------------
-
+// change this to sort by status
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
     return -1;
@@ -108,7 +108,7 @@ export default function CustomerData() {
 
   const [contacted, setContacted] = useState([]);
 
-  const [orderBy, setOrderBy] = useState('name');
+  const [orderBy, setOrderBy] = useState('status');
 
   const [filterName, setFilterName] = useState('');
 
@@ -173,9 +173,14 @@ export default function CustomerData() {
     setFilterName(event.target.value);
   };
 
-  const updateContacted = (event, address, zipCode) => {
+  const updateContacted = (event, address, zipCode, id) => {
     dispatch(contact(address, zipCode))
-    window.location.reload(false);
+    dispatch(users())
+    // const client = filteredUsers.find(obj => {
+    //   return obj.address === address;
+    // })
+    // console.log(client)
+    // window.location.reload(false);
   };
 
   const updateStatus = () => {
@@ -212,6 +217,7 @@ export default function CustomerData() {
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
 
   const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
+  // const [filteredUsers, setFilteredUsers] = useState(USERLIST)
 
   const isUserNotFound = filteredUsers.length === 0;
 
@@ -299,13 +305,13 @@ export default function CustomerData() {
                                 if (status !== 'No Change') {
                                   if (contacted) {
                                     return(
-                                      <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, address, zipCode)}>
+                                      <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, address, zipCode, id)}>
                                         <Iconify icon="bi:check-lg" />
                                       </IconButton>
                                     )
                                   }
                                   return(
-                                    <IconButton color="error" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, address, zipCode)}>
+                                    <IconButton color="error" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, address, zipCode, id)}>
                                       <Iconify icon="ps:check-box-empty" />
                                     </IconButton>
                                   )

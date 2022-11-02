@@ -15,7 +15,7 @@ import { useFormik, Form, FormikProvider } from 'formik';
 import { useDispatch } from 'react-redux';
 
 import Iconify from './Iconify';
-import { updateNote } from '../redux/actions/usersActions';
+import { updateNote, users } from '../redux/actions/usersActions';
 
 
 export default function AnimatedModal({
@@ -43,7 +43,7 @@ export default function AnimatedModal({
             dispatch(updateNote(values.note, address, zipCode));
             console.log(values.note)
             setOpen(false);
-            window.location.reload(false);
+            dispatch(users());
         },
     });
 
