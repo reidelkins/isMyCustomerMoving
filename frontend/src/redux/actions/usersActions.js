@@ -2,6 +2,7 @@ import axios from 'axios';
 import { LIST_REQUEST, LIST_SUCCESS, LIST_FAIL, STATUS_REQUEST, STATUS_SUCCESS, STATUS_FAIL, ADDUSER_REQUEST, ADDUSER_SUCCESS, ADDUSER_FAIL, NOTE_REQUEST, NOTE_SUCCESS, NOTE_FAIL } from '../types/users';
 import { DOMAIN } from '../constants';
 
+
 export const addUser = (firstName, lastName, email) => async (dispatch, getState) => {
   try {
     dispatch({
@@ -137,6 +138,7 @@ export const updateNote = (note, address, zipCode) => async (dispatch, getState)
       payload: error.response && error.response.data.detail ? error.response.data.detail : error.message,
     });
   }
+  // users();
 };
 
 export const contact = (address, zipCode) => async (dispatch, getState) => {
@@ -155,8 +157,6 @@ export const contact = (address, zipCode) => async (dispatch, getState) => {
         Authorization: `Bearer ${userInfo.access}`,
       },
     };
-    console.log(address)
-    console.log(zipCode)
     const { data } = await axios.post(
       `${DOMAIN}/api/v1/accounts/contacted/${userInfo.company}/`,
       {address, zipCode},

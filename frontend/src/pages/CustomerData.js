@@ -175,12 +175,7 @@ export default function CustomerData() {
 
   const updateContacted = (event, address, zipCode, id) => {
     dispatch(contact(address, zipCode))
-    dispatch(users())
-    // const client = filteredUsers.find(obj => {
-    //   return obj.address === address;
-    // })
-    // console.log(client)
-    // window.location.reload(false);
+    setTimeout(() => {dispatch(users())}, 500);
   };
 
   const updateStatus = () => {

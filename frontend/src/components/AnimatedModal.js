@@ -43,7 +43,7 @@ export default function AnimatedModal({
             dispatch(updateNote(values.note, address, zipCode));
             console.log(values.note)
             setOpen(false);
-            dispatch(users());
+            setTimeout(() => {dispatch(users())}, 500);
         },
     });
 
