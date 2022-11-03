@@ -108,6 +108,8 @@ export default function CustomerData() {
 
   const [contacted, setContacted] = useState([]);
 
+  const [selectedClients, setSelectedClients] = useState([]);
+
   const [orderBy, setOrderBy] = useState('status');
 
   const [filterName, setFilterName] = useState('');
@@ -124,24 +126,38 @@ export default function CustomerData() {
     if (event.target.checked) {
       const newSelecteds = USERLIST.map((n) => n.name);
       setSelected(newSelecteds);
+      
+      const newSelectedClients = []
+      for (let i=0; i < USERLIST.length; i+=1) {
+        newSelectedClients.push({"address": USERLIST[i].address, "zip": USERLIST[i].zipCode})
+      }
+      setSelectedClients(newSelectedClients);
       return;
     }
     setSelected([]);
+    setSelectedClients([]);
   };
 
-  const handleClick = (event, name) => {
+  const handleClick = (event, name, address, zipCode) => {
     const selectedIndex = selected.indexOf(name);
     let newSelected = [];
+    let newSelectedClients = [];
     if (selectedIndex === -1) {
       newSelected = newSelected.concat(selected, name);
+      newSelectedClients = newSelectedClients.concat(selectedClients, {"address": address, "zip": zipCode });
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
+      newSelectedClients = newSelectedClients.concat(selectedClients.slice(1));
     } else if (selectedIndex === selected.length - 1) {
       newSelected = newSelected.concat(selected.slice(0, -1));
+      newSelectedClients = newSelectedClients.concat(selectedClients.slice(0, -1));
     } else if (selectedIndex > 0) {
       newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
+      newSelectedClients = newSelectedClients.concat(selectedClients.slice(0, selectedIndex), selectedClients.slice(selectedIndex + 1));
     }
     setSelected(newSelected);
+    setSelectedClients(newSelectedClients);
+
   };
 
   const handleContacted = (event, name) => {
@@ -185,7 +201,6 @@ export default function CustomerData() {
 
   const exportCSV = () => {
     if (USERLIST.length === 0) { return }
-    // console.log(USERLIST.length)
     let csvContent = 'data:text/csv;charset=utf-8,';
     csvContent += 'Name,Address,City,State,ZipCode,Status\r\n';
     USERLIST.forEach((n) => {
@@ -236,7 +251,7 @@ export default function CustomerData() {
               )}
             </Stack>
             <Card sx={{marginBottom:"3%"}}>
-              <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
+              <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedClients={selectedClients} />
               {error ? (
                 // <Alert severity="error">
                 //   <AlertTitle>List Loading Error</AlertTitle>
@@ -277,7 +292,7 @@ export default function CustomerData() {
                             aria-checked={isItemSelected}
                           >
                             <TableCell padding="checkbox">
-                              <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, name)} />
+                              <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, name, address, zipCode)} />
                             </TableCell>
                             <TableCell component="th" scope="row" padding="none">
                               <Stack direction="row" alignItems="center" spacing={2}>

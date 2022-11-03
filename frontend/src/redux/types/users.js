@@ -21,3 +21,7 @@ export const NOTE_REQUEST = 'NOTE_REQUEST';
 export const NOTE_SUCCESS = 'NOTE_SUCCESS';
 export const NOTE_FAIL = 'NOTE_FAIL';
 
+export const DELETE_REQUEST = 'DELETE_REQUEST';
+export const DELETE_SUCCESS = 'DELETE_SUCCESS';
+export const DELETE_FAIL = 'DELETE_FAIL';
+

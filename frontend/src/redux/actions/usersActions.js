@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { LIST_REQUEST, LIST_SUCCESS, LIST_FAIL, STATUS_REQUEST, STATUS_SUCCESS, STATUS_FAIL, ADDUSER_REQUEST, ADDUSER_SUCCESS, ADDUSER_FAIL, NOTE_REQUEST, NOTE_SUCCESS, NOTE_FAIL } from '../types/users';
+import { LIST_REQUEST, LIST_SUCCESS, LIST_FAIL, STATUS_REQUEST, STATUS_SUCCESS, STATUS_FAIL, ADDUSER_REQUEST, ADDUSER_SUCCESS, ADDUSER_FAIL, NOTE_REQUEST, NOTE_SUCCESS, NOTE_FAIL, DELETE_REQUEST, DELETE_SUCCESS, DELETE_FAIL } from '../types/users';
 import { DOMAIN } from '../constants';
 
 
@@ -169,6 +169,40 @@ export const contact = (address, zipCode) => async (dispatch, getState) => {
   } catch (error) {
     dispatch({
       type: NOTE_FAIL,
+      payload: error.response && error.response.data.detail ? error.response.data.detail : error.message,
+    });
+  }
+};
+
+export const deleteClient = (selectedClients) => async (dispatch, getState) => {
+  try {
+    dispatch({
+      type: DELETE_REQUEST,
+    });
+
+    const {
+      userLogin: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+
+    const { data } = await axios.post(
+      `${DOMAIN}/api/v1/accounts/deleteClient/${userInfo.company}/`,
+      selectedClients,
+      config
+    );
+    dispatch({
+      type: DELETE_SUCCESS,
+      payload: data,
+    });
+  } catch (error) {
+    dispatch({
+      type: DELETE_FAIL,
       payload: error.response && error.response.data.detail ? error.response.data.detail : error.message,
     });
   }
