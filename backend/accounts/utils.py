@@ -27,38 +27,42 @@ def parseStreets(street):
 
 @shared_task
 def saveClientList(row, company_id):
-    company = Company.objects.get(id=company_id)
-    street = (row['street']).title()
-    street = parseStreets(street)
     try:
-        if int(row['zip']) > 500 and int(row['zip']) < 99951:
-        # if int(row['zip']) > 37770 and int(row['zip']) < 37775:
-            zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
-            Client.objects.update_or_create(
-                    name= row['name'],
-                    address= street,
-                    zipCode= zipCode,
-                    company= company,
-                    city= row['city'],
-                    state = row['state'],
-                    )
-    except:
+        company = Company.objects.get(id=company_id)
+        street = (str(row['street'])).title()
+        street = parseStreets(street)
         try:
-            if type(row['zip']) != int:
-                row['zip'] = (row['zip'].split('-'))[0]
             if int(row['zip']) > 500 and int(row['zip']) < 99951:
             # if int(row['zip']) > 37770 and int(row['zip']) < 37775:
                 zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
                 Client.objects.update_or_create(
-                        name= row["name"],
+                        name= row['name'],
                         address= street,
                         zipCode= zipCode,
                         company= company,
                         city= row['city'],
                         state = row['state'],
                         )
-        except Exception as e:
-            print(e)
+        except:
+            try:
+                if type(row['zip']) != int:
+                    print(row['zip'])
+                    row['zip'] = (row['zip'].split('-'))[0]
+                if int(row['zip']) > 500 and int(row['zip']) < 99951:
+                # if int(row['zip']) > 37770 and int(row['zip']) < 37775:
+                    zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
+                    Client.objects.update_or_create(
+                            name= row["name"],
+                            address= street,
+                            zipCode= zipCode,
+                            company= company,
+                            city= row['city'],
+                            state = row['state'],
+                            )
+            except Exception as e:
+                print(e)
+    except Exception as e:
+                print(e)
 
 
 @shared_task

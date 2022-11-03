@@ -195,7 +195,7 @@ class UploadFileView(generics.CreateAPIView):
         except:
             return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            reader = pd.read_csv(file, on_bad_lines='skip', encoding= 'unicode_escape')
+            reader = pd.read_csv(file, on_bad_lines='skip')
             reader.columns= reader.columns.str.lower()
             for column in reader.columns:
                 if "name" in column:
@@ -203,6 +203,8 @@ class UploadFileView(generics.CreateAPIView):
                 if "zip" in column:
                     reader.columns = reader.columns.str.replace(column, 'zip')
                 if "street" in column:
+                    reader.columns = reader.columns.str.replace(column, 'street')
+                elif "address" in column:
                     reader.columns = reader.columns.str.replace(column, 'street')
                 if "city" in column:
                     reader.columns = reader.columns.str.replace(column, 'city')
