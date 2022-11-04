@@ -3,8 +3,7 @@ from time import sleep
 import os
 import http.client
 import json
-from celery import shared_task, Celery
-from celery.schedules import crontab
+from celery import shared_task
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.core.mail import send_mail, EmailMessage
@@ -13,7 +12,7 @@ from django.template import Context
 from django.template.loader import get_template
 from django.utils.html import strip_tags
 
-app = Celery()
+# app = Celery()
 
 def parseStreets(street):
     conversions = {"Alley": "Aly", "Avenue": "Ave", "Boulevard": "Blvd", "Circle": "Cir", "Court": "Crt", "Cove": "Cv", "Canyon": "Cnyn", "Drive": "Dr", "Expressway": "Expy", "Highway": "Hwy", 
@@ -339,16 +338,6 @@ def send_password_reset_email(email):
         settings.EMAIL_HOST_USER,
         [email]
     )
-
-# @app.on_after_configure.connect
-# def setup_periodic_tasks(sender, **kwargs):
-#     # Executes every morning at 0400
-#     sender.add_periodic_task(
-#         crontab(hour=1, minute=55),
-#         auto_update.s(),
-#     )
-
-#     sender.add_periodic_task(30.0, email_reid.s(), expires=10)
 
 @shared_task
 def auto_update():
