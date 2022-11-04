@@ -179,7 +179,6 @@ class UpdateStatusView(APIView):
         try:
             getAllZipcodes.delay(self.kwargs['company'])
         except Exception as e:
-            print("Update Status View")
             print(e)
         return Response("", status=status.HTTP_201_CREATED, headers="")
 
