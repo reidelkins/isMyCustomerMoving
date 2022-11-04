@@ -45,7 +45,9 @@ def saveClientList(row, company_id):
                         )
         except:
             try:
-                if type(row['zip']) != int:
+                if type(row['zip']) == float:
+                    row['zip'] = int(row['zip'])
+                if type(row['zip']) == str:
                     print(row['zip'])
                     row['zip'] = (row['zip'].split('-'))[0]
                 if int(row['zip']) > 500 and int(row['zip']) < 99951:

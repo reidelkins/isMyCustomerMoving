@@ -192,7 +192,8 @@ class UploadFileView(generics.CreateAPIView):
         file = serializer.initial_data[company_id]
         try:
             Company.objects.get(id=company_id)
-        except:
+        except Exception as e:
+            print(e)
             return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             reader = pd.read_csv(file, on_bad_lines='skip')
@@ -213,11 +214,13 @@ class UploadFileView(generics.CreateAPIView):
         except Exception as e:
             print(e)
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
-        # count = 0 
+        count = 0 
         for _, row in reader.iterrows():
             # print(count)
-            # count += 1
+            count += 1
             saveClientList.delay(row.to_dict(), company_id)
+            if count > 10:
+                break
         return Response({"status": "success"},
                         status.HTTP_201_CREATED)
 
