@@ -144,7 +144,7 @@ export default function CustomerData() {
     let newSelectedClients = [];
     if (selectedIndex === -1) {
       newSelected = newSelected.concat(selected, name);
-      newSelectedClients = newSelectedClients.concat(selectedClients, {"address": address, "zip": zipCode });
+      newSelectedClients = newSelectedClients.concat(selectedClients, {"address": address, "zip": zipCode, "name": name });
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
       newSelectedClients = newSelectedClients.concat(selectedClients.slice(1));

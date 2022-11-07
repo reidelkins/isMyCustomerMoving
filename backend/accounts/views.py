@@ -259,11 +259,14 @@ class DeleteClientView(generics.CreateAPIView):
             company_object = Company.objects.get(id = self.kwargs['company'])
             print(company_object)
             for client in request.data:
-                zipcode_object = ZipCode.objects.get(zipCode = int(client['zip']))
-                print(zipcode_object)
-                customer = Client.objects.get(company=company_object, zipCode=zipcode_object, address=client['address'])
-                print(customer)
-                customer.delete()
+                try:
+                    zipcode_object = ZipCode.objects.get(zipCode = int(client['zip']))
+                    print(zipcode_object)
+                    customer = Client.objects.get(company=company_object, zipCode=zipcode_object, address=client['address'], name=client['name'])
+                    print(customer)
+                    customer.delete()
+                except Exception as e:
+                    print(e)
         except Exception as e:
             print(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
