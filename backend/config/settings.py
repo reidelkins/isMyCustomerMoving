@@ -278,9 +278,9 @@ CACHES = {
         "LOCATION": os.environ.get('REDIS_URL'),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "CONNECTION_POOL_KWARGS": {
-                "ssl_cert_reqs": ssl.CERT_NONE,
-            },
+            # "CONNECTION_POOL_KWARGS": {
+            #     "ssl_cert_reqs": ssl.CERT_NONE,
+            # },
         }
     }
 }
