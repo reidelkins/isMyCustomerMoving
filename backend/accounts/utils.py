@@ -71,10 +71,7 @@ def getAllZipcodes(company):
     company_object = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company_object).values('zipCode')
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=datetime.today().strftime('%Y-%m-%d'))
-    count = 0
     for zip in list(zipCodes.values('zipCode')):
-        count +=1
-        print(count)
         getHomesForSale.delay(zip, company)
         getHomesForRent.delay(zip, company)
         getSoldHomes.delay(zip, company)
@@ -349,5 +346,3 @@ def auto_update():
         getSoldHomes.delay(zip)
     zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
-     
-    
