@@ -44,6 +44,7 @@ export default function UserListToolbar({ numSelected, filterName, onFilterName,
 
   const clickDelete = (event, clients) => {
     dispatch(deleteClient(clients));
+    setTimeout(() => {dispatch(users())}, 500);
   };
   return (
     <RootStyle

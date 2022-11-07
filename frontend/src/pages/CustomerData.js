@@ -138,14 +138,13 @@ export default function CustomerData() {
     setSelectedClients([]);
   };
 
-  const handleClick = (event, name, address, zipCode) => {
-    console.log(name)
+  const handleClick = (event, name, id) => {
     const selectedIndex = selected.indexOf(name);
     let newSelected = [];
     let newSelectedClients = [];
     if (selectedIndex === -1) {
       newSelected = newSelected.concat(selected, name);
-      newSelectedClients = newSelectedClients.concat(selectedClients, {"address": address, "zip": zipCode, "name": name });
+      newSelectedClients = newSelectedClients.concat(selectedClients, id);
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
       newSelectedClients = newSelectedClients.concat(selectedClients.slice(1));
@@ -190,8 +189,8 @@ export default function CustomerData() {
     setFilterName(event.target.value);
   };
 
-  const updateContacted = (event, address, zipCode, id) => {
-    dispatch(contact(address, zipCode))
+  const updateContacted = (event, id) => {
+    dispatch(contact(id))
     setTimeout(() => {dispatch(users())}, 500);
   };
 
@@ -293,7 +292,7 @@ export default function CustomerData() {
                             aria-checked={isItemSelected}
                           >
                             <TableCell padding="checkbox">
-                              <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, name, address, zipCode)} />
+                              <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, name, id)} />
                             </TableCell>
                             <TableCell component="th" scope="row" padding="none">
                               <Stack direction="row" alignItems="center" spacing={2}>
@@ -316,13 +315,13 @@ export default function CustomerData() {
                                 if (status !== 'No Change') {
                                   if (contacted) {
                                     return(
-                                      <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, address, zipCode, id)}>
+                                      <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id)}>
                                         <Iconify icon="bi:check-lg" />
                                       </IconButton>
                                     )
                                   }
                                   return(
-                                    <IconButton color="error" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, address, zipCode, id)}>
+                                    <IconButton color="error" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id)}>
                                       <Iconify icon="ps:check-box-empty" />
                                     </IconButton>
                                   )
@@ -333,8 +332,7 @@ export default function CustomerData() {
                             <TableCell>
                               <AnimatedModal 
                                 passedNote={note}
-                                address={address}
-                                zipCode={zipCode}
+                                id={id}
                                 name={name}
                               />
                             </TableCell>

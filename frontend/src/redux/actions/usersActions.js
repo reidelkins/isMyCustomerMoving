@@ -106,7 +106,7 @@ export const update = () => async (dispatch, getState) => {
   }
 };
 
-export const updateNote = (note, address, zipCode) => async (dispatch, getState) => {
+export const updateNote = (note, id) => async (dispatch, getState) => {
   try {
     dispatch({
       type: NOTE_REQUEST,
@@ -125,7 +125,7 @@ export const updateNote = (note, address, zipCode) => async (dispatch, getState)
 
     const { data } = await axios.post(
       `${DOMAIN}/api/v1/accounts/updatenote/${userInfo.company}/`,
-      { note, address, zipCode},
+      { note, id},
       config
     );
     dispatch({
@@ -141,7 +141,7 @@ export const updateNote = (note, address, zipCode) => async (dispatch, getState)
   // users();
 };
 
-export const contact = (address, zipCode) => async (dispatch, getState) => {
+export const contact = (id) => async (dispatch, getState) => {
   try {
     dispatch({
       type: NOTE_REQUEST,
@@ -159,7 +159,7 @@ export const contact = (address, zipCode) => async (dispatch, getState) => {
     };
     const { data } = await axios.post(
       `${DOMAIN}/api/v1/accounts/contacted/${userInfo.company}/`,
-      {address, zipCode},
+      {id},
       config
     );
     dispatch({

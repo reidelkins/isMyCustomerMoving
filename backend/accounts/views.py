@@ -224,9 +224,7 @@ class UpdateNoteView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         print(request.data)
         try:
-            company_object = Company.objects.get(id = self.kwargs['company'])
-            zipcode_object = ZipCode.objects.get(zipCode = int(request.data['zipCode']))
-            customer = Client.objects.get(company=company_object, zipCode=zipcode_object, address=request.data['address'])
+            customer = Client.objects.get(id=request.data['id'])
             customer.note = request.data['note']
             customer.save()
         except Exception as e:
@@ -238,9 +236,7 @@ class UpdateContactedView(generics.CreateAPIView):
     serializer_class = UserSerializer
     def post(self, request, *args, **kwargs):
         try:
-            company_object = Company.objects.get(id = self.kwargs['company'])
-            zipcode_object = ZipCode.objects.get(zipCode = int(request.data['zipCode']))
-            customer = Client.objects.get(company=company_object, zipCode=zipcode_object, address=request.data['address'])
+            customer = Client.objects.get(id=request.data['id'])
             if customer.contacted:
                 customer.contacted = False
             else:
@@ -254,15 +250,10 @@ class UpdateContactedView(generics.CreateAPIView):
 class DeleteClientView(generics.CreateAPIView):
     serializer_class = UserSerializer
     def delete(self, request, *args, **kwargs):
-        print(request.data)
         try:
-            company_object = Company.objects.get(id = self.kwargs['company'])
             for client in request.data:
                 try:
-                    zipcode_object = ZipCode.objects.get(zipCode = int(client['zip']))
-                    customer = Client.objects.get(company=company_object, zipCode=zipcode_object, address=client['address'], name=client['name'])
-                    print(f"Here is the customer {customer}")
-                    customer.delete()
+                    Client.objects.get(id=client['id']).delete()
                 except Exception as e:
                     print(e)
         except Exception as e:

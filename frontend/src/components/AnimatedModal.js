@@ -20,8 +20,7 @@ import { updateNote, users } from '../redux/actions/usersActions';
 
 export default function AnimatedModal({
   passedNote,
-  address,
-  zipCode,
+  id,
   name,
 }) {
     // const classes = useStyles();
@@ -40,7 +39,7 @@ export default function AnimatedModal({
         note: passedNote,
         },
         onSubmit: () => {
-            dispatch(updateNote(values.note, address, zipCode));
+            dispatch(updateNote(values.note, id));
             console.log(values.note)
             setOpen(false);
             setTimeout(() => {dispatch(users())}, 500);
