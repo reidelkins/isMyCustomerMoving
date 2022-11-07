@@ -237,7 +237,6 @@ class UpdateNoteView(generics.CreateAPIView):
 class UpdateContactedView(generics.CreateAPIView):
     serializer_class = UserSerializer
     def post(self, request, *args, **kwargs):
-        print(request.data)
         try:
             company_object = Company.objects.get(id = self.kwargs['company'])
             zipcode_object = ZipCode.objects.get(zipCode = int(request.data['zipCode']))
@@ -258,9 +257,12 @@ class DeleteClientView(generics.CreateAPIView):
         print(request.data)
         try:
             company_object = Company.objects.get(id = self.kwargs['company'])
+            print(company_object)
             for client in request.data:
                 zipcode_object = ZipCode.objects.get(zipCode = int(client['zip']))
+                print(zipcode_object)
                 customer = Client.objects.get(company=company_object, zipCode=zipcode_object, address=client['address'])
+                print(customer)
                 customer.delete()
         except Exception as e:
             print(e)
