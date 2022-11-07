@@ -249,11 +249,11 @@ class UpdateContactedView(generics.CreateAPIView):
 
 class DeleteClientView(generics.CreateAPIView):
     serializer_class = UserSerializer
-    def delete(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         try:
             for client in request.data:
                 try:
-                    Client.objects.get(id=client['id']).delete()
+                    Client.objects.get(id=client).delete()
                 except Exception as e:
                     print(e)
         except Exception as e:

@@ -129,7 +129,7 @@ export default function CustomerData() {
       
       const newSelectedClients = []
       for (let i=0; i < USERLIST.length; i+=1) {
-        newSelectedClients.push({"address": USERLIST[i].address, "zip": USERLIST[i].zipCode})
+        newSelectedClients.push(USERLIST[i].id)
       }
       setSelectedClients(newSelectedClients);
       return;

@@ -6,7 +6,7 @@ import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment
 // component
 import Iconify from '../../../components/Iconify';
 // redux
-import { deleteClient } from '../../../redux/actions/usersActions';
+import { deleteClient, users } from '../../../redux/actions/usersActions';
 
 // ----------------------------------------------------------------------
 
@@ -44,8 +44,9 @@ export default function UserListToolbar({ numSelected, filterName, onFilterName,
 
   const clickDelete = (event, clients) => {
     dispatch(deleteClient(clients));
-    setTimeout(() => {dispatch(users())}, 500);
+    setTimeout(() => {dispatch(users())}, 2000);
   };
+
   return (
     <RootStyle
       sx={{

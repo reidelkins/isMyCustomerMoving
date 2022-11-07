@@ -191,7 +191,7 @@ export const deleteClient = (selectedClients) => async (dispatch, getState) => {
       },
     };
 
-    const { data } = await axios.delete(
+    const { data } = await axios.post(
       `${DOMAIN}/api/v1/accounts/deleteClient/${userInfo.company}/`,
       selectedClients,
       config
