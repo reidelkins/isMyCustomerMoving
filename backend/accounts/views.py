@@ -213,13 +213,8 @@ class UploadFileView(generics.CreateAPIView):
         except Exception as e:
             print(e)
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
-        count = 0 
         for _, row in reader.iterrows():
-            # print(count)
-            count += 1
             saveClientList.delay(row.to_dict(), company_id)
-            if count > 10:
-                break
         return Response({"status": "success"},
                         status.HTTP_201_CREATED)
 
