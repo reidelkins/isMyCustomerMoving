@@ -33,6 +33,7 @@ import Label from '../components/Label';
 import Scrollbar from '../components/Scrollbar';
 import Iconify from '../components/Iconify';
 import SearchNotFound from '../components/SearchNotFound';
+import CounterCard from '../components/CounterCard';
 import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashboard/user';
 import { DOMAIN } from '../redux/constants';
 
@@ -227,6 +228,26 @@ export default function CustomerData() {
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
 
   const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
+  const [rentCount, setRentCount] = useState(0);
+  const [saleCount, setSaleCount] = useState(0);
+  const [sold6Count, setSold6Count] = useState(0);
+  const [sold12Count, setSold12Count] = useState(0);
+  USERLIST.forEach((n) => {
+    if (n.status === 'For Rent') {
+      setRentCount(rentCount + 1)
+    }
+    if (n.status === 'For Sale') {
+      setSaleCount(saleCount + 1)
+    }
+    if (n.status === 'Recently sold 6') {
+      setSold6Count(sold6Count + 1)
+    }
+    if (n.status === 'Recently sold 12') {
+      setSold12Count(sold12Count + 1)
+    }
+    
+  });
+
   // const [filteredUsers, setFilteredUsers] = useState(USERLIST)
 
   const isUserNotFound = filteredUsers.length === 0;
@@ -244,11 +265,34 @@ export default function CustomerData() {
                 Welcome {userInfo.name} 👋
                 {/* Welcome */}
               </Typography>
+              
               {userInfo.status === 'admin' && (
                 <Button variant="contained" component={RouterLink} to="/dashboard/adduser" startIcon={<Iconify icon="eva:plus-fill" />}>
                   Add User
                 </Button>
               )}
+            </Stack>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+              <CounterCard
+                count={saleCount}
+                title="For Sale"
+                // description="From buttons, to inputs, navbars, alerts or cards, you are covered"
+              />
+              <CounterCard
+                count={rentCount}
+                title="For Rent"
+                // description="From buttons, to inputs, navbars, alerts or cards, you are covered"
+              />
+              <CounterCard
+                count={sold6Count}
+                title="Sold in last 6 months"
+                // description="From buttons, to inputs, navbars, alerts or cards, you are covered"
+              />
+              <CounterCard
+                count={sold12Count}
+                title="Sold in last 6-12 months"
+                // description="From buttons, to inputs, navbars, alerts or cards, you are covered"
+              />
             </Stack>
             <Card sx={{marginBottom:"3%"}}>
               <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedClients={selectedClients} />
