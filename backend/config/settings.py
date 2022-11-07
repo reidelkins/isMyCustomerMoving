@@ -1,5 +1,5 @@
 from datetime import timedelta
-import os
+import os, ssl
 from pathlib import Path
 import dj_database_url
 
@@ -279,7 +279,7 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "CONNECTION_POOL_KWARGS": {
-                "ssl_cert_reqs": None
+                "ssl_cert_reqs": ssl.CERT_NONE,
             },
         }
     }
