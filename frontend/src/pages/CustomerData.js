@@ -1,6 +1,6 @@
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // material
 import {
@@ -228,25 +228,39 @@ export default function CustomerData() {
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
 
   const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
-  const [rentCount, setRentCount] = useState(0);
-  const [saleCount, setSaleCount] = useState(0);
-  const [sold6Count, setSold6Count] = useState(0);
-  const [sold12Count, setSold12Count] = useState(0);
-  USERLIST.forEach((n) => {
-    if (n.status === 'For Rent') {
-      setRentCount(rentCount + 1)
-    }
-    if (n.status === 'For Sale') {
-      setSaleCount(saleCount + 1)
-    }
-    if (n.status === 'Recently sold 6') {
-      setSold6Count(sold6Count + 1)
-    }
-    if (n.status === 'Recently sold 12') {
-      setSold12Count(sold12Count + 1)
-    }
-    
-  });
+  
+  let tmpRent = 0;
+  let tmpSale = 0;
+  let tmpSold6 = 0;
+  let tmpSold12 = 0;
+
+  const [rentCount, setRentCount] = useState(tmpRent);
+  const [saleCount, setSaleCount] = useState(tmpSale);
+  const [sold6Count, setSold6Count] = useState(tmpSold6);
+  const [sold12Count, setSold12Count] = useState(tmpSold12);
+
+  useEffect(() => {
+    USERLIST.forEach((n) => {
+      if (n.status === 'For Rent') {
+        // setRentCount(rentCount + 1);
+        tmpRent +=  1;
+      }
+      if (n.status === 'For Sale') {
+        tmpSale += 1;
+      }
+      if (n.status === 'Recently Sold (6)') {
+        tmpSold6 += 1;
+      }
+      if (n.status === 'Recently Sold (12)') {
+        tmpSold12 += 1;
+      }
+
+    });
+    setRentCount(tmpRent);
+    setSaleCount(tmpSale);
+    setSold6Count(tmpSold6);
+    setSold12Count(tmpSold12);
+  });  
 
   // const [filteredUsers, setFilteredUsers] = useState(USERLIST)
 
