@@ -139,6 +139,7 @@ export default function CustomerData() {
   };
 
   const handleClick = (event, name, address, zipCode) => {
+    console.log(name)
     const selectedIndex = selected.indexOf(name);
     let newSelected = [];
     let newSelectedClients = [];

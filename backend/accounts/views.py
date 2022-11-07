@@ -255,21 +255,18 @@ class DeleteClientView(generics.CreateAPIView):
     serializer_class = UserSerializer
     def post(self, request, *args, **kwargs):
         print(request.data)
-        try:
-            company_object = Company.objects.get(id = self.kwargs['company'])
-            print(company_object)
-            for client in request.data:
-                try:
-                    zipcode_object = ZipCode.objects.get(zipCode = int(client['zip']))
-                    print(zipcode_object)
-                    customer = Client.objects.get(company=company_object, zipCode=zipcode_object, address=client['address'], name=client['name'])
-                    print(customer)
-                    customer.delete()
-                except Exception as e:
-                    print(e)
-        except Exception as e:
-            print(e)
-            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+        # try:
+        #     company_object = Company.objects.get(id = self.kwargs['company'])
+        #     for client in request.data:
+        #         try:
+        #             zipcode_object = ZipCode.objects.get(zipCode = int(client['zip']))
+        #             customer = Client.objects.get(company=company_object, zipCode=zipcode_object, address=client['address'], name=client['name'])
+        #             customer.delete()
+        #         except Exception as e:
+        #             print(e)
+        # except Exception as e:
+        #     print(e)
+        #     return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
         return Response("", status=status.HTTP_201_CREATED, headers="")
 
 # class ResetView()
