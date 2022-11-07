@@ -258,15 +258,15 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 #assigned at the beginning
 # EMAIL_HOST_PASSWORD
 
-CELERY_BROKER_URL = os.environ.get('REDIS_TLS_URL')
-CELERY_RESULT_BACKEND = os.environ.get('REDIS_TLS_URL')
+CELERY_BROKER_URL = os.environ.get('REDIS_URL')
+CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL')
 CELERY_TIMEZONE = 'US/Central'
 
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [os.environ.get('REDIS_TLS_URL')],
+            "hosts": [os.environ.get('REDIS_URL')],
         },
     },
 }
