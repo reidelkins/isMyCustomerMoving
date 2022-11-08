@@ -43,27 +43,27 @@ function CounterCard({ color, count, title, description, ...rest }) {
 }
 
 // Setting default props for the DefaultCounterCard
-CounterCard.defaultProps = {
-  color: "info",
-  description: "",
-  title: "",
-};
+// CounterCard.defaultProps = {
+//   color: "info",
+//   description: "",
+//   title: "",
+// };
 
 // Typechecking props for the DefaultCounterCard
-CounterCard.propTypes = {
-  color: PropTypes.oneOf([
-    "primary",
-    "secondary",
-    "info",
-    "success",
-    "warning",
-    "error",
-    "light",
-    "dark",
-  ]),
-  count: PropTypes.number.isRequired,
-  title: PropTypes.string,
-  description: PropTypes.string,
-};
+// CounterCard.propTypes = {
+//   color: PropTypes.oneOf([
+//     "primary",
+//     "secondary",
+//     "info",
+//     "success",
+//     "warning",
+//     "error",
+//     "light",
+//     "dark",
+//   ]),
+//   count: PropTypes.number.isRequired,
+//   title: PropTypes.string,
+//   description: PropTypes.string,
+// };
 
 export default CounterCard;

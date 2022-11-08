@@ -192,7 +192,7 @@ export default function CustomerData() {
 
   const updateContacted = (event, id) => {
     dispatch(contact(id))
-    setTimeout(() => {dispatch(users())}, 500);
+    setTimeout(() => {dispatch(users())}, 200);
   };
 
   const updateStatus = () => {
@@ -203,9 +203,9 @@ export default function CustomerData() {
   const exportCSV = () => {
     if (USERLIST.length === 0) { return }
     let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += 'Name,Address,City,State,ZipCode,Status\r\n';
+    csvContent += 'Name,Address,City,State,ZipCode,Status,Contacted,Note\r\n';
     USERLIST.forEach((n) => {
-      csvContent += `${n.name}, ${n.address}, ${n.city}, ${n.state}, ${n.zipCode}, ${n.status}\r\n`
+      csvContent += `${n.name}, ${n.address}, ${n.city}, ${n.state}, ${n.zipCode}, ${n.status}, ${n.contacted}, ${n.note}\r\n`
     });
 
     const encodedUri = encodeURI(csvContent);
@@ -364,9 +364,16 @@ export default function CustomerData() {
                             <TableCell align="left">{state}</TableCell>
                             <TableCell align="left">{zipCode}</TableCell>
                             <TableCell align="left">
-                              <Label variant="ghost" color={(status === 'No Change' && 'warning') || (contacted === 'False' && 'error'  || 'success')}>
-                                {sentenceCase(status)}
-                              </Label>
+                              {userInfo.email !== 'demo@gmail.com' ? (
+                                <Label variant="ghost" color={(status === 'No Change' && 'warning') || (contacted === 'False' && 'error'  || 'success')}>
+                                  {sentenceCase(status)}
+                                </Label>
+                              ) : (
+                                <Label variant="ghost" color='warning'>
+                                  Demo
+                                </Label>
+                              )}
+                              
                             </TableCell>
                             <TableCell>
                               {(() => {

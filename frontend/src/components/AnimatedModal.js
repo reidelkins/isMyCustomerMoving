@@ -42,7 +42,7 @@ export default function AnimatedModal({
             dispatch(updateNote(values.note, id));
             console.log(values.note)
             setOpen(false);
-            setTimeout(() => {dispatch(users())}, 500);
+            setTimeout(() => {dispatch(users())}, 200);
         },
     });
 
