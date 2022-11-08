@@ -364,7 +364,7 @@ export default function CustomerData() {
                             <TableCell align="left">{state}</TableCell>
                             <TableCell align="left">{zipCode}</TableCell>
                             <TableCell align="left">
-                              {userInfo.email !== 'demo@gmail.com' ? (
+                              {userInfo.email !== 'demo@demo.com' ? (
                                 <Label variant="ghost" color={(status === 'No Change' && 'warning') || (contacted === 'False' && 'error'  || 'success')}>
                                   {sentenceCase(status)}
                                 </Label>
