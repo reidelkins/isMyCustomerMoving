@@ -286,7 +286,7 @@ export default function CustomerData() {
                   Add User
                 </Button>
               )}
-              {userInfo.email === 'reid@gmail.com' && (
+              {(userInfo.email === 'reid@gmail.com' || userInfo.email === 'jb@aquaclearws.com') && (
                 // <Button variant="contained" component={RouterLink} to="/dashboard/adduser" startIcon={<Iconify icon="eva:plus-fill" />}>
                 <NewCompanyModal/>
               )}
