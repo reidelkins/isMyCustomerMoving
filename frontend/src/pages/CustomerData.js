@@ -27,7 +27,8 @@ import { FilePond } from 'react-filepond';
 import '../filepond.css';
 
 // components
-import AnimatedModal from '../components/AnimatedModal';
+import NoteModal from '../components/NoteModal';
+import NewCompanyModal from '../components/NewCompanyModal';
 import Page from '../components/Page';
 import Label from '../components/Label';
 import Scrollbar from '../components/Scrollbar';
@@ -285,6 +286,10 @@ export default function CustomerData() {
                   Add User
                 </Button>
               )}
+              {userInfo.email === 'reid@gmail.com' && (
+                // <Button variant="contained" component={RouterLink} to="/dashboard/adduser" startIcon={<Iconify icon="eva:plus-fill" />}>
+                <NewCompanyModal/>
+              )}
             </Stack>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
               <CounterCard
@@ -395,7 +400,7 @@ export default function CustomerData() {
                               })()}                          
                             </TableCell>
                             <TableCell>
-                              <AnimatedModal 
+                              <NoteModal 
                                 passedNote={note}
                                 id={id}
                                 name={name}

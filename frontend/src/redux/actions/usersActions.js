@@ -207,3 +207,37 @@ export const deleteClient = (selectedClients) => async (dispatch, getState) => {
     });
   }
 };
+
+export const createCompany = (company, email) => async (dispatch, getState) => {
+  try {
+    dispatch({
+      type: NOTE_REQUEST,
+    });
+
+    const {
+      userLogin: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+
+    const { data } = await axios.post(
+      `${DOMAIN}/api/v1/accounts/createCompany/`,
+      { 'name': company, email},
+      config
+    );
+    dispatch({
+      type: NOTE_SUCCESS,
+      payload: data,
+    });
+  } catch (error) {
+    dispatch({
+      type: NOTE_FAIL,
+      payload: error.response && error.response.data.detail ? error.response.data.detail : error.message,
+    });
+  }
+};

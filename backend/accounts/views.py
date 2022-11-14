@@ -1,20 +1,88 @@
 from django.shortcuts import render
 from django.contrib.auth.hashers import make_password
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMessage
+from django.template.loader import get_template
+from django.http import HttpResponse
 from rest_framework import permissions, status, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import io, csv, pandas as pd
 from .utils import getAllZipcodes, saveClientList, send_password_reset_email
 from .models import CustomUser, Client, Company, ZipCode
-from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer
+from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer, MyTokenObtainPairSerializer, CompanySerializer
+
+import datetime
+import jwt
+from config import settings
+
+@api_view(['GET', 'PUT', 'POST' 'DELETE'])
+def manageuser(request, company):
+    try: 
+        company = Company.objects.get(id=company) 
+    except Company.DoesNotExist: 
+        return Response({'message': 'The company does not exist'}, status=status.HTTP_404_NOT_FOUND) 
+ 
+    if request.method == 'GET': 
+        users = CustomUser.objects.filter(company=company)
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data)
+ 
+    elif request.method == 'PUT': 
+        serializer = UserSerializer(company, data=request.data) 
+        if serializer.is_valid(): 
+            serializer.save() 
+            return Response(serializer.data) 
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    elif request.method == 'POST':
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+ 
+    elif request.method == 'DELETE': 
+        company.delete() 
+        return Response({'message': 'Tutorial was deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['POST'])
+def createCompany(request):
+    if request.method == 'POST':
+        try:
+            comp = {'name': request.data['name']}
+            serializer = CompanySerializer(data=comp)
+            if serializer.is_valid():
+                company = serializer.save()
+                if company:
+                    mail_subject = "Access Token for Is My Customer Moving"
+
+                    # # Next version will add a HTML template
+                    message = f"Your registered company name is {company.name} and your one use access token is {company.accessToken}. Head to https://app.ismycustomermoving.com/register to sign up!"
+                    message = get_template("registration.html").render({
+                        'company': company.name, 'accessToken': company.accessToken
+                    })
+                    msg = EmailMessage(
+                        mail_subject, message, settings.EMAIL_HOST_USER, to=[request.data['email']]
+                    )
+                    msg.content_subtype="html"
+                    msg.send()
+                    
+                    return Response("", status=status.HTTP_201_CREATED, headers="")
+                else:
+                    return Response({'Error': "Company with that name already exists"}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                print("Serializer not valid")
+                return Response({'detail': 'Serializer not valid'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(e)
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class AddUserView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -68,6 +136,7 @@ class RegisterView(APIView):
 
     def post(self, request):
         data = request.data
+        print(data)
         first_name = data.get('firstName')
         last_name = data.get('lastName')
         email = data.get('email')
@@ -87,7 +156,7 @@ class RegisterView(APIView):
             messages['errors'].append('Company can\'t be empty')
         if accessToken == None:
             messages['errors'].append('Access Token can\'t be empty')
-
+        
         if CustomUser.objects.filter(email=email).exists():
             messages['errors'].append(
                 "Account already exists with this email id.")
@@ -97,25 +166,26 @@ class RegisterView(APIView):
             company = Company.objects.get(name=company, accessToken=accessToken)
             noAdmin = CustomUser.objects.filter(company=company)
             if len(noAdmin) == 0:
+                print("sup")
                 user = CustomUser.objects.create(
                     first_name=first_name,
                     last_name=last_name,
                     email=email,
                     password=make_password(password),
                     company=company,
-                    status='admin',
-                    accessToken=accessToken
+                    status='admin'
                 )
-                # current_site = get_current_site(request)
-                # mail_subject = 'Activation link has been sent to your email id'
-                # tokenSerializer = UserSerializerWithToken(user, many=False)
+                user = CustomUser.objects.get(email=email)
+                current_site = get_current_site(request)
+                mail_subject = 'Activation link has been sent to your email id'
+                tokenSerializer = UserSerializerWithToken(user, many=False)
 
-                # Next version will add a HTML template
-                # message = "Confirm your email {}/api/v1/accounts/confirmation{}/{}/".format(current_site, tokenSerializer.data['refresh'], user.id)
-                # to_email = email
-                # send_mail(
-                #         mail_subject, message, "youremail@email.com", [to_email]
-                # )
+                # # Next version will add a HTML template
+                message = "Confirm your email {}/api/v1/accounts/confirmation/{}/{}/".format(current_site, tokenSerializer.data['refresh'], user.id)
+                to_email = email
+                send_mail(
+                        mail_subject, message, settings.EMAIL_HOST_USER, [to_email]
+                )
                 serializer = UserSerializerWithToken(user, many=False)
             else:
                 return Response({'detail': f'Access Token Already Used. Ask an admin to login and create profile for you.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -123,11 +193,6 @@ class RegisterView(APIView):
             print(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data)
-
-from django.http import HttpResponse
-import datetime
-import jwt
-from config import settings
 
 @api_view(['GET'])
 def confirmation(request, pk, uid):
@@ -137,6 +202,7 @@ def confirmation(request, pk, uid):
     if user.isVerified == False and datetime.datetime.fromtimestamp(token['exp']) > datetime.datetime.now():
         user.isVerified = True
         user.save()
+        #TODO change the response that this puts out
         return HttpResponse('Your account has been activated')
 
     elif (datetime.datetime.fromtimestamp(token['exp']) < datetime.datetime.now()):
@@ -148,19 +214,13 @@ def confirmation(request, pk, uid):
     else:
         return HttpResponse('Your account has already been activated')
     
-class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    def validate(self, attrs):
-        data = super().validate(attrs)
-
-        serializer = UserSerializerWithToken(self.user).data
-        for k, v in serializer.items():
-            data[k] = v
-
-        return data
-
-
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+    print(serializer_class)
+    # def post(self, request, *args, **kwargs):
+    #     print("inside of the post")
+    #     return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class UserViewSet(ReadOnlyModelViewSet):
@@ -260,8 +320,6 @@ class DeleteClientView(generics.CreateAPIView):
             print(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
         return Response("", status=status.HTTP_201_CREATED, headers="")
-
-# class ResetView()
 
 class ResetRequestView(generics.CreateAPIView):
     serializer_class = UserSerializer
