@@ -93,7 +93,7 @@ class Company(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
-    accessToken = models.CharField(default=get_random_string(length=32), max_length=32)
+    accessToken = models.CharField(default=get_random_string(length=32), max_length=100)
     
     avatarUrl = models.ImageField(
         upload_to='customers', null=True, blank=True, default='/placeholder.png')
