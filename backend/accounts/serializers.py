@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import CustomUser, Company, Client
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.utils.crypto import get_random_string
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -36,7 +37,7 @@ class CompanySerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         if Company.objects.filter(name=validated_data['name']).exists():
             return False
-        return Company.objects.create(**validated_data)
+        return Company.objects.create(**validated_data, accessToken=get_random_string(length=32))
     class Meta:
         model = Company
         fields=['name']

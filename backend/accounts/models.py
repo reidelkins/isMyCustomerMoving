@@ -27,20 +27,20 @@ STATUS_CHOICES = (
     ('admin', 'ADMIN'),
 )
 
-COMPANY_NAME = (
+# COMPANY_NAME = (
 
-    ('test', 'test'),
-    ('kinetico_knoxville', 'kinetico_knoxville'),
-    ('isMyCustomerMoving', 'isMyCustomerMoving'),
-    ('Texas Water Specialist', 'Texas Water Specialist')
-)
+#     ('test', 'test'),
+#     ('kinetico_knoxville', 'kinetico_knoxville'),
+#     ('isMyCustomerMoving', 'isMyCustomerMoving'),
+#     ('Texas Water Specialist', 'Texas Water Specialist')
+# )
 
-COMPANY_TOKEN = (
+# COMPANY_TOKEN = (
 
-    ('test', 'test'),
-    ('1qaz2wsx', '1qaz2wsx'),
-    ('thisisatest', 'thisisatest')
-)
+#     ('test', 'test'),
+#     ('1qaz2wsx', '1qaz2wsx'),
+#     ('thisisatest', 'thisisatest')
+# )
 
 STATUS = [
     ('For Sale','For Sale'),
