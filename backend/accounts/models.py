@@ -39,8 +39,7 @@ COMPANY_TOKEN = (
 
     ('test', 'test'),
     ('1qaz2wsx', '1qaz2wsx'),
-    ('a29tp(u%hy@a5_p3x_d%!ct)m8r_@qj-skvksrz7id=k8nd9^m', 'a29tp(u%hy@a5_p3x_d%!ct)m8r_@qj-skvksrz7id=k8nd9^m'),
-    ('')
+    ('thisisatest', 'thisisatest')
 )
 
 STATUS = [
