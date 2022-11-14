@@ -18,7 +18,7 @@ import Iconify from './Iconify';
 import { updateNote, users } from '../redux/actions/usersActions';
 
 
-export default function AnimatedModal({
+export default function NoteModal({
   passedNote,
   id,
   name,

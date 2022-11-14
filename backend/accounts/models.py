@@ -7,6 +7,7 @@ from django.utils.translation import gettext as _
 from django.utils.timezone import now
 import uuid
 from datetime import datetime, timedelta
+from django.utils.crypto import get_random_string
 
 
 # This is just an example no need to keep them
@@ -30,14 +31,16 @@ COMPANY_NAME = (
 
     ('test', 'test'),
     ('kinetico_knoxville', 'kinetico_knoxville'),
-    ('isMyCustomerMoving', 'isMyCustomerMoving')
+    ('isMyCustomerMoving', 'isMyCustomerMoving'),
+    ('Texas Water Specialist', 'Texas Water Specialist')
 )
 
 COMPANY_TOKEN = (
 
     ('test', 'test'),
     ('1qaz2wsx', '1qaz2wsx'),
-    ('a29tp(u%hy@a5_p3x_d%!ct)m8r_@qj-skvksrz7id=k8nd9^m', 'a29tp(u%hy@a5_p3x_d%!ct)m8r_@qj-skvksrz7id=k8nd9^m')
+    ('a29tp(u%hy@a5_p3x_d%!ct)m8r_@qj-skvksrz7id=k8nd9^m', 'a29tp(u%hy@a5_p3x_d%!ct)m8r_@qj-skvksrz7id=k8nd9^m'),
+    ('')
 )
 
 STATUS = [
@@ -89,10 +92,9 @@ class CustomUserManager(BaseUserManager):
 class Company(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
-    name = models.CharField(
-        max_length=100, choices=COMPANY_NAME)
-    accessToken = models.CharField(
-        max_length=100, choices=COMPANY_TOKEN)
+    name = models.CharField(max_length=100)
+    accessToken = models.CharField(default=get_random_string(length=32), max_length=32)
+    
     avatarUrl = models.ImageField(
         upload_to='customers', null=True, blank=True, default='/placeholder.png')
     email_frequency = models.IntegerField(default=0)
