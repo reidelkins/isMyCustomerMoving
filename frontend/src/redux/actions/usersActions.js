@@ -3,12 +3,12 @@ import { LIST_REQUEST, LIST_SUCCESS, LIST_FAIL, STATUS_REQUEST, STATUS_SUCCESS, 
 import { DOMAIN } from '../constants';
 
 
-export const addUser = (firstName, lastName, email) => async (dispatch, getState) => {
+export const addUser = (email) => async (dispatch, getState) => {
   try {
     dispatch({
       type: ADDUSER_REQUEST,
     });
-
+    console.log(email)
     const config = {
       headers: {
         'Content-type': 'application/json',
@@ -18,10 +18,10 @@ export const addUser = (firstName, lastName, email) => async (dispatch, getState
     const {
       userLogin: { userInfo },
     } = getState();
-    console.log("sup sup sup")
+
     const { data } = await axios.post(
-      `${DOMAIN}/api/v1/accounts/adduser/${userInfo.company}/`,
-      { firstName, lastName, email },
+      `${DOMAIN}/api/v1/accounts/manageuser/${userInfo.company}/`,
+      { email },
       config
     );
 
@@ -34,8 +34,6 @@ export const addUser = (firstName, lastName, email) => async (dispatch, getState
       type: ADDUSER_SUCCESS,
       payload: data,
     });
-
-    // TODO send user email to set password
     
   } catch (error) {
     dispatch({

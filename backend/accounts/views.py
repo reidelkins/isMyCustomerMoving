@@ -16,40 +16,32 @@ import io, csv, pandas as pd
 from .utils import getAllZipcodes, saveClientList, send_password_reset_email
 from .models import CustomUser, Client, Company, ZipCode
 from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer, MyTokenObtainPairSerializer, CompanySerializer
-
 import datetime
 import jwt
 from config import settings
 
-@api_view(['GET', 'PUT', 'POST' 'DELETE'])
-def manageuser(request, company):
-    try: 
-        company = Company.objects.get(id=company) 
-    except Company.DoesNotExist: 
-        return Response({'message': 'The company does not exist'}, status=status.HTTP_404_NOT_FOUND) 
- 
-    if request.method == 'GET': 
-        users = CustomUser.objects.filter(company=company)
-        serializer = UserSerializer(users, many=True)
-        return Response(serializer.data)
- 
-    elif request.method == 'PUT': 
-        serializer = UserSerializer(company, data=request.data) 
-        if serializer.is_valid(): 
-            serializer.save() 
-            return Response(serializer.data) 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    elif request.method == 'POST':
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
- 
-    elif request.method == 'DELETE': 
-        company.delete() 
-        return Response({'message': 'Tutorial was deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)
+class ManageUserView(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            company = Company.objects.get(id=self.kwargs['company'])
+            admin = CustomUser.objects.get(company=company, status='admin')            
+            # if company:
+            #     mail_subject = "Account Invite For Is My Customer Moving"
+
+            #     # # Next version will add a HTML template
+            #     message = get_template("addUserEmail.html").render({
+            #         'admin': admin
+            #     })
+            #     msg = EmailMessage(
+            #         mail_subject, message, settings.EMAIL_HOST_USER, to=[request.data['email']]
+            #     )
+            #     msg.content_subtype="html"
+            #     msg.send()
+        except Exception as e:
+            print(e)
+            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response("", status=status.HTTP_201_CREATED, headers="")
+
 
 @api_view(['POST'])
 def createCompany(request):

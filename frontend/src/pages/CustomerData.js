@@ -279,13 +279,7 @@ export default function CustomerData() {
               <Typography variant="h4" gutterBottom>
                 Welcome {userInfo.name} 👋
                 {/* Welcome */}
-              </Typography>
-              
-              {userInfo.status === 'admin' && (
-                <Button variant="contained" component={RouterLink} to="/dashboard/adduser" startIcon={<Iconify icon="eva:plus-fill" />}>
-                  Add User
-                </Button>
-              )}
+              </Typography>              
               {(userInfo.email === 'reid@gmail.com' || userInfo.email === 'jb@aquaclearws.com') && (
                 // <Button variant="contained" component={RouterLink} to="/dashboard/adduser" startIcon={<Iconify icon="eva:plus-fill" />}>
                 <NewCompanyModal/>
@@ -339,6 +333,7 @@ export default function CustomerData() {
                       numSelected={selected.length}
                       onRequestSort={handleRequestSort}
                       onSelectAllClick={handleSelectAllClick}
+                      checkbox={1}
                     />
                     <TableBody>
                       {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {

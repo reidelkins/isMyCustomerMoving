@@ -51,7 +51,7 @@ export default function RegisterForm() {
   const { errors, touched, values, handleSubmit, isSubmitting, getFieldProps } = formik;
   useEffect(() => {
     if (userInfo) {
-      navigate('/dashboard/app', { replace: true });
+      navigate('/dashboard/customers', { replace: true });
     }
   }, [navigate, userInfo]);
   return (
