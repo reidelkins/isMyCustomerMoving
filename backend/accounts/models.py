@@ -6,7 +6,7 @@ from django.db import models
 from django.utils.translation import gettext as _
 from django.utils.timezone import now
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from django.utils.crypto import get_random_string
 
 
@@ -26,21 +26,6 @@ STATUS_CHOICES = (
     ('banned', 'BANNED'),
     ('admin', 'ADMIN'),
 )
-
-# COMPANY_NAME = (
-
-#     ('test', 'test'),
-#     ('kinetico_knoxville', 'kinetico_knoxville'),
-#     ('isMyCustomerMoving', 'isMyCustomerMoving'),
-#     ('Texas Water Specialist', 'Texas Water Specialist')
-# )
-
-# COMPANY_TOKEN = (
-
-#     ('test', 'test'),
-#     ('1qaz2wsx', '1qaz2wsx'),
-#     ('thisisatest', 'thisisatest')
-# )
 
 STATUS = [
     ('For Sale','For Sale'),
@@ -154,4 +139,11 @@ class CustomUser(AbstractUser):
     class Meta:
         ordering = ["-id"]
 
+
+class InviteToken(models.Model):
+    id = models.UUIDField(primary_key=True, unique=True,
+                          default=uuid.uuid4, editable=False)
+    email = models.EmailField()
+    company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE)
+    expiration = models.DateTimeField(default=now() + timedelta(days=1))
 

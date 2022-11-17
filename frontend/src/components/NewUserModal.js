@@ -1,21 +1,16 @@
 import React from 'react';
 import * as Yup from 'yup';
 import {
-    IconButton,
     Button,
-    Fade,
     TextField,
     Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
     DialogTitle,
     Stack
 } from '@mui/material';
 import { useFormik, Form, FormikProvider } from 'formik';
 import { useDispatch } from 'react-redux';
 
-import { addUser } from '../redux/actions/usersActions';
+import { sendNewUserEmail } from '../redux/actions/usersActions';
 
 
 export default function NewUserModal() {
@@ -39,13 +34,13 @@ export default function NewUserModal() {
         },
         validationSchema: NewUserSchema,
         onSubmit: () => {
-            dispatch(addUser(values.email));
+            dispatch(sendNewUserEmail(values.email));
             values.email = '';
             setOpen(false);
         },
     });
 
-    const { errors, touched, values, isSubmitting, handleSubmit, getFieldProps } = formik;
+    const { errors, touched, values, handleSubmit, getFieldProps } = formik;
   return (
     <div>
         <Button variant="contained" color="primary" aria-label="Create Company" component="label" onClick={handleOpen}>

@@ -14,7 +14,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import io, csv, pandas as pd
 from .utils import getAllZipcodes, saveClientList, send_password_reset_email
-from .models import CustomUser, Client, Company, ZipCode
+from .models import CustomUser, Client, Company, InviteToken
 from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer, MyTokenObtainPairSerializer, CompanySerializer
 import datetime
 import jwt
@@ -22,25 +22,51 @@ from config import settings
 
 class ManageUserView(APIView):
     def post(self, request, *args, **kwargs):
-        try:
-            company = Company.objects.get(id=self.kwargs['company'])
-            admin = CustomUser.objects.get(company=company, status='admin')            
-            # if company:
-            #     mail_subject = "Account Invite For Is My Customer Moving"
+        if Company.objects.get(id=self.kwargs['id']).exists():
+            try:
+                company = Company.objects.get(id=self.kwargs['id'])
+                admin = CustomUser.objects.get(company=company, status='admin')   
+                print(admin)         
+                if company:
+                    token = InviteToken.objects.create(company=company)
+                    mail_subject = "Account Invite For Is My Customer Moving"
 
-            #     # # Next version will add a HTML template
-            #     message = get_template("addUserEmail.html").render({
-            #         'admin': admin
-            #     })
-            #     msg = EmailMessage(
-            #         mail_subject, message, settings.EMAIL_HOST_USER, to=[request.data['email']]
-            #     )
-            #     msg.content_subtype="html"
-            #     msg.send()
-        except Exception as e:
-            print(e)
-            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response("", status=status.HTTP_201_CREATED, headers="")
+                    # # Next version will add a HTML template
+                    message = get_template("addUserEmail.html").render({
+                        'admin': admin, 'token': token.id
+                    })
+                    msg = EmailMessage(
+                        mail_subject, message, settings.EMAIL_HOST_USER, to=[request.data['email']]
+                    )
+                    msg.content_subtype="html"
+                    msg.send()
+            except Exception as e:
+                print(e)
+                return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response("", status=status.HTTP_201_CREATED, headers="")
+        elif InviteToken.objects.get(id=self.kwargs['id']).exists():
+            try:
+                token = InviteToken.objects.get(id=self.kwargs['id'])
+                if token.expiration_date > datetime.datetime.now():
+                    company = token.company
+                    if company:
+                        user = CustomUser.objects.create(
+                            email=request.data['email'],
+                            password=make_password(request.data['password']),
+                            company=company,
+                            status='active',
+                            first_name=request.data['first_name'],
+                            last_name=request.data['last_name'],
+                            isVerified=True
+                        )
+                        user.save()
+                        token.delete()
+                else:
+                    return Response({"status": "Token Expired"}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                print(e)
+                return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response("", status=status.HTTP_201_CREATED, headers="")
 
 
 @api_view(['POST'])
@@ -228,6 +254,7 @@ class ClientListView(generics.ListAPIView):
 
 class UpdateStatusView(APIView):
     def get(self, request, *args, **kwargs):
+        print("sup")
         try:
             getAllZipcodes.delay(self.kwargs['company'])
         except Exception as e:

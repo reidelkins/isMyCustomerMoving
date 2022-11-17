@@ -1,30 +1,40 @@
 import * as Yup from 'yup';
 import { useFormik, Form, FormikProvider } from 'formik';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
 // material
-import { Stack, TextField, Alert, AlertTitle } from '@mui/material';
+import { Stack, TextField, Alert, AlertTitle, InputAdornment, IconButton } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { useDispatch, useSelector } from 'react-redux';
 import {useNavigate } from 'react-router-dom';
 
-import { addUser } from '../../../redux/actions/usersActions';
+import { addUser } from '../../../redux/actions/authActions';
 
-// import { addUser } from '../../../redux/actions/userActions';
+import Iconify from '../../../components/Iconify';
+
 
 // component
 
 // ----------------------------------------------------------------------
 
-export default function RegisterForm() {
+AddUserForm.propTypes = {
+  token: PropTypes.string,
+};
+
+export default function AddUserForm({token}) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const userRgister = useSelector((state) => state.userRgister);
   const { error: registerError, loading: registerLoading } = userRgister;
 
+  const [showPassword, setShowPassword] = useState(false);
+
   const AddUserSchema = Yup.object().shape({
     firstName: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('First name required'),
     lastName: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Last name required'),
     email: Yup.string().email('Email must be a valid email address').required('Email is required'),
+    password: Yup.string().min(6, 'Password is too short - should be 6 chars minimum.').required('Password is required'),
   });
 
   const formik = useFormik({
@@ -32,11 +42,13 @@ export default function RegisterForm() {
       firstName: '',
       lastName: '',
       email: '',
+      password: '',
+      token
     },
     validationSchema: AddUserSchema,
     onSubmit: () => {
       console.log("sup")
-      dispatch(addUser(values.firstName, values.lastName, values.email));
+      dispatch(addUser(values.firstName, values.lastName, values.email, values.password, values.token));
       navigate('/dashboard/user', { replace: true });
     },
   });
@@ -75,6 +87,24 @@ export default function RegisterForm() {
             error={Boolean(touched.email && errors.email)}
             helperText={touched.email && errors.email}
           />
+          <TextField
+            fullWidth
+            autoComplete="current-password"
+            type={showPassword ? 'text' : 'password'}
+            label="Password"
+            {...getFieldProps('password')}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton edge="end" onClick={() => setShowPassword((prev) => !prev)}>
+                    <Iconify icon={showPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+            error={Boolean(touched.password && errors.password)}
+            helperText={touched.password && errors.password}
+          />
 
           {registerError ? (
             <Alert severity="error">
@@ -90,7 +120,7 @@ export default function RegisterForm() {
             variant="contained"
             loading={registerLoading ? isSubmitting : null}
           >
-            Add User
+            Create New Account
           </LoadingButton>
         </Stack>
       </Form>
