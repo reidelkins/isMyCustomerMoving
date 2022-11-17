@@ -74,8 +74,8 @@ def getAllZipcodes(company):
     for zip in list(zipCodes.values('zipCode')):
         print(zip)
         getHomesForSale.delay(zip, company)
-        getHomesForRent.delay(zip, company)
-        getSoldHomes.delay(zip, company)
+        # getHomesForRent.delay(zip, company)
+        # getSoldHomes.delay(zip, company)
 
     # zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
