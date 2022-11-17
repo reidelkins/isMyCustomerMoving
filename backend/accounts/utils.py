@@ -68,6 +68,8 @@ def saveClientList(row, company_id):
 
 @shared_task
 def getAllZipcodes(company):
+    print("getting zipcodes")
+    print(company)
     company_object = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company_object).values('zipCode')
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=datetime.today().strftime('%Y-%m-%d'))
