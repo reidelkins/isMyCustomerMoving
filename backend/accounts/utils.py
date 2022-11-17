@@ -72,18 +72,19 @@ def getAllZipcodes(company):
     zipCode_objects = Client.objects.filter(company=company_object).values('zipCode')
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=datetime.today().strftime('%Y-%m-%d'))
     for zip in list(zipCodes.values('zipCode')):
+        print(zip)
         getHomesForSale.delay(zip, company)
         getHomesForRent.delay(zip, company)
         getSoldHomes.delay(zip, company)
 
-    zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
+    # zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
 
 @shared_task
 def getHomesForSale(zip, company=None):       
     offset = 0
     zip = zip['zipCode']
-    moreListings = True
+    moreListings = False
     while(moreListings):
         try:
             conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
@@ -134,7 +135,7 @@ def getHomesForSale(zip, company=None):
 def getHomesForRent(zip, company=None):
     offset = 0
     zip = zip['zipCode']
-    moreListings = True
+    moreListings = False
     while(moreListings):
         try:
             conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
@@ -196,7 +197,7 @@ def getHomesForRent(zip, company=None):
 def getSoldHomes(zip, company=None):
     offset = 0
     zip = zip['zipCode']
-    moreListings = True
+    moreListings = False
     while(moreListings):
         try:
             conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
