@@ -82,7 +82,7 @@ def getAllZipcodes(company):
         getHomesForSale.delay(zip, company)
         # getHomesForRent.delay(zip, company)
         # getSoldHomes.delay(zip, company)
-
+    print("DONE")
     # zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
 
@@ -91,7 +91,6 @@ def getHomesForSale(zip, company=None):
     offset = 0
     zip = zip['zipCode']
     moreListings = False
-    print(zip)
     while(moreListings):
         try:
             conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
