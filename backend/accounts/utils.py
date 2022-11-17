@@ -85,6 +85,7 @@ def getHomesForSale(zip, company=None):
     offset = 0
     zip = zip['zipCode']
     moreListings = False
+    print("for sale")
     while(moreListings):
         try:
             conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
