@@ -75,7 +75,7 @@ def getAllZipcodes(company):
     zipCodes = zipCode_objects.distinct()
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()+timedelta(days=1)).strftime('%Y-%m-%d'))
     count = 0
-    multiplier = 1
+    multiplier = 10
     for zip in list(zipCodes.order_by('zipCode').values('zipCode')):
         if count < (10*multiplier):
             count += 1
