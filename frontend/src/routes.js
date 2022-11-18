@@ -6,6 +6,7 @@ import LogoOnlyLayout from './layouts/LogoOnlyLayout';
 import CustomerData from './pages/CustomerData';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/NewPassword';
 import NotFound from './pages/Page404';
 import Register from './pages/Register';
 import AddUser from './pages/AddUser';
@@ -37,6 +38,7 @@ export default function Router() {
         { path: 'register', element: <Register /> },
         { path: 'adduser/:token', element: <AddUser /> },
         { path: 'forgot_password', element: <ForgotPassword /> },
+        { path: 'resetpassword/:token', element: <ResetPassword /> },
         { path: 'termsofservice', element: <TermsOfService /> },
         { path: 'privacypolicy', element: <PrivacyPolicy /> },
         { path: '404', element: <NotFound /> },

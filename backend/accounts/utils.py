@@ -300,21 +300,7 @@ def send_email():
                 #     [email]
                 #     html_message=message
                 # )
-
-@shared_task
-def send_password_reset_email(email):
-    #https://mailtrap.io/blog/django-send-email/
-    subject = 'Password Reset: Did My Customers Move'
-    message = get_template("resetPassword.html").render()
     
-    # message = "There were no updates found today for your client list but look back tomorrow for new leads!"
-
-    send_mail(
-        subject,
-        message,
-        settings.EMAIL_HOST_USER,
-        [email]
-    )
 
 @shared_task
 def auto_update():

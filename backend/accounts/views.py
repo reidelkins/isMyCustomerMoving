@@ -340,17 +340,6 @@ class DeleteClientView(generics.CreateAPIView):
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
         return Response("", status=status.HTTP_201_CREATED, headers="")
 
-class ResetRequestView(generics.CreateAPIView):
-    serializer_class = UserSerializer
 
-    def post(self, request, *args, **kwargs):
-        try:
-            company_object = Company.objects.get(id = self.kwargs['company'])
-            user = CustomUser.objects.get(company=company_object, email=self.kwargs['email'])
-            send_password_reset_email(self.kwargs['email'])
-        except Exception as e:
-            print(e)
-            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response("", status=status.HTTP_201_CREATED, headers="")
+        
     
