@@ -80,8 +80,8 @@ def getAllZipcodes(company):
         if count < (10*multiplier):
             count += 1
             print(zip)
-            getHomesForSale.delay(zip, company)
-            # getHomesForRent.delay(zip, company)
+            # getHomesForSale.delay(zip, company)
+            getHomesForRent.delay(zip, company)
             # getSoldHomes.delay(zip, company)
     # zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
@@ -184,6 +184,7 @@ def getHomesForRent(zip, company=None):
                 except Exception as e:
                     print(f"ERROR during getHomesForRent Single Listing: {e} with zipCode {zip}")
         except Exception as e:
+            moreListings = False
             print(f"Error during getHomesForRent: {e} with zipCode {zip}")
     updateStatus(zip, company, 'For Rent')
 
@@ -236,6 +237,7 @@ def getSoldHomes(zip, company=None):
                 except Exception as e:
                     print(f"ERROR during getSoldHomes Single Listing: {e} with zipCode {zip}")
         except Exception as e:
+            moreListings = False
             print(f"Error during getSoldHomes: {e} with zipCode {zip}")
     updateStatus(zip, company, 'Recently Sold (6)')
     updateStatus(zip, company, 'Recently Sold (12)')
