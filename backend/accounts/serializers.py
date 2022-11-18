@@ -6,16 +6,11 @@ from django.utils.crypto import get_random_string
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
-        print("validuting")
         data = super().validate(attrs)
 
         serializer = UserSerializerWithToken(self.user).data
-        print(serializer)
         for k, v in serializer.items():
-            print(k)
-            print(v)
             data[k] = v
-        print(data)
         return data
 
 class UserSerializer(serializers.Serializer):

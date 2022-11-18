@@ -1,24 +1,22 @@
-import os
-
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils.translation import gettext as _
 from django.utils.timezone import now
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from django.utils.crypto import get_random_string
 
 
 # This is just an example no need to keep them
-ROLE_CHOICES = (
+# ROLE_CHOICES = (
 
-    ('Backend Developer', 'Backend Developer'),
-    ('Full Stack Designer', 'Full Stack Designer'),
-    ('Front End Developer', 'Front End Developer'),
-    ('Full Stack Developer', 'Full Stack Developer'),
-    ('admin', 'admin')
-)
+#     ('Backend Developer', 'Backend Developer'),
+#     ('Full Stack Designer', 'Full Stack Designer'),
+#     ('Front End Developer', 'Front End Developer'),
+#     ('Full Stack Developer', 'Full Stack Developer'),
+#     ('admin', 'admin')
+# )
 
 STATUS_CHOICES = (
 
@@ -36,12 +34,12 @@ STATUS = [
     ('No Change', 'No Change')
 ]
 
-CONTACTED_PROGRESS = [
-    ('Recently Updated', 'Recently Updated'),
-    ('Contacted, No Answer', 'Contacted, No Answer'),
-    ('Contacted, Not Interested', 'Contacted, Not Interested'),
-    ('Contacted, Interested', 'Contacted, Interested'),
-]
+# CONTACTED_PROGRESS = [
+#     ('Recently Updated', 'Recently Updated'),
+#     ('Contacted, No Answer', 'Contacted, No Answer'),
+#     ('Contacted, Not Interested', 'Contacted, Not Interested'),
+#     ('Contacted, Interested', 'Contacted, Interested'),
+# ]
 
 
 class CustomUserManager(BaseUserManager):
@@ -125,8 +123,8 @@ class CustomUser(AbstractUser):
         upload_to='users', null=True, blank=True, default='/placeholder.png')
     status = models.CharField(
         max_length=100, choices=STATUS_CHOICES, default='active')
-    role = models.CharField(
-        max_length=100, choices=ROLE_CHOICES, default='Full Stack Developer')
+    # role = models.CharField(
+    #     max_length=100, choices=ROLE_CHOICES, default='Full Stack Developer')
     company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', "last_name"]

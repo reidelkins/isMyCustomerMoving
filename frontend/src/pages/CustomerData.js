@@ -439,9 +439,11 @@ export default function CustomerData() {
               />
             </Card>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-              <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
-                Update Status
-              </Button>
+              {userInfo.email === 'reid@gmail.com' && (
+                <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+                  Update Status
+                </Button>
+              )}
 
               {userInfo.status === 'admin' && (
                 <Button onClick={exportCSV} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>

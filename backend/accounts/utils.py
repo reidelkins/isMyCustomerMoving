@@ -70,14 +70,17 @@ def saveClientList(row, company_id):
 def getAllZipcodes(company):
     company_object = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company_object).values('zipCode')
-    zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=datetime.today().strftime('%Y-%m-%d'))
-    for zip in list(zipCodes.values('zipCode')):
-        print(zip)
-        # getHomesForSale.delay(zip, company)
-        # getHomesForRent.delay(zip, company)
-        # getSoldHomes.delay(zip, company)
-
-    # zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
+    zipCodes = zipCode_objects.distinct()
+    zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()+timedelta(days=1)).strftime('%Y-%m-%d'))
+    count = 0
+    multiplier = 10
+    for zip in list(zipCodes.order_by('zipCode').values('zipCode')):
+        count += 1
+        if count > 100:
+            getHomesForSale.delay(zip, company)
+            getHomesForRent.delay(zip, company)
+            getSoldHomes.delay(zip, company)
+    zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
 
 @shared_task
@@ -100,9 +103,7 @@ def getHomesForSale(zip, company=None):
             data = res.read().decode("utf-8")
             data = json.loads(data)
             total = data['data']['home_search']['total']
-            # print(f"The total amount listed for sale at {zip} is {total} and the current offset is {offset}")
             offset += data['data']['home_search']['count']
-            # print(f"The new offset is {offset}")
             if offset >= total:
                 moreListings = False
             data = data['data']['home_search']['results']
@@ -117,17 +118,11 @@ def getHomesForSale(zip, company=None):
                                 listed= listing['list_date']
                                 )
                 except Exception as e:
-                    print(f"ERROR during getHomesForSale Single Listing: {e}")
+                    print(f"ERROR during getHomesForSale Single Listing: {e} with zipCode {zip}")
+                    print(listing['location'])
         except Exception as e:
-            print(f"ERROR during getHomesForSale: {e}")
-
-
-        # try:
-        #     with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_sale.json", "w+") as f:
-        #         count += 1
-        #         json.dump(data, f)
-        # except:
-        #     pass
+            moreListings = False
+            print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
     updateStatus(zip, company, 'For Sale')
    
        
@@ -153,19 +148,14 @@ def getHomesForRent(zip, company=None):
             
             total = data['data']['home_search']['total']
             
-            # print(f"The total amount listed for rent at {zip} is {total} and the current offset is {offset}")
             offset += data['data']['home_search']['count']
-            # print(f"The new offset is {offset}")
             if offset >= total:
                 moreListings = False
-            # with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep14_{count}_rent.json", "w+") as f:
-            #     count += 1
-            #     json.dump(data, f)
-
             data = data['data']['home_search']['results']
 
             for listing in data:
                 zip_object, created  = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
+
                 try:
                     if listing['list_date'] != None:
                         HomeListing.objects.get_or_create(
@@ -181,15 +171,11 @@ def getHomesForRent(zip, company=None):
                                     status= 'For Rent',
                                     )
                 except Exception as e:
-                    print(f"ERROR during getHomesForRent Single Listing: {e}")
+                    print(f"ERROR during getHomesForRent Single Listing: {e} with zipCode {zip}")
+                    print(listing['location'])
         except Exception as e:
-            print(f"Error during getHomesForRent: {e}")
-            # try:
-            #     with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_{zip}_rent.json", "w+") as f:
-            #         count += 1
-            #         json.dump(data, f)
-            # except:
-            #     pass
+            moreListings = False
+            print(f"Error during getHomesForRent: {e} with zipCode {zip}")
     updateStatus(zip, company, 'For Rent')
 
 
@@ -215,9 +201,7 @@ def getSoldHomes(zip, company=None):
             
 
             total = data['data']['home_search']['total']
-            # print(f"The total amount that have been sold at {zip} is {total} and the current offset is {offset}")
             offset += data['data']['home_search']['count']
-            # print(f"The new offset is {offset}")
             if offset >= total:
                 moreListings = False
 
@@ -239,15 +223,12 @@ def getSoldHomes(zip, company=None):
                                 listed= listing['description']['sold_date']
                                 )
                 except Exception as e:
-                    print(f"ERROR during getSoldHomes Single Listing: {e}")
+                    print(listing['location'])
+                    print(f"ERROR during getSoldHomes Single Listing: {e} with zipCode {zip}")
         except Exception as e:
-            print(f"Error during getSoldHomes: {e}")
-        # try:
-        #     with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_{zip}_sold.json", "w+") as f:
-        #         count += 1
-        #         json.dump(data, f)
-        # except:
-        #     pass
+            moreListings = False
+            print(f"Error during getSoldHomes: {e} with zipCode {zip}")
+            
     updateStatus(zip, company, 'Recently Sold (6)')
     updateStatus(zip, company, 'Recently Sold (12)')
 
@@ -281,9 +262,7 @@ def send_email():
     today = datetime.today().strftime('%Y-%m-%d')
     # companies = Company.objects.filter(next_email_date=today)
     companies = Company.objects.all()
-    # print("no errors yet")
     for company in companies:
-        # print(f"sending email to {company.name}")
 
     #     next_email = (datetime.today() + timedelta(days=company.email_frequency)).strftime('%Y-%m-%d')
         emails = list(CustomUser.objects.filter(company=company).values_list('email'))
@@ -344,6 +323,6 @@ def auto_update():
     for zip in list(zipCodes.values('zipCode')):
         getHomesForSale.delay(zip)
         getHomesForRent.delay(zip)
-        getSoldHomes.delay(zip)
+        # getSoldHomes.delay(zip)
     zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
