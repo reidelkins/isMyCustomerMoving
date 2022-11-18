@@ -9,14 +9,14 @@ from django.utils.crypto import get_random_string
 
 
 # This is just an example no need to keep them
-# ROLE_CHOICES = (
+ROLE_CHOICES = (
 
-#     ('Backend Developer', 'Backend Developer'),
-#     ('Full Stack Designer', 'Full Stack Designer'),
-#     ('Front End Developer', 'Front End Developer'),
-#     ('Full Stack Developer', 'Full Stack Developer'),
-#     ('admin', 'admin')
-# )
+    ('Backend Developer', 'Backend Developer'),
+    ('Full Stack Designer', 'Full Stack Designer'),
+    ('Front End Developer', 'Front End Developer'),
+    ('Full Stack Developer', 'Full Stack Developer'),
+    ('admin', 'admin')
+)
 
 STATUS_CHOICES = (
 
@@ -123,8 +123,8 @@ class CustomUser(AbstractUser):
         upload_to='users', null=True, blank=True, default='/placeholder.png')
     status = models.CharField(
         max_length=100, choices=STATUS_CHOICES, default='active')
-    # role = models.CharField(
-    #     max_length=100, choices=ROLE_CHOICES, default='Full Stack Developer')
+    role = models.CharField(
+        max_length=100, choices=ROLE_CHOICES, default='Full Stack Developer')
     company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', "last_name"]
