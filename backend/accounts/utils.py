@@ -105,10 +105,13 @@ def getHomesForSale(zip, company=None):
             res = conn.getresponse()
             data = res.read().decode("utf-8")
             data = json.loads(data)
+            print(1)
             total = data['data']['home_search']['total']
+            print(2)
             offset += data['data']['home_search']['count']
             if offset >= total:
                 moreListings = False
+            print(3)
             data = data['data']['home_search']['results']
 
             for listing in data:
@@ -124,6 +127,7 @@ def getHomesForSale(zip, company=None):
                     print(f"ERROR during getHomesForSale Single Listing: {e} with zipCode {zip}")
                     print(listing['location'])
         except Exception as e:
+            moreListings = False
             print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
     updateStatus(zip, company, 'For Sale')
    
