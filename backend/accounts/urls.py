@@ -11,10 +11,10 @@ router.register(r"users", views.UserViewSet)
 
 urlpatterns = [
     # path('reset/', views.ResetView, name='reset'),
-    path('reset_request/', views.ResetRequestView.as_view(), name='reset_request'),
+    # path('reset_request/', views.ResetRequestView.as_view(), name='reset_request'),
     path('update/<str:company>/', views.UpdateStatusView.as_view(), name='update-status'),
     path('clients/<str:company>/', views.ClientListView.as_view(), name='client-list'),
-    path('manageuser/<str:company>/', views.manageuser, name='manageuser'),
+    path('manageuser/<str:id>/', views.ManageUserView.as_view(), name='manageuser'),
     path('createCompany/', views.createCompany, name='createCompany'),
     path('updatenote/<str:company>/', views.UpdateNoteView.as_view(), name='updatenote'),
     path('contacted/<str:company>/', views.UpdateContactedView.as_view(), name='updatecontacted'),
@@ -24,6 +24,7 @@ urlpatterns = [
     path('login/', views.MyTokenObtainPairView.as_view(), name='login'),
     path('refresh_token/', TokenRefreshView.as_view(), name='refresh_token'),
     path('confirmation/<str:pk>/<str:uid>/', views.confirmation, name='email_confirmation'),
+    path('password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
     path("", include(router.urls)),
     
 ]

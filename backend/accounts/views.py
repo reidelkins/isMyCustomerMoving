@@ -13,43 +13,61 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import io, csv, pandas as pd
-from .utils import getAllZipcodes, saveClientList, send_password_reset_email
-from .models import CustomUser, Client, Company, ZipCode
+from .utils import getAllZipcodes, saveClientList
+from .models import CustomUser, Client, Company, InviteToken
 from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer, MyTokenObtainPairSerializer, CompanySerializer
-
 import datetime
 import jwt
 from config import settings
 
-@api_view(['GET', 'PUT', 'POST' 'DELETE'])
-def manageuser(request, company):
-    try: 
-        company = Company.objects.get(id=company) 
-    except Company.DoesNotExist: 
-        return Response({'message': 'The company does not exist'}, status=status.HTTP_404_NOT_FOUND) 
- 
-    if request.method == 'GET': 
-        users = CustomUser.objects.filter(company=company)
-        serializer = UserSerializer(users, many=True)
-        return Response(serializer.data)
- 
-    elif request.method == 'PUT': 
-        serializer = UserSerializer(company, data=request.data) 
-        if serializer.is_valid(): 
-            serializer.save() 
-            return Response(serializer.data) 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    elif request.method == 'POST':
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
- 
-    elif request.method == 'DELETE': 
-        company.delete() 
-        return Response({'message': 'Tutorial was deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)
+class ManageUserView(APIView):
+    def post(self, request, *args, **kwargs):
+        if Company.objects.get(id=self.kwargs['id']).exists():
+            try:
+                company = Company.objects.get(id=self.kwargs['id'])
+                admin = CustomUser.objects.get(company=company, status='admin')   
+                print(admin)         
+                if company:
+                    token = InviteToken.objects.create(company=company)
+                    mail_subject = "Account Invite For Is My Customer Moving"
+
+                    # # Next version will add a HTML template
+                    message = get_template("addUserEmail.html").render({
+                        'admin': admin, 'token': token.id
+                    })
+                    msg = EmailMessage(
+                        mail_subject, message, settings.EMAIL_HOST_USER, to=[request.data['email']]
+                    )
+                    msg.content_subtype="html"
+                    msg.send()
+            except Exception as e:
+                print(e)
+                return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response("", status=status.HTTP_201_CREATED, headers="")
+        elif InviteToken.objects.get(id=self.kwargs['id']).exists():
+            try:
+                token = InviteToken.objects.get(id=self.kwargs['id'])
+                if token.expiration_date > datetime.datetime.now():
+                    company = token.company
+                    if company:
+                        user = CustomUser.objects.create(
+                            email=request.data['email'],
+                            password=make_password(request.data['password']),
+                            company=company,
+                            status='active',
+                            first_name=request.data['first_name'],
+                            last_name=request.data['last_name'],
+                            isVerified=True
+                        )
+                        user.save()
+                        token.delete()
+                else:
+                    return Response({"status": "Token Expired"}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                print(e)
+                return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response("", status=status.HTTP_201_CREATED, headers="")
+
 
 @api_view(['POST'])
 def createCompany(request):
@@ -236,6 +254,7 @@ class ClientListView(generics.ListAPIView):
 
 class UpdateStatusView(APIView):
     def get(self, request, *args, **kwargs):
+        print("sup")
         try:
             getAllZipcodes.delay(self.kwargs['company'])
         except Exception as e:
@@ -321,17 +340,6 @@ class DeleteClientView(generics.CreateAPIView):
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
         return Response("", status=status.HTTP_201_CREATED, headers="")
 
-class ResetRequestView(generics.CreateAPIView):
-    serializer_class = UserSerializer
 
-    def post(self, request, *args, **kwargs):
-        try:
-            company_object = Company.objects.get(id = self.kwargs['company'])
-            user = CustomUser.objects.get(company=company_object, email=self.kwargs['email'])
-            send_password_reset_email(self.kwargs['email'])
-        except Exception as e:
-            print(e)
-            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response("", status=status.HTTP_201_CREATED, headers="")
+        
     

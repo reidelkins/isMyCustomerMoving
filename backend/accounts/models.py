@@ -1,13 +1,17 @@
-import os
-
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.dispatch import receiver
+from django.urls import reverse
+from django_rest_passwordreset.signals import reset_password_token_created
+from django.core.mail import EmailMessage
 from django.db import models
 from django.utils.translation import gettext as _
 from django.utils.timezone import now
 import uuid
 from datetime import datetime, timedelta
 from django.utils.crypto import get_random_string
+from django.conf import settings
+from django.template.loader import get_template
 
 
 # This is just an example no need to keep them
@@ -27,21 +31,6 @@ STATUS_CHOICES = (
     ('admin', 'ADMIN'),
 )
 
-# COMPANY_NAME = (
-
-#     ('test', 'test'),
-#     ('kinetico_knoxville', 'kinetico_knoxville'),
-#     ('isMyCustomerMoving', 'isMyCustomerMoving'),
-#     ('Texas Water Specialist', 'Texas Water Specialist')
-# )
-
-# COMPANY_TOKEN = (
-
-#     ('test', 'test'),
-#     ('1qaz2wsx', '1qaz2wsx'),
-#     ('thisisatest', 'thisisatest')
-# )
-
 STATUS = [
     ('For Sale','For Sale'),
     ('For Rent','For Rent'),
@@ -51,12 +40,12 @@ STATUS = [
     ('No Change', 'No Change')
 ]
 
-CONTACTED_PROGRESS = [
-    ('Recently Updated', 'Recently Updated'),
-    ('Contacted, No Answer', 'Contacted, No Answer'),
-    ('Contacted, Not Interested', 'Contacted, Not Interested'),
-    ('Contacted, Interested', 'Contacted, Interested'),
-]
+# CONTACTED_PROGRESS = [
+#     ('Recently Updated', 'Recently Updated'),
+#     ('Contacted, No Answer', 'Contacted, No Answer'),
+#     ('Contacted, Not Interested', 'Contacted, Not Interested'),
+#     ('Contacted, Interested', 'Contacted, Interested'),
+# ]
 
 
 class CustomUserManager(BaseUserManager):
@@ -155,3 +144,28 @@ class CustomUser(AbstractUser):
         ordering = ["-id"]
 
 
+class InviteToken(models.Model):
+    id = models.UUIDField(primary_key=True, unique=True,
+                          default=uuid.uuid4, editable=False)
+    email = models.EmailField()
+    company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE)
+    expiration = models.DateTimeField(default=now() + timedelta(days=1))
+
+@receiver(reset_password_token_created)
+def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
+
+    if CustomUser.objects.filter(email=reset_password_token.user.email).exists(): 
+        subject = 'Password Reset: IsMyCustomerMoving.com'
+        message = get_template("resetPassword.html").render({
+            'token': reset_password_token.key
+        })
+
+        msg = EmailMessage(
+                    subject,
+                    message,
+                    settings.EMAIL_HOST_USER,
+                    [reset_password_token.user.email]
+                    # html_message=message,
+                )
+        msg.content_subtype ="html"# Main content is now text/html
+        msg.send()

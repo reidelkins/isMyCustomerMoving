@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',  # To Connect API with React App if required in seprate apps
     'django_celery_beat',
+    'django_rest_passwordreset',
 ]
 
 

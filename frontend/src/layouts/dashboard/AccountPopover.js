@@ -18,15 +18,15 @@ const MENU_OPTIONS = [
     icon: 'eva:home-fill',
     linkTo: '/',
   },
-  {
-    label: 'Profile',
-    icon: 'eva:person-fill',
-    linkTo: '#',
-  },
+  // {
+  //   label: 'Profile',
+  //   icon: 'eva:person-fill',
+  //   linkTo: '',
+  // },
   {
     label: 'Settings',
     icon: 'eva:settings-2-fill',
-    linkTo: '#',
+    linkTo: '/dashboard/settings',
   },
 ];
 
@@ -41,6 +41,7 @@ export default function AccountPopover() {
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
+    console.log(userInfo);
   };
 
   const handleClose = () => {
@@ -61,6 +62,8 @@ export default function AccountPopover() {
     dispatch(logout());
     navigate('/login', { replace: true });
   };
+
+  const initials = userInfo?.name?.split(' ').map((n) => n[0]).join('');
   return (
     <>
       <IconButton
@@ -81,7 +84,7 @@ export default function AccountPopover() {
           }),
         }}
       >
-        <Avatar src={""} alt="photoURL" />
+        <Avatar>{initials}</Avatar>
       </IconButton>
 
       <MenuPopover
