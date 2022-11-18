@@ -72,17 +72,14 @@ def getAllZipcodes(company):
     print(company)
     company_object = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company_object).values('zipCode')
-    print(len(zipCode_objects))
-    zipCodes = zipCode_objects.distinct()
+    # zipCodes = zipCode_objects.distinct()
+    zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
     print(len(zipCodes))
-    zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()+timedelta(days=1)).strftime('%Y-%m-%d'))
-    print(len(zipCodes))
-    for zip in list(zipCodes.values('zipCode')):
-        # print(zip)
-        getHomesForSale.delay(zip, company)
-        # getHomesForRent.delay(zip, company)
-        # getSoldHomes.delay(zip, company)
-    print("DONE")
+    # for zip in list(zipCodes.values('zipCode')):
+    #     # print(zip)
+    #     getHomesForSale.delay(zip, company)
+    #     getHomesForRent.delay(zip, company)
+    #     getSoldHomes.delay(zip, company)
     # zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
 
@@ -90,7 +87,7 @@ def getAllZipcodes(company):
 def getHomesForSale(zip, company=None):       
     offset = 0
     zip = zip['zipCode']
-    moreListings = False
+    moreListings = True
     while(moreListings):
         try:
             conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
@@ -126,14 +123,6 @@ def getHomesForSale(zip, company=None):
                     print(f"ERROR during getHomesForSale Single Listing: {e}")
         except Exception as e:
             print(f"ERROR during getHomesForSale: {e}")
-
-
-        # try:
-        #     with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_sale.json", "w+") as f:
-        #         count += 1
-        #         json.dump(data, f)
-        # except:
-        #     pass
     updateStatus(zip, company, 'For Sale')
    
        
@@ -141,7 +130,7 @@ def getHomesForSale(zip, company=None):
 def getHomesForRent(zip, company=None):
     offset = 0
     zip = zip['zipCode']
-    moreListings = False
+    moreListings = True
     while(moreListings):
         try:
             conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
@@ -190,12 +179,6 @@ def getHomesForRent(zip, company=None):
                     print(f"ERROR during getHomesForRent Single Listing: {e}")
         except Exception as e:
             print(f"Error during getHomesForRent: {e}")
-            # try:
-            #     with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_{zip}_rent.json", "w+") as f:
-            #         count += 1
-            #         json.dump(data, f)
-            # except:
-            #     pass
     updateStatus(zip, company, 'For Rent')
 
 
@@ -203,7 +186,7 @@ def getHomesForRent(zip, company=None):
 def getSoldHomes(zip, company=None):
     offset = 0
     zip = zip['zipCode']
-    moreListings = False
+    moreListings = True
     while(moreListings):
         try:
             conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
@@ -248,12 +231,6 @@ def getSoldHomes(zip, company=None):
                     print(f"ERROR during getSoldHomes Single Listing: {e}")
         except Exception as e:
             print(f"Error during getSoldHomes: {e}")
-        # try:
-        #     with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep15_{count}_{zip}_sold.json", "w+") as f:
-        #         count += 1
-        #         json.dump(data, f)
-        # except:
-        #     pass
     updateStatus(zip, company, 'Recently Sold (6)')
     updateStatus(zip, company, 'Recently Sold (12)')
 
