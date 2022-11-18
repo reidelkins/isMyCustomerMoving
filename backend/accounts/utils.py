@@ -68,8 +68,6 @@ def saveClientList(row, company_id):
 
 @shared_task
 def getAllZipcodes(company):
-    print("getting zipcodes")
-    print(company)
     company_object = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company_object).values('zipCode')
     zipCodes = zipCode_objects.distinct()
@@ -79,10 +77,9 @@ def getAllZipcodes(company):
     for zip in list(zipCodes.order_by('zipCode').values('zipCode')):
         if count < (10*multiplier):
             count += 1
-            print(zip)
             # getHomesForSale.delay(zip, company)
-            getHomesForRent.delay(zip, company)
-            # getSoldHomes.delay(zip, company)
+            # getHomesForRent.delay(zip, company)
+            getSoldHomes.delay(zip, company)
     # zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
 
@@ -167,6 +164,7 @@ def getHomesForRent(zip, company=None):
 
             for listing in data:
                 zip_object, created  = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
+                
                 try:
                     if listing['list_date'] != None:
                         HomeListing.objects.get_or_create(
@@ -183,6 +181,7 @@ def getHomesForRent(zip, company=None):
                                     )
                 except Exception as e:
                     print(f"ERROR during getHomesForRent Single Listing: {e} with zipCode {zip}")
+                    print(listing['location'])
         except Exception as e:
             moreListings = False
             print(f"Error during getHomesForRent: {e} with zipCode {zip}")
@@ -239,6 +238,7 @@ def getSoldHomes(zip, company=None):
         except Exception as e:
             moreListings = False
             print(f"Error during getSoldHomes: {e} with zipCode {zip}")
+            print(listing['location'])
     updateStatus(zip, company, 'Recently Sold (6)')
     updateStatus(zip, company, 'Recently Sold (12)')
 
