@@ -11,7 +11,7 @@ router.register(r"users", views.UserViewSet)
 
 urlpatterns = [
     # path('reset/', views.ResetView, name='reset'),
-    path('reset_request/', views.ResetRequestView.as_view(), name='reset_request'),
+    # path('reset_request/', views.ResetRequestView.as_view(), name='reset_request'),
     path('update/<str:company>/', views.UpdateStatusView.as_view(), name='update-status'),
     path('clients/<str:company>/', views.ClientListView.as_view(), name='client-list'),
     path('manageuser/<str:id>/', views.ManageUserView.as_view(), name='manageuser'),

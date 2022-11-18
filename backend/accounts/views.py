@@ -13,7 +13,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import io, csv, pandas as pd
-from .utils import getAllZipcodes, saveClientList, send_password_reset_email
+from .utils import getAllZipcodes, saveClientList
 from .models import CustomUser, Client, Company, InviteToken
 from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer, MyTokenObtainPairSerializer, CompanySerializer
 import datetime
