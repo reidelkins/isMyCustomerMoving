@@ -75,7 +75,7 @@ def getAllZipcodes(company):
     zipCodes = zipCode_objects.distinct()
     # zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
 
-    for zip in list(zipCodes.order_by('zips').values('zipCode')):
+    for zip in list(zipCodes.order_by('zipCode').values('zipCode')):
         print(zip)
         # getHomesForSale.delay(zip, company)
         # getHomesForRent.delay(zip, company)
