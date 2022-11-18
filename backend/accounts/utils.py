@@ -79,8 +79,8 @@ def getAllZipcodes(company):
     for zip in list(zipCodes.order_by('zipCode').values('zipCode')):
         if count < (10*multiplier):
             count += 1
-            print(count)
-            # getHomesForSale.delay(zip, company)
+            print(zip)
+            getHomesForSale.delay(zip, company)
             # getHomesForRent.delay(zip, company)
             # getSoldHomes.delay(zip, company)
     # zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
@@ -106,9 +106,7 @@ def getHomesForSale(zip, company=None):
             data = res.read().decode("utf-8")
             data = json.loads(data)
             total = data['data']['home_search']['total']
-            # print(f"The total amount listed for sale at {zip} is {total} and the current offset is {offset}")
             offset += data['data']['home_search']['count']
-            # print(f"The new offset is {offset}")
             if offset >= total:
                 moreListings = False
             data = data['data']['home_search']['results']
@@ -124,6 +122,7 @@ def getHomesForSale(zip, company=None):
                                 )
                 except Exception as e:
                     print(f"ERROR during getHomesForSale Single Listing: {e} with zipCode {zip}")
+                    print(listing['location'])
         except Exception as e:
             print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
     updateStatus(zip, company, 'For Sale')
