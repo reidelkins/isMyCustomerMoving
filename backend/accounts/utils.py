@@ -75,12 +75,12 @@ def getAllZipcodes(company):
     count = 0
     multiplier = 10
     for zip in list(zipCodes.order_by('zipCode').values('zipCode')):
-        if count < (10*multiplier):
-            count += 1
-            # getHomesForSale.delay(zip, company)
-            # getHomesForRent.delay(zip, company)
+        count += 1
+        if count > 100:
+            getHomesForSale.delay(zip, company)
+            getHomesForRent.delay(zip, company)
             getSoldHomes.delay(zip, company)
-    # zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
+    zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
 
 @shared_task
@@ -164,7 +164,7 @@ def getHomesForRent(zip, company=None):
 
             for listing in data:
                 zip_object, created  = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
-                
+
                 try:
                     if listing['list_date'] != None:
                         HomeListing.objects.get_or_create(
@@ -234,11 +234,12 @@ def getSoldHomes(zip, company=None):
                                 listed= listing['description']['sold_date']
                                 )
                 except Exception as e:
+                    print(listing['location'])
                     print(f"ERROR during getSoldHomes Single Listing: {e} with zipCode {zip}")
         except Exception as e:
             moreListings = False
             print(f"Error during getSoldHomes: {e} with zipCode {zip}")
-            print(listing['location'])
+            
     updateStatus(zip, company, 'Recently Sold (6)')
     updateStatus(zip, company, 'Recently Sold (12)')
 
