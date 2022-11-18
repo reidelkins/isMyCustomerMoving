@@ -72,12 +72,14 @@ def getAllZipcodes(company):
     print(company)
     company_object = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company_object).values('zipCode')
-    # zipCodes = zipCode_objects.distinct()
-    zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
-    for zip in list(zipCodes.values('zipCode')):
-        getHomesForSale.delay(zip, company)
-        getHomesForRent.delay(zip, company)
-        getSoldHomes.delay(zip, company)
+    zipCodes = zipCode_objects.distinct()
+    # zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
+
+    for zip in list(zipCodes.order_by('zips').values('zipCode')):
+        print(zip)
+        # getHomesForSale.delay(zip, company)
+        # getHomesForRent.delay(zip, company)
+        # getSoldHomes.delay(zip, company)
     zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
 
@@ -118,9 +120,9 @@ def getHomesForSale(zip, company=None):
                                 listed= listing['list_date']
                                 )
                 except Exception as e:
-                    print(f"ERROR during getHomesForSale Single Listing: {e}")
+                    print(f"ERROR during getHomesForSale Single Listing: {e} with zipCode {zip}")
         except Exception as e:
-            print(f"ERROR during getHomesForSale: {e}")
+            print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
     updateStatus(zip, company, 'For Sale')
    
        
@@ -174,9 +176,9 @@ def getHomesForRent(zip, company=None):
                                     status= 'For Rent',
                                     )
                 except Exception as e:
-                    print(f"ERROR during getHomesForRent Single Listing: {e}")
+                    print(f"ERROR during getHomesForRent Single Listing: {e} with zipCode {zip}")
         except Exception as e:
-            print(f"Error during getHomesForRent: {e}")
+            print(f"Error during getHomesForRent: {e} with zipCode {zip}")
     updateStatus(zip, company, 'For Rent')
 
 
@@ -226,9 +228,9 @@ def getSoldHomes(zip, company=None):
                                 listed= listing['description']['sold_date']
                                 )
                 except Exception as e:
-                    print(f"ERROR during getSoldHomes Single Listing: {e}")
+                    print(f"ERROR during getSoldHomes Single Listing: {e} with zipCode {zip}")
         except Exception as e:
-            print(f"Error during getSoldHomes: {e}")
+            print(f"Error during getSoldHomes: {e} with zipCode {zip}")
     updateStatus(zip, company, 'Recently Sold (6)')
     updateStatus(zip, company, 'Recently Sold (12)')
 
