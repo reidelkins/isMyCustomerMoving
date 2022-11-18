@@ -102,13 +102,10 @@ def getHomesForSale(zip, company=None):
             res = conn.getresponse()
             data = res.read().decode("utf-8")
             data = json.loads(data)
-            print(1)
             total = data['data']['home_search']['total']
-            print(2)
             offset += data['data']['home_search']['count']
             if offset >= total:
                 moreListings = False
-            print(3)
             data = data['data']['home_search']['results']
 
             for listing in data:
@@ -151,15 +148,9 @@ def getHomesForRent(zip, company=None):
             
             total = data['data']['home_search']['total']
             
-            # print(f"The total amount listed for rent at {zip} is {total} and the current offset is {offset}")
             offset += data['data']['home_search']['count']
-            # print(f"The new offset is {offset}")
             if offset >= total:
                 moreListings = False
-            # with open(f"/Users/reidelkins/Work/isMyCustomerMoving/sep14_{count}_rent.json", "w+") as f:
-            #     count += 1
-            #     json.dump(data, f)
-
             data = data['data']['home_search']['results']
 
             for listing in data:
@@ -210,9 +201,7 @@ def getSoldHomes(zip, company=None):
             
 
             total = data['data']['home_search']['total']
-            # print(f"The total amount that have been sold at {zip} is {total} and the current offset is {offset}")
             offset += data['data']['home_search']['count']
-            # print(f"The new offset is {offset}")
             if offset >= total:
                 moreListings = False
 
@@ -273,9 +262,7 @@ def send_email():
     today = datetime.today().strftime('%Y-%m-%d')
     # companies = Company.objects.filter(next_email_date=today)
     companies = Company.objects.all()
-    # print("no errors yet")
     for company in companies:
-        # print(f"sending email to {company.name}")
 
     #     next_email = (datetime.today() + timedelta(days=company.email_frequency)).strftime('%Y-%m-%d')
         emails = list(CustomUser.objects.filter(company=company).values_list('email'))
@@ -336,6 +323,6 @@ def auto_update():
     for zip in list(zipCodes.values('zipCode')):
         getHomesForSale.delay(zip)
         getHomesForRent.delay(zip)
-        getSoldHomes.delay(zip)
+        # getSoldHomes.delay(zip)
     zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
