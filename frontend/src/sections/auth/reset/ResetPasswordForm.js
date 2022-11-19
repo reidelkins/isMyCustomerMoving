@@ -21,17 +21,15 @@ export default function ResetPasswordForm() {
 
   const ResetPasswordSchema = Yup.object().shape({
     email: Yup.string().email('Email must be a valid email address').required('Email is required'),
-    company: Yup.string().required('Company name is required'),
   });
 
   const formik = useFormik({
     initialValues: {
       email: '',
-      company: '',
     },
     validationSchema: ResetPasswordSchema,
     onSubmit: () => {
-      dispatch(resetRequest(values.email, values.company));
+      dispatch(resetRequest(values.email));
     },
   });
 
@@ -46,14 +44,6 @@ export default function ResetPasswordForm() {
     <FormikProvider value={formik}>
       <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
         <Stack spacing={3}>
-          <TextField
-            fullWidth
-            label="Company"
-            {...getFieldProps('company')}
-            error={Boolean(touched.company && errors.company)}
-            helperText={touched.company && errors.company}
-          />
-
           <TextField
             fullWidth
             autoComplete="username"
