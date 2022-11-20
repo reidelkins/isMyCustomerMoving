@@ -338,7 +338,9 @@ export default function CustomerData() {
                       {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                         const { id, name, address, city, state, zipCode, status, contacted, note } = row;
                         const isItemSelected = selected.indexOf(name) !== -1;
-
+                        if (userInfo.status !== 'admin' && status === 'No Change') {
+                          return null;
+                        }
                         return (
                           <TableRow
                             hover
