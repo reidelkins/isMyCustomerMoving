@@ -84,12 +84,6 @@ export default function NewPasswordForm() {
             Return to login
           </Link>
         </Stack>
-        {loginError ? (
-          <Alert severity="error">
-            <AlertTitle>Reset Password Error</AlertTitle>
-            {loginError}
-          </Alert>
-        ) : null}
 
         <LoadingButton
           fullWidth
