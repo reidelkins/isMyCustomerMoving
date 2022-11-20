@@ -146,8 +146,6 @@ export const resetRequest = (email) => async (dispatch) => {
       type: RESET_REQUEST_SUCCESS,
       payload: data,
     });
-
-    localStorage.setItem('userInfo', JSON.stringify(data));
   } catch (error) {
     dispatch({
       type: RESET_REQUEST_FAIL,
@@ -168,7 +166,7 @@ export const submitNewPass = (password, token) => async (dispatch) => {
       },
     };
 
-    const { data } = await axios.post(
+    await axios.post(
       `${DOMAIN}/api/v1/accounts/password_reset/confirm/`,
       { 
         token,
@@ -179,7 +177,6 @@ export const submitNewPass = (password, token) => async (dispatch) => {
 
     dispatch({
       type: PASSWORD_RESET_SUCCESS,
-      payload: data,
     });
   } catch (error) {
     dispatch({

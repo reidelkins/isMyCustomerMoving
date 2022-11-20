@@ -12,7 +12,7 @@ import { resetRequest } from '../../../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
 
-export default function ResetPasswordForm() {
+export default function ResetPasswordForm({setSubmitted}) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -29,6 +29,7 @@ export default function ResetPasswordForm() {
     },
     validationSchema: ResetPasswordSchema,
     onSubmit: () => {
+      setSubmitted(true);
       dispatch(resetRequest(values.email));
     },
   });
