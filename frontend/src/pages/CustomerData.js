@@ -5,10 +5,11 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // material
 import {
   IconButton,
+  Backdrop,
   Box,
   Card,
-  Alert,
-  AlertTitle,
+  Fade,
+  Modal,
   Table,
   Stack,
   Button,
@@ -23,20 +24,20 @@ import {
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 import LinearProgress from '@mui/material/LinearProgress';
-import { FilePond } from 'react-filepond';
-import '../filepond.css';
+
 
 // components
 import NoteModal from '../components/NoteModal';
 import NewCompanyModal from '../components/NewCompanyModal';
 import Page from '../components/Page';
 import Label from '../components/Label';
+import FileUpload from '../components/FileUpload';
 import Scrollbar from '../components/Scrollbar';
 import Iconify from '../components/Iconify';
 import SearchNotFound from '../components/SearchNotFound';
 import CounterCard from '../components/CounterCard';
 import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashboard/user';
-import { DOMAIN } from '../redux/constants';
+
 
 import UsersListCall from '../redux/calls/UsersListCall';
 import { update, contact, users } from '../redux/actions/usersActions';
@@ -117,8 +118,6 @@ export default function CustomerData() {
   const [filterName, setFilterName] = useState('');
 
   const [rowsPerPage, setRowsPerPage] = useState(10);
-
-  const [alertOpen, setAlertOpen] = useState(false);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -268,8 +267,6 @@ export default function CustomerData() {
   // const [filteredUsers, setFilteredUsers] = useState(USERLIST)
 
   const isUserNotFound = filteredUsers.length === 0;
-
-  const [files, setFiles] = useState([])
 
   return (
     <Page title="User">
@@ -454,21 +451,7 @@ export default function CustomerData() {
               )}
               
             </Stack>
-            {userInfo.status === 'admin' && (
-              <FilePond
-                files={files}
-                onupdatefiles={setFiles}
-                // className="NONE"
-                maxFiles={1}
-                server={`${DOMAIN}/api/v1/accounts/upload/`}
-                name={`${userInfo.company}`}
-                labelIdle=' <span class="filepond--label-action">Upload Your Client List</span>'
-                credits='false'
-                storeAsFile='true'
-                labelFileProcessingComplete='Success! Moving data might take up to 30 minutes depending on the size of your list.'
-                // acceptedFileTypes={['image/png', 'image/jpeg']}
-              />
-            )}
+            <FileUpload userInfo={userInfo}/>
           </>
         )}
       </Container>
