@@ -118,6 +118,8 @@ export default function CustomerData() {
 
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
+  const [alertOpen, setAlertOpen] = useState(false);
+
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -463,6 +465,7 @@ export default function CustomerData() {
                 labelIdle=' <span class="filepond--label-action">Upload Your Client List</span>'
                 credits='false'
                 storeAsFile='true'
+                labelFileProcessingComplete='Success! Moving data might take up to 30 minutes depending on the size of your list.'
                 // acceptedFileTypes={['image/png', 'image/jpeg']}
               />
             )}
