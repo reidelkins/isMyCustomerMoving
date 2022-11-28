@@ -11,6 +11,7 @@ from django.core.mail import send_mail, EmailMessage
 from django.template import Context
 from django.template.loader import get_template
 from django.utils.html import strip_tags
+import pandas as pd
 
 # app = Celery()
 
@@ -26,15 +27,16 @@ def parseStreets(street):
 
 @shared_task
 def saveClientList(reader, company_id):
+    reader = pd.read_json(reader)
+    
     for _, row in reader.iterrows():
-        row = row.to_dict()
+        row = row.to_dict()        
         try:
             company = Company.objects.get(id=company_id)
             street = (str(row['street'])).title()
             street = parseStreets(street)
             try:
                 if int(row['zip']) > 500 and int(row['zip']) < 99951:
-                # if int(row['zip']) > 37770 and int(row['zip']) < 37775:
                     zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
                     Client.objects.update_or_create(
                             name= row['name'],
@@ -67,6 +69,7 @@ def saveClientList(reader, company_id):
         except Exception as e:
                 print(e)
 
+    # getAllZipcodes.delay(company_id)
 
 @shared_task
 def getAllZipcodes(company):

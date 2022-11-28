@@ -292,9 +292,12 @@ class UploadFileView(generics.CreateAPIView):
         except Exception as e:
             print(e)
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
-        # for _, row in reader.iterrows():
-        #     saveClientList.delay(row.to_dict(), company_id)
-        saveClientList.delay(reader, company_id)
+        print("hello")
+        try:
+            saveClientList.delay(reader.to_json(), company_id)
+        except Exception as e:
+            print(e)
+            return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"status": "success"},
                         status.HTTP_201_CREATED)
 
