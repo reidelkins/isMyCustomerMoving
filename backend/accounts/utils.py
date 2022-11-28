@@ -269,7 +269,8 @@ def send_email():
         subject = 'Did Your Customers Move?'
         
         # message = emailBody(company)
-        foundCustomers = Client.objects.filter(company=company).exclude(status='No Change')
+        emailStatuses = ['For Sale', 'For Rent']
+        foundCustomers = Client.objects.filter(company=company, status__in=emailStatuses)
         foundCustomers = foundCustomers.exclude(contacted=True)
         foundCustomers = foundCustomers.order_by('status')
         message = get_template("dailyEmail.html").render({
