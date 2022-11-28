@@ -7,6 +7,9 @@ import {
   REGISTER_SUCCESS,
   REGISTER_FAIL,
   LOGOUT,
+  RESET_REQUEST_REQUEST,
+  RESET_REQUEST_SUCCESS,
+  RESET_REQUEST_FAIL,
 } from '../types/auth';
 
 export const loginReducer = (state = {}, action) => {
@@ -37,6 +40,25 @@ export const registerReducer = (state = {}, action) => {
       return { loading: false, userInfo: action.payload };
 
     case REGISTER_FAIL:
+      return { loading: false, error: action.payload };
+
+    case LOGOUT:
+      return {};
+
+    default:
+      return state;
+  }
+};
+
+export const resetRequestReducer = (state = {}, action) => {
+  switch (action.type) {
+    case RESET_REQUEST_REQUEST:
+      return { loading: true };
+
+    case RESET_REQUEST_SUCCESS:
+      return { loading: false };
+
+    case RESET_REQUEST_FAIL:
       return { loading: false, error: action.payload };
 
     case LOGOUT:

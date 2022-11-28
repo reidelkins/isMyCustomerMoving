@@ -1,4 +1,5 @@
 import { Link as RouterLink } from 'react-router-dom';
+import { useState } from 'react';
 
 // @mui
 import { styled } from '@mui/material/styles';
@@ -61,6 +62,8 @@ export default function ForgotPassword() {
 
   const mdUp = useResponsive('up', 'md');
 
+  const [submitted, setSubmitted] = useState(false);
+
   return (
     <Page title="ForgotPassword">
       <RootStyle>
@@ -92,9 +95,19 @@ export default function ForgotPassword() {
               Forgot Password?
             </Typography>
 
-            <Typography sx={{ color: 'text.secondary', mb: 5 }}>Enter your company name and email below.</Typography>
-
-            <ResetPasswordForm />
+            
+            {submitted ? (
+              <Typography variant="body1" sx={{ color: 'text.secondary', mb: 5 }}>
+                If your email is associated with an account, you will receive an email with a link to reset your password.
+              </Typography>
+            )
+              : (
+                <>
+                  <Typography sx={{ color: 'text.secondary', mb: 5 }}>Enter your email below to receive a link to reset your password.</Typography>
+                  <ResetPasswordForm setSubmitted={setSubmitted} />
+                </>
+              )}
+            
 
             {!smUp && (
               <Typography variant="body2" align="center" sx={{ mt: 3 }}>

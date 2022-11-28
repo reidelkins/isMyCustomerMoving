@@ -12,12 +12,14 @@ import { resetRequest } from '../../../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
 
-export default function ResetPasswordForm() {
+export default function ResetPasswordForm({setSubmitted}) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const userResetRequest = useSelector((state) => state.userResetRequest);
+  const { loading: resetRequestLoading } = userResetRequest;
   const userLogin = useSelector((state) => state.userLogin);
-  const { error: loginError, loading: loginLoading, userInfo } = userLogin;
+  const { userInfo } = userLogin;
 
   const ResetPasswordSchema = Yup.object().shape({
     email: Yup.string().email('Email must be a valid email address').required('Email is required'),
@@ -29,6 +31,7 @@ export default function ResetPasswordForm() {
     },
     validationSchema: ResetPasswordSchema,
     onSubmit: () => {
+      setSubmitted(true);
       dispatch(resetRequest(values.email));
     },
   });
@@ -60,19 +63,13 @@ export default function ResetPasswordForm() {
             Return to login
           </Link>
         </Stack>
-        {loginError ? (
-          <Alert severity="error">
-            <AlertTitle>Reset Password Error</AlertTitle>
-            {loginError}
-          </Alert>
-        ) : null}
 
         <LoadingButton
           fullWidth
           size="large"
           type="submit"
           variant="contained"
-          loading={loginLoading ? isSubmitting : null}
+          loading={resetRequestLoading ? isSubmitting : null}
         >
           Submit Info
         </LoadingButton>

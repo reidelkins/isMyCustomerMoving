@@ -40,19 +40,13 @@ export default function NewPasswordForm() {
     },
     validationSchema: NewPasswordSchema,
     onSubmit: () => {
-      console.log(values.password);
-      console.log(token);
       dispatch(submitNewPass(values.password, token));
+      navigate('/login', { replace: true });
     },
   });
 
   const { errors, touched, values, isSubmitting, handleSubmit, getFieldProps } = formik;
 
-  useEffect(() => {
-    if (userInfo) {
-      navigate('/login', { replace: true });
-    }
-  }, [navigate, userInfo]);
   return (
     <FormikProvider value={formik}>
       <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
@@ -90,12 +84,6 @@ export default function NewPasswordForm() {
             Return to login
           </Link>
         </Stack>
-        {loginError ? (
-          <Alert severity="error">
-            <AlertTitle>Reset Password Error</AlertTitle>
-            {loginError}
-          </Alert>
-        ) : null}
 
         <LoadingButton
           fullWidth
