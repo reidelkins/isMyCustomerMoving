@@ -22,24 +22,20 @@ from config import settings
 
 class ManageUserView(APIView):
     def post(self, request, *args, **kwargs):
-        if Company.objects.get(id=self.kwargs['id']).exists():
+        if Company.objects.filter(id=self.kwargs['id']).exists():
             try:
                 company = Company.objects.get(id=self.kwargs['id'])
-                admin = CustomUser.objects.get(company=company, status='admin')   
+                admin = CustomUser.objects.filter(company=company, status='admin')[0]
                 print(admin)         
                 if company:
-                    token = InviteToken.objects.create(company=company)
+                    token = InviteToken.objects.create(company=company, email=request.data['email'])
                     mail_subject = "Account Invite For Is My Customer Moving"
-
-                    # # Next version will add a HTML template
+                    messagePlain = f"You have been invited to join Is My Customer Moving by {admin.first_name} {admin.last_name}. Please click the link below to join. https://app.ismycustomermoving.com/addeduser/{str(token.id)}"
+                #     # # Next version will add a HTML template
                     message = get_template("addUserEmail.html").render({
                         'admin': admin, 'token': token.id
                     })
-                    msg = EmailMessage(
-                        mail_subject, message, settings.EMAIL_HOST_USER, to=[request.data['email']]
-                    )
-                    msg.content_subtype="html"
-                    msg.send()
+                    send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[request.data['email']], html_message=message, fail_silently=False)
             except Exception as e:
                 print(e)
                 return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
@@ -79,18 +75,12 @@ def createCompany(request):
                 company = serializer.save()
                 if company:
                     mail_subject = "Access Token for Is My Customer Moving"
-
-                    # # Next version will add a HTML template
-                    message = f"Your registered company name is {company.name} and your one use access token is {company.accessToken}. Head to https://app.ismycustomermoving.com/register to sign up!"
+                    messagePlain = "Your access token is: " + company.accessToken
+                    messagePlain = "Thank you for signing up for Is My Customer Moving. Your company name is: " + company.name +  "and your access token is: " + company.accessToken + ". Please use this info at https://app.ismycustomermoving.com/register to create your account."
                     message = get_template("registration.html").render({
                         'company': company.name, 'accessToken': company.accessToken
                     })
-                    msg = EmailMessage(
-                        mail_subject, message, settings.EMAIL_HOST_USER, to=[request.data['email']]
-                    )
-                    msg.content_subtype="html"
-                    msg.send()
-                    
+                    send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[request.data['email']], html_message=message, fail_silently=False)
                     return Response("", status=status.HTTP_201_CREATED, headers="")
                 else:
                     return Response({'Error': "Company with that name already exists"}, status=status.HTTP_400_BAD_REQUEST)

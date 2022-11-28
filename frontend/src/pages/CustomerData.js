@@ -279,7 +279,7 @@ export default function CustomerData() {
                 Welcome {userInfo.name} 👋
                 {/* Welcome */}
               </Typography>              
-              {(userInfo.email === 'reid@gmail.com' || userInfo.email === 'jb@aquaclearws.com') && (
+              {(userInfo.email === 'reid@gmail.com' || userInfo.email === 'jb@aquaclearws.com' || userInfo.email === 'reidelkins3@gmail.com') && (
                 // <Button variant="contained" component={RouterLink} to="/dashboard/adduser" startIcon={<Iconify icon="eva:plus-fill" />}>
                 <NewCompanyModal/>
               )}
