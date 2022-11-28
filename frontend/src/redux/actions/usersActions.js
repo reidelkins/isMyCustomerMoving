@@ -66,6 +66,7 @@ export const users = () => async (dispatch, getState) => {
       payload: data,
     });
   } catch (error) {
+    localStorage.removeItem('userInfo');
     dispatch({
       type: LIST_FAIL,
       payload: error.response && error.response.data.detail ? error.response.data.detail : error.message,
