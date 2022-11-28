@@ -36,7 +36,7 @@ export default function Router() {
         { path: '/', element: <Navigate to="/dashboard/customers" /> },
         { path: 'login', element: <Login /> },
         { path: 'register', element: <Register /> },
-        { path: 'adduser/:token', element: <AddUser /> },
+        { path: 'addeduser/:token', element: <AddUser /> },
         { path: 'forgot_password', element: <ForgotPassword /> },
         { path: 'resetpassword/:token', element: <ResetPassword /> },
         { path: 'termsofservice', element: <TermsOfService /> },

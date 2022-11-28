@@ -6,7 +6,6 @@ from django_rest_passwordreset.signals import reset_password_token_created
 from django.core.mail import EmailMessage
 from django.db import models
 from django.utils.translation import gettext as _
-from django.utils.timezone import now
 import uuid
 from datetime import datetime, timedelta
 from django.utils.crypto import get_random_string
@@ -77,16 +76,19 @@ class CustomUserManager(BaseUserManager):
 
         return self._create_user(email, password, **extra_fields)
 
+def create_access_token():
+    return get_random_string(length=32)
+
 class Company(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
-    accessToken = models.CharField(default=get_random_string(length=32), max_length=100)
+    accessToken = models.CharField(default=create_access_token, max_length=100)
     
     avatarUrl = models.ImageField(
         upload_to='customers', null=True, blank=True, default='/placeholder.png')
     email_frequency = models.IntegerField(default=0)
-    next_email_date = models.DateField(default=now)
+    next_email_date = models.DateField(default=datetime.utcnow)
 
 class ZipCode(models.Model):
     zipCode = models.IntegerField(primary_key=True, unique=True, validators=[MinValueValidator(500), MaxValueValidator(99951)])
@@ -143,13 +145,16 @@ class CustomUser(AbstractUser):
     class Meta:
         ordering = ["-id"]
 
+def utc_tomorrow():
+    return datetime.utcnow() + timedelta(days=1)
+
 
 class InviteToken(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
     email = models.EmailField()
     company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE)
-    expiration = models.DateTimeField(default=now() + timedelta(days=1))
+    expiration = models.DateTimeField(default=utc_tomorrow)
 
 @receiver(reset_password_token_created)
 def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
