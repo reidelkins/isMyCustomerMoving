@@ -232,7 +232,6 @@ def confirmation(request, pk, uid):
     
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
-    print(serializer_class)
     # def post(self, request, *args, **kwargs):
     #     print("inside of the post")
     #     return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
