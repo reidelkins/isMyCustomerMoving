@@ -19,54 +19,58 @@ from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSeri
 import datetime
 import jwt
 from config import settings
+import pytz
 
 class ManageUserView(APIView):
+    
     def post(self, request, *args, **kwargs):
-        if Company.objects.get(id=self.kwargs['id']).exists():
-            try:
-                company = Company.objects.get(id=self.kwargs['id'])
-                admin = CustomUser.objects.get(company=company, status='admin')   
-                print(admin)         
-                if company:
-                    token = InviteToken.objects.create(company=company)
-                    mail_subject = "Account Invite For Is My Customer Moving"
-
-                    # # Next version will add a HTML template
-                    message = get_template("addUserEmail.html").render({
-                        'admin': admin, 'token': token.id
-                    })
-                    msg = EmailMessage(
-                        mail_subject, message, settings.EMAIL_HOST_USER, to=[request.data['email']]
-                    )
-                    msg.content_subtype="html"
-                    msg.send()
-            except Exception as e:
-                print(e)
-                return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-            return Response("", status=status.HTTP_201_CREATED, headers="")
-        elif InviteToken.objects.get(id=self.kwargs['id']).exists():
-            try:
-                token = InviteToken.objects.get(id=self.kwargs['id'])
-                if token.expiration_date > datetime.datetime.now():
-                    company = token.company
+        try:
+            if Company.objects.filter(id=self.kwargs['id']).exists():
+                try:
+                    company = Company.objects.get(id=self.kwargs['id'])
+                    admin = CustomUser.objects.filter(company=company, status='admin')[0]
                     if company:
-                        user = CustomUser.objects.create(
-                            email=request.data['email'],
-                            password=make_password(request.data['password']),
-                            company=company,
-                            status='active',
-                            first_name=request.data['first_name'],
-                            last_name=request.data['last_name'],
-                            isVerified=True
-                        )
-                        user.save()
-                        token.delete()
-                else:
-                    return Response({"status": "Token Expired"}, status=status.HTTP_400_BAD_REQUEST)
-            except Exception as e:
-                print(e)
-                return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-            return Response("", status=status.HTTP_201_CREATED, headers="")
+                        token = InviteToken.objects.create(company=company, email=request.data['email'])
+                        mail_subject = "Account Invite For Is My Customer Moving"
+                        messagePlain = f"You have been invited to join Is My Customer Moving by {admin.first_name} {admin.last_name}. Please click the link below to join. https://app.ismycustomermoving.com/addeduser/{str(token.id)}"
+                    #     # # Next version will add a HTML template
+                        message = get_template("addUserEmail.html").render({
+                            'admin': admin, 'token': token.id
+                        })
+                        send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[request.data['email']], html_message=message, fail_silently=False)
+                except Exception as e:
+                    print(e)
+                    return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response("", status=status.HTTP_201_CREATED, headers="")
+            elif InviteToken.objects.filter(id=self.kwargs['id']).exists():
+                utc = pytz.UTC
+                try:
+                    print(request.data)
+                    token = InviteToken.objects.get(id=self.kwargs['id'], email=request.data['email'])
+                    if token.expiration > utc.localize(datetime.datetime.utcnow()):
+                        company = token.company
+                        print(company)
+                        if company:
+                            user = CustomUser.objects.create(
+                                email=request.data['email'],
+                                password=make_password(request.data['password']),
+                                company=company,
+                                status='active',
+                                first_name=request.data['firstName'],
+                                last_name=request.data['lastName'],
+                                isVerified=True
+                            )
+                            user.save()
+                            token.delete()
+                    else:
+                        return Response({"status": "Token Expired"}, status=status.HTTP_400_BAD_REQUEST)
+                except Exception as e:
+                    print(e)
+                    return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response("", status=status.HTTP_201_CREATED, headers="")
+        except Exception as e:
+            print(e)
+            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -79,18 +83,12 @@ def createCompany(request):
                 company = serializer.save()
                 if company:
                     mail_subject = "Access Token for Is My Customer Moving"
-
-                    # # Next version will add a HTML template
-                    message = f"Your registered company name is {company.name} and your one use access token is {company.accessToken}. Head to https://app.ismycustomermoving.com/register to sign up!"
+                    messagePlain = "Your access token is: " + company.accessToken
+                    messagePlain = "Thank you for signing up for Is My Customer Moving. Your company name is: " + company.name +  "and your access token is: " + company.accessToken + ". Please use this info at https://app.ismycustomermoving.com/register to create your account."
                     message = get_template("registration.html").render({
                         'company': company.name, 'accessToken': company.accessToken
                     })
-                    msg = EmailMessage(
-                        mail_subject, message, settings.EMAIL_HOST_USER, to=[request.data['email']]
-                    )
-                    msg.content_subtype="html"
-                    msg.send()
-                    
+                    send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[request.data['email']], html_message=message, fail_silently=False)
                     return Response("", status=status.HTTP_201_CREATED, headers="")
                 else:
                     return Response({'Error': "Company with that name already exists"}, status=status.HTTP_400_BAD_REQUEST)

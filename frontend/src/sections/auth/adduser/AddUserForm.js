@@ -49,7 +49,7 @@ export default function AddUserForm({token}) {
     onSubmit: () => {
       console.log("sup")
       dispatch(addUser(values.firstName, values.lastName, values.email, values.password, values.token));
-      navigate('/dashboard/user', { replace: true });
+      navigate('/login', { replace: true });
     },
   });
 

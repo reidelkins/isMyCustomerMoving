@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext as _
-from .models import CustomUser, Company, Client, ZipCode, HomeListing
+from .models import CustomUser, Company, Client, ZipCode, HomeListing, InviteToken
 
 
 class CustomUserAdmin(UserAdmin):
@@ -15,7 +15,6 @@ class CustomUserAdmin(UserAdmin):
                            'avatarUrl',
                            'status',
                            'email',
-                           'role',
                            'company',
                            )}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff',
@@ -30,13 +29,13 @@ class CustomUserAdmin(UserAdmin):
     )
 
     list_display = ('first_name', 'last_name', 'email',
-                    'isVerified', 'role')
+                    'isVerified')
     search_fields = ('id', 'first_name', 'last_name', 'email')
     ordering = ('id',)
-    list_filter = ('is_staff', 'role', 'isVerified',)
+    list_filter = ('is_staff', 'isVerified',)
 
 class CompanyAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'accessToken', 'avatarUrl')
+    list_display = ('id', 'name', 'accessToken', 'avatarUrl', 'tier')
 
 class ClientAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'status', 'city', 'state', 'contacted', 'note')
@@ -50,6 +49,10 @@ class HomeListingAdmin(admin.ModelAdmin):
     list_display = ('address', 'zipCode', 'status', 'listed')
     search_fields = ['address', 'status']
 
+class InviteTokenAdmin(admin.ModelAdmin):
+    list_display = ('id', 'email', 'company')
+    search_fields = ['id', 'email', 'company']
+
 
 # Register your models here.
 admin.site.register(HomeListing, HomeListingAdmin)
@@ -57,3 +60,4 @@ admin.site.register(ZipCode, ZipcodeAdmin)
 admin.site.register(Client, ClientAdmin)
 admin.site.register(Company, CompanyAdmin)
 admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(InviteToken, InviteTokenAdmin)
