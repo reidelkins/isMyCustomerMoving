@@ -13,16 +13,6 @@ from django.conf import settings
 from django.template.loader import get_template
 
 
-# This is just an example no need to keep them
-ROLE_CHOICES = (
-
-    ('Backend Developer', 'Backend Developer'),
-    ('Full Stack Designer', 'Full Stack Designer'),
-    ('Front End Developer', 'Front End Developer'),
-    ('Full Stack Developer', 'Full Stack Developer'),
-    ('admin', 'admin')
-)
-
 STATUS_CHOICES = (
 
     ('active', 'ACTIVE'),
@@ -39,12 +29,12 @@ STATUS = [
     ('No Change', 'No Change')
 ]
 
-# CONTACTED_PROGRESS = [
-#     ('Recently Updated', 'Recently Updated'),
-#     ('Contacted, No Answer', 'Contacted, No Answer'),
-#     ('Contacted, Not Interested', 'Contacted, Not Interested'),
-#     ('Contacted, Interested', 'Contacted, Interested'),
-# ]
+PAY_TIER = [
+    ('Free', 'Free'),
+    ('Basic', 'Basic'),
+    ('Premium', 'Premium'),
+    ('Enterprise', 'Enterprise')
+]
 
 
 class CustomUserManager(BaseUserManager):
@@ -89,6 +79,7 @@ class Company(models.Model):
         upload_to='customers', null=True, blank=True, default='/placeholder.png')
     email_frequency = models.IntegerField(default=0)
     next_email_date = models.DateField(default=datetime.utcnow)
+    tier = models.CharField(max_length=100, choices=PAY_TIER, default='Free')
 
 class ZipCode(models.Model):
     zipCode = models.IntegerField(primary_key=True, unique=True, validators=[MinValueValidator(500), MaxValueValidator(99951)])
@@ -131,8 +122,6 @@ class CustomUser(AbstractUser):
         upload_to='users', null=True, blank=True, default='/placeholder.png')
     status = models.CharField(
         max_length=100, choices=STATUS_CHOICES, default='active')
-    role = models.CharField(
-        max_length=100, choices=ROLE_CHOICES, default='Full Stack Developer')
     company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', "last_name"]

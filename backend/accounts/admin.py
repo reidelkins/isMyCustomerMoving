@@ -15,7 +15,6 @@ class CustomUserAdmin(UserAdmin):
                            'avatarUrl',
                            'status',
                            'email',
-                           'role',
                            'company',
                            )}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff',
@@ -30,13 +29,13 @@ class CustomUserAdmin(UserAdmin):
     )
 
     list_display = ('first_name', 'last_name', 'email',
-                    'isVerified', 'role')
+                    'isVerified')
     search_fields = ('id', 'first_name', 'last_name', 'email')
     ordering = ('id',)
-    list_filter = ('is_staff', 'role', 'isVerified',)
+    list_filter = ('is_staff', 'isVerified',)
 
 class CompanyAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'accessToken', 'avatarUrl')
+    list_display = ('id', 'name', 'accessToken', 'avatarUrl', 'tier')
 
 class ClientAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'status', 'city', 'state', 'contacted', 'note')
