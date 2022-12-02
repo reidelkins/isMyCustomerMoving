@@ -20,7 +20,6 @@ def test_payment(request):
 @api_view(['POST' ])
 def save_stripe_info(request):
     if request.method == 'POST':
-        print(1)
         data = request.data
         email = data['email']
         payment_method_id = data['payment_method_id']
@@ -60,7 +59,7 @@ def save_stripe_info(request):
                 'data': {'customer_id': customer.id,
                 'extra_msg': extra_msg,
                 'sub_id':  subscription,
-                'clientSecret': subscription.latest_invoice.payment_intent.client_secret} }  
+                } }  
         )
 
 
