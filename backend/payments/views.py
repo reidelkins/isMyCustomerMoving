@@ -6,7 +6,7 @@ from django.conf import settings
 
 import stripe
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
+stripe.api_key = settings.STRIPE_SECRET_KEY_TEST
 # Create your views here.
 @api_view(['POST'])
 def test_payment(request):
@@ -82,5 +82,5 @@ def publishable_key(request):
         return Response(status=status.HTTP_200_OK,
             data={
                 'message': 'Success',
-                'data': {'publishable_key': settings.STRIPE_PUBLISHABLE_KEY } }
+                'data': {'publishable_key': settings.STRIPE_PUBLISHABLE_KEY_TEST } }
         )
