@@ -23,7 +23,7 @@ def save_stripe_info(request):
         print(1)
         data = request.data
         email = data['email']
-        # payment_method_id = data['payment_method_id']
+        payment_method_id = data['payment_method_id']
         extra_msg = ''
 
         customer_data = stripe.Customer.list(email=email).data 
@@ -31,13 +31,13 @@ def save_stripe_info(request):
         # creating customer
         if len(customer_data) == 0:
             print("making customer")
-            customer = stripe.Customer.create(
-                email=email
-            )
             # customer = stripe.Customer.create(
-            # email=email, payment_method=payment_method_id, invoice_settings={
-            #     'default_payment_method': payment_method_id
-            # })
+            #     email=email
+            # )
+            customer = stripe.Customer.create(
+            email=email, payment_method=payment_method_id, invoice_settings={
+                'default_payment_method': payment_method_id
+            })
         else:
             customer = customer_data[0]
             extra_msg = 'Customer already exists.'
@@ -49,9 +49,9 @@ def save_stripe_info(request):
                 'price': 'price_1M9vkLAkLES5P4qQY8jxNJD5' #here paste your price id
                 }
             ],
-            payment_behavior='default_incomplete',
-            payment_settings={'save_default_payment_method': 'on_subscription'},
-            expand=['latest_invoice.payment_intent'],
+            # payment_behavior='default_incomplete',
+            # payment_settings={'save_default_payment_method': 'on_subscription'},
+            # expand=['latest_invoice.payment_intent'],
         )
         print("made subscription")
         return Response(status=status.HTTP_200_OK, 
