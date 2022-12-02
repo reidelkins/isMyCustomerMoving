@@ -1,8 +1,9 @@
-from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view
 from django.conf import settings
+from .models import Product
+from accounts.utils import makeCompany
 
 import stripe
 
@@ -21,18 +22,24 @@ def test_payment(request):
 def save_stripe_info(request):
     if request.method == 'POST':
         data = request.data
+        try:
+            product = Product.objects.get(tier=data['tier'], timeFrame=data['timeFrame'])
+        except Product.DoesNotExist:
+            return Response("Product does not exist", status=status.HTTP_400_BAD_REQUEST)
         email = data['email']
+        company = data['company']
+        print(email)
+        comp = makeCompany(company, email)
+        print(type(comp))
+        if type(comp) == dict:
+            return Response(comp, status=status.HTTP_400_BAD_REQUEST)
+        
+
         payment_method_id = data['payment_method_id']
         extra_msg = ''
+        customer_data = stripe.Customer.list(email=email).data
 
-        customer_data = stripe.Customer.list(email=email).data 
-        print("got data")
-        # creating customer
         if len(customer_data) == 0:
-            print("making customer")
-            # customer = stripe.Customer.create(
-            #     email=email
-            # )
             customer = stripe.Customer.create(
             email=email, payment_method=payment_method_id, invoice_settings={
                 'default_payment_method': payment_method_id
@@ -40,19 +47,14 @@ def save_stripe_info(request):
         else:
             customer = customer_data[0]
             extra_msg = 'Customer already exists.'
-            print(1)    
         subscription = stripe.Subscription.create(
             customer=customer,
             items=[
                 {
-                'price': 'price_1M9vkLAkLES5P4qQY8jxNJD5' #here paste your price id
+                'price': product.pid
                 }
             ],
-            # payment_behavior='default_incomplete',
-            # payment_settings={'save_default_payment_method': 'on_subscription'},
-            # expand=['latest_invoice.payment_intent'],
         )
-        print("made subscription")
         return Response(status=status.HTTP_200_OK, 
             data={
                 'message': 'Success', 

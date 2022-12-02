@@ -1,6 +1,4 @@
 from .models import Client, Company, ZipCode, HomeListing, CustomUser
-from time import sleep
-import os
 import http.client
 import json
 from celery import shared_task
@@ -8,12 +6,44 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from django.core.mail import send_mail, EmailMessage
 
-from django.template import Context
 from django.template.loader import get_template
-from django.utils.html import strip_tags
+from rest_framework import status, response
 import pandas as pd
+from .serializers import CompanySerializer
+
 
 # app = Celery()
+
+def makeCompany(companyName, email):
+    try:
+        comp = {'name': companyName}
+        print(1)
+        serializer = CompanySerializer(data=comp)
+        if serializer.is_valid():
+            print(1)
+            company = serializer.save()
+            if company:
+                print(1)
+                mail_subject = "Access Token for Is My Customer Moving"
+                messagePlain = "Your access token is: " + company.accessToken
+                messagePlain = "Thank you for signing up for Is My Customer Moving. Your company name is: " + company.name +  "and your access token is: " + company.accessToken + ". Please use this info at https://app.ismycustomermoving.com/register to create your account."
+                message = get_template("registration.html").render({
+                    'company': company.name, 'accessToken': company.accessToken
+                })
+                send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)
+                print(1)
+                return ""
+            else:
+                print(2)
+                return {'Error': "Company with that name already exists"}
+        else:
+            print(3)
+            print("Serializer not valid")
+            return {'Error': 'Serializer not valid'}
+    except Exception as e:
+        print(4)
+        print(e)
+        return {'Error': f'{e}'}
 
 def parseStreets(street):
     conversions = {"Alley": "Aly", "Avenue": "Ave", "Boulevard": "Blvd", "Circle": "Cir", "Court": "Crt", "Cove": "Cv", "Canyon": "Cnyn", "Drive": "Dr", "Expressway": "Expy", "Highway": "Hwy", 
@@ -299,13 +329,6 @@ def send_email():
             msg.content_subtype ="html"# Main content is now text/html
             msg.send()
 
-                # send_mail(
-                #     subject,
-                #     strip_tags(message)
-                #     settings.EMAIL_HOST_USER,
-                #     [email]
-                #     html_message=message
-                # )
     
 
 @shared_task

@@ -1,19 +1,19 @@
 from django.shortcuts import render
 from django.contrib.auth.hashers import make_password
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import send_mail, EmailMessage
+from django.core.mail import send_mail
 from django.template.loader import get_template
 from django.http import HttpResponse
 from rest_framework import permissions, status, generics
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
-import io, csv, pandas as pd
-from .utils import getAllZipcodes, saveClientList
+import pandas as pd
+from .utils import getAllZipcodes, saveClientList, makeCompany
 from .models import CustomUser, Client, Company, InviteToken
 from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer, MyTokenObtainPairSerializer, CompanySerializer
 import datetime
@@ -44,11 +44,9 @@ class ManageUserView(APIView):
             elif InviteToken.objects.filter(id=self.kwargs['id']).exists():
                 utc = pytz.UTC
                 try:
-                    print(request.data)
                     token = InviteToken.objects.get(id=self.kwargs['id'], email=request.data['email'])
                     if token.expiration > utc.localize(datetime.datetime.utcnow()):
                         company = token.company
-                        print(company)
                         if company:
                             user = CustomUser.objects.create(
                                 email=request.data['email'],
@@ -76,28 +74,17 @@ class ManageUserView(APIView):
 def createCompany(request):
     if request.method == 'POST':
         try:
-            comp = {'name': request.data['name']}
-            serializer = CompanySerializer(data=comp)
-            if serializer.is_valid():
-                company = serializer.save()
-                if company:
-                    mail_subject = "Access Token for Is My Customer Moving"
-                    messagePlain = "Your access token is: " + company.accessToken
-                    messagePlain = "Thank you for signing up for Is My Customer Moving. Your company name is: " + company.name +  "and your access token is: " + company.accessToken + ". Please use this info at https://app.ismycustomermoving.com/register to create your account."
-                    message = get_template("registration.html").render({
-                        'company': company.name, 'accessToken': company.accessToken
-                    })
-                    send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[request.data['email']], html_message=message, fail_silently=False)
-                    return Response("", status=status.HTTP_201_CREATED, headers="")
-                else:
-                    return Response({'Error': "Company with that name already exists"}, status=status.HTTP_400_BAD_REQUEST)
+            company = request.data['name']
+            email = request.data['email']
+            comp = makeCompany(company, email)
+            if comp == "":
+                return Response("", status=status.HTTP_201_CREATED, headers="")
             else:
-                print("Serializer not valid")
-                return Response({'detail': 'Serializer not valid'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(comp, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             print(e)
-            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
-
+            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+        
 
 class AddUserView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -107,7 +94,6 @@ class AddUserView(APIView):
     def post(self, request, *args, **kwargs):
         company = self.kwargs['company']
         data = request.data
-        print(data)
         first_name = data.get('firstName')
         last_name = data.get('lastName')
         email = data.get('email')
@@ -137,7 +123,6 @@ class AddUserView(APIView):
                 company=company,
                 status='active'
             )
-            print("how you doing")
             serializer = UserSerializerWithToken(user, many=False)
         except Exception as e:
             print(e)
@@ -151,7 +136,6 @@ class RegisterView(APIView):
 
     def post(self, request):
         data = request.data
-        print(data)
         first_name = data.get('firstName')
         last_name = data.get('lastName')
         email = data.get('email')
@@ -181,7 +165,6 @@ class RegisterView(APIView):
             company = Company.objects.get(name=company, accessToken=accessToken)
             noAdmin = CustomUser.objects.filter(company=company)
             if len(noAdmin) == 0:
-                print("sup")
                 user = CustomUser.objects.create(
                     first_name=first_name,
                     last_name=last_name,
@@ -231,10 +214,6 @@ def confirmation(request, pk, uid):
     
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
-    # def post(self, request, *args, **kwargs):
-    #     print("inside of the post")
-    #     return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class UserViewSet(ReadOnlyModelViewSet):
@@ -250,7 +229,6 @@ class ClientListView(generics.ListAPIView):
 
 class UpdateStatusView(APIView):
     def get(self, request, *args, **kwargs):
-        print("sup")
         try:
             getAllZipcodes.delay(self.kwargs['company'])
         except Exception as e:
@@ -288,7 +266,6 @@ class UploadFileView(generics.CreateAPIView):
         except Exception as e:
             print(e)
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
-        print("hello")
         try:
             saveClientList.delay(reader.to_json(), company_id)
         except Exception as e:
@@ -301,7 +278,6 @@ class UpdateNoteView(generics.CreateAPIView):
     serializer_class = UserSerializer
 
     def post(self, request, *args, **kwargs):
-        print(request.data)
         try:
             customer = Client.objects.get(id=request.data['id'])
             customer.note = request.data['note']
