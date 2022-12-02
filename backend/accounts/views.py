@@ -22,7 +22,6 @@ from config import settings
 import pytz
 
 class ManageUserView(APIView):
-    
     def post(self, request, *args, **kwargs):
         try:
             if Company.objects.filter(id=self.kwargs['id']).exists():
