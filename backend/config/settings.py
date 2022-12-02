@@ -54,6 +54,7 @@ INSTALLED_APPS = [
 
     # Native Apps
     'accounts.apps.AccountsConfig',
+    'payments.apps.PaymentsConfig',
 
     # 3rd Party
     'rest_framework',  # https://www.django-rest-framework.org/
@@ -93,14 +94,14 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle'
-    ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/day',
-        'user': '1000/day'
-    }
+    # 'DEFAULT_THROTTLE_CLASSES': [
+    #     'rest_framework.throttling.AnonRateThrottle',
+    #     'rest_framework.throttling.UserRateThrottle'
+    # ],
+    # 'DEFAULT_THROTTLE_RATES': {
+    #     'anon': '100/day',
+    #     'user': '1000/day'
+    # }
 }
 
 SIMPLE_JWT = {
@@ -229,12 +230,13 @@ STATICFILES_DIRS = [
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     "https://example.com",
     "https://sub.example.com",
     "http://localhost:8080",
     "http://localhost:3000",
-    "http://localhost:3001",  # React App will be on this port
+    "http://localhost:3006",  # React App will be on this port
     "http://127.0.0.1:9000",
     "https://is-my-customer-moving-czy5diwo1-reidmhac.vercel.app",
     "https://is-my-customer-moving.vercel.app",
@@ -285,3 +287,8 @@ CACHES = {
         }
     }
 }
+
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLIC_KEY')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
+STRIPE_PUBLISHABLE_KEY_TEST = os.environ.get('STRIPE_PUBLIC_KEY_TEST')
+STRIPE_SECRET_KEY_TEST = os.environ.get('STRIPE_SECRET_KEY_TEST')
