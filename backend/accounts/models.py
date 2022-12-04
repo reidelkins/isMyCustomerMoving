@@ -81,7 +81,8 @@ class Company(models.Model):
     email_frequency = models.IntegerField(default=0)
     next_email_date = models.DateField(default=datetime.utcnow)
     product = models.ForeignKey(Product, blank=True, null=True, on_delete=models.SET_NULL)
-
+    phone = models.CharField(max_length=100, blank=True, null=True)
+    email = models.EmailField(max_length=100, blank=True, null=True)
 
 class ZipCode(models.Model):
     zipCode = models.IntegerField(primary_key=True, unique=True, validators=[MinValueValidator(500), MaxValueValidator(99951)])

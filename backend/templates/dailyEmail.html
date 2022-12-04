@@ -2,63 +2,33 @@
 
 <!DOCTYPE html>
 <html>
-    <body>
-        <br>
-        <a href="https://www.ismycustomermoving.com" target="_blank">
-            <img src="https://is-my-customer-moving.herokuapp.com/static/logo.svg" alt="logo" width="300" height="100">
-        </a>
-        <h1>Good Morning {{customer.name}}, Here is your daily update!</h1>
-        {% if clients %}
-            <div style="margin: 10%;">
-            {% for client in clients %}
-                <p>The home belonging to <b>{{client.name}}</b> at {{client.address}}was found to be <b>{{client.status}}</b>. No one from your team has contacted them yet, be the first!"</p>
+  <body>
+    <br />
+    <a href="https://www.ismycustomermoving.com" target="_blank">
+      <img
+        src="https://is-my-customer-moving.herokuapp.com/static/logo.svg"
+        alt="logo"
+        width="300"
+        height="100"
+      />
+    </a>
+    <h1>Good Morning {{customer.name}}, Here is your daily update!</h1>
+    {% if clients %}
+    <div style="margin: 10%">
+      {% for client in clients %}
+      <p>
+        The home belonging to <b>{{client.name}}</b> at {{client.address}}was
+        found to be <b>{{client.status}}</b>. No one from your team has
+        contacted them yet, be the first!"
+      </p>
 
-            {% endfor %}
-            </div>
-        {% else %}
-            <h2>There were no updates found today for your client list but look back tomorrow for new leads!</h2>
-        {% endif %}
-
-        {% comment %} <h2>Thank you for your order {{ order.full_name }}</h2>
-        <h3>Your Order ID: {{ order.short_uuid }}</h3>
-
-
-        <h3>Shipping Details:</h3>
-
-        {{ order.full_name }} </br>
-        {{ order.shipping_address.street }} <br/>
-        {{ order.shipping_address.city }} <br/>
-        {{ order.shipping_address.postcode }}
-
-        <h3>
-            Contact Details:
-        </h3>
-        Email: {{ order.email }} <br/>
-        Phone: {{ order.phone }}
-
-        <h2>Order Details:</h2>
-
-        <table>
-
-            <thead>
-                <tr>
-                    <th>Product</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Total Price</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {% for item in order.order_items %}
-                    <tr>
-                        <td>{{ item.name }}</td>
-                        <td>{{ item.quantity }}</td>
-                        <td>{{ item.price }}</td>
-                        <td>{{ item.total_price }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table> {% endcomment %}
-    </body>
+      {% endfor %}
+    </div>
+    {% else %}
+    <h2>
+      There were no updates found today for your client list but look back
+      tomorrow for new leads!
+    </h2>
+    {% endif %}
+  </body>
 </html>

@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.hashers import make_password
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
@@ -129,6 +129,29 @@ class AddUserView(APIView):
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data)
 
+class VerifyRegistrationView(APIView):
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [AnonRateThrottle]
+    authentication_classes = []
+
+    def post(self, request, *args, **kwargs):
+        try:
+            token = request.data['token']
+            try:
+                payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+                user = CustomUser.objects.get(id=payload['user_id'])
+                if not user.isVerified:
+                    user.isVerified = True
+                    user.save()
+            except jwt.ExpiredSignatureError as identifier:
+                return Response({'detail': 'Activation Expired'}, status=status.HTTP_400_BAD_REQUEST)
+            except jwt.exceptions.DecodeError as identifier:
+                return Response({'detail': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(e)
+            return Response({'detail': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': 'Successfully activated'}, status=status.HTTP_200_OK)
+
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
     throttle_classes = [AnonRateThrottle]
@@ -163,7 +186,7 @@ class RegisterView(APIView):
             return Response({"detail": messages['errors']}, status=status.HTTP_400_BAD_REQUEST)
         try:
             company = Company.objects.get(name=company, accessToken=accessToken)
-            noAdmin = CustomUser.objects.filter(company=company)
+            noAdmin = CustomUser.objects.filter(company=company, isVerified=True)
             if len(noAdmin) == 0:
                 user = CustomUser.objects.create(
                     first_name=first_name,
@@ -175,15 +198,13 @@ class RegisterView(APIView):
                 )
                 user = CustomUser.objects.get(email=email)
                 current_site = get_current_site(request)
-                mail_subject = 'Activation link has been sent to your email id'
                 tokenSerializer = UserSerializerWithToken(user, many=False)
-
-                # # Next version will add a HTML template
-                message = "Confirm your email {}/api/v1/accounts/confirmation/{}/{}/".format(current_site, tokenSerializer.data['refresh'], user.id)
-                to_email = email
-                send_mail(
-                        mail_subject, message, settings.EMAIL_HOST_USER, [to_email]
-                )
+                mail_subject = "Activation Link for Is My Customer Moving"
+                messagePlain = "Verify your account for Is My Customer Moving by going here {}/api/v1/accounts/confirmation/{}/{}/".format(current_site, tokenSerializer.data['refresh'], user.id)
+                message = get_template("registration.html").render({
+                    'current_site': current_site, 'token': tokenSerializer.data['refresh'], 'user_id': user.id
+                })
+                send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)
                 serializer = UserSerializerWithToken(user, many=False)
             else:
                 return Response({'detail': f'Access Token Already Used. Ask an admin to login and create profile for you.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -200,8 +221,7 @@ def confirmation(request, pk, uid):
     if user.isVerified == False and datetime.datetime.fromtimestamp(token['exp']) > datetime.datetime.now():
         user.isVerified = True
         user.save()
-        #TODO change the response that this puts out
-        return HttpResponse('Your account has been activated')
+        return redirect('http://localhost:3006/login')
 
     elif (datetime.datetime.fromtimestamp(token['exp']) < datetime.datetime.now()):
 
@@ -210,10 +230,11 @@ def confirmation(request, pk, uid):
         
         return HttpResponse('Your activation link has been expired')
     else:
-        return HttpResponse('Your account has already been activated')
+        return redirect('http://localhost:3000/login')
     
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
 
 
 class UserViewSet(ReadOnlyModelViewSet):

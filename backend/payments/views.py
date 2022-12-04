@@ -4,19 +4,11 @@ from rest_framework.decorators import api_view
 from django.conf import settings
 from .models import Product
 from accounts.utils import makeCompany
+from datetime import datetime, timedelta
 
 import stripe
 
 stripe.api_key = settings.STRIPE_SECRET_KEY_TEST
-# Create your views here.
-@api_view(['POST'])
-def test_payment(request):
-    if request.method == 'POST':
-        test_payment_intent = stripe.PaymentIntent.create(
-            amount=1000, currency='pln', 
-            payment_method_types=['card'],
-            receipt_email='test@example.com')
-        return Response(status=status.HTTP_200_OK, data=test_payment_intent)
 
 @api_view(['POST' ])
 def save_stripe_info(request):
@@ -28,9 +20,8 @@ def save_stripe_info(request):
             return Response("Product does not exist", status=status.HTTP_400_BAD_REQUEST)
         email = data['email']
         company = data['company']
-        print(email)
-        comp = makeCompany(company, email)
-        print(type(comp))
+        phone = data['phone']
+        comp = makeCompany(company, email, phone)
         if type(comp) == dict:
             return Response(comp, status=status.HTTP_400_BAD_REQUEST)
         
@@ -47,6 +38,7 @@ def save_stripe_info(request):
         else:
             customer = customer_data[0]
             extra_msg = 'Customer already exists.'
+        trialEnd = int((datetime.now()+ timedelta(days=7)).timestamp())
         subscription = stripe.Subscription.create(
             customer=customer,
             items=[
@@ -54,6 +46,7 @@ def save_stripe_info(request):
                 'price': product.pid
                 }
             ],
+            trial_end=trialEnd
         )
         return Response(status=status.HTTP_200_OK, 
             data={
@@ -63,7 +56,6 @@ def save_stripe_info(request):
                 'sub_id':  subscription,
                 } }  
         )
-
 
 @api_view(['POST'])
 def setup_intent(request):
