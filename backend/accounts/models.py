@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from django.utils.crypto import get_random_string
 from django.conf import settings
 from django.template.loader import get_template
+from payments.models import Product
 
 
 STATUS_CHOICES = (
@@ -79,7 +80,9 @@ class Company(models.Model):
         upload_to='customers', null=True, blank=True, default='/placeholder.png')
     email_frequency = models.IntegerField(default=0)
     next_email_date = models.DateField(default=datetime.utcnow)
-    tier = models.CharField(max_length=100, choices=PAY_TIER, default='Free')
+    product = models.ForeignKey(Product, blank=True, null=True, on_delete=models.SET_NULL)
+    phone = models.CharField(max_length=100, blank=True, null=True)
+    email = models.EmailField(max_length=100, blank=True, null=True)
 
 class ZipCode(models.Model):
     zipCode = models.IntegerField(primary_key=True, unique=True, validators=[MinValueValidator(500), MaxValueValidator(99951)])

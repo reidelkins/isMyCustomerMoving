@@ -14,16 +14,13 @@ from .serializers import CompanySerializer
 
 # app = Celery()
 
-def makeCompany(companyName, email):
+def makeCompany(companyName, email, phone):
     try:
-        comp = {'name': companyName}
-        print(1)
+        comp = {'name': companyName, 'phone': phone, 'email': email}
         serializer = CompanySerializer(data=comp)
         if serializer.is_valid():
-            print(1)
             company = serializer.save()
             if company:
-                print(1)
                 mail_subject = "Access Token for Is My Customer Moving"
                 messagePlain = "Your access token is: " + company.accessToken
                 messagePlain = "Thank you for signing up for Is My Customer Moving. Your company name is: " + company.name +  "and your access token is: " + company.accessToken + ". Please use this info at https://app.ismycustomermoving.com/register to create your account."
@@ -31,17 +28,13 @@ def makeCompany(companyName, email):
                     'company': company.name, 'accessToken': company.accessToken
                 })
                 send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)
-                print(1)
                 return ""
             else:
-                print(2)
                 return {'Error': "Company with that name already exists"}
         else:
-            print(3)
             print("Serializer not valid")
             return {'Error': 'Serializer not valid'}
     except Exception as e:
-        print(4)
         print(e)
         return {'Error': f'{e}'}
 

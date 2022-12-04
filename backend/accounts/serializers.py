@@ -7,11 +7,18 @@ from django.utils.crypto import get_random_string
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
-
         serializer = UserSerializerWithToken(self.user).data
+        print(self.user)
         for k, v in serializer.items():
             data[k] = v
         return data
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        if user.isVerified:
+            return token
+        else:
+            raise serializers.ValidationError("User is not verified")
 
 class UserSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
@@ -23,22 +30,24 @@ class UserSerializer(serializers.Serializer):
     # company = serializers.CharField(read_only=True)
     company = serializers.PrimaryKeyRelatedField(queryset=Company.objects.all())
     accessToken = serializers.CharField(read_only=True)
+    
 
     def get_name(self, obj):
         return str(obj.first_name + " " + obj.last_name)
 
 class CompanySerializer(serializers.ModelSerializer):
     name = serializers.CharField(max_length=100)
+    phone = serializers.CharField(max_length=20)
+    email = serializers.EmailField(max_length=100)
     def create(self, validated_data):
         if Company.objects.filter(name=validated_data['name']).exists():
             return False
         return Company.objects.create(**validated_data, accessToken=get_random_string(length=32))
     class Meta:
         model = Company
-        fields=['name']
+        fields=['name', 'phone', 'email']
 
 class UserSerializerWithToken(UserSerializer):
-    email = serializers.EmailField(read_only=True)
     access = serializers.SerializerMethodField(read_only=True)
     refresh = serializers.SerializerMethodField(read_only=True)
 
