@@ -19,18 +19,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ['DEBUG']
-
 # Declared in your environment variables
 IS_HEROKU = "DYNO" in os.environ
 # REDIS_URL = os.environ.get('REDIS_URL')
 if IS_HEROKU:
+    DEBUG = False
     SECRET_KEY = os.environ['SECRET_KEY']
     RAPID_API = os.environ['RAPID_API']
     EMAIL_HOST_PASSWORD = os.environ['EMAIL_PASSWD']
     
 else:
+    DEBUG = True
     SECRET_KEY = env('SECRET_KEY')
     RAPID_API = env('RAPID_API')
     EMAIL_HOST_PASSWORD = env('EMAIL_PASSWD')
