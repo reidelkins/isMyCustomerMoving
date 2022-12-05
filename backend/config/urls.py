@@ -20,8 +20,8 @@ schema_view = get_schema_view(title='Rest API')
 
 urlpatterns = [
     # Authenticated Users only.
-    path('admin/docs/', include('django.contrib.admindocs.urls')),
-    path('admin/', admin.site.urls),
+    path('supersecretadminpagexyz/docs/', include('django.contrib.admindocs.urls')),
+    path('supersecretadminpagexyz/', admin.site.urls),
 
 
     path('', TemplateView.as_view(
