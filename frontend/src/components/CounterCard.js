@@ -25,7 +25,7 @@ import {Box, Typography} from '@mui/material';
 function CounterCard({ color, count, title, description, ...rest }) {
   return (
     <Box p={2} textAlign="center" lineHeight={1}>
-      <Typography variant="h2" color={color} textGradient>
+      <Typography variant="h2" color={color}>
         <CountUp end={count} duration={1} {...rest} />
       </Typography>
       {title && (
