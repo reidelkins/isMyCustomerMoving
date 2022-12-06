@@ -138,8 +138,6 @@ def parse_search(result: ScrapeApiResponse, searchType: str) -> SearchResults:
     data = result.selector.css("script#__NEXT_DATA__::text").get()
     if not data:
         print(f"page {result.context['url']} is not a property listing page")
-        with open("errors.txt", "a") as f:
-            f.write(f"page {result.context['url']} is not a property listing page\n")
         return
     data = dict(json.loads(data))
     try:
@@ -149,8 +147,6 @@ def parse_search(result: ScrapeApiResponse, searchType: str) -> SearchResults:
             data = data["props"]["pageProps"]["searchResults"]["home_search"]
         return data
     except KeyError:
-        with open("errors.txt", "a") as f:
-            f.write(f"Data but, page {result.context['url']} is not a property listing page\n")
         print(f"page {result.context['url']} is not a property listing page")
         return False
 
@@ -217,8 +213,6 @@ async def find_data(zip, company, status, url, extra=""):
     except Exception as e:
         print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
         print(f"URL: {url}")
-        with open("errors.txt", "a") as f:
-            f.write(f"ERROR during getHomesForSale: {e} with zipCode {zip} URL: {url}\n")
 
 @sync_to_async
 def updateStatus(zip, company, status):
