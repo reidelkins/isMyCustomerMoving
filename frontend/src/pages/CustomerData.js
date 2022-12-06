@@ -440,7 +440,7 @@ export default function CustomerData() {
               />
             </Card>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-              {userInfo.email === 'reid@gmail.com' && (
+              {(userInfo.name === 'reid elkins' || userInfo.name === 'Perspective Customer') && (
                 <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
                   Update Status
                 </Button>
