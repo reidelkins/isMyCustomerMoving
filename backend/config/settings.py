@@ -27,12 +27,14 @@ if IS_HEROKU:
     SECRET_KEY = os.environ['SECRET_KEY']
     RAPID_API = os.environ['RAPID_API']
     EMAIL_HOST_PASSWORD = os.environ['EMAIL_PASSWD']
+    SCRAPFLY_KEY = os.environ['SCRAPFLY_KEY']
     
 else:
     DEBUG = True
     SECRET_KEY = env('SECRET_KEY')
     RAPID_API = env('RAPID_API')
     EMAIL_HOST_PASSWORD = env('EMAIL_PASSWD')
+    SCRAPFLY_KEY = env('SCRAPFLY_KEY')
     # REDIS_URL = 'redis://localhost:6379'
 
 ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "is-my-customer-moving.herokuapp.com"]

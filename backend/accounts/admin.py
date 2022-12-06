@@ -38,8 +38,8 @@ class CompanyAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'accessToken', 'avatarUrl', 'product')
 
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ('name', 'address', 'status', 'city', 'state', 'contacted', 'note')
-    search_fields = ('name', 'address', 'status')
+    list_display = ('name', 'address', 'status', 'city', 'state', 'contacted', 'note', 'zipCode', 'company')
+    search_fields = ('name', 'address', 'status', 'city', 'state')
 
 class ZipcodeAdmin(admin.ModelAdmin):
     list_display = ('zipCode', 'lastUpdated')

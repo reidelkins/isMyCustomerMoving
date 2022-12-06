@@ -1,18 +1,29 @@
-from .models import Client, Company, ZipCode, HomeListing, CustomUser
-import http.client
-import json
+from asgiref.sync import sync_to_async
+import asyncio
+from bs4 import BeautifulSoup
 from celery import shared_task
 from datetime import datetime, timedelta
-from django.conf import settings
-from django.core.mail import send_mail, EmailMessage
-
-from django.template.loader import get_template
-from rest_framework import status, response
+import http.client
+import json
+import math
 import pandas as pd
+from scrapfly import ScrapeApiResponse, ScrapeConfig, ScrapflyClient
+from typing import List, Optional
+from typing_extensions import TypedDict
+
+from .models import Client, Company, ZipCode, HomeListing, CustomUser
 from .serializers import CompanySerializer
 
+from django.conf import settings
+from django.core.mail import send_mail, EmailMessage
+from django.core.management import call_command
+from django.template.loader import get_template
 
-# app = Celery()
+
+scrapfly = ScrapflyClient(
+    key=settings.SCRAPFLY_KEY,
+    max_concurrency=2  # increase this for faster scraping
+)
 
 def makeCompany(companyName, email, phone):
     try:
@@ -46,7 +57,6 @@ def parseStreets(street):
         if word in conversions:
             street = street.replace(word, conversions[word])
     return street
-
 
 @shared_task
 def saveClientList(reader, company_id):
@@ -92,175 +102,125 @@ def saveClientList(reader, company_id):
         except Exception as e:
                 print(e)
 
-    # getAllZipcodes.delay(company_id)
-
 @shared_task
 def getAllZipcodes(company):
     company_object = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company_object).values('zipCode')
     zipCodes = zipCode_objects.distinct()
-    zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()+timedelta(days=1)).strftime('%Y-%m-%d'))
-    count = 0
-    multiplier = 10
+    zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()+timedelta(days=2)).strftime('%Y-%m-%d'))
     for zip in list(zipCodes.order_by('zipCode').values('zipCode')):
-        count += 1
-        if count > 100:
-            getHomesForSale.delay(zip, company)
-            getHomesForRent.delay(zip, company)
-            getSoldHomes.delay(zip, company)
+        asyncio.run(find_data(str(zip['zipCode']), company, "For Sale", "https://www.realtor.com/realestateandhomes-search"))
+        asyncio.run(find_data(str(zip['zipCode']), company, "For Rent", "https://www.realtor.com/apartments"))
+        asyncio.run(find_data(str(zip['zipCode']), company, "Recently Sold (6)", "https://www.realtor.com/realestateandhomes-search", "show-recently-sold/"))
+
+        
     zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
+class PropertyPreviewResult(TypedDict):
+    property_id: str
+    listing_id: str
+    permalink: str
+    list_price: int
+    price_reduces_amount: Optional[int]
+    description: dict
+    location: dict
+    photos: List[dict]
+    list_date: str
+    last_update_date: str
+    tags: List[str]
+
+class SearchResults(TypedDict):
+    count: int
+    total: int
+    results: List[PropertyPreviewResult]
+
+def parse_search(result: ScrapeApiResponse, searchType: str) -> SearchResults:
+    data = result.selector.css("script#__NEXT_DATA__::text").get()
+    if not data:
+        print(f"page {result.context['url']} is not a property listing page")
+        with open("errors.txt", "a") as f:
+            f.write(f"page {result.context['url']} is not a property listing page\n")
+        return
+    data = dict(json.loads(data))
+    try:
+        if(searchType == "For Rent"):
+            data = data["props"]["pageProps"]
+        else:
+            data = data["props"]["pageProps"]["searchResults"]["home_search"]
+        return data
+    except KeyError:
+        with open("errors.txt", "a") as f:
+            f.write(f"Data but, page {result.context['url']} is not a property listing page\n")
+        print(f"page {result.context['url']} is not a property listing page")
+        return False
+
+@sync_to_async
+def create_home_listings(results, status):
+     for listing in results:
+        zip_object, created = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
+        try:
+            if status == "Recently Sold (6)":
+                listType = listing["description"]["sold_date"]
+            else:
+                listType = listing["list_date"]
+            HomeListing.objects.get_or_create(
+                        zipCode= zip_object,
+                        address= parseStreets((listing['location']['address']['line']).title()),
+                        status= status,
+                        listed= listType
+                        )
+        except Exception as e: 
+            print(f"ERROR during getHomesForSale Single Listing: {e} with zipCode {zip}")
+            print(listing['location'])
 
 @shared_task
-def getHomesForSale(zip, company=None):       
-    offset = 0
-    zip = zip['zipCode']
-    moreListings = True
-    while(moreListings):
-        try:
-            conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
-
-            headers = {
-                'X-RapidAPI-Key': settings.RAPID_API,
-                'X-RapidAPI-Host': "us-real-estate.p.rapidapi.com"
-                }
-
-            conn.request("GET", f"/v2/for-sale-by-zipcode?zipcode={zip}&offset={offset}&limit=200&sort:newest", headers=headers)
-
-            res = conn.getresponse()
-            data = res.read().decode("utf-8")
-            data = json.loads(data)
-            total = data['data']['home_search']['total']
-            offset += data['data']['home_search']['count']
-            if offset >= total:
-                moreListings = False
-            data = data['data']['home_search']['results']
-
-            for listing in data:
-                zip_object, created = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
-                try:
-                    HomeListing.objects.get_or_create(
-                                zipCode= zip_object,
-                                address= parseStreets((listing['location']['address']['line']).title()),
-                                status= 'For Sale',
-                                listed= listing['list_date']
-                                )
-                except Exception as e:
-                    print(f"ERROR during getHomesForSale Single Listing: {e} with zipCode {zip}")
-                    print(listing['location'])
-        except Exception as e:
-            moreListings = False
-            print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
-    updateStatus(zip, company, 'For Sale')
-   
-       
-@shared_task
-def getHomesForRent(zip, company=None):
-    offset = 0
-    zip = zip['zipCode']
-    moreListings = True
-    while(moreListings):
-        try:
-            conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
-
-            headers = {
-                'X-RapidAPI-Key': settings.RAPID_API,
-                'X-RapidAPI-Host': "us-real-estate.p.rapidapi.com"
-                }
-
-            conn.request("GET", f"/v2/for-rent-by-zipcode?zipcode={zip}&offset={offset}&limit=200&sort=lowest_price", headers=headers)
-
-            res = conn.getresponse()
-            data = res.read().decode("utf-8")
-            data = json.loads(data)
-            
-            total = data['data']['home_search']['total']
-            
-            offset += data['data']['home_search']['count']
-            if offset >= total:
-                moreListings = False
-            data = data['data']['home_search']['results']
-
-            for listing in data:
-                zip_object, created  = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
-
-                try:
-                    if listing['list_date'] != None:
-                        HomeListing.objects.get_or_create(
-                                    zipCode= zip_object,
-                                    address= parseStreets((listing['location']['address']['line']).title()),
-                                    status= 'For Rent',
-                                    listed= listing['list_date']
-                                    )
-                    else:
-                        HomeListing.objects.get_or_create(
-                                    zipCode= zip_object,
-                                    address= parseStreets((listing['location']['address']['line']).title()),
-                                    status= 'For Rent',
-                                    )
-                except Exception as e:
-                    print(f"ERROR during getHomesForRent Single Listing: {e} with zipCode {zip}")
-                    print(listing['location'])
-        except Exception as e:
-            moreListings = False
-            print(f"Error during getHomesForRent: {e} with zipCode {zip}")
-    updateStatus(zip, company, 'For Rent')
-
-
-@shared_task               
-def getSoldHomes(zip, company=None):
-    offset = 0
-    zip = zip['zipCode']
-    moreListings = True
-    while(moreListings):
-        try:
-            conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
-
-            headers = {
-                'X-RapidAPI-Key': settings.RAPID_API,
-                'X-RapidAPI-Host': "us-real-estate.p.rapidapi.com"
-                }
-
-            conn.request("GET", f"/v2/sold-homes-by-zipcode?zipcode={zip}&offset={offset}&limit=200&sort=sold_date&max_sold_days=400", headers=headers)
-
-            res = conn.getresponse()
-            data = res.read().decode("utf-8")
-            data = json.loads(data)
-            
-
-            total = data['data']['home_search']['total']
-            offset += data['data']['home_search']['count']
-            if offset >= total:
-                moreListings = False
-
-            data = data['data']['home_search']['results']
-
-            for listing in data:
-                zip_object, created  = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
-                sold_date = datetime.strptime(listing['description']['sold_date'], '%Y-%m-%d')
-                halfYear = datetime.today() - timedelta(days=180)
-                if sold_date > halfYear:
-                    status = 'Recently Sold (6)'
+async def find_data(zip, company, status, url, extra=""):
+    try:
+        first_page = f"{url}/{zip}/{extra}"
+        first_result = await scrapfly.async_scrape(ScrapeConfig(first_page, country="US", asp=True))
+        content = first_result.scrape_result['content']
+        soup = BeautifulSoup(content, features='html.parser')
+        url = first_result.context["url"] + "/pg-1"
+        first_data = parse_search(first_result, status)
+        if not first_data:
+            return
+        if status == "For Rent":
+            results = first_data["properties"]
+            total = int(soup.find('div', {'data-testid': 'total-results'}).text)
+            count = len(results)
+            url += "/pg-1"
+        else:
+            results = first_data["results"]
+            total = soup.find('span', {'class': 'result-count'}).text
+            total = int(total.split(' ')[0])
+            count = first_data["count"]
+        await create_home_listings(results, status)        
+        if count == 0 or total == 0:
+            return
+        if count < 20: #I believe this can be 10
+            total_pages = 1
+        else:
+            total_pages = math.ceil(total / count)
+        to_scrape = []
+        for page in range(2, total_pages+1):
+            assert "pg-1" in url  # make sure we don't accidently scrape duplicate pages
+            page_url = url.replace("pg-1", f"pg-{page}")        
+            to_scrape.append(ScrapeConfig(url=page_url, country="US", asp=True))
+        async for result in scrapfly.concurrent_scrape(to_scrape):
+            parsed = parse_search(result, status)
+            if parsed:
+                if status == "For Rent":
+                    await create_home_listings(parsed["properties"], status)
                 else:
-                    status = 'Recently Sold (12)'
-                try:
-                    HomeListing.objects.get_or_create(
-                                zipCode= zip_object,
-                                address= parseStreets((listing['location']['address']['line']).title()),
-                                status= status,
-                                listed= listing['description']['sold_date']
-                                )
-                except Exception as e:
-                    print(listing['location'])
-                    print(f"ERROR during getSoldHomes Single Listing: {e} with zipCode {zip}")
-        except Exception as e:
-            moreListings = False
-            print(f"Error during getSoldHomes: {e} with zipCode {zip}")
-            
-    updateStatus(zip, company, 'Recently Sold (6)')
-    updateStatus(zip, company, 'Recently Sold (12)')
+                    await create_home_listings(parsed["results"], status)
+        await updateStatus(int(zip), company, status)
+    except Exception as e:
+        print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
+        print(f"URL: {url}")
+        with open("errors.txt", "a") as f:
+            f.write(f"ERROR during getHomesForSale: {e} with zipCode {zip} URL: {url}\n")
 
-
+@sync_to_async
 def updateStatus(zip, company, status):
     if company:
         company_objects = Company.objects.filter(id=company)
@@ -322,8 +282,6 @@ def send_email():
             msg.content_subtype ="html"# Main content is now text/html
             msg.send()
 
-    
-
 @shared_task
 def auto_update():
     zipCode_objects = Client.objects.all().values('zipCode').distinct()
@@ -334,3 +292,183 @@ def auto_update():
         # getSoldHomes.delay(zip)
     zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
+
+# def parse_search_rent(result: ScrapeApiResponse) -> SearchResults:
+#     data = result.selector.css("script#__NEXT_DATA__::text").get()
+#     with open("data.json", "w") as f:
+#         f.write(data)
+#     data = dict(json.loads(data))
+#     with open("dataw.json", "w") as f:
+#         f.write(json.dumps(data, indent=4))
+#     if not data:
+#         print(f"page {result.context['url']} is not a property listing page")
+#         return
+#     # data = json.loads(data)
+#     try:
+#         data = data["props"]["pageProps"]["properties"]
+#         return data
+#     except KeyError:
+#         print(f"page {result.context['url']} is not a property listing page")
+#         return False
+
+# def parse_search_sale(result: ScrapeApiResponse) -> SearchResults:
+#     data = result.selector.css("script#__NEXT_DATA__::text").get()
+#     if not data:
+#         print(f"page {result.context['url']} is not a property listing page")
+#         return
+#     data = json.loads(data)
+#     try:
+#         data = data["props"]["pageProps"]["searchResults"]["home_search"]
+#         return data
+#     except KeyError:
+#         print(f"page {result.context['url']} is not a property listing page")
+#         return False
+
+# @shared_task
+# def getHomesForSale(zip, company=None):       
+#     offset = 0
+#     zip = zip['zipCode']
+#     moreListings = True
+#     while(moreListings):
+#         try:
+#             conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
+
+#             headers = {
+#                 'X-RapidAPI-Key': settings.RAPID_API,
+#                 'X-RapidAPI-Host': "us-real-estate.p.rapidapi.com"
+#                 }
+
+#             conn.request("GET", f"/v2/for-sale-by-zipcode?zipcode={zip}&offset={offset}&limit=200&sort:newest", headers=headers)
+
+#             res = conn.getresponse()
+#             data = res.read().decode("utf-8")
+#             data = json.loads(data)
+#             total = data['data']['home_search']['total']
+#             offset += data['data']['home_search']['count']
+#             if offset >= total:
+#                 moreListings = False
+#             data = data['data']['home_search']['results']
+
+#             for listing in data:
+#                 zip_object, created = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
+#                 try:
+#                     HomeListing.objects.get_or_create(
+#                                 zipCode= zip_object,
+#                                 address= parseStreets((listing['location']['address']['line']).title()),
+#                                 status= 'For Sale',
+#                                 listed= listing['list_date']
+#                                 )
+#                 except Exception as e:
+#                     print(f"ERROR during getHomesForSale Single Listing: {e} with zipCode {zip}")
+#                     print(listing['location'])
+#         except Exception as e:
+#             moreListings = False
+#             print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
+#     updateStatus(zip, company, 'For Sale')
+   
+       
+# @shared_task
+# def getHomesForRent(zip, company=None):
+#     offset = 0
+#     zip = zip['zipCode']
+#     moreListings = True
+#     while(moreListings):
+#         try:
+#             conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
+
+#             headers = {
+#                 'X-RapidAPI-Key': settings.RAPID_API,
+#                 'X-RapidAPI-Host': "us-real-estate.p.rapidapi.com"
+#                 }
+
+#             conn.request("GET", f"/v2/for-rent-by-zipcode?zipcode={zip}&offset={offset}&limit=200&sort=lowest_price", headers=headers)
+
+#             res = conn.getresponse()
+#             data = res.read().decode("utf-8")
+#             data = json.loads(data)
+            
+#             total = data['data']['home_search']['total']
+            
+#             offset += data['data']['home_search']['count']
+#             if offset >= total:
+#                 moreListings = False
+#             data = data['data']['home_search']['results']
+
+#             for listing in data:
+#                 zip_object, created  = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
+
+#                 try:
+#                     if listing['list_date'] != None:
+#                         HomeListing.objects.get_or_create(
+#                                     zipCode= zip_object,
+#                                     address= parseStreets((listing['location']['address']['line']).title()),
+#                                     status= 'For Rent',
+#                                     listed= listing['list_date']
+#                                     )
+#                     else:
+#                         HomeListing.objects.get_or_create(
+#                                     zipCode= zip_object,
+#                                     address= parseStreets((listing['location']['address']['line']).title()),
+#                                     status= 'For Rent',
+#                                     )
+#                 except Exception as e:
+#                     print(f"ERROR during getHomesForRent Single Listing: {e} with zipCode {zip}")
+#                     print(listing['location'])
+#         except Exception as e:
+#             moreListings = False
+#             print(f"Error during getHomesForRent: {e} with zipCode {zip}")
+#     updateStatus(zip, company, 'For Rent')
+
+
+# @shared_task               
+# def getSoldHomes(zip, company=None):
+#     offset = 0
+#     zip = zip['zipCode']
+#     moreListings = True
+#     while(moreListings):
+#         try:
+#             conn = http.client.HTTPSConnection("us-real-estate.p.rapidapi.com")
+
+#             headers = {
+#                 'X-RapidAPI-Key': settings.RAPID_API,
+#                 'X-RapidAPI-Host': "us-real-estate.p.rapidapi.com"
+#                 }
+
+#             conn.request("GET", f"/v2/sold-homes-by-zipcode?zipcode={zip}&offset={offset}&limit=200&sort=sold_date&max_sold_days=400", headers=headers)
+
+#             res = conn.getresponse()
+#             data = res.read().decode("utf-8")
+#             data = json.loads(data)
+            
+
+#             total = data['data']['home_search']['total']
+#             offset += data['data']['home_search']['count']
+#             if offset >= total:
+#                 moreListings = False
+
+#             data = data['data']['home_search']['results']
+
+#             for listing in data:
+#                 zip_object, created  = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
+#                 sold_date = datetime.strptime(listing['description']['sold_date'], '%Y-%m-%d')
+#                 halfYear = datetime.today() - timedelta(days=180)
+#                 if sold_date > halfYear:
+#                     status = 'Recently Sold (6)'
+#                 else:
+#                     status = 'Recently Sold (12)'
+#                 try:
+#                     HomeListing.objects.get_or_create(
+#                                 zipCode= zip_object,
+#                                 address= parseStreets((listing['location']['address']['line']).title()),
+#                                 status= status,
+#                                 listed= listing['description']['sold_date']
+#                                 )
+#                 except Exception as e:
+#                     print(listing['location'])
+#                     print(f"ERROR during getSoldHomes Single Listing: {e} with zipCode {zip}")
+#         except Exception as e:
+#             moreListings = False
+#             print(f"Error during getSoldHomes: {e} with zipCode {zip}")
+            
+#     updateStatus(zip, company, 'Recently Sold (6)')
+#     updateStatus(zip, company, 'Recently Sold (12)')
