@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import http.client
 import json
 import math
+import os
 import pandas as pd
 from scrapfly import ScrapeApiResponse, ScrapeConfig, ScrapflyClient
 from typing import List, Optional
@@ -20,10 +21,27 @@ from django.core.management import call_command
 from django.template.loader import get_template
 
 
-scrapfly = ScrapflyClient(
+scrapfly1 = ScrapflyClient(
     key=settings.SCRAPFLY_KEY,
-    max_concurrency=2  # increase this for faster scraping
+    max_concurrency=1  # increase this for faster scraping
 )
+scrapfly2 = ScrapflyClient(
+    key=settings.SCRAPFLY_KEY,
+    max_concurrency=1  # increase this for faster scraping
+)
+scrapfly3 = ScrapflyClient(
+    key=settings.SCRAPFLY_KEY,
+    max_concurrency=1  # increase this for faster scraping
+)
+scrapfly4 = ScrapflyClient(
+    key=settings.SCRAPFLY_KEY,
+    max_concurrency=1  # increase this for faster scraping
+)
+scrapfly5 = ScrapflyClient(
+    key=settings.SCRAPFLY_KEY,
+    max_concurrency=1  # increase this for faster scraping
+)
+
 
 def makeCompany(companyName, email, phone):
     try:
@@ -108,13 +126,24 @@ def getAllZipcodes(company):
     zipCode_objects = Client.objects.filter(company=company_object).values('zipCode')
     zipCodes = zipCode_objects.distinct()
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()+timedelta(days=2)).strftime('%Y-%m-%d'))
-    for zip in list(zipCodes.order_by('zipCode').values('zipCode')):
-        asyncio.run(find_data(str(zip['zipCode']), company, "For Sale", "https://www.realtor.com/realestateandhomes-search"))
-        asyncio.run(find_data(str(zip['zipCode']), company, "For Rent", "https://www.realtor.com/apartments"))
-        asyncio.run(find_data(str(zip['zipCode']), company, "Recently Sold (6)", "https://www.realtor.com/realestateandhomes-search", "show-recently-sold/"))
+    zips = list(zipCodes.order_by('zipCode').values('zipCode'))
+    # zips = {'zipCodes': 37922}
+    for i in range(len(zips) * 3):
+    # for i in range(100, 300):
+        extra = ""
+        if i % 3 == 0:
+            status = "For Sale"
+            url = "https://www.realtor.com/realestateandhomes-search"
+        elif i % 3 == 1:
+            status = "For Rent"
+            url = "https://www.realtor.com/apartments"
+        elif i % 3 == 2:
+            status = "Recently Sold (6)"
+            url = "https://www.realtor.com/realestateandhomes-search"
+            extra = "show-recently-sold/"
+        find_data.delay(str(zips[i//3]['zipCode']), company, i, status, url, extra)
 
-        
-    zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
+    # zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
 class PropertyPreviewResult(TypedDict):
     property_id: str
@@ -150,7 +179,6 @@ def parse_search(result: ScrapeApiResponse, searchType: str) -> SearchResults:
         print(f"page {result.context['url']} is not a property listing page")
         return False
 
-@sync_to_async
 def create_home_listings(results, status):
      for listing in results:
         zip_object, created = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
@@ -159,6 +187,8 @@ def create_home_listings(results, status):
                 listType = listing["description"]["sold_date"]
             else:
                 listType = listing["list_date"]
+            if listType == None:
+                listType = "2022-01-01"
             HomeListing.objects.get_or_create(
                         zipCode= zip_object,
                         address= parseStreets((listing['location']['address']['line']).title()),
@@ -166,17 +196,33 @@ def create_home_listings(results, status):
                         listed= listType
                         )
         except Exception as e: 
-            print(f"ERROR during getHomesForSale Single Listing: {e} with zipCode {zip}")
-            print(listing['location'])
+            print(f"ERROR for Single Listing: {e} with zipCode {zip_object}")
+            print((listing['location']['address']['line']).title())
+            
 
 @shared_task
-async def find_data(zip, company, status, url, extra=""):
+def find_data(zip, company, i, status, url, extra):
+    if i % 5 == 0:
+        scrapfly = scrapfly1
+    elif i % 5 == 1:
+        scrapfly = scrapfly2
+    elif i % 5 == 2:
+        scrapfly = scrapfly3
+    elif i % 5 == 3:
+        scrapfly = scrapfly4
+    elif i % 5 == 4:
+        scrapfly = scrapfly5
+    
     try:
         first_page = f"{url}/{zip}/{extra}"
-        first_result = await scrapfly.async_scrape(ScrapeConfig(first_page, country="US", asp=True))
+        first_result = scrapfly.scrape(ScrapeConfig(first_page, country="US", asp=True))
+
         content = first_result.scrape_result['content']
         soup = BeautifulSoup(content, features='html.parser')
-        url = first_result.context["url"] + "/pg-1"
+        if "pg-1" not in first_result.context["url"]:
+            url = first_result.context["url"] + "/pg-1"
+        else:
+            url = first_result.context["url"]
         first_data = parse_search(first_result, status)
         if not first_data:
             return
@@ -190,31 +236,34 @@ async def find_data(zip, company, status, url, extra=""):
             total = soup.find('span', {'class': 'result-count'}).text
             total = int(total.split(' ')[0])
             count = first_data["count"]
-        await create_home_listings(results, status)        
+        create_home_listings(results, status)        
         if count == 0 or total == 0:
             return
         if count < 20: #I believe this can be 10
             total_pages = 1
         else:
             total_pages = math.ceil(total / count)
-        to_scrape = []
+        # print(f"total pages: {total_pages}, zip: {zip}, status: {status}")
+        with open("nums.txt", "a") as f:
+            f.write(f"Pages: {total_pages} and Listings: {total}\n")
         for page in range(2, total_pages+1):
             assert "pg-1" in url  # make sure we don't accidently scrape duplicate pages
-            page_url = url.replace("pg-1", f"pg-{page}")        
-            to_scrape.append(ScrapeConfig(url=page_url, country="US", asp=True))
-        async for result in scrapfly.concurrent_scrape(to_scrape):
-            parsed = parse_search(result, status)
-            if parsed:
-                if status == "For Rent":
-                    await create_home_listings(parsed["properties"], status)
-                else:
-                    await create_home_listings(parsed["results"], status)
-        await updateStatus(int(zip), company, status)
+            page_url = url.replace("pg-1", f"pg-{page}")
+            new_results = scrapfly.scrape(ScrapeConfig(url=page_url, country="US", asp=True))  
+            parsed = parse_search(new_results, status)
+            if status == "For Rent":
+                results = parsed["properties"]
+            else:
+                results = parsed["results"]
+            create_home_listings(results, status) 
+        updateStatus(int(zip), company, status)
+        print(i)
+        if i % 3 == 2:
+            print(int(zip))
     except Exception as e:
         print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
         print(f"URL: {url}")
 
-@sync_to_async
 def updateStatus(zip, company, status):
     if company:
         company_objects = Company.objects.filter(id=company)
