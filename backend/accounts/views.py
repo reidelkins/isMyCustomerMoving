@@ -70,8 +70,8 @@ class ManageUserView(APIView):
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['POST'])
-def createCompany(request):
+@api_view(['POST', 'PUT'])
+def company(request):
     if request.method == 'POST':
         try:
             company = request.data['name']
@@ -81,6 +81,22 @@ def createCompany(request):
                 return Response("", status=status.HTTP_201_CREATED, headers="")
             else:
                 return Response(comp, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(e)
+            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+    elif request.method == 'PUT':
+        try:
+            company = Company.objects.get(id=request.data['company'])
+            if request.data['email'] != "":
+                company.email = request.data['email']
+            if request.data['phone'] != "":
+                company.phone = request.data['phone']
+            if request.data['tenantID'] != "":
+                company.tenantID = request.data['tenantID']
+            company.save()
+            user = CustomUser.objects.get(id=request.data['user'])
+            serializer = UserSerializerWithToken(user, many=False)
+            return Response( serializer.data , status=status.HTTP_201_CREATED, headers="")
         except Exception as e:
             print(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)

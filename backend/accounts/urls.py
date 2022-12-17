@@ -15,8 +15,7 @@ urlpatterns = [
     path('verify_registration/', views.VerifyRegistrationView.as_view(), name='verify'),
     path('update/<str:company>/', views.UpdateStatusView.as_view(), name='update-status'),
     path('clients/<str:company>/', views.ClientListView.as_view(), name='client-list'),
-    path('manageuser/<str:id>/', views.ManageUserView.as_view(), name='manageuser'),
-    path('createCompany/', views.createCompany, name='createCompany'),
+    path('manageuser/<str:id>/', views.ManageUserView.as_view(), name='manageuser'),    
     path('updatenote/<str:company>/', views.UpdateNoteView.as_view(), name='updatenote'),
     path('contacted/<str:company>/', views.UpdateContactedView.as_view(), name='updatecontacted'),
     path('deleteClient/<str:company>/', views.DeleteClientView.as_view(), name='deleteclient'),
@@ -26,6 +25,9 @@ urlpatterns = [
     path('refresh_token/', TokenRefreshView.as_view(), name='refresh_token'),
     path('confirmation/<str:pk>/<str:uid>/', views.confirmation, name='email_confirmation'),
     path('password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
+
+    path('company/', views.company, name='createCompany'),
+
     path("", include(router.urls)),
     
 ]

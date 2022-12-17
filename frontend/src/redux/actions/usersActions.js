@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { LIST_REQUEST, LIST_SUCCESS, LIST_FAIL, STATUS_REQUEST, STATUS_SUCCESS, STATUS_FAIL, ADDUSER_REQUEST, ADDUSER_SUCCESS, ADDUSER_FAIL, NOTE_REQUEST, NOTE_SUCCESS, NOTE_FAIL, DELETE_REQUEST, DELETE_SUCCESS, DELETE_FAIL } from '../types/users';
+import { LIST_REQUEST, LIST_SUCCESS, LIST_FAIL, STATUS_REQUEST, STATUS_SUCCESS, STATUS_FAIL, ADDUSER_REQUEST, ADDUSER_SUCCESS, ADDUSER_FAIL, NOTE_REQUEST, NOTE_SUCCESS, NOTE_FAIL, DELETE_REQUEST, DELETE_SUCCESS, DELETE_FAIL, COMPANY_FAIL, COMPANY_REQUEST, COMPANY_SUCCESS } from '../types/users';
 import { DOMAIN } from '../constants';
 
 export const sendNewUserEmail = (email) => async (dispatch, getState) => {
@@ -59,7 +59,7 @@ export const users = () => async (dispatch, getState) => {
       },
     };
 
-    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company}`, config);
+    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}`, config);
 
     dispatch({
       type: LIST_SUCCESS,
@@ -239,3 +239,42 @@ export const createCompany = (company, email) => async (dispatch, getState) => {
     });
   }
 };
+
+export const updateCompany = (email, phone, tenantID) => async (dispatch, getState) => {
+  try {
+    dispatch({
+      type: COMPANY_REQUEST,
+    });
+
+    const {
+      userLogin: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+
+    const { data } = await axios.put(
+      `${DOMAIN}/api/v1/accounts/company/`,
+      { 'company': userInfo.company.id, email, phone, tenantID, 'user': userInfo.id},
+      config
+    );
+    dispatch({
+      type: COMPANY_SUCCESS,
+      payload: data,
+    });
+
+    localStorage.setItem('userInfo', JSON.stringify(data));
+    console.log(localStorage.getItem('userInfo'));
+    
+
+  } catch (error) {
+    dispatch({
+      type: COMPANY_FAIL,
+      payload: error.response && error.response.data.detail ? error.response.data.detail : error.message,
+    });
+  }
+}

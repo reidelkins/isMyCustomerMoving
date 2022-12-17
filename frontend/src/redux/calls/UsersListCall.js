@@ -2,7 +2,7 @@ import { Fragment, useEffect, memo } from 'react';
 
 import { useDispatch } from 'react-redux';
 
-import { users } from '../actions/usersActions';
+import { users, updateCompany } from '../actions/usersActions';
 
 const UsersListCall = () => {
   // ** Store Vars
