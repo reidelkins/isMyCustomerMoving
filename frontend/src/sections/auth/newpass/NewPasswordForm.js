@@ -9,7 +9,7 @@ import { LoadingButton } from '@mui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import Iconify from '../../../components/Iconify';
 
-import { submitNewPass } from '../../../redux/actions/authActions';
+import { submitNewPassAsync, showLoginInfo } from '../../../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ export default function NewPasswordForm() {
   const navigate = useNavigate();
   const { token } = useParams();
 
-  const userLogin = useSelector((state) => state.userLogin);
+  const userLogin = useSelector(showLoginInfo);
   const { error: loginError, loading: loginLoading, userInfo } = userLogin;
 
   const [showPassword, setShowPassword] = useState(false);
@@ -40,7 +40,7 @@ export default function NewPasswordForm() {
     },
     validationSchema: NewPasswordSchema,
     onSubmit: () => {
-      dispatch(submitNewPass(values.password, token));
+      dispatch(submitNewPassAsync(values.password, token));
       navigate('/login', { replace: true });
     },
   });

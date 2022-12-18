@@ -64,7 +64,7 @@ class ManageUserView(APIView):
                 except Exception as e:
                     print(e)
                     return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-                return Response("", status=status.HTTP_201_CREATED, headers="")
+                serializer_class = MyTokenObtainPairSerializer
         except Exception as e:
             print(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
@@ -93,6 +93,9 @@ def company(request):
                 company.phone = request.data['phone']
             if request.data['tenantID'] != "":
                 company.tenantID = request.data['tenantID']
+            if request.data['clientID'] != "":
+                company.clientID = request.data['clientID']
+                company.clientSecret = request.data['clientSecret']
             company.save()
             user = CustomUser.objects.get(id=request.data['user'])
             serializer = UserSerializerWithToken(user, many=False)
@@ -311,48 +314,34 @@ class UploadFileView(generics.CreateAPIView):
         return Response({"status": "success"},
                         status.HTTP_201_CREATED)
 
-class UpdateNoteView(generics.CreateAPIView):
-    serializer_class = UserSerializer
-
-    def post(self, request, *args, **kwargs):
-        try:
-            customer = Client.objects.get(id=request.data['id'])
-            customer.note = request.data['note']
-            customer.save()
-        except Exception as e:
-            print(e)
-            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response("", status=status.HTTP_201_CREATED, headers="")
-
-class UpdateContactedView(generics.CreateAPIView):
-    serializer_class = UserSerializer
-    def post(self, request, *args, **kwargs):
-        try:
-            customer = Client.objects.get(id=request.data['id'])
-            if customer.contacted:
-                customer.contacted = False
-            else:
-                customer.contacted = True
-            customer.save()
-        except Exception as e:
-            print(e)
-            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response("", status=status.HTTP_201_CREATED, headers="")
-
-class DeleteClientView(generics.CreateAPIView):
-    serializer_class = UserSerializer
-    def post(self, request, *args, **kwargs):
-        try:
-            for client in request.data:
-                try:
-                    Client.objects.get(id=client).delete()
-                except Exception as e:
-                    print(e)
-        except Exception as e:
-            print(e)
-            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response("", status=status.HTTP_201_CREATED, headers="")
-
-
+@api_view(['PUT', 'DELETE'])
+def update_client(request, pk):
+    print(request.data)
+    try:
+        company = Company.objects.get(id=pk)
+        if request.method == 'PUT':
+            try:
+                client = Client.objects.get(id=request.data['clients'])
+                if request.data['note']:
+                    client.note = request.data['note']
+                if request.data['contacted']:
+                    print("contacted")
+                    client.contacted = request.data['contacted']
+                client.save()
+            except Exception as e:
+                print(e)
+                return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
         
-    
+        elif request.method == 'DELETE':
+            try:
+                clients = Client.objects.filter(id__in=request.data['clients'])
+                clients.delete()
+            except Exception as e:
+                print(e)
+                return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+        clients = Client.objects.filter(company=company)
+        clients = ClientListSerializer(clients, many=True).data
+        return Response(clients , status=status.HTTP_201_CREATED, headers="")
+    except Exception as e:
+        print(e)
+        return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)

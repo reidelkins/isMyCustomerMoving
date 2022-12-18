@@ -1,25 +1,17 @@
-import { applyMiddleware } from 'redux';
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import thunk from 'redux-thunk';
-import { composeWithDevTools } from 'redux-devtools-extension';
-import { loginReducer, registerReducer, resetRequestReducer } from './reducers/authReducers';
-import { usersReducer, companyReducer } from './reducers/usersReducers';
+import authReducer from './actions/authActions';
+import userReducer from './actions/usersActions';
 
 const reducer = combineReducers({
-  userLogin: loginReducer,
-  userRgister: registerReducer,
-  userResetRequest: resetRequestReducer,
-  listUser: usersReducer,
-  company: companyReducer,
+  auth: authReducer,
+  user: userReducer,
 });
 
-const userInfoFromStorage = localStorage.getItem('userInfo') ? JSON.parse(localStorage.getItem('userInfo')) : null;
 
-const initialState = {
-  userLogin: { userInfo: userInfoFromStorage },
-};
 const middleware = [thunk];
 
-const store = configureStore({reducer}, initialState, composeWithDevTools({ mageAge: 200 })(applyMiddleware(...middleware)));
+// const store = configureStore({reducer}, initialState, composeWithDevTools({ mageAge: 200 })(applyMiddleware(...middleware)));
+const store = configureStore({ reducer, middleware, devTools: true });
 
 export default store;

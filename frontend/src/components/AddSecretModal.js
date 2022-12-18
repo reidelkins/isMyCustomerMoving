@@ -21,7 +21,7 @@ import Iconify from './Iconify';
 
 
 
-export default function IntegrateSTModal({userInfo}) {
+export default function AddSecretModal({userInfo}) {
     // const classes = useStyles();
     const [open, setOpen] = useState(false);
     const [integrateInfo, setIntegrateInfo] = useState(false);
@@ -35,17 +35,20 @@ export default function IntegrateSTModal({userInfo}) {
     };
 
     const IntegrateSTSchema = Yup.object().shape({
-        tenantID: Yup.number("The Tenant ID is a string of just numbers").required('Service Titan Tenant ID is required'),
+        clientID: Yup.number("The Client ID is a string of just numbers").required('Service Titan Client ID is required'),
+        clientSecret: Yup.number("The Client Secret is a long string that is only generated one time").required('Service Titan Client Secret is required'),
     });
 
     const formik = useFormik({
         initialValues: {
-        tenantID: '',
+        clientID: "",
+        clientSecret: "",
         },
         validationSchema: IntegrateSTSchema,
         onSubmit: () => {
+            console.log("values", values)
             setOpen(false);
-            dispatch(companyAsync(userInfo, "", "", values.tenantID, "", ""))
+            dispatch(companyAsync(userInfo, "", "", "", values.clientID, values.clientSecret))
         },
     });
 
@@ -53,30 +56,38 @@ export default function IntegrateSTModal({userInfo}) {
   return (
     <div>
         <Button variant="contained" color="primary" aria-label="Create Company" component="label" onClick={handleOpen}>
-            Add Service Titan Tenant ID
+            Add Service Titan Client ID and Secret
         </Button>
         <IconButton onClick={()=>setIntegrateInfo(true)} >
             <Iconify icon="bi:question-circle-fill" />
         </IconButton>
         <Dialog open={open} onClose={handleClose} sx={{padding:"2px"}}>
-            <DialogTitle>Service Titan Tenant ID</DialogTitle>
+            <DialogTitle>Service Titan Client ID and Secret</DialogTitle>
             <FormikProvider value={formik}>
                 <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
                     <Stack spacing={3}>
                         <TextField
                             fullWidth
-                            label=""
-                            placeholder="998190247"
-                            {...getFieldProps('tenantID')}
-                            error={Boolean(touched.tenantID && errors.tenantID)}
-                            helperText={touched.tenantID && errors.tenantID}
+                            label="Client ID"
+                            placeholder="1234567890"
+                            {...getFieldProps('clientID')}
+                            error={Boolean(touched.clientID && errors.clientID)}
+                            helperText={touched.clientID && errors.clientID}
+                        />
+                        <TextField
+                            fullWidth
+                            label="Client Secret"
+                            placeholder="qwertyuiop"
+                            {...getFieldProps('clientSecret')}
+                            error={Boolean(touched.clientSecret && errors.clientSecret)}
+                            helperText={touched.clientSecret && errors.clientSecret}
                         />
                     </Stack>
                 </Form>
             </FormikProvider>
             <Stack direction="row" justifyContent="right">
                 <Button color="error" onClick={handleClose}>Cancel</Button>
-                <Button onClick={handleSubmit}>Submit</Button>
+                <Button onClick={handleSubmit }>Submit</Button>
             </Stack>
         </Dialog>
         <Modal
@@ -96,12 +107,11 @@ export default function IntegrateSTModal({userInfo}) {
                     <Typography id="modal-modal-title" variant="h5" component="h2">
                     Integrate IMCM With Your Service Titan Account
                     </Typography>
-                    <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                    1. The first step is to submit your Tenant ID. This can be found in your Service Titan account under Settings `{'>'}` Integrations `{'>'}` API Application Access. <br/><br/>
-                    2. Once you submit your Tenant ID, we will add your ID to our Application and send an email to notify you that has been completed. <br/><br/>
-                    3. You will then need to enable the IMCM application in your Service Titan account. <br/><br/>
-                    4. At this point, you will see the Client ID and Client Secret in your Service Titan account. <br/><br/>
-                    5. Submit those here and then you will be able to use IMCM with your Service Titan account. <br/>
+                    <Typography id="modal-modal-description" sx={{ mt: 2 }}>        
+                    1. Now that you have submitted your Tenant ID, we will add your ID to our Application and send an email to notify you that it has been completed. <br/><br/>
+                    2. You will then need to enable the IMCM application in your Service Titan account by going to Settings {'>'} Integrations {'>'} API Application Process. <br/><br/>
+                    3. At this point, you will see the Client ID and Client Secret in your Service Titan account. <br/><br/>
+                    4. Submit those here and then you will be able to use IMCM with your Service Titan account. <br/>
                     </Typography>                    
                 </Box>
                 </Fade>

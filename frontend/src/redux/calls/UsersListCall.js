@@ -2,7 +2,7 @@ import { Fragment, useEffect, memo } from 'react';
 
 import { useDispatch } from 'react-redux';
 
-import { users, updateCompany } from '../actions/usersActions';
+import { usersAsync, updateCompany } from '../actions/usersActions';
 
 const UsersListCall = () => {
   // ** Store Vars
@@ -10,7 +10,7 @@ const UsersListCall = () => {
 
   // ** Get data on mount
   useEffect(() => {
-    dispatch(users());
+    dispatch(usersAsync());
   }, [dispatch]);
 
   return null;

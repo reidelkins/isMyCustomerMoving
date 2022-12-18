@@ -8,7 +8,7 @@ import { Link, Stack, TextField, IconButton, InputAdornment, Alert, AlertTitle }
 import { LoadingButton } from '@mui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 
-import { resetRequest } from '../../../redux/actions/authActions';
+import { resetAsync, showLoginInfo, showRegisterInfo } from '../../../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
 
@@ -16,9 +16,9 @@ export default function ResetPasswordForm({setSubmitted}) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const userResetRequest = useSelector((state) => state.userResetRequest);
+  const userResetRequest = useSelector(showRegisterInfo);
   const { loading: resetRequestLoading } = userResetRequest;
-  const userLogin = useSelector((state) => state.userLogin);
+  const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
 
   const ResetPasswordSchema = Yup.object().shape({
@@ -32,7 +32,7 @@ export default function ResetPasswordForm({setSubmitted}) {
     validationSchema: ResetPasswordSchema,
     onSubmit: () => {
       setSubmitted(true);
-      dispatch(resetRequest(values.email));
+      dispatch(resetAsync(values.email));
     },
   });
 

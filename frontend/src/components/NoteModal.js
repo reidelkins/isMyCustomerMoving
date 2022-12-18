@@ -2,12 +2,8 @@ import React from 'react';
 import {
     IconButton,
     Button,
-    Fade,
     TextField,
     Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
     DialogTitle,
     Stack
 } from '@mui/material';
@@ -15,7 +11,7 @@ import { useFormik, Form, FormikProvider } from 'formik';
 import { useDispatch } from 'react-redux';
 
 import Iconify from './Iconify';
-import { updateNote, users } from '../redux/actions/usersActions';
+import { updateClientAsync } from '../redux/actions/usersActions';
 
 
 export default function NoteModal({
@@ -39,10 +35,8 @@ export default function NoteModal({
         note: passedNote,
         },
         onSubmit: () => {
-            dispatch(updateNote(values.note, id));
-            console.log(values.note)
+            dispatch(updateClientAsync(id, "", values.note));
             setOpen(false);
-            setTimeout(() => {dispatch(users())}, 200);
         },
     });
 
@@ -83,30 +77,6 @@ export default function NoteModal({
             
 
         </Dialog>
-        {/* <Fade in={open}>
-            <Dialog open={open} onClose={handleClose}>
-                <DialogTitle>Subscribe</DialogTitle>
-                <DialogContent>
-                <DialogContentText>
-                    To subscribe to this website, please enter your email address here. We
-                    will send updates occasionally.
-                </DialogContentText>
-                <TextField
-                    autoFocus
-                    margin="dense"
-                    id="name"
-                    label="Email Address"
-                    type="email"
-                    fullWidth
-                    variant="standard"
-                />
-                </DialogContent>
-                <DialogActions>
-                <Button onClick={handleClose}>Cancel</Button>
-                <Button onClick={handleClose}>Subscribe</Button>
-                </DialogActions>
-            </Dialog>
-        </Fade> */}
     </div>
   );
 }

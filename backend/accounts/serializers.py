@@ -10,13 +10,14 @@ class CompanySerializer(serializers.ModelSerializer):
     phone = serializers.CharField(max_length=20)
     email = serializers.EmailField(max_length=100)
     tenantID = serializers.CharField(max_length=100)
+    clientID = serializers.CharField(max_length=100)
     def create(self, validated_data):
         if Company.objects.filter(name=validated_data['name']).exists():
             return False
         return Company.objects.create(**validated_data, accessToken=get_random_string(length=32))
     class Meta:
         model = Company
-        fields=['id', 'name', 'phone', 'email', 'tenantID']
+        fields=['id', 'name', 'phone', 'email', 'tenantID', 'clientID']
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):

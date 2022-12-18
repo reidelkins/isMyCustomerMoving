@@ -11,6 +11,10 @@ import Scrollbar from '../components/Scrollbar';
 import { UserListHead } from '../sections/@dashboard/user';
 import NewUserModal from '../components/NewUserModal';
 import IntegrateSTModal from '../components/IntegrateSTModal';
+import AddSecretModal from '../components/AddSecretModal';
+import ResetPasswordModal from '../components/ResetPasswordModal';
+
+import { showLoginInfo } from '../redux/actions/authActions';
 
 
 // ----------------------------------------------------------------------
@@ -23,11 +27,9 @@ const TABLE_HEAD = [
 ];
 
 export default function ProfileSettings() {
-  const userInfo = useSelector((state) => state.userLogin).userInfo;
+  const userLogin = useSelector(showLoginInfo);
+  const { userInfo } = userLogin;
   const [editting, setEditting] = useState(false);
-
-  
-  
 
   const SettingsSchema = Yup.object().shape({
     name: Yup.string().required('Name is required'),
@@ -112,17 +114,14 @@ export default function ProfileSettings() {
                   <h3>Email:</h3>
                   <p>{userInfo.id}</p>
                   <br />
-                  <h3>Service Titan Tenant ID:</h3>
-                  <p>{userInfo.company.tenantID}</p>
-                  {!userInfo.company.tenantID && <IntegrateSTModal />}
-                  <IntegrateSTModal/>
+                  <h3>Service Titan Tenant ID:</h3>                  
+                  {userInfo.company.tenantID ? <p>{userInfo.company.tenantID}</p> : <IntegrateSTModal userInfo={userInfo} />}
+                  {!userInfo.company.clientID && <AddSecretModal />}
                   <br />
                   <Button variant="contained" onClick={()=>(setEditting(true))} >Edit</Button>             
                 </Stack>
                 
-              )}
-            
-            <Button variant="contained">Reset Password</Button>
+              )}            
           </Grid>
           <Grid item xs={12} md={6} lg={4}>
             {" "}
@@ -163,6 +162,7 @@ export default function ProfileSettings() {
             </TableContainer>
           </Scrollbar>
         </Card>
+        <ResetPasswordModal />
         <NewUserModal />
                     
       </Container>

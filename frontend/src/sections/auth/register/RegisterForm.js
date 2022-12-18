@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { Stack, TextField, IconButton, InputAdornment, Alert, AlertTitle } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { useDispatch, useSelector } from 'react-redux';
-import { register } from '../../../redux/actions/authActions';
+import { registerAsync, showLoginInfo, showRegisterInfo } from '../../../redux/actions/authActions';
 // component
 import Iconify from '../../../components/Iconify';
 
@@ -16,11 +16,12 @@ export default function RegisterForm() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const userLogin = useSelector((state) => state.userLogin);
-  const { userInfo } = userLogin;
+  const userLogin = useSelector(showLoginInfo);
+  const { error: loginError, loading: loginLoading, userInfo } = userLogin;
 
-  const userRgister = useSelector((state) => state.userRgister);
-  const { error: registerError, loading: registerLoading } = userRgister;
+  const userRegister = useSelector(showRegisterInfo);
+  const { error: registerError, loading: registerLoading } = userRegister;
+
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -44,7 +45,7 @@ export default function RegisterForm() {
     },
     validationSchema: RegisterSchema,
     onSubmit: () => {
-      dispatch(register(values.company, values.accessToken, values.firstName, values.lastName, values.email, values.password));
+      dispatch(registerAsync(values.company, values.accessToken, values.firstName, values.lastName, values.email, values.password));
     },
   });
 
