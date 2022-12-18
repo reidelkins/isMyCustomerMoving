@@ -27,7 +27,7 @@ export const authSlice = createSlice({
       state.userInfo.error = action.payload;
       state.userInfo.loading = false;
     },
-    loginLoading: (state, action) => {
+    loginLoading: (state) => {
       state.userInfo.loading = true;
     },
     register: (state, action) => {
@@ -39,14 +39,14 @@ export const authSlice = createSlice({
       state.registerInfo.error = action.payload;
       state.registerInfo.loading = false;
     },
-    registerLoading: (state, action) => {
+    registerLoading: (state) => {
       state.registerInfo.loading = true;
     },
-    reset: (state, action) => {
+    reset: (state) => {
       state.registerInfo.error = null;
       state.registerInfo.loading = false;
     },
-    logout: (state, action) => {
+    logout: (state) => {
       state.userInfo = {
         userInfo: null,
         loading: false,
@@ -62,7 +62,7 @@ export const authSlice = createSlice({
       state.userInfo.error = action.payload;
       state.userInfo.loading = false;
     },
-    companyLoading: (state, action) => {
+    companyLoading: (state) => {
       state.userInfo.loading = true;
     },
 
@@ -106,7 +106,7 @@ export const companyAsync = (userInfo, email, phone, tenantID, clientID, clientS
     dispatch(companyLoading());
 
     const reduxStore = getState();
-    const userInfo = reduxStore.auth.userInfo.userInfo;
+    const {userInfo} = reduxStore.auth.userInfo;
 
     const config = {
       headers: {
@@ -158,7 +158,7 @@ export const resetAsync = (email) => async (dispatch) => {
       },
     };
     dispatch(registerLoading());
-    const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/password_reset/`, { email }, config);
+    await axios.post(`${DOMAIN}/api/v1/accounts/password_reset/`, { email }, config);
     dispatch(reset());
   } catch (err) {
     dispatch(registerError(err.response && err.response.data.detail ? err.response.data.detail : err.message,));

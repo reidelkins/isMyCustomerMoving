@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import PropTypes from 'prop-types';
 
 import {
   IconButton,
@@ -13,6 +14,10 @@ import { FilePond } from 'react-filepond';
 import '../filepond.css';
 import { DOMAIN } from '../redux/constants';
 import Iconify from './Iconify';
+
+FileUpload.propTypes = {
+    userInfo: PropTypes.objectOf(PropTypes.any),
+};
 
 function FileUpload({userInfo}) {
     const [files, setFiles] = useState([]);

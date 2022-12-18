@@ -17,7 +17,7 @@ export default function RegisterForm() {
   const navigate = useNavigate();
 
   const userLogin = useSelector(showLoginInfo);
-  const { error: loginError, loading: loginLoading, userInfo } = userLogin;
+  const { userInfo } = userLogin;
 
   const userRegister = useSelector(showRegisterInfo);
   const { error: registerError, loading: registerLoading } = userRegister;

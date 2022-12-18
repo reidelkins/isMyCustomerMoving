@@ -25,9 +25,6 @@ export default function AddUserForm({token}) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const userLogin = useSelector(showLoginInfo);
-  const { error: loginError, loading: loginLoading, userInfo } = userLogin;
-
   const userRegister = useSelector(showRegisterInfo);
   const { error: registerError, loading: registerLoading } = userRegister;
 

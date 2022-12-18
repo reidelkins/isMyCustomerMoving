@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import * as Yup from 'yup';
 import {
     Button,
@@ -19,7 +19,9 @@ import { useDispatch } from 'react-redux';
 import { companyAsync } from '../redux/actions/authActions';
 import Iconify from './Iconify';
 
-
+IntegrateSTModal.propTypes = {
+    userInfo: Object
+}
 
 export default function IntegrateSTModal({userInfo}) {
     // const classes = useStyles();

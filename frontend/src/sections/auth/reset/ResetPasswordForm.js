@@ -1,16 +1,21 @@
 import * as Yup from 'yup';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useFormik, Form, FormikProvider } from 'formik';
-// @mui
+import PropTypes from 'prop-types';
 
-import { Link, Stack, TextField, IconButton, InputAdornment, Alert, AlertTitle } from '@mui/material';
+// @mui
+import { Link, Stack, TextField } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { resetAsync, showLoginInfo, showRegisterInfo } from '../../../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
+
+ResetPasswordForm.propTypes = {
+  setSubmitted: PropTypes.func
+};
 
 export default function ResetPasswordForm({setSubmitted}) {
   const dispatch = useDispatch();

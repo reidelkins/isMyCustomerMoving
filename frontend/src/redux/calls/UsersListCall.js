@@ -1,8 +1,8 @@
-import { Fragment, useEffect, memo } from 'react';
+import { useEffect, memo } from 'react';
 
 import { useDispatch } from 'react-redux';
 
-import { usersAsync, updateCompany } from '../actions/usersActions';
+import { usersAsync } from '../actions/usersActions';
 
 const UsersListCall = () => {
   // ** Store Vars

@@ -1,7 +1,7 @@
 import {useState} from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
-import { useFormik, Form, FormikProvider } from 'formik';
+import { useFormik } from 'formik';
 
 import { TextField, Card, Grid, Container, Typography, Stack, Button, TableContainer, Table, TableBody, TableCell, TableRow } from '@mui/material';
 
@@ -49,7 +49,7 @@ export default function ProfileSettings() {
     },
   });
 
-  const { errors, touched, values, isSubmitting, handleSubmit, getFieldProps } = formik;
+  const { errors, touched, values, getFieldProps } = formik;
 
   // const listWorker = useSelector((state) => state.listWorker);
   // const { loading, error, WORKERLIST } = listWorker;

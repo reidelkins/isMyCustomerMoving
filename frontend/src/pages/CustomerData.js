@@ -5,11 +5,8 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // material
 import {
   IconButton,
-  Backdrop,
   Box,
   Card,
-  Fade,
-  Modal,
   Table,
   Stack,
   Button,
@@ -25,7 +22,6 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import LinearProgress from '@mui/material/LinearProgress';
 
-
 // components
 import NoteModal from '../components/NoteModal';
 import NewCompanyModal from '../components/NewCompanyModal';
@@ -36,12 +32,10 @@ import Scrollbar from '../components/Scrollbar';
 import Iconify from '../components/Iconify';
 import SearchNotFound from '../components/SearchNotFound';
 import CounterCard from '../components/CounterCard';
-import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashboard/user';
-
+import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 
 import UsersListCall from '../redux/calls/UsersListCall';
-import { update, selectUsers, updateClientAsync } from '../redux/actions/usersActions';
-
+import { selectUsers, updateClientAsync, serviceTitanSync } from '../redux/actions/usersActions';
 import { logout, showLoginInfo } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
@@ -173,8 +167,12 @@ export default function CustomerData() {
     dispatch(updateClientAsync(id, contacted, ""))
   };
 
-  const updateStatus = () => {
-    dispatch(update());
+  // const updateStatus = () => {
+  //   dispatch(update());
+  // };
+
+  const stSync = () => {
+    dispatch(serviceTitanSync());
   };
 
 
@@ -413,9 +411,15 @@ export default function CustomerData() {
               />
             </Card>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-              {(userInfo.name === 'reid elkins' || userInfo.name === 'Perspective Customer') && (
+              {/* {(userInfo.name === 'reid elkins' || userInfo.name === 'Perspective Customer') && (
                 <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
                   Update Status
+                </Button>
+              )} */}
+
+              {userInfo.status === 'admin' && (
+                <Button onClick={stSync} variant="contained">
+                  Sync With Service Titan
                 </Button>
               )}
 

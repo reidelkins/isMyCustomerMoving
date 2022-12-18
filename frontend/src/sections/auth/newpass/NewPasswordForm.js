@@ -1,10 +1,10 @@
 import * as Yup from 'yup';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import { useFormik, Form, FormikProvider } from 'formik';
 // @mui
 
-import { Link, Stack, TextField, IconButton, InputAdornment, Alert, AlertTitle } from '@mui/material';
+import { Link, Stack, TextField, IconButton, InputAdornment } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import Iconify from '../../../components/Iconify';
@@ -19,7 +19,7 @@ export default function NewPasswordForm() {
   const { token } = useParams();
 
   const userLogin = useSelector(showLoginInfo);
-  const { error: loginError, loading: loginLoading, userInfo } = userLogin;
+  const { loading: loginLoading } = userLogin;
 
   const [showPassword, setShowPassword] = useState(false);
 

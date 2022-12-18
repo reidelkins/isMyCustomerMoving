@@ -22,6 +22,22 @@ import CountUp from "react-countup";
 // Material Kit 2 React components
 import {Box, Typography} from '@mui/material';
 
+CounterCard.propTypes = {
+  color: PropTypes.oneOf([
+    "primary",
+    "secondary",
+    "info",
+    "success",
+    "warning",
+    "error",
+    "light",
+    "dark",
+  ]),
+  count: PropTypes.number.isRequired,
+  title: PropTypes.string,
+  description: PropTypes.string,
+};
+
 function CounterCard({ color, count, title, description, ...rest }) {
   return (
     <Box p={2} textAlign="center" lineHeight={1}>

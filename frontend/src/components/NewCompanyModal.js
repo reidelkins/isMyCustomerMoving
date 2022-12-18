@@ -1,14 +1,9 @@
 import React from 'react';
 import * as Yup from 'yup';
 import {
-    IconButton,
     Button,
-    Fade,
     TextField,
     Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
     DialogTitle,
     Stack
 } from '@mui/material';
@@ -48,68 +43,68 @@ export default function NewCompanyModal() {
         },
     });
 
-    const { errors, touched, values, isSubmitting, handleSubmit, getFieldProps } = formik;
-  return (
-    <div>
-        <Button variant="contained" color="primary" aria-label="Create Company" component="label" onClick={handleOpen}>
-            Create Company
-        </Button>
-        <Dialog open={open} onClose={handleClose} sx={{padding:"2px"}}>
-            <DialogTitle>Create a Company</DialogTitle>
-            <FormikProvider value={formik}>
-                <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
-                    <Stack spacing={3}>
-                        <TextField
-                            fullWidth
-                            label="Company Name"
-                            placeholder="Company Name"
-                            {...getFieldProps('company')}
-                            error={Boolean(touched.company && errors.company)}
-                            helperText={touched.company && errors.company}
-                        />
-                        <TextField
-                            fullWidth
-                            // type="email"
-                            label="Admin Email"
-                            placeholder="Email"
-                            {...getFieldProps('email')}
-                            error={Boolean(touched.email && errors.email)}
-                            helperText={touched.email && errors.email}
-                        />
-                    </Stack>
-                </Form>
-            </FormikProvider>
-            <Stack direction="row" justifyContent="right">
-                <Button color="error" onClick={handleClose}>Cancel</Button>
-                <Button onClick={handleSubmit}>Submit</Button>
-            </Stack>
-            
+    const { errors, touched, values, handleSubmit, getFieldProps } = formik;
+    return (
+        <div>
+            <Button variant="contained" color="primary" aria-label="Create Company" component="label" onClick={handleOpen}>
+                Create Company
+            </Button>
+            <Dialog open={open} onClose={handleClose} sx={{padding:"2px"}}>
+                <DialogTitle>Create a Company</DialogTitle>
+                <FormikProvider value={formik}>
+                    <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
+                        <Stack spacing={3}>
+                            <TextField
+                                fullWidth
+                                label="Company Name"
+                                placeholder="Company Name"
+                                {...getFieldProps('company')}
+                                error={Boolean(touched.company && errors.company)}
+                                helperText={touched.company && errors.company}
+                            />
+                            <TextField
+                                fullWidth
+                                // type="email"
+                                label="Admin Email"
+                                placeholder="Email"
+                                {...getFieldProps('email')}
+                                error={Boolean(touched.email && errors.email)}
+                                helperText={touched.email && errors.email}
+                            />
+                        </Stack>
+                    </Form>
+                </FormikProvider>
+                <Stack direction="row" justifyContent="right">
+                    <Button color="error" onClick={handleClose}>Cancel</Button>
+                    <Button onClick={handleSubmit}>Submit</Button>
+                </Stack>
+                
 
-        </Dialog>
-        {/* <Fade in={open}>
-            <Dialog open={open} onClose={handleClose}>
-                <DialogTitle>Subscribe</DialogTitle>
-                <DialogContent>
-                <DialogContentText>
-                    To subscribe to this website, please enter your email address here. We
-                    will send updates occasionally.
-                </DialogContentText>
-                <TextField
-                    autoFocus
-                    margin="dense"
-                    id="name"
-                    label="Email Address"
-                    type="email"
-                    fullWidth
-                    variant="standard"
-                />
-                </DialogContent>
-                <DialogActions>
-                <Button onClick={handleClose}>Cancel</Button>
-                <Button onClick={handleClose}>Subscribe</Button>
-                </DialogActions>
             </Dialog>
-        </Fade> */}
-    </div>
-  );
+            {/* <Fade in={open}>
+                <Dialog open={open} onClose={handleClose}>
+                    <DialogTitle>Subscribe</DialogTitle>
+                    <DialogContent>
+                    <DialogContentText>
+                        To subscribe to this website, please enter your email address here. We
+                        will send updates occasionally.
+                    </DialogContentText>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="name"
+                        label="Email Address"
+                        type="email"
+                        fullWidth
+                        variant="standard"
+                    />
+                    </DialogContent>
+                    <DialogActions>
+                    <Button onClick={handleClose}>Cancel</Button>
+                    <Button onClick={handleClose}>Subscribe</Button>
+                    </DialogActions>
+                </Dialog>
+            </Fade> */}
+        </div>
+    );
 }
