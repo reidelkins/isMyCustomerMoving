@@ -13,12 +13,12 @@ urlpatterns = [
     # path('reset/', views.ResetView, name='reset'),
     # path('reset_request/', views.ResetRequestView.as_view(), name='reset_request'),
     path('verify_registration/', views.VerifyRegistrationView.as_view(), name='verify'),
-    path('update/<str:company>/', views.UpdateStatusView.as_view(), name='update-status'),
     path('refresh_token/', TokenRefreshView.as_view(), name='refresh_token'),
     path('confirmation/<str:pk>/<str:uid>/', views.confirmation, name='email_confirmation'),
     
+    path('update/<str:company>/', views.UpdateStatusView.as_view(), name='update-status'),
+    path('servicetitan/<str:company>/', views.ServiceTitanView.as_view(), name='servicetitian'),
     path('company/', views.company, name='createCompany'),
-
     path('manageuser/<str:id>/', views.ManageUserView.as_view(), name='manageuser'),    
     path('password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
     path('updateclient/<str:pk>/', views.update_client, name='updateclient'),

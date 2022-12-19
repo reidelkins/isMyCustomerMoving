@@ -46,7 +46,7 @@ export const authSlice = createSlice({
       state.registerInfo.error = null;
       state.registerInfo.loading = false;
     },
-    logout: (state) => {
+    logoutUser: (state) => {
       state.userInfo = {
         userInfo: null,
         loading: false,
@@ -187,8 +187,12 @@ export const submitNewPassAsync = (password, token) => async (dispatch) => {
   }
 };
 
+export const logout = () => (dispatch) => {
+  localStorage.removeItem('userInfo');
+  dispatch(logoutUser());
+};
 
-export const { login, loginError, loginLoading, register, registerError, registerLoading, logout, company, companyError, companyLoading, reset } = authSlice.actions;
+export const { login, loginError, loginLoading, register, registerError, registerLoading, logoutUser, company, companyError, companyLoading, reset } = authSlice.actions;
 export const showLoginInfo = (state) => state.auth.userInfo;
 export const showRegisterInfo = (state) => state.auth.registerInfo;
 export default authSlice.reducer;

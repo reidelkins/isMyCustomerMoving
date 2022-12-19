@@ -35,7 +35,7 @@ import CounterCard from '../components/CounterCard';
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 
 import UsersListCall from '../redux/calls/UsersListCall';
-import { selectUsers, updateClientAsync, serviceTitanSync } from '../redux/actions/usersActions';
+import { selectUsers, update, updateClientAsync, serviceTitanSync } from '../redux/actions/usersActions';
 import { logout, showLoginInfo } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
@@ -167,9 +167,9 @@ export default function CustomerData() {
     dispatch(updateClientAsync(id, contacted, ""))
   };
 
-  // const updateStatus = () => {
-  //   dispatch(update());
-  // };
+  const updateStatus = () => {
+    dispatch(update());
+  };
 
   const stSync = () => {
     dispatch(serviceTitanSync());
@@ -411,11 +411,11 @@ export default function CustomerData() {
               />
             </Card>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-              {/* {(userInfo.name === 'reid elkins' || userInfo.name === 'Perspective Customer') && (
+              {(userInfo.name === 'reid elkins' || userInfo.name === 'Perspective Customer') && (
                 <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
                   Update Status
                 </Button>
-              )} */}
+              )}              
 
               {userInfo.status === 'admin' && (
                 <Button onClick={stSync} variant="contained">

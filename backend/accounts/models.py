@@ -103,6 +103,7 @@ class Client(models.Model):
     state = models.CharField(max_length=31, blank=True, null=True)
     contacted = models.BooleanField(default=False)
     note = models.TextField(default="")
+    servTitanID = models.IntegerField(blank=True, null=True)
 
 class ClientList(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,

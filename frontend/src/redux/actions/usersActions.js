@@ -121,6 +121,24 @@ export const updateClientAsync = (id, contacted, note) => async (dispatch, getSt
 };
 
 export const serviceTitanSync = () => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const {id: company} = userInfo.company;
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+    // dispatch(usersLoading());
+    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/servicetitan/${company}/`, config);
+    // dispatch(users(data));
+  } catch (error) {
+    throw new Error(error);
+    // dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
 };
 
 export const createCompany = (company, email) => async (dispatch, getState) => {
@@ -146,7 +164,6 @@ export const createCompany = (company, email) => async (dispatch, getState) => {
   }
 };
 
-
 export const manageUser = (email) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
@@ -165,6 +182,22 @@ export const manageUser = (email) => async (dispatch, getState) => {
     );
 
     } catch (error) {
+    throw new Error(error);
+  }
+};
+
+export const update = () => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+    await axios.get(`${DOMAIN}/api/v1/accounts/update/${userInfo.company}`, config);
+  } catch (error) {
     throw new Error(error);
   }
 };

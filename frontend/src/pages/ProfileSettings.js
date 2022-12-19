@@ -51,9 +51,6 @@ export default function ProfileSettings() {
 
   const { errors, touched, values, getFieldProps } = formik;
 
-  // const listWorker = useSelector((state) => state.listWorker);
-  // const { loading, error, WORKERLIST } = listWorker;
-
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('status');
 

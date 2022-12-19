@@ -13,7 +13,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import pandas as pd
-from .utils import getAllZipcodes, saveClientList, makeCompany
+from .utils import getAllZipcodes, saveClientList, makeCompany, get_serviceTitan_clients
 from .models import CustomUser, Client, Company, InviteToken
 from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer, MyTokenObtainPairSerializer, CompanySerializer
 import datetime
@@ -69,7 +69,6 @@ class ManageUserView(APIView):
             print(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
 
-
 @api_view(['POST', 'PUT'])
 def company(request):
     if request.method == 'POST':
@@ -102,8 +101,7 @@ def company(request):
             return Response( serializer.data , status=status.HTTP_201_CREATED, headers="")
         except Exception as e:
             print(e)
-            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)   
 
 class AddUserView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -254,8 +252,6 @@ def confirmation(request, pk, uid):
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
-
-
 class UserViewSet(ReadOnlyModelViewSet):
     throttle_classes = [UserRateThrottle]
     serializer_class = UserSerializer
@@ -345,3 +341,12 @@ def update_client(request, pk):
     except Exception as e:
         print(e)
         return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+
+class ServiceTitanView(APIView):
+    def get(self, request, *args, **kwargs):
+        try:
+            get_serviceTitan_clients.delay(self.kwargs['company'])
+            return Response({"status": "success"}, status=status.HTTP_201_CREATED, headers="")
+        except Exception as e:
+            print(e)
+            return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
