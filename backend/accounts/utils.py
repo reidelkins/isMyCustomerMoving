@@ -343,19 +343,16 @@ def get_serviceTitan_clients(company):
     }
     data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
     response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
-    
+    # print(response.json())
     # headers = {'Authorization': response.json()['access_token'], 'ST-App-Key': settings.ST_APP_KEY}
     # data = {
-    #     "summary": "test test test",        
+    #     "customerIds": [270045584],
+    #     "tagTypeIds": [328722733]
     # }
-    
-    # response = requests.post(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/leads', {
-    #     "summary": "test test test",        
-    # }, headers=headers)
+    # data='customerIds=270045584&tagTypeIds=328722733'
+    # response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/tags', data, headers)
     # print(response.json())
-    # for tag in response.json()['data']:
-    #     print(tag)
-    # return
+   
 
     clients = []
     frm = ""
