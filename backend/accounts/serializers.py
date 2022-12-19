@@ -4,13 +4,30 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.utils.crypto import get_random_string
 
+class CompanySerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(read_only=True)
+    name = serializers.CharField(max_length=100)
+    phone = serializers.CharField(max_length=20)
+    email = serializers.EmailField(max_length=100)
+    tenantID = serializers.CharField(max_length=100)
+    clientID = serializers.CharField(max_length=100)
+    def create(self, validated_data):
+        if Company.objects.filter(name=validated_data['name']).exists():
+            return False
+        return Company.objects.create(**validated_data, accessToken=get_random_string(length=32))
+    class Meta:
+        model = Company
+        fields=['id', 'name', 'phone', 'email', 'tenantID', 'clientID']
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
         serializer = UserSerializerWithToken(self.user).data
+        print("Printing user")
         print(self.user)
         for k, v in serializer.items():
             data[k] = v
+        
         return data
     @classmethod
     def get_token(cls, user):
@@ -28,24 +45,8 @@ class UserSerializer(serializers.Serializer):
     status = serializers.CharField(read_only=True)
     role = serializers.CharField(read_only=True)
     # company = serializers.CharField(read_only=True)
-    company = serializers.PrimaryKeyRelatedField(queryset=Company.objects.all())
+    company = CompanySerializer(read_only=True)
     accessToken = serializers.CharField(read_only=True)
-    
-
-    def get_name(self, obj):
-        return str(obj.first_name + " " + obj.last_name)
-
-class CompanySerializer(serializers.ModelSerializer):
-    name = serializers.CharField(max_length=100)
-    phone = serializers.CharField(max_length=20)
-    email = serializers.EmailField(max_length=100)
-    def create(self, validated_data):
-        if Company.objects.filter(name=validated_data['name']).exists():
-            return False
-        return Company.objects.create(**validated_data, accessToken=get_random_string(length=32))
-    class Meta:
-        model = Company
-        fields=['name', 'phone', 'email']
 
 class UserSerializerWithToken(UserSerializer):
     access = serializers.SerializerMethodField(read_only=True)
@@ -58,6 +59,12 @@ class UserSerializerWithToken(UserSerializer):
     def get_refresh(self, obj):
         token = RefreshToken.for_user(obj)
         return str(token)
+
+
+    
+
+    def get_name(self, obj):
+        return str(obj.first_name + " " + obj.last_name)
 
 class UploadFileSerializer(serializers.Serializer):
     file = serializers.FileField()

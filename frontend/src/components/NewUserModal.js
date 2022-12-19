@@ -10,7 +10,7 @@ import {
 import { useFormik, Form, FormikProvider } from 'formik';
 import { useDispatch } from 'react-redux';
 
-import { sendNewUserEmail } from '../redux/actions/usersActions';
+import { manageUser } from '../redux/actions/usersActions';
 
 
 export default function NewUserModal() {
@@ -34,64 +34,40 @@ export default function NewUserModal() {
         },
         validationSchema: NewUserSchema,
         onSubmit: () => {
-            dispatch(sendNewUserEmail(values.email));
+            dispatch(manageUser(values.email));
             values.email = '';
             setOpen(false);
         },
     });
 
     const { errors, touched, values, handleSubmit, getFieldProps } = formik;
-  return (
-    <div>
-        <Button variant="contained" color="primary" aria-label="Create Company" component="label" onClick={handleOpen}>
-            Add User
-        </Button>
-        <Dialog open={open} onClose={handleClose} sx={{padding:"2px"}}>
-            <DialogTitle>Add a User</DialogTitle>
-            <FormikProvider value={formik}>
-                <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
-                    <Stack spacing={3}>
-                        <TextField
-                            fullWidth
-                            // type="email"
-                            label="New User Email"
-                            placeholder="Email"
-                            {...getFieldProps('email')}
-                            error={Boolean(touched.email && errors.email)}
-                            helperText={touched.email && errors.email}
-                        />
-                    </Stack>
-                </Form>
-            </FormikProvider>
-            <Stack direction="row" justifyContent="right">
-                <Button color="error" onClick={handleClose}>Cancel</Button>
-                <Button onClick={handleSubmit}>Submit</Button>
-            </Stack>
-        </Dialog>
-        {/* <Fade in={open}>
-            <Dialog open={open} onClose={handleClose}>
-                <DialogTitle>Subscribe</DialogTitle>
-                <DialogContent>
-                <DialogContentText>
-                    To subscribe to this website, please enter your email address here. We
-                    will send updates occasionally.
-                </DialogContentText>
-                <TextField
-                    autoFocus
-                    margin="dense"
-                    id="name"
-                    label="Email Address"
-                    type="email"
-                    fullWidth
-                    variant="standard"
-                />
-                </DialogContent>
-                <DialogActions>
-                <Button onClick={handleClose}>Cancel</Button>
-                <Button onClick={handleClose}>Subscribe</Button>
-                </DialogActions>
+    return (
+        <div>
+            <Button variant="contained" color="primary" aria-label="Create Company" component="label" onClick={handleOpen}>
+                Add User
+            </Button>
+            <Dialog open={open} onClose={handleClose} sx={{padding:"2px"}}>
+                <DialogTitle>Add a User</DialogTitle>
+                <FormikProvider value={formik}>
+                    <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
+                        <Stack spacing={3}>
+                            <TextField
+                                fullWidth
+                                // type="email"
+                                label="New User Email"
+                                placeholder="Email"
+                                {...getFieldProps('email')}
+                                error={Boolean(touched.email && errors.email)}
+                                helperText={touched.email && errors.email}
+                            />
+                        </Stack>
+                    </Form>
+                </FormikProvider>
+                <Stack direction="row" justifyContent="right">
+                    <Button color="error" onClick={handleClose}>Cancel</Button>
+                    <Button onClick={handleSubmit}>Submit</Button>
+                </Stack>
             </Dialog>
-        </Fade> */}
-    </div>
-  );
+        </div>
+    );
 }

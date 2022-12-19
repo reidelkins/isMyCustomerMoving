@@ -2,11 +2,11 @@ import PropTypes from 'prop-types';
 import {useDispatch } from 'react-redux';
 // material
 import { styled } from '@mui/material/styles';
-import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment, Alert } from '@mui/material';
+import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment } from '@mui/material';
 // component
 import Iconify from '../../../components/Iconify';
 // redux
-import { deleteClient, users } from '../../../redux/actions/usersActions';
+import { deleteClientAsync } from '../../../redux/actions/usersActions';
 
 // ----------------------------------------------------------------------
 
@@ -43,8 +43,9 @@ export default function UserListToolbar({ numSelected, filterName, onFilterName,
   const dispatch = useDispatch();
 
   const clickDelete = (event, clients) => {
-    dispatch(deleteClient(clients));
-    setTimeout(() => {dispatch(users())}, 2000);
+    dispatch(deleteClientAsync(clients));
+    window.location.reload();
+
   };
 
   return (

@@ -8,7 +8,7 @@ import { Link, Stack, TextField, IconButton, InputAdornment, Alert, AlertTitle }
 import { LoadingButton } from '@mui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 
-import { login } from '../../../redux/actions/authActions';
+import { loginAsync, showLoginInfo } from '../../../redux/actions/authActions';
 import Iconify from '../../../components/Iconify';
 
 // ----------------------------------------------------------------------
@@ -17,7 +17,7 @@ export default function LoginForm() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const userLogin = useSelector((state) => state.userLogin);
+  const userLogin = useSelector(showLoginInfo);
   const { error: loginError, loading: loginLoading, userInfo } = userLogin;
 
   const [showPassword, setShowPassword] = useState(false);
@@ -34,7 +34,7 @@ export default function LoginForm() {
     },
     validationSchema: LoginSchema,
     onSubmit: () => {
-      dispatch(login(values.email, values.password));
+      dispatch(loginAsync(values.email, values.password));
     },
   });
 

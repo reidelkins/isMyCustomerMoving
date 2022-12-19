@@ -8,7 +8,7 @@ import { LoadingButton } from '@mui/lab';
 import { useDispatch, useSelector } from 'react-redux';
 import {useNavigate } from 'react-router-dom';
 
-import { addUser } from '../../../redux/actions/authActions';
+import { showRegisterInfo, addUserAsync } from '../../../redux/actions/authActions';
 
 import Iconify from '../../../components/Iconify';
 
@@ -25,8 +25,8 @@ export default function AddUserForm({token}) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const userRgister = useSelector((state) => state.userRgister);
-  const { error: registerError, loading: registerLoading } = userRgister;
+  const userRegister = useSelector(showRegisterInfo);
+  const { error: registerError, loading: registerLoading } = userRegister;
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -48,7 +48,7 @@ export default function AddUserForm({token}) {
     validationSchema: AddUserSchema,
     onSubmit: () => {
       console.log("sup")
-      dispatch(addUser(values.firstName, values.lastName, values.email, values.password, values.token));
+      dispatch(addUserAsync(values.firstName, values.lastName, values.email, values.password, values.token));
       navigate('/login', { replace: true });
     },
   });

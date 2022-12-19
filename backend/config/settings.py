@@ -9,6 +9,9 @@ import environ  # import environ
 env = environ.Env()  # Initialise environment variables
 environ.Env.read_env()
 
+
+
+
 # import environ  # import environ
 
 # env = environ.Env()  # Initialise environment variables
@@ -28,6 +31,7 @@ if IS_HEROKU:
     RAPID_API = os.environ['RAPID_API']
     EMAIL_HOST_PASSWORD = os.environ['EMAIL_PASSWD']
     SCRAPFLY_KEY = os.environ['SCRAPFLY_KEY']
+    ST_APP_KEY = os.environ['ST_APP_KEY']
     
 else:
     DEBUG = True
@@ -35,6 +39,7 @@ else:
     RAPID_API = env('RAPID_API')
     EMAIL_HOST_PASSWORD = env('EMAIL_PASSWD')
     SCRAPFLY_KEY = env('SCRAPFLY_KEY')
+    ST_APP_KEY = env('ST_APP_KEY')
     # REDIS_URL = 'redis://localhost:6379'
 
 ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "is-my-customer-moving.herokuapp.com"]

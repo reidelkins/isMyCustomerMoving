@@ -3,11 +3,12 @@ import { useEffect } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 // material
 import { styled } from '@mui/material/styles';
-import { Box, Link, Button, Drawer, Typography, Avatar, Stack } from '@mui/material';
+import { Box, Drawer } from '@mui/material';
 
 import { useSelector } from 'react-redux';
 
 // hooks
+import { showLoginInfo } from '../../redux/actions/authActions';
 import useResponsive from '../../hooks/useResponsive';
 // components
 import Logo from '../../components/Logo';
@@ -27,14 +28,6 @@ const RootStyle = styled('div')(({ theme }) => ({
   },
 }));
 
-const AccountStyle = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  padding: theme.spacing(2, 2.5),
-  borderRadius: Number(theme.shape.borderRadius) * 1.5,
-  backgroundColor: theme.palette.grey[500_12],
-}));
-
 // ----------------------------------------------------------------------
 
 DashboardSidebar.propTypes = {
@@ -43,9 +36,6 @@ DashboardSidebar.propTypes = {
 };
 
 export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
-  const BlankPofile = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png';
-  const userLogin = useSelector((state) => state.userLogin);
-  const { userInfo } = userLogin;
   const { pathname } = useLocation();
 
   const isDesktop = useResponsive('up', 'lg');

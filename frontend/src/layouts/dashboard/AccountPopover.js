@@ -5,8 +5,7 @@ import { alpha } from '@mui/material/styles';
 import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton } from '@mui/material';
 
 import { useDispatch, useSelector } from 'react-redux';
-import { logout } from '../../redux/actions/authActions';
-import { LOGOUT } from '../../redux/types/auth';
+import { logout, showLoginInfo } from '../../redux/actions/authActions';
 // components
 import MenuPopover from '../../components/MenuPopover';
 
@@ -41,20 +40,18 @@ export default function AccountPopover() {
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
-    console.log(userInfo);
   };
 
   const handleClose = () => {
     setOpen(null);
   };
 
-  const userLogin = useSelector((state) => state.userLogin);
+  const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
 
   useEffect(() => {
     if (!userInfo) {
       navigate('/login', { replace: true });
-      dispatch({ type: LOGOUT });
     }
   }, [navigate, userInfo]);
 

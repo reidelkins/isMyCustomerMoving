@@ -5,11 +5,8 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // material
 import {
   IconButton,
-  Backdrop,
   Box,
   Card,
-  Fade,
-  Modal,
   Table,
   Stack,
   Button,
@@ -25,7 +22,6 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import LinearProgress from '@mui/material/LinearProgress';
 
-
 // components
 import NoteModal from '../components/NoteModal';
 import NewCompanyModal from '../components/NewCompanyModal';
@@ -36,18 +32,11 @@ import Scrollbar from '../components/Scrollbar';
 import Iconify from '../components/Iconify';
 import SearchNotFound from '../components/SearchNotFound';
 import CounterCard from '../components/CounterCard';
-import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashboard/user';
-
+import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 
 import UsersListCall from '../redux/calls/UsersListCall';
-import { update, contact, users } from '../redux/actions/usersActions';
-
-import { logout } from '../redux/actions/authActions';
-import { LOGOUT } from '../redux/types/auth';
-
-
-
-
+import { selectUsers, update, updateClientAsync, serviceTitanSync } from '../redux/actions/usersActions';
+import { logout, showLoginInfo } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
 
@@ -97,10 +86,10 @@ export default function CustomerData() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const userLogin = useSelector((state) => state.userLogin);
+  const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
 
-  const listUser = useSelector((state) => state.listUser);
+  const listUser = useSelector(selectUsers);
   const { loading, error, USERLIST } = listUser;
 
   const [page, setPage] = useState(0);
@@ -108,8 +97,6 @@ export default function CustomerData() {
   const [order, setOrder] = useState('asc');
 
   const [selected, setSelected] = useState([]);
-
-  const [contacted, setContacted] = useState([]);
 
   const [selectedClients, setSelectedClients] = useState([]);
 
@@ -163,22 +150,6 @@ export default function CustomerData() {
 
   };
 
-  const handleContacted = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
-    let newSelected = [];
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
-    }
-    setContacted(newSelected);
-    console.log(name);
-  };
-
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -192,13 +163,16 @@ export default function CustomerData() {
     setFilterName(event.target.value);
   };
 
-  const updateContacted = (event, id) => {
-    dispatch(contact(id))
-    setTimeout(() => {dispatch(users())}, 200);
+  const updateContacted = (event, id, contacted) => {
+    dispatch(updateClientAsync(id, contacted, ""))
   };
 
   const updateStatus = () => {
     dispatch(update());
+  };
+
+  const stSync = () => {
+    dispatch(serviceTitanSync());
   };
 
 
@@ -224,7 +198,6 @@ export default function CustomerData() {
   const logoutHandler = () => {
     dispatch(logout());
     navigate('/login', { replace: true });
-    window.location.reload(false);
   };
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
@@ -263,8 +236,6 @@ export default function CustomerData() {
     setSold6Count(tmpSold6);
     setSold12Count(tmpSold12);
   });  
-
-  // const [filteredUsers, setFilteredUsers] = useState(USERLIST)
 
   const isUserNotFound = filteredUsers.length === 0;
 
@@ -307,7 +278,7 @@ export default function CustomerData() {
               />
             </Stack>
             <Card sx={{marginBottom:"3%"}}>
-              <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedClients={selectedClients} />
+              <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedClients={selectedClients} setSelected setSelectedClients />
               {error ? (
                 // <Alert severity="error">
                 //   <AlertTitle>List Loading Error</AlertTitle>
@@ -381,13 +352,13 @@ export default function CustomerData() {
                                 if (status !== 'No Change') {
                                   if (contacted) {
                                     return(
-                                      <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id)}>
+                                      <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, false)}>
                                         <Iconify icon="bi:check-lg" />
                                       </IconButton>
                                     )
                                   }
                                   return(
-                                    <IconButton color="error" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id)}>
+                                    <IconButton color="error" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, true)}>
                                       <Iconify icon="ps:check-box-empty" />
                                     </IconButton>
                                   )
@@ -443,6 +414,12 @@ export default function CustomerData() {
               {(userInfo.name === 'reid elkins' || userInfo.name === 'Perspective Customer') && (
                 <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
                   Update Status
+                </Button>
+              )}              
+
+              {userInfo.status === 'admin' && (
+                <Button onClick={stSync} variant="contained">
+                  Sync With Service Titan
                 </Button>
               )}
 

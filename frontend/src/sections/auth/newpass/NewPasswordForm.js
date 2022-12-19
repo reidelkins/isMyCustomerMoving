@@ -1,15 +1,15 @@
 import * as Yup from 'yup';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import { useFormik, Form, FormikProvider } from 'formik';
 // @mui
 
-import { Link, Stack, TextField, IconButton, InputAdornment, Alert, AlertTitle } from '@mui/material';
+import { Link, Stack, TextField, IconButton, InputAdornment } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import Iconify from '../../../components/Iconify';
 
-import { submitNewPass } from '../../../redux/actions/authActions';
+import { submitNewPassAsync, showLoginInfo } from '../../../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
 
@@ -18,8 +18,8 @@ export default function NewPasswordForm() {
   const navigate = useNavigate();
   const { token } = useParams();
 
-  const userLogin = useSelector((state) => state.userLogin);
-  const { error: loginError, loading: loginLoading, userInfo } = userLogin;
+  const userLogin = useSelector(showLoginInfo);
+  const { loading: loginLoading } = userLogin;
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -40,7 +40,7 @@ export default function NewPasswordForm() {
     },
     validationSchema: NewPasswordSchema,
     onSubmit: () => {
-      dispatch(submitNewPass(values.password, token));
+      dispatch(submitNewPassAsync(values.password, token));
       navigate('/login', { replace: true });
     },
   });

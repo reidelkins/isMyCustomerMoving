@@ -1,24 +1,29 @@
 import * as Yup from 'yup';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useFormik, Form, FormikProvider } from 'formik';
-// @mui
+import PropTypes from 'prop-types';
 
-import { Link, Stack, TextField, IconButton, InputAdornment, Alert, AlertTitle } from '@mui/material';
+// @mui
+import { Link, Stack, TextField } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 
-import { resetRequest } from '../../../redux/actions/authActions';
+import { resetAsync, showLoginInfo, showRegisterInfo } from '../../../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
+
+ResetPasswordForm.propTypes = {
+  setSubmitted: PropTypes.func
+};
 
 export default function ResetPasswordForm({setSubmitted}) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const userResetRequest = useSelector((state) => state.userResetRequest);
+  const userResetRequest = useSelector(showRegisterInfo);
   const { loading: resetRequestLoading } = userResetRequest;
-  const userLogin = useSelector((state) => state.userLogin);
+  const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
 
   const ResetPasswordSchema = Yup.object().shape({
@@ -32,7 +37,7 @@ export default function ResetPasswordForm({setSubmitted}) {
     validationSchema: ResetPasswordSchema,
     onSubmit: () => {
       setSubmitted(true);
-      dispatch(resetRequest(values.email));
+      dispatch(resetAsync(values.email));
     },
   });
 
