@@ -133,7 +133,7 @@ export const serviceTitanSync = () => async (dispatch, getState) => {
       },
     };
     // dispatch(usersLoading());
-    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/servicetitan/${company}/`, config);
+    await axios.get(`${DOMAIN}/api/v1/accounts/servicetitan/${company}/`, config);
     // dispatch(users(data));
   } catch (error) {
     throw new Error(error);
@@ -153,7 +153,7 @@ export const createCompany = (company, email) => async (dispatch, getState) => {
       },
     };
 
-    const { data } = await axios.post(
+    await axios.post(
       `${DOMAIN}/api/v1/accounts/createCompany/`,
       { 'name': company, email},
       config

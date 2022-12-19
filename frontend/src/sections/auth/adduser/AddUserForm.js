@@ -8,7 +8,7 @@ import { LoadingButton } from '@mui/lab';
 import { useDispatch, useSelector } from 'react-redux';
 import {useNavigate } from 'react-router-dom';
 
-import { showLoginInfo, showRegisterInfo, addUserAsync } from '../../../redux/actions/authActions';
+import { showRegisterInfo, addUserAsync } from '../../../redux/actions/authActions';
 
 import Iconify from '../../../components/Iconify';
 
