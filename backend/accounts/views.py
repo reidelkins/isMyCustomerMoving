@@ -319,7 +319,7 @@ def update_client(request, pk):
                 client = Client.objects.get(id=request.data['clients'])
                 if request.data['note']:
                     client.note = request.data['note']
-                if request.data['contacted']:
+                if request.data['contacted'] != "":
                     client.contacted = request.data['contacted']
                 client.save()
             except Exception as e:

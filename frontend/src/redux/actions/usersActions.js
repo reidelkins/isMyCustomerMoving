@@ -110,9 +110,7 @@ export const deleteClientAsync = (ids) => async (dispatch, getState) => {
       const chunk = ids.slice(i, i + chunkSize);
       axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { data: {'clients': chunk}}, config);
     }
-    console.log(i)
     const chunk = ids.slice(i, i + chunkSize);
-    console.log(chunk.length)
     const { data } = await axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { data: {'clients': chunk}}, config);
     dispatch(users(data));
     // const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { data: {'clients': ids}}, config);
@@ -136,7 +134,7 @@ export const updateClientAsync = (id, contacted, note) => async (dispatch, getSt
     };
     dispatch(usersLoading());
     const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { 'clients': id, contacted, note }, config);
-    dispatch(users([]));
+    dispatch(users(data));
   } catch (error) {
     dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
