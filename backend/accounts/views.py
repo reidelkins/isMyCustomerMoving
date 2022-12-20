@@ -328,9 +328,10 @@ def update_client(request, pk):
                 return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
         elif request.method == 'DELETE':
             try:
+                print(request.data['clients'][0])
+                print(request.data['clients'])
                 if len(request.data['clients']) == 1:
-                    print(request.data['clients'][0])
-                    print(request.data['clients'])
+                    print(1)
                     client = Client.objects.get(id=request.data['clients'][0])
                     client.delete()
                 else:
