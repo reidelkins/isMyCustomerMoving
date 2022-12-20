@@ -313,7 +313,6 @@ class UploadFileView(generics.CreateAPIView):
 @api_view(['PUT'])
 def update_client(request, pk):
     print("here")
-    
     try:
         print(len(request.data['clients']))
         print(request)
