@@ -312,6 +312,7 @@ class UploadFileView(generics.CreateAPIView):
 
 @api_view(['PUT', 'DELETE'])
 def update_client(request, pk):
+    print("here")
     try:
         company = Company.objects.get(id=pk)
         if request.method == 'PUT':
@@ -329,8 +330,8 @@ def update_client(request, pk):
         
         elif request.method == 'DELETE':
             try:
-                clients = Client.objects.filter(id__in=request.data['clients'])
-                clients.delete()
+                clients = Client.objects.filter(id__in=request.data['clients']).delete()
+                
             except Exception as e:
                 print(e)
                 return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
