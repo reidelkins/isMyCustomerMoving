@@ -79,43 +79,46 @@ def saveClientList(reader, company_id):
     reader = pd.read_json(reader)
     
     for _, row in reader.iterrows():
-        row = row.to_dict()        
-        saveClient.delay(row, company_id)
+        row = row.to_dict()
+        street = (str(row['street'])).title()
+        zip = row['zip']
+        city = row['city']
+        state = row['state']
+        name = row['name']      
+        saveClient.delay(street, zip, city, state, name, company_id)
 
 @shared_task
-def saveClient(row, company_id):
+def saveClient(street, zip, city, state, name, company_id):
     try:
         company = Company.objects.get(id=company_id)
-        street = (str(row['street'])).title()
         street = parseStreets(street)
         try:
-            if int(row['zip']) > 500 and int(row['zip']) < 99951:
-                zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
+            if int(zip) > 500 and int(zip) < 99951:
+                zipCode, created = ZipCode.objects.get_or_create(zipCode=zip)
                 Client.objects.update_or_create(
-                        name= row['name'],
+                        name= name,
                         address= street,
                         zipCode= zipCode,
                         company= company,
-                        city= row['city'],
-                        state = row['state'],
+                        city= city,
+                        state = state,
                         )
         except:
             try:
-                if type(row['zip']) == float:
-                    row['zip'] = int(row['zip'])
-                if type(row['zip']) == str:
-                    print(row['zip'])
-                    row['zip'] = (row['zip'].split('-'))[0]
-                if int(row['zip']) > 500 and int(row['zip']) < 99951:
-                # if int(row['zip']) > 37770 and int(row['zip']) < 37775:
-                    zipCode, created = ZipCode.objects.get_or_create(zipCode=row["zip"])
+                if type(zip) == float:
+                    zip = int(zip)
+                if type(zip) == str:
+                    print(zip)
+                    zip = (zip.split('-'))[0]
+                if int(zip) > 500 and int(zip) < 99951:
+                    zipCode, created = ZipCode.objects.get_or_create(zipCode=zip)
                     Client.objects.update_or_create(
-                            name= row["name"],
+                            name= name,
                             address= street,
                             zipCode= zipCode,
                             company= company,
-                            city= row['city'],
-                            state = row['state'],
+                            city= city,
+                            state = state,
                             )
             except Exception as e:
                 print(e)
@@ -375,16 +378,11 @@ def get_serviceTitan_clients(company):
             zip = client['address']['zip']
             if len(zip) > 5:
                 zip = zip[:5]
-            zip, created = ZipCode.objects.get_or_create(zipCode=zip)
+            name=client['name']
+            city=client['address']['city'],
+            state=client['address']['state']
             street = parseStreets((str(client['address']['street'])).title())
-            Client.objects.get_or_create(
-                name=client['name'],
-                address=street,
-                city=client['address']['city'],
-                state=client['address']['state'],
-                zipCode=zip,
-                company=company
-            )
+            saveClient.delay(street, zip, city, state, name, company.id)
         except Exception as e:
             print(f"ERROR: {e} with client {client['name']}")
 
