@@ -102,14 +102,14 @@ export const deleteClientAsync = (ids) => async (dispatch, getState) => {
         Authorization: `Bearer ${userInfo.access}`,
       },
     };
-    // dispatch(usersLoading());
+    dispatch(usersLoading());
     const chunkSize = 1000;
     let i = 0;
     for (i; i < ids.length - chunkSize; i += chunkSize) {
       console.log("in loop")
       console.log(i)
       const chunk = ids.slice(i, i + chunkSize);
-      await axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { data: {'clients': chunk}}, config);
+      axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { data: {'clients': chunk}}, config);
         
     }
     console.log('out of loop')
