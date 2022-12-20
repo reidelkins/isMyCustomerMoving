@@ -48,7 +48,7 @@ function FileUpload({userInfo}) {
                     allowRevert='false'
                     maxFiles={1}
                     server={`${DOMAIN}/api/v1/accounts/upload/`}
-                    name={`${userInfo.company}`}
+                    name={`${userInfo.company.id}`}
                     labelIdle=' <span class="filepond--label-action">Upload Your Client List</span>'
                     credits='false'
                     storeAsFile='true'
