@@ -108,7 +108,6 @@ def saveClient(street, zip, city, state, name, company_id):
                 if type(zip) == float:
                     zip = int(zip)
                 if type(zip) == str:
-                    print(zip)
                     zip = (zip.split('-'))[0]
                 if int(zip) > 500 and int(zip) < 99951:
                     zipCode, created = ZipCode.objects.get_or_create(zipCode=zip)
@@ -350,8 +349,8 @@ def get_serviceTitan_clients(company):
     }
     data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
     response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
+    headers = {'Authorization': response.json()['access_token'], 'ST-App-Key': settings.ST_APP_KEY}
     # print(response.json())
-    # headers = {'Authorization': response.json()['access_token'], 'ST-App-Key': settings.ST_APP_KEY}
     # data = {
     #     "customerIds": [270045584],
     #     "tagTypeIds": [328722733]
@@ -365,7 +364,7 @@ def get_serviceTitan_clients(company):
     frm = ""
     moreClients = True
     while(moreClients):
-        response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{company.tenantID}/export/customers?from={frm}', headers=headers)
+        response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/export/customers?from={frm}', headers=headers)
         for client in response.json()['data']:
             clients.append(client)
         if response.json()['hasMore']:
@@ -380,6 +379,7 @@ def get_serviceTitan_clients(company):
                 zip = zip[:5]
             name=client['name']
             city=client['address']['city'],
+            city= city[0]            
             state=client['address']['state']
             street = parseStreets((str(client['address']['street'])).title())
             saveClient.delay(street, zip, city, state, name, company.id)

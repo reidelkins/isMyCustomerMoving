@@ -38,8 +38,8 @@ export default function AddSecretModal({userInfo}) {
     };
 
     const IntegrateSTSchema = Yup.object().shape({
-        clientID: Yup.number("The Client ID is a string of just numbers").required('Service Titan Client ID is required'),
-        clientSecret: Yup.number("The Client Secret is a long string that is only generated one time").required('Service Titan Client Secret is required'),
+        clientID: Yup.string("The Client ID is a string that should start with 'cid.'").required('Service Titan Client ID is required'),
+        clientSecret: Yup.string("The Client Secret is a long string that is only generated one time").required('Service Titan Client Secret is required'),
     });
 
     const formik = useFormik({

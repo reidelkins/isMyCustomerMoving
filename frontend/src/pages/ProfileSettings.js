@@ -113,7 +113,7 @@ export default function ProfileSettings() {
                   <br />
                   <h3>Service Titan Tenant ID:</h3>                  
                   {userInfo.company.tenantID ? <p>{userInfo.company.tenantID}</p> : <IntegrateSTModal userInfo={userInfo} />}
-                  {!userInfo.company.clientID && <AddSecretModal />}
+                  {(!userInfo.company.clientID && userInfo.company.tenantID) && <AddSecretModal />}
                   <br />
                   <Button variant="contained" onClick={()=>(setEditting(true))} >Edit</Button>             
                 </Stack>
