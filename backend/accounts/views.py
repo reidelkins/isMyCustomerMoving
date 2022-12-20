@@ -313,6 +313,8 @@ class UploadFileView(generics.CreateAPIView):
 @api_view(['PUT'])
 def update_client(request, pk):
     print("here")
+    print(len(request.data['clients']))
+    print(request)
     try:
         company = Company.objects.get(id=pk)
         if request.method == 'PUT':
