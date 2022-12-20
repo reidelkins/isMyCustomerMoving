@@ -9,8 +9,8 @@ class CompanySerializer(serializers.ModelSerializer):
     name = serializers.CharField(max_length=100)
     phone = serializers.CharField(max_length=20)
     email = serializers.EmailField(max_length=100)
-    tenantID = serializers.CharField(max_length=100)
-    clientID = serializers.CharField(max_length=100)
+    tenantID = serializers.CharField(max_length=100, required=False)
+    clientID = serializers.CharField(max_length=100, required=False)
     def create(self, validated_data):
         if Company.objects.filter(name=validated_data['name']).exists():
             return False

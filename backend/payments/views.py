@@ -25,7 +25,6 @@ def save_stripe_info(request):
         if type(comp) == dict:
             return Response(comp, status=status.HTTP_400_BAD_REQUEST)
         
-
         payment_method_id = data['payment_method_id']
         extra_msg = ''
         customer_data = stripe.Customer.list(email=email).data
@@ -48,6 +47,7 @@ def save_stripe_info(request):
             ],
             trial_end=trialEnd
         )
+        print("I am now here")
         return Response(status=status.HTTP_200_OK, 
             data={
                 'message': 'Success', 
