@@ -329,6 +329,8 @@ def update_client(request, pk):
         elif request.method == 'DELETE':
             try:
                 if len(request.data['clients']) == 1:
+                    print(request.data['clients'][0])
+                    print(request.data['clients'])
                     client = Client.objects.get(id=request.data['clients'][0])
                     client.delete()
                 else:
