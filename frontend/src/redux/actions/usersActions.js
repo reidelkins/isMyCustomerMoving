@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { createSlice } from '@reduxjs/toolkit';
-// import { LIST_REQUEST, LIST_SUCCESS, LIST_FAIL, STATUS_REQUEST, STATUS_SUCCESS, STATUS_FAIL, ADDUSER_REQUEST, ADDUSER_SUCCESS, ADDUSER_FAIL, NOTE_REQUEST, NOTE_SUCCESS, NOTE_FAIL, DELETE_REQUEST, DELETE_SUCCESS, DELETE_FAIL, COMPANY_FAIL, COMPANY_REQUEST, COMPANY_SUCCESS } from '../types/users';
 import { DOMAIN } from '../constants';
 import { logout } from './authActions';
 
@@ -30,6 +29,17 @@ export const userSlice = createSlice({
       state.clientsInfo.loading = true;
       state.clientsInfo.USERLIST = [];
     },
+
+    // TODO
+    sendNewUserEmail: (state) => {
+      state.clientsInfo.loading = false;
+      state.clientsInfo.error = null;
+    },
+    updateNote: (state) => {
+      state.clientsInfo.loading = false;
+      state.clientsInfo.error = null;
+    },
+    
 
   },
 });
