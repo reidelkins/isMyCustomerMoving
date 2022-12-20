@@ -105,16 +105,14 @@ export const deleteClientAsync = (ids) => async (dispatch, getState) => {
     dispatch(usersLoading());
     const chunkSize = 1000;
     let i = 0;
-    for (i; i < ids.length - chunkSize; i += chunkSize) {
-      console.log("in loop")
-      console.log(i)
+    for (i; i < ids.length; i += chunkSize) {
+
       const chunk = ids.slice(i, i + chunkSize);
       axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { data: {'clients': chunk}}, config);
-        
     }
-    console.log('out of loop')
-    console.log(i);
+    console.log(i)
     const chunk = ids.slice(i, i + chunkSize);
+    console.log(chunk.length)
     const { data } = await axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { data: {'clients': chunk}}, config);
     dispatch(users(data));
     // const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { data: {'clients': ids}}, config);
@@ -138,7 +136,7 @@ export const updateClientAsync = (id, contacted, note) => async (dispatch, getSt
     };
     dispatch(usersLoading());
     const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { 'clients': id, contacted, note }, config);
-    dispatch(users(data));
+    dispatch(users([]));
   } catch (error) {
     dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
