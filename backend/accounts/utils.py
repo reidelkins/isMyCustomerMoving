@@ -147,7 +147,7 @@ def getAllZipcodes(company):
             extra = "show-recently-sold/"
         find_data.delay(str(zips[i//3]['zipCode']), company, i, status, url, extra)
 
-    # zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
+    zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
 class PropertyPreviewResult(TypedDict):
     property_id: str
@@ -332,13 +332,9 @@ def send_email():
 
 @shared_task
 def auto_update():
-    zipCode_objects = Client.objects.all().values('zipCode').distinct()
-    zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects)
-    for zip in list(zipCodes.values('zipCode')):
-        getHomesForSale.delay(zip)
-        getHomesForRent.delay(zip)
-        # getSoldHomes.delay(zip)
-    zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
+    companies = Company.objects.all().values_list('id')
+    for company in companies:
+        getAllZipcodes(company[0])
 
 @shared_task
 def get_serviceTitan_clients(company):
