@@ -88,7 +88,7 @@ class Company(models.Model):
     clientSecret = models.CharField(max_length=100, blank=True, null=True)
 
 class ZipCode(models.Model):
-    zipCode = models.IntegerField(primary_key=True, unique=True, validators=[MinValueValidator(500), MaxValueValidator(99951)])
+    zipCode = models.CharField(max_length=5, primary_key=True, unique=True)
     lastUpdated = models.DateField(default=(datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d'))
 
 class Client(models.Model):

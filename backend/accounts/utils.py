@@ -91,10 +91,19 @@ def saveClientList(reader, company_id):
 def saveClient(street, zip, city, state, name, company_id):
     try:
         company = Company.objects.get(id=company_id)
+        if company.product.customerLimit-Client.objects.filter(company=company).count()-5 < 0:
+            return
         street = parseStreets(street)
         try:
             if int(zip) > 500 and int(zip) < 99951:
-                zipCode, created = ZipCode.objects.get_or_create(zipCode=zip)
+                if len(zip) == 4:
+                    zip = '0' + str(zip)
+                elif len(zip) == 3:
+                    zip = '00' + str(zip)
+                elif len(zip) != 5:
+                    return
+
+                zipCode, created = ZipCode.objects.get_or_create(zipCode=str(zip))
                 Client.objects.update_or_create(
                         name= name,
                         address= street,
@@ -110,7 +119,13 @@ def saveClient(street, zip, city, state, name, company_id):
                 if type(zip) == str:
                     zip = (zip.split('-'))[0]
                 if int(zip) > 500 and int(zip) < 99951:
-                    zipCode, created = ZipCode.objects.get_or_create(zipCode=zip)
+                    if len(zip) == 4:
+                        zip = '0' + str(zip)
+                    elif len(zip) == 3:
+                        zip = '00' + str(zip)
+                    elif len(zip) != 5:
+                        return
+                    zipCode, created = ZipCode.objects.get_or_create(zipCode=str(zip))
                     Client.objects.update_or_create(
                             name= name,
                             address= street,
@@ -346,6 +361,7 @@ def get_serviceTitan_clients(company):
     data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
     response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
 
+    headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
     clients = []
     frm = ""
     moreClients = True
@@ -357,8 +373,10 @@ def get_serviceTitan_clients(company):
             frm = response.json()['continueFrom']
         else:
             moreClients = False
+    with open('clients.json', 'w') as outfile:
+        json.dump(clients, outfile)
 
-    for client in clients:   
+    for client in clients:
         try:
             zip = client['address']['zip']
             if len(zip) > 5:

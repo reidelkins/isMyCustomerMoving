@@ -8,6 +8,7 @@ class Product(models.Model):
     tier = models.CharField(max_length=50)
     timeFrame = models.CharField(max_length=50)
     pid = models.CharField(max_length=50)
+    customerLimit = models.IntegerField(default=0)
 
 
     def __str__(self):
