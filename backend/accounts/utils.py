@@ -219,7 +219,7 @@ def find_data(zip, company, i, status, url, extra):
     
     try:
         first_page = f"{url}/{zip}/{extra}"
-        first_result = scrapfly.scrape(ScrapeConfig(first_page, country="US", asp=True))
+        first_result = scrapfly.scrape(ScrapeConfig(first_page, country="US", asp=True, proxy_pool="public_datacenter_pool"))
 
         content = first_result.scrape_result['content']
         soup = BeautifulSoup(content, features='html.parser')
@@ -345,16 +345,6 @@ def get_serviceTitan_clients(company):
     }
     data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
     response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
-    headers = {'Authorization': response.json()['access_token'], 'ST-App-Key': settings.ST_APP_KEY}
-    # print(response.json())
-    # data = {
-    #     "customerIds": [270045584],
-    #     "tagTypeIds": [328722733]
-    # }
-    # data='customerIds=270045584&tagTypeIds=328722733'
-    # response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/tags', data, headers)
-    # print(response.json())
-   
 
     clients = []
     frm = ""
@@ -368,7 +358,7 @@ def get_serviceTitan_clients(company):
         else:
             moreClients = False
 
-    for client in clients:        
+    for client in clients:   
         try:
             zip = client['address']['zip']
             if len(zip) > 5:
@@ -382,28 +372,18 @@ def get_serviceTitan_clients(company):
         except Exception as e:
             print(f"ERROR: {e} with client {client['name']}")
 
-# def update_serviceTitan_clients(clients, company):
-#     headers = {
-#         'Content-Type': 'application/x-www-form-urlencoded',
-#     }
-#     data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
-#     response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
-    
-#     headers = {'Authorization': response.json()['access_token'], 'ST-App-Key': settings.ST_APP_KEY}
-#     for client in clients:
-#         try:
-#             client = Client.objects.get(id=client)
-#             street = parseStreets((str(client.address)).title())
-#             data = {
-#                 "name": client.name,
-#                 "address": {
-#                     "street": street,
-#                     "city": client.city,
-#                     "state": client.state,
-#                     "zip": client.zipCode.zipCode
-#                 }
-#             }
-#             response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{company.tenantID}/customers/{client.servTitanID}/', headers=headers, json=data)
-#             print(response.json())
-#         except Exception as e:
-#             print(f"ERROR: {e} with client {client.name}")
+def update_serviceTitan_clients(clients, company):
+    try:
+        company = Company.objects.get(id=company)
+        tenant = company.tenantID
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+        data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
+        response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
+        headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
+        customerIds = []
+        payload={'customerIds': ['240000932'], 'tagTypeIds': ['71']}
+        response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/tags', headers=headers, json=payload)
+    except Exception as e:
+        print(f"ERROR: {e}")
