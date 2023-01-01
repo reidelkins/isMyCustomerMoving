@@ -216,7 +216,7 @@ export const update = () => async (dispatch, getState) => {
         Authorization: `Bearer ${userInfo.access}`,
       },
     };
-    await axios.get(`${DOMAIN}/api/v1/accounts/update/${userInfo.company}`, config);
+    await axios.get(`${DOMAIN}/api/v1/accounts/update/${userInfo.company.id}`, config);
   } catch (error) {
     throw new Error(error);
   }

@@ -146,9 +146,9 @@ def getAllZipcodes(company):
     zipCodes = zipCode_objects.distinct()
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()+timedelta(days=2)).strftime('%Y-%m-%d'))
     zips = list(zipCodes.order_by('zipCode').values('zipCode'))
-    # zips = {'zipCodes': 37922}
+    # zips = [{'zipCode': '01432'}]
     for i in range(len(zips) * 3):
-    # for i in range(100, 300):
+    # for i in range(100, 130):
         extra = ""
         if i % 3 == 0:
             status = "For Sale"
@@ -234,7 +234,7 @@ def find_data(zip, company, i, status, url, extra):
     
     try:
         first_page = f"{url}/{zip}/{extra}"
-        first_result = scrapfly.scrape(ScrapeConfig(first_page, country="US", asp=True, proxy_pool="public_datacenter_pool"))
+        first_result = scrapfly.scrape(ScrapeConfig(first_page, country="US", asp=False, proxy_pool="public_datacenter_pool"))
 
         content = first_result.scrape_result['content']
         soup = BeautifulSoup(content, features='html.parser')
@@ -268,17 +268,17 @@ def find_data(zip, company, i, status, url, extra):
         for page in range(2, total_pages+1):
             assert "pg-1" in url  # make sure we don't accidently scrape duplicate pages
             page_url = url.replace("pg-1", f"pg-{page}")
-            new_results = scrapfly.scrape(ScrapeConfig(url=page_url, country="US", asp=True))  
+            new_results = scrapfly.scrape(ScrapeConfig(url=page_url, country="US", asp=False, proxy_pool="public_datacenter_pool"))
             parsed = parse_search(new_results, status)
             if status == "For Rent":
                 results = parsed["properties"]
             else:
                 results = parsed["results"]
             create_home_listings(results, status) 
-        updateStatus(int(zip), company, status)
-        print(i)
-        if i % 3 == 2:
-            print(int(zip))
+        updateStatus(zip, company, status)
+        # print(i)
+        # if i % 3 == 2:
+        #     print(zip)
     except Exception as e:
         print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
         print(f"URL: {url}")
@@ -290,7 +290,11 @@ def updateStatus(zip, company, status):
         company_objects = Company.objects.all()
 
     for company_object in company_objects:
-        zipCode_object = ZipCode.objects.get(zipCode=zip)
+        try:
+            zipCode_object = ZipCode.objects.get(zipCode=zip)
+        except Exception as e:
+            print(f"ERROR during updateStatus: {e} with zipCode {zip}")
+            return
         listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')
         updatedClients = Client.objects.filter(company=company_object, address__in=listedAddresses).update(status=status)
         # update_serviceTitan_clients(updatedClients, company_object)
