@@ -3,6 +3,8 @@ from .models import CustomUser, Company, Client
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.utils.crypto import get_random_string
+from django.contrib.auth.models import update_last_login
+
 
 class CompanySerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
@@ -23,11 +25,9 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
         serializer = UserSerializerWithToken(self.user).data
-        print("Printing user")
-        print(self.user)
+        update_last_login(None, self.user)
         for k, v in serializer.items():
             data[k] = v
-        
         return data
     @classmethod
     def get_token(cls, user):
@@ -44,7 +44,6 @@ class UserSerializer(serializers.Serializer):
     isVerified = serializers.BooleanField(read_only=True)
     status = serializers.CharField(read_only=True)
     role = serializers.CharField(read_only=True)
-    # company = serializers.CharField(read_only=True)
     company = CompanySerializer(read_only=True)
     accessToken = serializers.CharField(read_only=True)
 
@@ -59,9 +58,6 @@ class UserSerializerWithToken(UserSerializer):
     def get_refresh(self, obj):
         token = RefreshToken.for_user(obj)
         return str(token)
-
-
-    
 
     def get_name(self, obj):
         return str(obj.first_name + " " + obj.last_name)
