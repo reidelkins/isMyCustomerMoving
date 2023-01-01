@@ -64,11 +64,12 @@ class ManageUserView(APIView):
                 except Exception as e:
                     print(e)
                     return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-                serializer_class = MyTokenObtainPairSerializer
+                serializer = UserSerializerWithToken(user, many=False)
+                return Response(serializer.data)
         except Exception as e:
             print(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-
+        
 @api_view(['POST', 'PUT'])
 def company(request):
     if request.method == 'POST':
@@ -103,48 +104,6 @@ def company(request):
             print(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)   
 
-class AddUserView(APIView):
-    permission_classes = [permissions.AllowAny]
-    throttle_classes = [AnonRateThrottle]
-    authentication_classes = []
-
-    def post(self, request, *args, **kwargs):
-        company = self.kwargs['company']
-        data = request.data
-        first_name = data.get('firstName')
-        last_name = data.get('lastName')
-        email = data.get('email')
-        messages = {'errors': []}
-
-        if first_name == None:
-            messages['errors'].append('first_name can\'t be empty')
-        if last_name == None:
-            messages['errors'].append('last_name can\'t be empty')
-        if email == None:
-            messages['errors'].append('Email can\'t be empty')
-        if company == None:
-            messages['errors'].append('Company can\'t be empty')
-
-        if CustomUser.objects.filter(email=email).exists():
-            messages['errors'].append(
-                "Account already exists with this email id.")
-        if len(messages['errors']) > 0:
-            print(messages['errors'])
-            return Response({"detail": messages['errors']}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            company = Company.objects.get(id=company)
-            user = CustomUser.objects.create(
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                company=company,
-                status='active'
-            )
-            serializer = UserSerializerWithToken(user, many=False)
-        except Exception as e:
-            print(e)
-            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.data)
 
 class VerifyRegistrationView(APIView):
     permission_classes = [permissions.AllowAny]

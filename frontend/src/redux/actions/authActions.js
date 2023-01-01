@@ -131,7 +131,7 @@ export const resetPasswordAsync = (oldPassword, password) => async (dispatch) =>
 
 export const addUserAsync = (firstName, lastName, email, password, token) => async (dispatch) => {
   try {
-    dispatch(registerAsync());
+    dispatch(registerLoading());
     const config = {
       headers: {
         'Content-type': 'application/json',
@@ -143,7 +143,7 @@ export const addUserAsync = (firstName, lastName, email, password, token) => asy
       { firstName, lastName, email, password },
       config
     );
-    // dispatch(addUser(data));
+    dispatch(register(data));
     localStorage.setItem('userInfo', JSON.stringify(data));
   } catch (err) {
     dispatch(registerError(err.response && err.response.data.detail ? err.response.data.detail : err.message,));
