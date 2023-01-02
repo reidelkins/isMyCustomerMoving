@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
 import { useFormik } from 'formik';
 
-import { TextField, Card, Grid, Container, Typography, Stack, Button, TableContainer, Table, TableBody, TableCell, TableRow } from '@mui/material';
+import { Link, TextField, Card, Grid, Container, Typography, Stack, Button, TableContainer, Table, TableBody, TableCell, TableRow } from '@mui/material';
 
 // components
 import Page from '../components/Page';
@@ -12,7 +12,7 @@ import { UserListHead } from '../sections/@dashboard/user';
 import NewUserModal from '../components/NewUserModal';
 import IntegrateSTModal from '../components/IntegrateSTModal';
 import AddSecretModal from '../components/AddSecretModal';
-import ResetPasswordModal from '../components/ResetPasswordModal';
+// import ResetPasswordModal from '../components/ResetPasswordModal';
 
 import { showLoginInfo } from '../redux/actions/authActions';
 
@@ -159,9 +159,14 @@ export default function ProfileSettings() {
             </TableContainer>
           </Scrollbar>
         </Card>
-        <ResetPasswordModal />
+        {/* <ResetPasswordModal /> */}
         <NewUserModal />
-                    
+        <br/>
+        <Button variant="contained" color="primary" aria-label="Create Company" component="label">
+            <Link href="https://billing.stripe.com/p/login/aEU2aZ4PtbdD9A49AA" color="secondary" underline="none" >
+              Manage Subscription
+            </Link>
+        </Button>                          
       </Container>
     </Page>
   );
