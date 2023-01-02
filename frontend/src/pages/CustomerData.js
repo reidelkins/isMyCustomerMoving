@@ -69,8 +69,14 @@ export function getComparator(order, orderBy) {
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
-export function applySortFilter(array, comparator, query) {
-  const stabilizedThis = array.map((el, index) => [el, index]);
+export function applySortFilter(array, comparator, query, userInfo) {
+  let stabilizedThis = array;  
+  console.log(userInfo)
+  if (userInfo === 'admin') {
+    stabilizedThis = array.map((el, index) => [el, index]);
+  } else {
+    stabilizedThis = array.filter(el => el.status !== 'No Change').map((el, index) => [el, index]);
+  }
   stabilizedThis.sort((a, b) => {
     const order = comparator(a[0], b[0]);
     if (order !== 0) return order;
@@ -105,6 +111,8 @@ export default function CustomerData() {
   const [filterName, setFilterName] = useState('');
 
   const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const [shownClients, setShownClients] = useState(0);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -202,17 +210,17 @@ export default function CustomerData() {
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
 
-  const filteredClients = applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName);
+  const filteredClients = applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName, userInfo.status);
   
   let tmpRent = 0;
   let tmpSale = 0;
   let tmpSold6 = 0;
-  let tmpSold12 = 0;
+  // let tmpSold12 = 0;
 
   const [rentCount, setRentCount] = useState(tmpRent);
   const [saleCount, setSaleCount] = useState(tmpSale);
   const [sold6Count, setSold6Count] = useState(tmpSold6);
-  const [sold12Count, setSold12Count] = useState(tmpSold12);
+  // const [sold12Count, setSold12Count] = useState(tmpSold12);
 
   useEffect(() => {
     CLIENTLIST.forEach((n) => {
@@ -223,18 +231,23 @@ export default function CustomerData() {
       if (n.status === 'For Sale') {
         tmpSale += 1;
       }
-      if (n.status === 'Recently Sold (6)') {
+      if (n.status === 'Recently Sold (6)' || n.status === 'Recently Sold (12)') {
         tmpSold6 += 1;
       }
-      if (n.status === 'Recently Sold (12)') {
-        tmpSold12 += 1;
-      }
+      // if (n.status === 'Recently Sold (12)') {
+      //   tmpSold12 += 1;
+      // }
 
     });
     setRentCount(tmpRent);
     setSaleCount(tmpSale);
     setSold6Count(tmpSold6);
-    setSold12Count(tmpSold12);
+    // setSold12Count(tmpSold12);
+    if (userInfo.status === 'admin') {
+      setShownClients(CLIENTLIST.length);
+    } else {
+      setShownClients(rentCount + saleCount + sold6Count);
+    }
   });  
 
   const isUserNotFound = filteredClients.length === 0;
@@ -255,7 +268,7 @@ export default function CustomerData() {
                 <NewCompanyModal/>
               )}
             </Stack>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5} mx={10}>
               <CounterCard
                 count={saleCount}
                 title="For Sale"
@@ -268,14 +281,14 @@ export default function CustomerData() {
               />
               <CounterCard
                 count={sold6Count}
-                title="Sold in last 6 months"
+                title="Recently Sold"
                 // description="From buttons, to inputs, navbars, alerts or cards, you are covered"
               />
-              <CounterCard
+              {/* <CounterCard
                 count={sold12Count}
                 title="Sold in last 6-12 months"
                 // description="From buttons, to inputs, navbars, alerts or cards, you are covered"
-              />
+              /> */}
             </Stack>
             <Card sx={{marginBottom:"3%"}}>
               <ClientListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedClients={selectedClients} setSelected setSelectedClients />
@@ -308,10 +321,8 @@ export default function CustomerData() {
                     <TableBody>
                       {filteredClients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                         const { id, name, address, city, state, zipCode, status, contacted, note } = row;
-                        const isItemSelected = selected.indexOf(name) !== -1;
-                        if (userInfo.status !== 'admin' && status === 'No Change') {
-                          return null;
-                        }
+                        const isItemSelected = selected.indexOf(name) !== -1;                        
+                        
                         return (
                           <TableRow
                             hover
@@ -403,7 +414,7 @@ export default function CustomerData() {
               <TablePagination
                 rowsPerPageOptions={[10, 50, 100]}
                 component="div"
-                count={CLIENTLIST.length}
+                count={shownClients}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 onPageChange={handleChangePage}
