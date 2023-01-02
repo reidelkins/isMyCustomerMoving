@@ -76,7 +76,6 @@ class Company(models.Model):
                           default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     accessToken = models.CharField(default=create_access_token, max_length=100)
-    
     avatarUrl = models.ImageField(
         upload_to='customers', null=True, blank=True, default='/placeholder.png')
     email_frequency = models.IntegerField(default=0)

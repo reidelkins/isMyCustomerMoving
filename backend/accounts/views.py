@@ -103,6 +103,20 @@ class ManageUserView(APIView):
             print(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
         
+    def delete(self, request, *args, **kwargs):
+        try:
+            if len(request.data) == 1:
+                user = CustomUser.objects.get(id=request.data[0])
+                user.delete()
+            else:
+                CustomUser.objects.filter(id__in=request.data).delete()
+            users = CustomUser.objects.filter(company=self.kwargs['id'])
+            serializer = UserListSerializer(users, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            print(e)
+            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+
 @api_view(['POST', 'PUT'])
 def company(request):
     if request.method == 'POST':
@@ -325,7 +339,6 @@ def update_client(request, pk):
                 return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
         elif request.method == 'DELETE':
             try:
-   
                 if len(request.data['clients']) == 1:
                     client = Client.objects.get(id=request.data['clients'][0])
                     client.delete()

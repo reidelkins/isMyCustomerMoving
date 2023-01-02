@@ -89,10 +89,11 @@ export const usersAsync = () => async (dispatch, getState) => {
   }
 };
 
-export const deleteUserAsync = (id) => async (dispatch, getState) => {
+export const deleteUserAsync = (ids) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
+    const {id: company} = userInfo.company;
 
     const config = {
       headers: {
@@ -101,7 +102,7 @@ export const deleteUserAsync = (id) => async (dispatch, getState) => {
       },
     };
     dispatch(usersLoading());
-    const { data } = await axios.delete(`${DOMAIN}/api/v1/accounts/users/${id}/`, config);
+    const { data } = await axios.delete(`${DOMAIN}/api/v1/accounts/manageuser/${company}/`, { data: ids}, config);
     dispatch(users(data));
   } catch (error) {
     dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
@@ -250,6 +251,7 @@ export const manageUser = (email) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
       },
     };
 
@@ -269,10 +271,12 @@ export const manageUser = (email) => async (dispatch, getState) => {
 export const makeAdminAsync = (userId) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
 
     const config = {
       headers: {
         'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
       },
     };
 

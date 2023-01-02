@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import PropTypes from "prop-types";
 import * as Yup from 'yup';
 import {
     Button,
@@ -20,7 +21,7 @@ import { companyAsync } from '../redux/actions/authActions';
 import Iconify from './Iconify';
 
 AddSecretModal.propTypes = {
-    userInfo: Object
+    userInfo: PropTypes.objectOf(PropTypes.any),
 }
 
 

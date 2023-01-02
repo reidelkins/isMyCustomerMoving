@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+/* eslint-disable no-nested-ternary */
 
 import {useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -6,13 +7,13 @@ import * as Yup from 'yup';
 import { useFormik } from 'formik';
 import { useNavigate } from 'react-router-dom';
 
-import { Box, LinearProgress, Link, TextField, Card, Grid, Container, Typography, Stack, Button, TableContainer, Table, TableBody, TableCell, TableRow, IconButton } from '@mui/material';
+import { Box, Checkbox, LinearProgress, Link, TextField, Card, Grid, Container, Typography, Stack, Button, TableContainer, Table, TableBody, TableCell, TableRow, IconButton } from '@mui/material';
 
 // components
 import Iconify from '../components/Iconify';
 import Page from '../components/Page';
 import Scrollbar from '../components/Scrollbar';
-import { UserListHead } from '../sections/@dashboard/user';
+import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 import NewUserModal from '../components/NewUserModal';
 import IntegrateSTModal from '../components/IntegrateSTModal';
 import AddSecretModal from '../components/AddSecretModal';
@@ -49,6 +50,11 @@ export default function ProfileSettings() {
   const [filterName, setFilterName] = useState('');
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('status');
+  const adminBool = userInfo.status === 'admin' ? 1 : 0;
+
+  const handleFilterByName = (event) => {
+    setFilterName(event.target.value);
+  };
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
 
@@ -99,6 +105,31 @@ export default function ProfileSettings() {
     dispatch(makeAdminAsync(userId));
   };
 
+  const [selected, setSelected] = useState([]);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+
+  const handleClick = (event, id) => {
+    const selectedIndex = selected.indexOf(id);
+    let newSelected = [];
+    let newSelectedUsers = [];
+    if (selectedIndex === -1) {
+      newSelected = newSelected.concat(selected, id);
+      newSelectedUsers = newSelectedUsers.concat(selectedUsers, id);
+    } else if (selectedIndex === 0) {
+      newSelected = newSelected.concat(selected.slice(1));
+      newSelectedUsers = newSelectedUsers.concat(selectedUsers.slice(1));
+    } else if (selectedIndex === selected.length - 1) {
+      newSelected = newSelected.concat(selected.slice(0, -1));
+      newSelectedUsers = newSelectedUsers.concat(selectedUsers.slice(0, -1));
+    } else if (selectedIndex > 0) {
+      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
+      newSelectedUsers = newSelectedUsers.concat(selectedUsers.slice(0, selectedIndex), selectedUsers.slice(selectedIndex + 1));
+    }
+    setSelected(newSelected);
+    setSelectedUsers(newSelectedUsers);
+
+  };
+
   return (
     <Page title="Profile Settings">
       <Container maxWidth="xl">
@@ -129,13 +160,17 @@ export default function ProfileSettings() {
                   />
                   <br />
                   <h3>Service Titan Tenant ID:</h3>
-                  <TextField
-                    fullWidth
-                    type="text"  
-                    {...getFieldProps('servTitan')}
-                    error={Boolean(touched.servTitan && errors.servTitan)}
-                    helperText={touched.servTitan && errors.servTitan}
-                  />
+                  {adminBool ? (                    
+                    <TextField
+                      fullWidth
+                      type="text"  
+                      {...getFieldProps('servTitan')}
+                      error={Boolean(touched.servTitan && errors.servTitan)}
+                      helperText={touched.servTitan && errors.servTitan}
+                    />
+                  ) : (
+                    userInfo.company.tenantID ? <p>{userInfo.company.tenantID}</p> : <IntegrateSTModal userInfo={userInfo} />                    
+                  )}
                   <br />
                   <Button variant="contained" onClick={save} >Save</Button>             
                 </Stack>
@@ -149,7 +184,7 @@ export default function ProfileSettings() {
                   <br />
                   <h3>Service Titan Tenant ID:</h3>                  
                   {userInfo.company.tenantID ? <p>{userInfo.company.tenantID}</p> : <IntegrateSTModal userInfo={userInfo} />}
-                  {(!userInfo.company.clientID && userInfo.company.tenantID) && <AddSecretModal />}
+                  {(!userInfo.company.clientID && userInfo.company.tenantID) && <AddSecretModal userInfo={userInfo}/>}
                   <br />
                   <Button variant="contained" onClick={()=>(setEditting(true))} >Edit</Button>             
                 </Stack>
@@ -161,6 +196,7 @@ export default function ProfileSettings() {
           </Grid>
         </Grid>
         <Card sx={{marginTop:"3%", marginBottom:"3%", padding:'3%'}}>
+          <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedUsers={selectedUsers} setSelected setSelectedUsers/>
           { error ? (                
             logoutHandler
           ) : null}
@@ -174,23 +210,30 @@ export default function ProfileSettings() {
               <Table>
                 <UserListHead
                   headLabel={TABLE_HEAD}
-                  checkbox={0}
+                  checkbox={adminBool}
                   order={order}
                   orderBy={orderBy}
                   rowCount={0}
                   numSelected={0}
-                  onRequestSort={handleRequestSort}                  
+                  onRequestSort={handleRequestSort}
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                     const { id, first_name, last_name, email, status } = row;
-                    const isItemSelected = false;
+                    const isItemSelected = selected.indexOf(id) !== -1;
                     if (email !== 'reid@gmail.com' && email !== 'reidelkins3@gmail.com') {
                       return (
                         <TableRow
                           hover
                           key={id}
-                          tabIndex={-1}                        >                    
+                          tabIndex={-1}>
+                          {adminBool ? (
+                            <TableCell padding="checkbox">
+                              <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, id)}/>
+                            </TableCell>    
+                            ) : null
+                          }
+                                          
                           <TableCell component="th" scope="row" padding="none">
                             <Stack direction="row" alignItems="center" spacing={2}>
                               <Typography variant="subtitle2" noWrap>
@@ -204,14 +247,14 @@ export default function ProfileSettings() {
                           </TableCell>
                           <TableCell align="left">
                             {(() => {
-                              if (status === 'pending' && userInfo.status === 'admin') {
+                              if (status === 'pending' && adminBool) {
                                 return(
                                   <Button  aria-label="Send Reminder" component="label" onClick={(event)=>sendReminder(event, email)}>
                                     &nbsp;&nbsp;&nbsp;Send Reminder
                                   </Button>
                                 )
                               } 
-                              if (status === 'active' && userInfo.status === 'admin') {
+                              if (status === 'active' && adminBool) {
                                 return(
                                   <Button  aria-label="Make Admin" component="label" onClick={(event)=>makeAdmin(event, id)}>
                                     &nbsp;&nbsp;&nbsp;Make Admin
@@ -239,13 +282,18 @@ export default function ProfileSettings() {
           </Scrollbar>
         </Card>
         {/* <ResetPasswordModal /> */}
-        <NewUserModal />
-        <br/>
-        <Button variant="contained" color="primary" aria-label="Create Company" component="label">
-            <Link href="https://billing.stripe.com/p/login/aEU2aZ4PtbdD9A49AA" color="secondary" underline="none" >
-              Manage Subscription
-            </Link>
-        </Button>                          
+        { adminBool ? (
+          <>
+            <NewUserModal />
+            <br/>
+            <Button variant="contained" color="primary" aria-label="Create Company" component="label">
+                <Link href="https://billing.stripe.com/p/login/aEU2aZ4PtbdD9A49AA" color="secondary" underline="none" >
+                  Manage Subscription
+                </Link>
+            </Button>
+          </>       
+        ) : null}
+                           
       </Container>
     </Page>
   );
