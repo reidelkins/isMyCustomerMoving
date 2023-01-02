@@ -67,6 +67,7 @@ export const userSlice = createSlice({
 
 export const { clients, clientsLoading, clientsError, users, usersLoading, usersError } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
+export const selectUsers = (state) => state.user.usersInfo;
 export default userSlice.reducer;
 
 export const usersAsync = () => async (dispatch, getState) => {
@@ -92,7 +93,7 @@ export const deleteUserAsync = (id) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
-    
+
     const config = {
       headers: {
         'Content-type': 'application/json',
@@ -252,14 +253,38 @@ export const manageUser = (email) => async (dispatch, getState) => {
       },
     };
 
-    await axios.post(
+     dispatch(usersLoading());
+    const {data} = await axios.post(
       `${DOMAIN}/api/v1/accounts/manageuser/${userInfo.company.id}/`,
       { email },
       config
     );
+    dispatch(users(data));
 
     } catch (error) {
-    throw new Error(error);
+      dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+};
+
+export const makeAdminAsync = (userId) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+      },
+    };
+
+    dispatch(usersLoading());
+    const {data} = await axios.post(
+      `${DOMAIN}/api/v1/accounts/manageuser/${userId}/`,
+      config
+    );
+    dispatch(users(data));
+
+    } catch (error) {
+      dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 };
 

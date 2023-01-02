@@ -47,7 +47,6 @@ export default function AddUserForm({token}) {
     },
     validationSchema: AddUserSchema,
     onSubmit: () => {
-      console.log("sup")
       dispatch(addUserAsync(values.firstName, values.lastName, values.email, values.password, values.token));
       navigate('/login', { replace: true });
     },

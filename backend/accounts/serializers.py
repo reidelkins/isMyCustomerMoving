@@ -41,6 +41,7 @@ class UserSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
     avatarUrl = serializers.ImageField(read_only=True)
     name = serializers.SerializerMethodField(read_only=True)
+    email = serializers.EmailField(max_length=100)
     isVerified = serializers.BooleanField(read_only=True)
     status = serializers.CharField(read_only=True)
     role = serializers.CharField(read_only=True)
@@ -70,4 +71,9 @@ class ClientListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
         fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status', 'contacted', 'note')
+
+class UserListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ('id', 'first_name', 'last_name', 'email', 'status')
 

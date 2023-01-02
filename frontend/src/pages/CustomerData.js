@@ -11,6 +11,7 @@ import {
   Stack,
   Button,
   Checkbox,
+  LinearProgress,
   TableRow,
   TableBody,
   TableCell,
@@ -20,7 +21,6 @@ import {
   TablePagination,
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
-import LinearProgress from '@mui/material/LinearProgress';
 
 // components
 import NoteModal from '../components/NoteModal';
@@ -63,13 +63,13 @@ function descendingComparator(a, b, orderBy) {
   return 0;
 }
 
-function getComparator(order, orderBy) {
+export function getComparator(order, orderBy) {
   return order === 'desc'
     ? (a, b) => descendingComparator(a, b, orderBy)
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
-function applySortFilter(array, comparator, query) {
+export function applySortFilter(array, comparator, query) {
   const stabilizedThis = array.map((el, index) => [el, index]);
   stabilizedThis.sort((a, b) => {
     const order = comparator(a[0], b[0]);
@@ -89,8 +89,8 @@ export default function CustomerData() {
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
 
-  const listUser = useSelector(selectClients);
-  const { loading, error, CLIENTLIST } = listUser;
+  const listClient = useSelector(selectClients);
+  const { loading, error, CLIENTLIST } = listClient;
 
   const [page, setPage] = useState(0);
 
@@ -202,7 +202,7 @@ export default function CustomerData() {
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
 
-  const filteredUsers = applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName);
+  const filteredClients = applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName);
   
   let tmpRent = 0;
   let tmpSale = 0;
@@ -237,7 +237,7 @@ export default function CustomerData() {
     setSold12Count(tmpSold12);
   });  
 
-  const isUserNotFound = filteredUsers.length === 0;
+  const isUserNotFound = filteredClients.length === 0;
 
   return (
     <Page title="User">
@@ -306,7 +306,7 @@ export default function CustomerData() {
                       checkbox={1}
                     />
                     <TableBody>
-                      {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                      {filteredClients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                         const { id, name, address, city, state, zipCode, status, contacted, note } = row;
                         const isItemSelected = selected.indexOf(name) !== -1;
                         if (userInfo.status !== 'admin' && status === 'No Change') {
