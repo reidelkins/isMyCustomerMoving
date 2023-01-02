@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 import stripe
 
-stripe.api_key = settings.STRIPE_SECRET_KEY_TEST
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 @api_view(['POST' ])
 def save_stripe_info(request):
@@ -78,5 +78,5 @@ def publishable_key(request):
         return Response(status=status.HTTP_200_OK,
             data={
                 'message': 'Success',
-                'data': {'publishable_key': settings.STRIPE_PUBLISHABLE_KEY_TEST } }
+                'data': {'publishable_key': settings.STRIPE_PUBLISHABLE_KEY } }
         )
