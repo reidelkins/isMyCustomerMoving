@@ -10,24 +10,45 @@ export const userSlice = createSlice({
     clientsInfo: {
       loading: false,
       error: null,
+      CLIENTLIST: [],
+    },
+    usersInfo: {
+      loading: false,
+      error: null,
       USERLIST: [],
-    }
+    },
   },
   reducers: {
-    // -----------------  USERS  -----------------
-    users: (state, action) => {
-      state.clientsInfo.USERLIST = action.payload;
+    // -----------------  CLIENTS  -----------------
+    clients: (state, action) => {
+      state.clientsInfo.CLIENTLIST = action.payload;
       state.clientsInfo.loading = false;
       state.clientsInfo.error = null;
     },
-    usersError: (state, action) => {
+    clientsError: (state, action) => {
       state.clientsInfo.error = action.payload;
       state.clientsInfo.loading = false;
-      state.clientsInfo.USERLIST = [];
+      state.clientsInfo.CLIENTLIST = [];
+    },
+    clientsLoading: (state) => {
+      state.clientsInfo.loading = true;
+      state.clientsInfo.CLIENTLIST = [];
+    },
+
+    // -----------------  USERS  -----------------
+    users: (state, action) => {
+      state.usersInfo.USERLIST = action.payload;
+      state.usersInfo.loading = false;
+      state.usersInfo.error = null;
+    },
+    usersError: (state, action) => {
+      state.usersInfo.error = action.payload;
+      state.usersInfo.loading = false;
+      state.usersInfo.USERLIST = [];
     },
     usersLoading: (state) => {
-      state.clientsInfo.loading = true;
-      state.clientsInfo.USERLIST = [];
+      state.usersInfo.loading = true;
+      state.usersInfo.USERLIST = [];
     },
 
     // TODO
@@ -44,8 +65,8 @@ export const userSlice = createSlice({
   },
 });
 
-export const { users, usersLoading, usersError } = userSlice.actions;
-export const selectUsers = (state) => state.user.clientsInfo;
+export const { clients, clientsLoading, clientsError, users, usersLoading, usersError } = userSlice.actions;
+export const selectClients = (state) => state.user.clientsInfo;
 export default userSlice.reducer;
 
 export const usersAsync = () => async (dispatch, getState) => {
@@ -61,6 +82,7 @@ export const usersAsync = () => async (dispatch, getState) => {
     };
     dispatch(usersLoading());
     const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}`, config);
+    console.log(data);
     dispatch(users(data));
   } catch (error) {
     localStorage.removeItem('userInfo');
@@ -68,6 +90,26 @@ export const usersAsync = () => async (dispatch, getState) => {
     dispatch(logout());
   }
 };
+
+export const clientsAsync = () => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+    dispatch(clientsLoading());
+    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}`, config);
+    dispatch(clients(data));
+  } catch (error) {
+    dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+};
+
 
 export const usersEditAsync = (id, status) => async (dispatch, getState) => {
   try {

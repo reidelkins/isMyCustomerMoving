@@ -32,10 +32,10 @@ import Scrollbar from '../components/Scrollbar';
 import Iconify from '../components/Iconify';
 import SearchNotFound from '../components/SearchNotFound';
 import CounterCard from '../components/CounterCard';
-import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
+import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
 
 import UsersListCall from '../redux/calls/UsersListCall';
-import { selectUsers, update, updateClientAsync, serviceTitanSync } from '../redux/actions/usersActions';
+import { selectClients, update, updateClientAsync, serviceTitanSync } from '../redux/actions/usersActions';
 import { logout, showLoginInfo } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
@@ -89,8 +89,8 @@ export default function CustomerData() {
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
 
-  const listUser = useSelector(selectUsers);
-  const { loading, error, USERLIST } = listUser;
+  const listUser = useSelector(selectClients);
+  const { loading, error, CLIENTLIST } = listUser;
 
   const [page, setPage] = useState(0);
 
@@ -114,12 +114,12 @@ export default function CustomerData() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = USERLIST.map((n) => n.name);
+      const newSelecteds = CLIENTLIST.map((n) => n.name);
       setSelected(newSelecteds);
       
       const newSelectedClients = []
-      for (let i=0; i < USERLIST.length; i+=1) {
-        newSelectedClients.push(USERLIST[i].id)
+      for (let i=0; i < CLIENTLIST.length; i+=1) {
+        newSelectedClients.push(CLIENTLIST[i].id)
       }
       setSelectedClients(newSelectedClients);
       return;
@@ -177,10 +177,10 @@ export default function CustomerData() {
 
 
   const exportCSV = () => {
-    if (USERLIST.length === 0) { return }
+    if (CLIENTLIST.length === 0) { return }
     let csvContent = 'data:text/csv;charset=utf-8,';
     csvContent += 'Name,Address,City,State,ZipCode,Status,Contacted,Note\r\n';
-    USERLIST.forEach((n) => {
+    CLIENTLIST.forEach((n) => {
       csvContent += `${n.name}, ${n.address}, ${n.city}, ${n.state}, ${n.zipCode}, ${n.status}, ${n.contacted}, ${n.note}\r\n`
     });
 
@@ -200,9 +200,9 @@ export default function CustomerData() {
     navigate('/login', { replace: true });
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
 
-  const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
+  const filteredUsers = applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName);
   
   let tmpRent = 0;
   let tmpSale = 0;
@@ -215,7 +215,7 @@ export default function CustomerData() {
   const [sold12Count, setSold12Count] = useState(tmpSold12);
 
   useEffect(() => {
-    USERLIST.forEach((n) => {
+    CLIENTLIST.forEach((n) => {
       if (n.status === 'For Rent') {
         // setRentCount(rentCount + 1);
         tmpRent +=  1;
@@ -278,7 +278,7 @@ export default function CustomerData() {
               />
             </Stack>
             <Card sx={{marginBottom:"3%"}}>
-              <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedClients={selectedClients} setSelected setSelectedClients />
+              <ClientListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedClients={selectedClients} setSelected setSelectedClients />
               {error ? (
                 // <Alert severity="error">
                 //   <AlertTitle>List Loading Error</AlertTitle>
@@ -295,11 +295,11 @@ export default function CustomerData() {
               <Scrollbar>
                 <TableContainer sx={{ minWidth: 800 }}>
                   <Table>
-                    <UserListHead
+                    <ClientListHead
                       order={order}
                       orderBy={orderBy}
                       headLabel={TABLE_HEAD}
-                      rowCount={USERLIST.length}
+                      rowCount={CLIENTLIST.length}
                       numSelected={selected.length}
                       onRequestSort={handleRequestSort}
                       onSelectAllClick={handleSelectAllClick}
@@ -403,7 +403,7 @@ export default function CustomerData() {
               <TablePagination
                 rowsPerPageOptions={[10, 50, 100]}
                 component="div"
-                count={USERLIST.length}
+                count={CLIENTLIST.length}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 onPageChange={handleChangePage}

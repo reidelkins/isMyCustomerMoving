@@ -2,18 +2,18 @@ import { useEffect, memo } from 'react';
 
 import { useDispatch } from 'react-redux';
 
-import { usersAsync } from '../actions/usersActions';
+import { clientsAsync } from '../actions/usersActions';
 
-const UsersListCall = () => {
+const ClientsListCall = () => {
   // ** Store Vars
   const dispatch = useDispatch();
 
   // ** Get data on mount
   useEffect(() => {
-    dispatch(usersAsync());
+    dispatch(clientsAsync());
   }, [dispatch]);
 
   return null;
 };
 
-export default memo(UsersListCall);
+export default memo(ClientsListCall);

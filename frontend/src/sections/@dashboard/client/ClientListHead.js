@@ -16,7 +16,7 @@ const visuallyHidden = {
   clip: 'rect(0 0 0 0)',
 };
 
-UserListHead.propTypes = {
+ClientListHead.propTypes = {
   order: PropTypes.oneOf(['asc', 'desc']),
   orderBy: PropTypes.string,
   rowCount: PropTypes.number,
@@ -27,7 +27,7 @@ UserListHead.propTypes = {
   checkbox: PropTypes.number
 };
 
-export default function UserListHead({
+export default function ClientListHead({
   order,
   orderBy,
   rowCount,
