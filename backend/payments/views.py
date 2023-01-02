@@ -94,7 +94,7 @@ def stripe_webhooks(request):
         print(5)
         try:
             event = stripe.Webhook.construct_event(
-                payload, sig_header, settings.STRIPE_WEBHOOK_SECRET_TEST
+                payload, sig_header, settings.STRIPE_SECRET_TEST
             )
             print(6)
         except ValueError as e:
