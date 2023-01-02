@@ -249,7 +249,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://is-my-customer-moving.vercel.app",
     "https://ismycustomermoving.com",
     "https://www.ismycustomermoving.com",
-    "https://app.ismycustomermoving.com"
+    "https://app.ismycustomermoving.com",
 
     # Stripe
     "https://3.18.12.63",
