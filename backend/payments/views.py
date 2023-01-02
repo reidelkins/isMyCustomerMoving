@@ -13,16 +13,19 @@ stripe.api_key = settings.STRIPE_SECRET_KEY_TEST
 @api_view(['POST' ])
 def save_stripe_info(request):
     if request.method == 'POST':
+        print("here")
         data = request.data
         try:
             product = Product.objects.get(tier=data['tier'], timeFrame=data['timeFrame'])
         except Product.DoesNotExist:
+            print("Product does not exist")
             return Response("Product does not exist", status=status.HTTP_400_BAD_REQUEST)
         email = data['email']
         company = data['company']
         phone = data['phone']
         comp = makeCompany(company, email, phone)
         if type(comp) == dict:
+            print("company equals dict")
             return Response(comp, status=status.HTTP_400_BAD_REQUEST)
         
         payment_method_id = data['payment_method_id']
