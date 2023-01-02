@@ -47,6 +47,11 @@ class UserSerializer(serializers.Serializer):
     role = serializers.CharField(read_only=True)
     company = CompanySerializer(read_only=True)
     accessToken = serializers.CharField(read_only=True)
+    finishedSTIntegration = serializers.SerializerMethodField(read_only=True)
+
+    def get_finishedSTIntegration(self, obj):
+        return obj.company.tenantID != None and obj.company.clientID != None and obj.company.clientSecret != None
+
 
 class UserSerializerWithToken(UserSerializer):
     access = serializers.SerializerMethodField(read_only=True)

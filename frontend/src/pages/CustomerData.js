@@ -71,7 +71,6 @@ export function getComparator(order, orderBy) {
 
 export function applySortFilter(array, comparator, query, userInfo) {
   let stabilizedThis = array;  
-  console.log(userInfo)
   if (userInfo === 'admin') {
     stabilizedThis = array.map((el, index) => [el, index]);
   } else {
@@ -428,7 +427,7 @@ export default function CustomerData() {
                 </Button>
               )}              
 
-              {userInfo.status === 'admin' && (
+              {(userInfo.status === 'admin' && userInfo.finishedSTIntegration) && (
                 <Button onClick={stSync} variant="contained">
                   Sync With Service Titan
                 </Button>
