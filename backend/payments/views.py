@@ -83,24 +83,35 @@ def publishable_key(request):
 
 @api_view(['POST'])
 def stripe_webhooks(request):
+    print(1)
     if request.method == 'POST':
+        print(2)
         payload = request.body
+        print(3)
         sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+        print(4)
         event = None
+        print(5)
         try:
             event = stripe.Webhook.construct_event(
                 payload, sig_header, settings.STRIPE_WEBHOOK_SECRET_TEST
             )
+            print(6)
         except ValueError as e:
+            print(7)
             # Invalid payload
             return Response(status=status.HTTP_400_BAD_REQUEST)
         except stripe.error.SignatureVerificationError as e:
+            print(8)
             # Invalid signature
             return Response(status=status.HTTP_400_BAD_REQUEST)
         # Handle the checkout.session.completed event
+        print(9)
+        print(event['type'])
         if event['type'] == 'checkout.session.completed':
             session = event['data']['object']
             print(session)
             # Fulfill the purchase...
             print('Payment was successful.')
+            print(11)
         return Response(status=status.HTTP_200_OK)
