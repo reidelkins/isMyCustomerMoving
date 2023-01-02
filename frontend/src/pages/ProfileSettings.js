@@ -8,7 +8,7 @@ import { Link, TextField, Card, Grid, Container, Typography, Stack, Button, Tabl
 // components
 import Page from '../components/Page';
 import Scrollbar from '../components/Scrollbar';
-import { ClientListHead } from '../sections/@dashboard/client';
+import { UserListHead } from '../sections/@dashboard/user';
 import NewUserModal from '../components/NewUserModal';
 import IntegrateSTModal from '../components/IntegrateSTModal';
 import AddSecretModal from '../components/AddSecretModal';
@@ -128,7 +128,7 @@ export default function ProfileSettings() {
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
               <Table>
-                <ClientListHead
+                <UserListHead
                   headLabel={TABLE_HEAD}
                   checkbox={0}
                   order={order}

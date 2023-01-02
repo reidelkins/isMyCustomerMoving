@@ -34,7 +34,7 @@ import SearchNotFound from '../components/SearchNotFound';
 import CounterCard from '../components/CounterCard';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
 
-import UsersListCall from '../redux/calls/UsersListCall';
+import ClientsListCall from '../redux/calls/ClientsListCall';
 import { selectClients, update, updateClientAsync, serviceTitanSync } from '../redux/actions/usersActions';
 import { logout, showLoginInfo } from '../redux/actions/authActions';
 
@@ -164,7 +164,7 @@ export default function CustomerData() {
   };
 
   const updateContacted = (event, id, contacted) => {
-    dispatch(updateClientAsync(id, contacted, ""))
+    dispatch(updateClientAsync(id, contacted, ""));
   };
 
   const updateStatus = () => {
@@ -242,7 +242,7 @@ export default function CustomerData() {
   return (
     <Page title="User">
       <Container>
-        {userInfo ? <UsersListCall /> : null}
+        {userInfo ? <ClientsListCall /> : null}
         {userInfo && (
           <>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>

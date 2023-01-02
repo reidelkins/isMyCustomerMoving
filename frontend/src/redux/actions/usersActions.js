@@ -81,13 +81,29 @@ export const usersAsync = () => async (dispatch, getState) => {
       },
     };
     dispatch(usersLoading());
-    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}`, config);
-    console.log(data);
+    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/users/${userInfo.company.id}`, config);
     dispatch(users(data));
   } catch (error) {
-    localStorage.removeItem('userInfo');
     dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    dispatch(logout());
+  }
+};
+
+export const deleteUserAsync = (id) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+    dispatch(usersLoading());
+    const { data } = await axios.delete(`${DOMAIN}/api/v1/accounts/users/${id}/`, config);
+    dispatch(users(data));
+  } catch (error) {
+    dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 };
 
@@ -106,10 +122,59 @@ export const clientsAsync = () => async (dispatch, getState) => {
     const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}`, config);
     dispatch(clients(data));
   } catch (error) {
+    localStorage.removeItem('userInfo');
+    dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    dispatch(logout());
+  }
+};
+
+export const deleteClientAsync = (ids) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const {id: company} = userInfo.company;
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+    dispatch(clientsLoading());
+    const chunkSize = 1000;
+    let i = 0;
+    for (i; i < ids.length; i += chunkSize) {
+
+      const chunk = ids.slice(i, i + chunkSize);
+      axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { data: {'clients': chunk}}, config);
+    }
+    const chunk = ids.slice(i, i + chunkSize);
+    const { data } = await axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { data: {'clients': chunk}}, config);
+    dispatch(clients(data));
+  } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 };
 
+export const updateClientAsync = (id, contacted, note) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const {id: company} = userInfo.company;
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+    dispatch(clientsLoading());
+    const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { 'clients': id, contacted, note }, config);
+    dispatch(clients(data));
+  } catch (error) {
+    dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+};
 
 export const usersEditAsync = (id, status) => async (dispatch, getState) => {
   try {
@@ -129,56 +194,6 @@ export const usersEditAsync = (id, status) => async (dispatch, getState) => {
     localStorage.removeItem('userInfo');
     dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
     dispatch(logout());
-  }
-};
-
-export const deleteClientAsync = (ids) => async (dispatch, getState) => {
-  try {
-    const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
-    const {id: company} = userInfo.company;
-
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
-      },
-    };
-    dispatch(usersLoading());
-    const chunkSize = 1000;
-    let i = 0;
-    for (i; i < ids.length; i += chunkSize) {
-
-      const chunk = ids.slice(i, i + chunkSize);
-      axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { data: {'clients': chunk}}, config);
-    }
-    const chunk = ids.slice(i, i + chunkSize);
-    const { data } = await axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { data: {'clients': chunk}}, config);
-    dispatch(users(data));
-    // const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { data: {'clients': ids}}, config);
-    // dispatch(users(data));
-  } catch (error) {
-    dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-  }
-};
-
-export const updateClientAsync = (id, contacted, note) => async (dispatch, getState) => {
-  try {
-    const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
-    const {id: company} = userInfo.company;
-
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
-      },
-    };
-    dispatch(usersLoading());
-    const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { 'clients': id, contacted, note }, config);
-    dispatch(users(data));
-  } catch (error) {
-    dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 };
 
