@@ -4,7 +4,7 @@
 import {useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import * as Yup from 'yup';
-import { useFormik } from 'formik';
+import { useFormik, Form, FormikProvider } from 'formik';
 import { useNavigate } from 'react-router-dom';
 
 import { Box, Checkbox, LinearProgress, Link, TextField, Card, Grid, Container, Typography, Stack, Button, TableContainer, Table, TableBody, TableCell, TableRow, IconButton } from '@mui/material';
@@ -21,7 +21,7 @@ import { applySortFilter, getComparator } from './CustomerData';
 // import ResetPasswordModal from '../components/ResetPasswordModal';
 
 import UsersListCall from '../redux/calls/UsersListCall';
-import { showLoginInfo, logout } from '../redux/actions/authActions';
+import { showLoginInfo, logout, editUserAsync } from '../redux/actions/authActions';
 import { manageUser, selectUsers, makeAdminAsync } from '../redux/actions/usersActions';
 
 
@@ -61,35 +61,33 @@ export default function ProfileSettings() {
   const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
 
   const SettingsSchema = Yup.object().shape({
-    name: Yup.string().required('Name is required'),
+    firstName: Yup.string().required('Name is required'),
+    lastName: Yup.string().required('Name is required'),
     email: Yup.string().email('Email must be a valid email address').required('Email is required'),
     servTitan: Yup.string(),
   });
 
   const formik = useFormik({
     initialValues: {
-      name: userInfo.name,
+      firstName: userInfo.first_name,
+      lastName: userInfo.last_name,
       email: userInfo.email,
       servTitan: userInfo.company.tenantID,
     },
     validationSchema: SettingsSchema,
     onSubmit: () => {
-      // TODO
-      console.log(values.servTitan)
+      setEditting(false);
+      dispatch(editUserAsync(values.email, values.firstName, values.lastName, values.servTitan));
     },
   });
 
-  const { errors, touched, values, getFieldProps } = formik;
+  const { errors, touched, values, handleSubmit, isSubmitting, getFieldProps } = formik;
 
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
-  };
-
-  const save = () => {
-    setEditting(false);  
   };
 
   const logoutHandler = () => {
@@ -140,44 +138,63 @@ export default function ProfileSettings() {
         <Grid container spacing={3}>
           <Grid item xs={12} md={6} lg={8}>
             {editting ? (
-                <Stack direction='column'>
-                  <h3>Name:</h3>
-                  <TextField
-                    fullWidth                                        
-                    type="text"  
-                    {...getFieldProps('name')}
-                    error={Boolean(touched.name && errors.name)}
-                    helperText={touched.name && errors.name}
-                  />
-                  <br />
-                  <h3>Email:</h3>
-                  <TextField
-                    fullWidth                    
-                    type="email"
-                    {...getFieldProps('email')}
-                    error={Boolean(touched.email && errors.email)}
-                    helperText={touched.email && errors.email}
-                  />
-                  <br />
-                  <h3>Service Titan Tenant ID:</h3>
-                  {adminBool ? (                    
-                    <TextField
-                      fullWidth
-                      type="text"  
-                      {...getFieldProps('servTitan')}
-                      error={Boolean(touched.servTitan && errors.servTitan)}
-                      helperText={touched.servTitan && errors.servTitan}
-                    />
-                  ) : (
-                    userInfo.company.tenantID ? <p>{userInfo.company.tenantID}</p> : <IntegrateSTModal userInfo={userInfo} />                    
-                  )}
-                  <br />
-                  <Button variant="contained" onClick={save} >Save</Button>             
-                </Stack>
+                <FormikProvider value={formik}>
+                  <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
+                    <Stack direction='column'>
+                      <h3>Name:</h3>
+                      <TextField
+                        fullWidth                                        
+                        type="text"  
+                        {...getFieldProps('firstName')}
+                        error={Boolean(touched.firstName && errors.firstName)}
+                        helperText={touched.firstName && errors.firstName}
+                      />
+                      <TextField
+                        fullWidth                                        
+                        type="text"  
+                        {...getFieldProps('lastName')}
+                        error={Boolean(touched.lastName && errors.lastName)}
+                        helperText={touched.lastName && errors.lastName}
+                      />
+                      <br />
+                      <h3>Email:</h3>
+                      <TextField
+                        fullWidth                    
+                        type="email"
+                        {...getFieldProps('email')}
+                        error={Boolean(touched.email && errors.email)}
+                        helperText={touched.email && errors.email}
+                      />
+                      <br />
+                      <h3>Service Titan Tenant ID:</h3>
+                      {adminBool ? (                    
+                        <TextField
+                          fullWidth
+                          type="text"  
+                          {...getFieldProps('servTitan')}
+                          error={Boolean(touched.servTitan && errors.servTitan)}
+                          helperText={touched.servTitan && errors.servTitan}
+                        />
+                      ) : (
+                        userInfo.company.tenantID ? <p>{userInfo.company.tenantID}</p> : <IntegrateSTModal userInfo={userInfo} />                    
+                      )}
+                      <br />
+                      <Button
+                        fullWidth
+                        size="large"
+                        type="submit"
+                        variant="contained"
+                        // loading={registerLoading ? isSubmitting : null}
+                      >
+                        Save Changes
+                    </Button>            
+                    </Stack>
+                  </Form>
+                </FormikProvider>
               ):(
                 <Stack direction='column'>
                   <h3>Name:</h3>
-                  <p>{userInfo.name}</p>
+                  <p>{userInfo.first_name} {userInfo.last_name}</p>
                   <br />
                   <h3>Email:</h3>
                   <p>{userInfo.email}</p>
@@ -186,7 +203,13 @@ export default function ProfileSettings() {
                   {userInfo.company.tenantID ? <p>{userInfo.company.tenantID}</p> : <IntegrateSTModal userInfo={userInfo} />}
                   {(!userInfo.company.clientID && userInfo.company.tenantID) && <AddSecretModal userInfo={userInfo}/>}
                   <br />
-                  <Button variant="contained" onClick={()=>(setEditting(true))} >Edit</Button>             
+                  <Button 
+                    fullWidth
+                    size="large"                        
+                    variant="contained" 
+                    onClick={()=>(setEditting(true))} >
+                      Edit
+                  </Button>             
                 </Stack>
                 
               )}            

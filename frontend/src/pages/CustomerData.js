@@ -259,7 +259,7 @@ export default function CustomerData() {
           <>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
               <Typography variant="h4" gutterBottom>
-                Welcome {userInfo.name} 👋
+                Welcome {userInfo.first_name} {userInfo.last_name} 👋
                 {/* Welcome */}
               </Typography>              
               {(userInfo.email === 'reid@gmail.com' || userInfo.email === 'jb@aquaclearws.com' || userInfo.email === 'reidelkins3@gmail.com') && (
@@ -421,7 +421,7 @@ export default function CustomerData() {
               />
             </Card>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-              {(userInfo.name === 'reid elkins' || userInfo.name === 'Perspective Customer') && (
+              {((userInfo.first_name === 'reid' && userInfo.last_name === 'elkins') || (userInfo.first_name === 'Perspective' && userInfo.last_name === 'Customer')) && (
                 <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
                   Update Status
                 </Button>

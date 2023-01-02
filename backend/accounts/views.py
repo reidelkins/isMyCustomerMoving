@@ -102,6 +102,22 @@ class ManageUserView(APIView):
         except Exception as e:
             print(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+    def put(self, request, *args, **kwargs):
+        try:
+            if CustomUser.objects.filter(id=self.kwargs['id']).exists():
+                user = CustomUser.objects.get(id=self.kwargs['id'])
+                if user:
+                    user.first_name = request.data['firstName']
+                    user.last_name = request.data['lastName']
+                    user.email = request.data['email']
+                    user.save()
+                serializer = UserSerializerWithToken(user, many=False)
+                return Response(serializer.data)
+            else:
+                return Response({"status": "User Not Found"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(e)
+            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
         
     def delete(self, request, *args, **kwargs):
         try:

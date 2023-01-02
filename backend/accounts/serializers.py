@@ -40,7 +40,9 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 class UserSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
     avatarUrl = serializers.ImageField(read_only=True)
-    name = serializers.SerializerMethodField(read_only=True)
+    first_name = serializers.CharField(read_only=True)
+    last_name = serializers.CharField(read_only=True)
+    
     email = serializers.EmailField(max_length=100)
     isVerified = serializers.BooleanField(read_only=True)
     status = serializers.CharField(read_only=True)
@@ -64,9 +66,6 @@ class UserSerializerWithToken(UserSerializer):
     def get_refresh(self, obj):
         token = RefreshToken.for_user(obj)
         return str(token)
-
-    def get_name(self, obj):
-        return str(obj.first_name + " " + obj.last_name)
 
 class UploadFileSerializer(serializers.Serializer):
     file = serializers.FileField()
