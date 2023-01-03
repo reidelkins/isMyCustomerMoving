@@ -310,7 +310,7 @@ export default function ProfileSettings() {
             <NewUserModal />
             <br/>
             <Button variant="contained" color="primary" aria-label="Create Company" component="label">
-                <Link href="https://billing.stripe.com/p/login/aEU2aZ4PtbdD9A49AA" color="secondary" underline="none" >
+                <Link href="https://billing.stripe.com/p/login/aEU2aZ4PtbdD9A49AA" color="secondary" underline="none" target="_blank" rel="noopener noreferrer">
                   Manage Subscription
                 </Link>
             </Button>
