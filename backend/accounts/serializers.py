@@ -12,20 +12,17 @@ class CompanySerializer(serializers.ModelSerializer):
     name = serializers.CharField(max_length=100)
     phone = serializers.CharField(max_length=20)
     email = serializers.EmailField(max_length=100)
-    # product = serializers.SerializerMethodField()
     stripeID = serializers.CharField(max_length=100, required=False)
     tenantID = serializers.CharField(max_length=100, required=False)
     clientID = serializers.CharField(max_length=100, required=False)
 
-    # def get_product(self, obj):
-    #     return Product.objects.get(pid=obj.product)
     def create(self, validated_data):
         if Company.objects.filter(name=validated_data['name']).exists():
             return False
         return Company.objects.create(**validated_data, accessToken=get_random_string(length=32))
     class Meta:
         model = Company
-        fields=['id', 'name', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'product']
+        fields=['id', 'name', 'phone', 'email', 'tenantID', 'clientID', 'stripeID']
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
