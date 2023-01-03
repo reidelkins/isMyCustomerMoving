@@ -86,6 +86,7 @@ class Company(models.Model):
     tenantID = models.IntegerField(blank=True, null=True)
     clientID = models.CharField(max_length=100, blank=True, null=True)
     clientSecret = models.CharField(max_length=100, blank=True, null=True)
+    stripeID = models.CharField(max_length=100, blank=True, null=True)
 
 
 def zipTime():

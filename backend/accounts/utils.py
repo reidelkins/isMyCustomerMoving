@@ -41,11 +41,12 @@ scrapfly5 = ScrapflyClient(
 )
 
 
-def makeCompany(companyName, email, phone):
+def makeCompany(companyName, email, phone, stripeID,):
     try:
-        comp = {'name': companyName, 'phone': phone, 'email': email}
+        comp = {'name': companyName, 'phone': phone, 'email': email, 'stripeID': stripeID}
         serializer = CompanySerializer(data=comp)
         if serializer.is_valid():
+            print("Serializer is valid")
             company = serializer.save()
             if company:
                 mail_subject = "Access Token for Is My Customer Moving"
@@ -54,12 +55,13 @@ def makeCompany(companyName, email, phone):
                 message = get_template("registration.html").render({
                     'company': company.name, 'accessToken': company.accessToken
                 })
-                send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)
-                return ""
+                # send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)
+                return company
             else:
                 return {'Error': "Company with that name already exists"}
         else:
             print("Serializer not valid")
+            print(serializer.errors)
             return {'Error': 'Serializer not valid'}
     except Exception as e:
         print(e)
