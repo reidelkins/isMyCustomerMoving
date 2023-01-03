@@ -15,7 +15,7 @@ from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import pandas as pd
 from .utils import getAllZipcodes, saveClientList, makeCompany, get_serviceTitan_clients
 from .models import CustomUser, Client, Company, InviteToken
-from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, ClientListSerializer, MyTokenObtainPairSerializer, CompanySerializer
+from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, UserListSerializer, ClientListSerializer, MyTokenObtainPairSerializer, CompanySerializer
 import datetime
 import jwt
 from config import settings
@@ -24,23 +24,37 @@ import pytz
 class ManageUserView(APIView):
     def post(self, request, *args, **kwargs):
         try:
+            # Invite User
             if Company.objects.filter(id=self.kwargs['id']).exists():
                 try:
                     company = Company.objects.get(id=self.kwargs['id'])
                     admin = CustomUser.objects.filter(company=company, status='admin')[0]
                     if company:
-                        token = InviteToken.objects.create(company=company, email=request.data['email'])
-                        mail_subject = "Account Invite For Is My Customer Moving"
+                        user, created = CustomUser.objects.get_or_create(
+                            email=request.data['email'],
+                            company=company,
+                            status='pending',
+                        )
+                        token, created = InviteToken.objects.get_or_create(company=company, email=request.data['email'])
+                        if created:
+                            mail_subject = "Account Invite For Is My Customer Moving"                            
+                        else:
+                            token.expiration = datetime.datetime.utcnow() + datetime.timedelta(days=1)
+                            token.save()
+                            mail_subject = "Invite Reminder For Is My Customer Moving"
+
                         messagePlain = f"You have been invited to join Is My Customer Moving by {admin.first_name} {admin.last_name}. Please click the link below to join. https://app.ismycustomermoving.com/addeduser/{str(token.id)}"
-                    #     # # Next version will add a HTML template
                         message = get_template("addUserEmail.html").render({
                             'admin': admin, 'token': token.id
                         })
-                        send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[request.data['email']], html_message=message, fail_silently=False)
+                        send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[request.data['email']], html_message=message, fail_silently=False)    
                 except Exception as e:
                     print(e)
                     return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-                return Response("", status=status.HTTP_201_CREATED, headers="")
+                users = CustomUser.objects.filter(company=user.company)
+                serializer = UserListSerializer(users, many=True)
+                return Response(serializer.data)
+            # Except Invite and Make User
             elif InviteToken.objects.filter(id=self.kwargs['id']).exists():
                 utc = pytz.UTC
                 try:
@@ -48,16 +62,22 @@ class ManageUserView(APIView):
                     if token.expiration > utc.localize(datetime.datetime.utcnow()):
                         company = token.company
                         if company:
-                            user = CustomUser.objects.create(
-                                email=request.data['email'],
-                                password=make_password(request.data['password']),
-                                company=company,
-                                status='active',
-                                first_name=request.data['firstName'],
-                                last_name=request.data['lastName'],
-                                isVerified=True
-                            )
-                            user.save()
+                            try:
+                                user = CustomUser.objects.get(
+                                    email=request.data['email'],
+                                    company=company,
+                                    status='pending'
+                                )
+                            except Exception as e:
+                                print(e)
+                                return Response({"status": "Cannot find user"}, status=status.HTTP_400_BAD_REQUEST)
+
+                            user.password = make_password(request.data['password'])
+                            user.status = 'active'
+                            user.first_name = request.data['firstName']
+                            user.last_name = request.data['lastName']
+                            user.isVerified = True
+                            user.save()                            
                             token.delete()
                     else:
                         return Response({"status": "Token Expired"}, status=status.HTTP_400_BAD_REQUEST)
@@ -66,10 +86,53 @@ class ManageUserView(APIView):
                     return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
                 serializer = UserSerializerWithToken(user, many=False)
                 return Response(serializer.data)
+            # Make User an Admin
+            elif CustomUser.objects.filter(id=self.kwargs['id']).exists():
+                try:
+                    user = CustomUser.objects.get(id=self.kwargs['id'])
+                    if user:
+                        user.status = 'admin'
+                        user.save()
+                except Exception as e:
+                    print(e)
+                    return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+                users = CustomUser.objects.filter(company=user.company)
+                serializer = UserListSerializer(users, many=True)
+                return Response(serializer.data)
+        except Exception as e:
+            print(e)
+            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+    def put(self, request, *args, **kwargs):
+        try:
+            if CustomUser.objects.filter(id=self.kwargs['id']).exists():
+                user = CustomUser.objects.get(id=self.kwargs['id'])
+                if user:
+                    user.first_name = request.data['firstName']
+                    user.last_name = request.data['lastName']
+                    user.email = request.data['email']
+                    user.save()
+                serializer = UserSerializerWithToken(user, many=False)
+                return Response(serializer.data)
+            else:
+                return Response({"status": "User Not Found"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             print(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
         
+    def delete(self, request, *args, **kwargs):
+        try:
+            if len(request.data) == 1:
+                user = CustomUser.objects.get(id=request.data[0])
+                user.delete()
+            else:
+                CustomUser.objects.filter(id__in=request.data).delete()
+            users = CustomUser.objects.filter(company=self.kwargs['id'])
+            serializer = UserListSerializer(users, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            print(e)
+            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+
 @api_view(['POST', 'PUT'])
 def company(request):
     if request.method == 'POST':
@@ -223,6 +286,11 @@ class ClientListView(generics.ListAPIView):
     def get_queryset(self):
         return Client.objects.filter(company=self.kwargs['company'])
 
+class UserListView(generics.ListAPIView):
+    serializer_class = UserListSerializer
+    def get_queryset(self):
+        return CustomUser.objects.filter(company=self.kwargs['company'])
+
 class UpdateStatusView(APIView):
     def get(self, request, *args, **kwargs):
         try:
@@ -287,7 +355,6 @@ def update_client(request, pk):
                 return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
         elif request.method == 'DELETE':
             try:
-   
                 if len(request.data['clients']) == 1:
                     client = Client.objects.get(id=request.data['clients'][0])
                     client.delete()

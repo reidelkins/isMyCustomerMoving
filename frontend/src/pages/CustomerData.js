@@ -11,6 +11,7 @@ import {
   Stack,
   Button,
   Checkbox,
+  LinearProgress,
   TableRow,
   TableBody,
   TableCell,
@@ -20,7 +21,6 @@ import {
   TablePagination,
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
-import LinearProgress from '@mui/material/LinearProgress';
 
 // components
 import NoteModal from '../components/NoteModal';
@@ -32,10 +32,10 @@ import Scrollbar from '../components/Scrollbar';
 import Iconify from '../components/Iconify';
 import SearchNotFound from '../components/SearchNotFound';
 import CounterCard from '../components/CounterCard';
-import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
+import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
 
-import UsersListCall from '../redux/calls/UsersListCall';
-import { selectUsers, update, updateClientAsync, serviceTitanSync } from '../redux/actions/usersActions';
+import ClientsListCall from '../redux/calls/ClientsListCall';
+import { selectClients, update, updateClientAsync, serviceTitanSync } from '../redux/actions/usersActions';
 import { logout, showLoginInfo } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
@@ -63,14 +63,19 @@ function descendingComparator(a, b, orderBy) {
   return 0;
 }
 
-function getComparator(order, orderBy) {
+export function getComparator(order, orderBy) {
   return order === 'desc'
     ? (a, b) => descendingComparator(a, b, orderBy)
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
-function applySortFilter(array, comparator, query) {
-  const stabilizedThis = array.map((el, index) => [el, index]);
+export function applySortFilter(array, comparator, query, userInfo) {
+  let stabilizedThis = array;  
+  if (userInfo === 'admin') {
+    stabilizedThis = array.map((el, index) => [el, index]);
+  } else {
+    stabilizedThis = array.filter(el => el.status !== 'No Change').map((el, index) => [el, index]);
+  }
   stabilizedThis.sort((a, b) => {
     const order = comparator(a[0], b[0]);
     if (order !== 0) return order;
@@ -89,8 +94,8 @@ export default function CustomerData() {
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
 
-  const listUser = useSelector(selectUsers);
-  const { loading, error, USERLIST } = listUser;
+  const listClient = useSelector(selectClients);
+  const { loading, error, CLIENTLIST } = listClient;
 
   const [page, setPage] = useState(0);
 
@@ -106,6 +111,8 @@ export default function CustomerData() {
 
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
+  const [shownClients, setShownClients] = useState(0);
+
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -114,12 +121,12 @@ export default function CustomerData() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = USERLIST.map((n) => n.name);
+      const newSelecteds = CLIENTLIST.map((n) => n.name);
       setSelected(newSelecteds);
       
       const newSelectedClients = []
-      for (let i=0; i < USERLIST.length; i+=1) {
-        newSelectedClients.push(USERLIST[i].id)
+      for (let i=0; i < CLIENTLIST.length; i+=1) {
+        newSelectedClients.push(CLIENTLIST[i].id)
       }
       setSelectedClients(newSelectedClients);
       return;
@@ -164,7 +171,7 @@ export default function CustomerData() {
   };
 
   const updateContacted = (event, id, contacted) => {
-    dispatch(updateClientAsync(id, contacted, ""))
+    dispatch(updateClientAsync(id, contacted, ""));
   };
 
   const updateStatus = () => {
@@ -177,10 +184,10 @@ export default function CustomerData() {
 
 
   const exportCSV = () => {
-    if (USERLIST.length === 0) { return }
+    if (CLIENTLIST.length === 0) { return }
     let csvContent = 'data:text/csv;charset=utf-8,';
     csvContent += 'Name,Address,City,State,ZipCode,Status,Contacted,Note\r\n';
-    USERLIST.forEach((n) => {
+    CLIENTLIST.forEach((n) => {
       csvContent += `${n.name}, ${n.address}, ${n.city}, ${n.state}, ${n.zipCode}, ${n.status}, ${n.contacted}, ${n.note}\r\n`
     });
 
@@ -200,22 +207,22 @@ export default function CustomerData() {
     navigate('/login', { replace: true });
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
 
-  const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
+  const filteredClients = applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName, userInfo.status);
   
   let tmpRent = 0;
   let tmpSale = 0;
   let tmpSold6 = 0;
-  let tmpSold12 = 0;
+  // let tmpSold12 = 0;
 
   const [rentCount, setRentCount] = useState(tmpRent);
   const [saleCount, setSaleCount] = useState(tmpSale);
   const [sold6Count, setSold6Count] = useState(tmpSold6);
-  const [sold12Count, setSold12Count] = useState(tmpSold12);
+  // const [sold12Count, setSold12Count] = useState(tmpSold12);
 
   useEffect(() => {
-    USERLIST.forEach((n) => {
+    CLIENTLIST.forEach((n) => {
       if (n.status === 'For Rent') {
         // setRentCount(rentCount + 1);
         tmpRent +=  1;
@@ -223,31 +230,36 @@ export default function CustomerData() {
       if (n.status === 'For Sale') {
         tmpSale += 1;
       }
-      if (n.status === 'Recently Sold (6)') {
+      if (n.status === 'Recently Sold (6)' || n.status === 'Recently Sold (12)') {
         tmpSold6 += 1;
       }
-      if (n.status === 'Recently Sold (12)') {
-        tmpSold12 += 1;
-      }
+      // if (n.status === 'Recently Sold (12)') {
+      //   tmpSold12 += 1;
+      // }
 
     });
     setRentCount(tmpRent);
     setSaleCount(tmpSale);
     setSold6Count(tmpSold6);
-    setSold12Count(tmpSold12);
+    // setSold12Count(tmpSold12);
+    if (userInfo.status === 'admin') {
+      setShownClients(CLIENTLIST.length);
+    } else {
+      setShownClients(rentCount + saleCount + sold6Count);
+    }
   });  
 
-  const isUserNotFound = filteredUsers.length === 0;
+  const isUserNotFound = filteredClients.length === 0;
 
   return (
     <Page title="User">
       <Container>
-        {userInfo ? <UsersListCall /> : null}
+        {userInfo ? <ClientsListCall /> : null}
         {userInfo && (
           <>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
               <Typography variant="h4" gutterBottom>
-                Welcome {userInfo.name} 👋
+                Welcome {userInfo.first_name} {userInfo.last_name} 👋
                 {/* Welcome */}
               </Typography>              
               {(userInfo.email === 'reid@gmail.com' || userInfo.email === 'jb@aquaclearws.com' || userInfo.email === 'reidelkins3@gmail.com') && (
@@ -255,7 +267,7 @@ export default function CustomerData() {
                 <NewCompanyModal/>
               )}
             </Stack>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5} mx={10}>
               <CounterCard
                 count={saleCount}
                 title="For Sale"
@@ -268,17 +280,17 @@ export default function CustomerData() {
               />
               <CounterCard
                 count={sold6Count}
-                title="Sold in last 6 months"
+                title="Recently Sold"
                 // description="From buttons, to inputs, navbars, alerts or cards, you are covered"
               />
-              <CounterCard
+              {/* <CounterCard
                 count={sold12Count}
                 title="Sold in last 6-12 months"
                 // description="From buttons, to inputs, navbars, alerts or cards, you are covered"
-              />
+              /> */}
             </Stack>
             <Card sx={{marginBottom:"3%"}}>
-              <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedClients={selectedClients} setSelected setSelectedClients />
+              <ClientListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedClients={selectedClients} setSelected setSelectedClients />
               {error ? (
                 // <Alert severity="error">
                 //   <AlertTitle>List Loading Error</AlertTitle>
@@ -295,23 +307,21 @@ export default function CustomerData() {
               <Scrollbar>
                 <TableContainer sx={{ minWidth: 800 }}>
                   <Table>
-                    <UserListHead
+                    <ClientListHead
                       order={order}
                       orderBy={orderBy}
                       headLabel={TABLE_HEAD}
-                      rowCount={USERLIST.length}
+                      rowCount={CLIENTLIST.length}
                       numSelected={selected.length}
                       onRequestSort={handleRequestSort}
                       onSelectAllClick={handleSelectAllClick}
                       checkbox={1}
                     />
                     <TableBody>
-                      {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                      {filteredClients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                         const { id, name, address, city, state, zipCode, status, contacted, note } = row;
-                        const isItemSelected = selected.indexOf(name) !== -1;
-                        if (userInfo.status !== 'admin' && status === 'No Change') {
-                          return null;
-                        }
+                        const isItemSelected = selected.indexOf(name) !== -1;                        
+                        
                         return (
                           <TableRow
                             hover
@@ -403,7 +413,7 @@ export default function CustomerData() {
               <TablePagination
                 rowsPerPageOptions={[10, 50, 100]}
                 component="div"
-                count={USERLIST.length}
+                count={shownClients}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 onPageChange={handleChangePage}
@@ -411,13 +421,13 @@ export default function CustomerData() {
               />
             </Card>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-              {(userInfo.name === 'reid elkins' || userInfo.name === 'Perspective Customer') && (
+              {((userInfo.first_name === 'reid' && userInfo.last_name === 'elkins') || (userInfo.first_name === 'Perspective' && userInfo.last_name === 'Customer')) && (
                 <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
                   Update Status
                 </Button>
               )}              
 
-              {userInfo.status === 'admin' && (
+              {(userInfo.status === 'admin' && userInfo.finishedSTIntegration) && (
                 <Button onClick={stSync} variant="contained">
                   Sync With Service Titan
                 </Button>

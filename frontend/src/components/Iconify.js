@@ -5,7 +5,7 @@ import { Icon } from '@iconify/react';
 import { Box } from '@mui/material';
 
 // ----------------------------------------------------------------------
-
+// find icons here https://icon-sets.iconify.design/
 Iconify.propTypes = {
   icon: PropTypes.oneOfType([PropTypes.element, PropTypes.string]),
   sx: PropTypes.object,

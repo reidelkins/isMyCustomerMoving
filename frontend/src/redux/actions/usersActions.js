@@ -10,24 +10,45 @@ export const userSlice = createSlice({
     clientsInfo: {
       loading: false,
       error: null,
+      CLIENTLIST: [],
+    },
+    usersInfo: {
+      loading: false,
+      error: null,
       USERLIST: [],
-    }
+    },
   },
   reducers: {
-    // -----------------  USERS  -----------------
-    users: (state, action) => {
-      state.clientsInfo.USERLIST = action.payload;
+    // -----------------  CLIENTS  -----------------
+    clients: (state, action) => {
+      state.clientsInfo.CLIENTLIST = action.payload;
       state.clientsInfo.loading = false;
       state.clientsInfo.error = null;
     },
-    usersError: (state, action) => {
+    clientsError: (state, action) => {
       state.clientsInfo.error = action.payload;
       state.clientsInfo.loading = false;
-      state.clientsInfo.USERLIST = [];
+      state.clientsInfo.CLIENTLIST = [];
+    },
+    clientsLoading: (state) => {
+      state.clientsInfo.loading = true;
+      state.clientsInfo.CLIENTLIST = [];
+    },
+
+    // -----------------  USERS  -----------------
+    users: (state, action) => {
+      state.usersInfo.USERLIST = action.payload;
+      state.usersInfo.loading = false;
+      state.usersInfo.error = null;
+    },
+    usersError: (state, action) => {
+      state.usersInfo.error = action.payload;
+      state.usersInfo.loading = false;
+      state.usersInfo.USERLIST = [];
     },
     usersLoading: (state) => {
-      state.clientsInfo.loading = true;
-      state.clientsInfo.USERLIST = [];
+      state.usersInfo.loading = true;
+      state.usersInfo.USERLIST = [];
     },
 
     // TODO
@@ -44,8 +65,9 @@ export const userSlice = createSlice({
   },
 });
 
-export const { users, usersLoading, usersError } = userSlice.actions;
-export const selectUsers = (state) => state.user.clientsInfo;
+export const { clients, clientsLoading, clientsError, users, usersLoading, usersError } = userSlice.actions;
+export const selectClients = (state) => state.user.clientsInfo;
+export const selectUsers = (state) => state.user.usersInfo;
 export default userSlice.reducer;
 
 export const usersAsync = () => async (dispatch, getState) => {
@@ -60,16 +82,34 @@ export const usersAsync = () => async (dispatch, getState) => {
       },
     };
     dispatch(usersLoading());
-    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}`, config);
+    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/users/${userInfo.company.id}`, config);
     dispatch(users(data));
   } catch (error) {
-    localStorage.removeItem('userInfo');
     dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    dispatch(logout());
   }
 };
 
-export const usersEditAsync = (id, status) => async (dispatch, getState) => {
+export const deleteUserAsync = (ids) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const {id: company} = userInfo.company;
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+    dispatch(usersLoading());
+    const { data } = await axios.delete(`${DOMAIN}/api/v1/accounts/manageuser/${company}/`, { data: ids}, config);
+    dispatch(users(data));
+  } catch (error) {
+    dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+};
+
+export const clientsAsync = () => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -80,12 +120,12 @@ export const usersEditAsync = (id, status) => async (dispatch, getState) => {
         Authorization: `Bearer ${userInfo.access}`,
       },
     };
-    dispatch(usersLoading());
-    const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/clients/${id}/`, { status }, config);
-    dispatch(users(data));
+    dispatch(clientsLoading());
+    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}`, config);
+    dispatch(clients(data));
   } catch (error) {
     localStorage.removeItem('userInfo');
-    dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
     dispatch(logout());
   }
 };
@@ -102,7 +142,7 @@ export const deleteClientAsync = (ids) => async (dispatch, getState) => {
         Authorization: `Bearer ${userInfo.access}`,
       },
     };
-    dispatch(usersLoading());
+    dispatch(clientsLoading());
     const chunkSize = 1000;
     let i = 0;
     for (i; i < ids.length; i += chunkSize) {
@@ -112,11 +152,9 @@ export const deleteClientAsync = (ids) => async (dispatch, getState) => {
     }
     const chunk = ids.slice(i, i + chunkSize);
     const { data } = await axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { data: {'clients': chunk}}, config);
-    dispatch(users(data));
-    // const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { data: {'clients': ids}}, config);
-    // dispatch(users(data));
+    dispatch(clients(data));
   } catch (error) {
-    dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 };
 
@@ -132,11 +170,11 @@ export const updateClientAsync = (id, contacted, note) => async (dispatch, getSt
         Authorization: `Bearer ${userInfo.access}`,
       },
     };
-    dispatch(usersLoading());
+    dispatch(clientsLoading());
     const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { 'clients': id, contacted, note }, config);
-    dispatch(users(data));
+    dispatch(clients(data));
   } catch (error) {
-    dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 };
 
@@ -192,17 +230,44 @@ export const manageUser = (email) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
       },
     };
 
-    await axios.post(
+     dispatch(usersLoading());
+    const {data} = await axios.post(
       `${DOMAIN}/api/v1/accounts/manageuser/${userInfo.company.id}/`,
       { email },
       config
     );
+    dispatch(users(data));
 
     } catch (error) {
-    throw new Error(error);
+      dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+};
+
+export const makeAdminAsync = (userId) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+
+    dispatch(usersLoading());
+    const {data} = await axios.post(
+      `${DOMAIN}/api/v1/accounts/manageuser/${userId}/`,
+      config
+    );
+    dispatch(users(data));
+
+    } catch (error) {
+      dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 };
 

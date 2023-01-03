@@ -19,6 +19,7 @@ STATUS_CHOICES = (
     ('active', 'ACTIVE'),
     ('banned', 'BANNED'),
     ('admin', 'ADMIN'),
+    ('pending', 'PENDING'),
 )
 
 STATUS = [
@@ -75,7 +76,6 @@ class Company(models.Model):
                           default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     accessToken = models.CharField(default=create_access_token, max_length=100)
-    
     avatarUrl = models.ImageField(
         upload_to='customers', null=True, blank=True, default='/placeholder.png')
     email_frequency = models.IntegerField(default=0)
@@ -87,9 +87,13 @@ class Company(models.Model):
     clientID = models.CharField(max_length=100, blank=True, null=True)
     clientSecret = models.CharField(max_length=100, blank=True, null=True)
 
+
+def zipTime():
+    return (datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d')
+
 class ZipCode(models.Model):
     zipCode = models.CharField(max_length=5, primary_key=True, unique=True)
-    lastUpdated = models.DateField(default=(datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d'))
+    lastUpdated = models.DateField(default=zipTime)
 
 class Client(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
@@ -143,7 +147,6 @@ class CustomUser(AbstractUser):
 
 def utc_tomorrow():
     return datetime.utcnow() + timedelta(days=1)
-
 
 class InviteToken(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,

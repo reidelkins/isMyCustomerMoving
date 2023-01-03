@@ -80,8 +80,29 @@ export const loginAsync = (email, password) => async (dispatch) => {
     const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/login/`, { email, password }, config);
     dispatch(login(data));
     localStorage.setItem('userInfo', JSON.stringify(data));
+    
   } catch (error) {
     dispatch(loginError(error.response && error.response.data.detail ? error.response.data.detail : error.message,));
+  }
+};
+
+export const editUserAsync = (email, firstName, lastName, serviceTitan) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+    dispatch(loginLoading());
+    const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/manageuser/${userInfo.id}/`, { email, firstName, lastName, serviceTitan }, config);
+    dispatch(login(data));
+    localStorage.setItem('userInfo', JSON.stringify(data));
+  } catch (error) {
+    dispatch(loginError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 };
 

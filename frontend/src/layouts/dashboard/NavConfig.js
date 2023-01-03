@@ -12,7 +12,7 @@ const navConfig = [
     icon: getIcon('eva:people-fill'),
   },
   {
-    title: 'Profile Settings',
+    title: 'Settings',
     path: '/dashboard/settings',
     icon: getIcon('ri:user-settings-fill'),
   },
