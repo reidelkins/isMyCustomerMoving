@@ -46,7 +46,6 @@ def makeCompany(companyName, email, phone, stripeID,):
         comp = {'name': companyName, 'phone': phone, 'email': email, 'stripeID': stripeID}
         serializer = CompanySerializer(data=comp)
         if serializer.is_valid():
-            print("Serializer is valid")
             company = serializer.save()
             if company:
                 mail_subject = "Access Token for Is My Customer Moving"
@@ -60,7 +59,6 @@ def makeCompany(companyName, email, phone, stripeID,):
             else:
                 return {'Error': "Company with that name already exists"}
         else:
-            print("Serializer not valid")
             print(serializer.errors)
             return {'Error': 'Serializer not valid'}
     except Exception as e:
@@ -90,54 +88,49 @@ def saveClientList(reader, company_id):
         saveClient.delay(street, zip, city, state, name, company_id)
 
 @shared_task
-def saveClient(street, zip, city, state, name, company_id):
+def saveClient(street, zip, city, state, name, company_id, serviceTitanID=None):
     try:
         company = Company.objects.get(id=company_id)
-        if company.product.customerLimit-Client.objects.filter(company=company).count()-5 < 0:
-            return
         street = parseStreets(street)
-        try:
-            if int(zip) > 500 and int(zip) < 99951:
-                if len(zip) == 4:
-                    zip = '0' + str(zip)
-                elif len(zip) == 3:
-                    zip = '00' + str(zip)
-                elif len(zip) != 5:
-                    return
+        # try:
+        #     if int(zip) > 500 and int(zip) < 99951:
+        #         if len(zip) == 4:
+        #             zip = '0' + str(zip)
+        #         elif len(zip) == 3:
+        #             zip = '00' + str(zip)
+        #         elif len(zip) != 5:
+        #             return
+        # except:
+        if type(zip) == float:
+            zip = int(zip)
+        if type(zip) == str:
+            zip = (zip.split('-'))[0]
+        if int(zip) > 500 and int(zip) < 99951:
+            if len(zip) == 4:
+                zip = '0' + str(zip)
+            elif len(zip) == 3:
+                zip = '00' + str(zip)
+            elif len(zip) != 5:
+                return
 
-                zipCode, created = ZipCode.objects.get_or_create(zipCode=str(zip))
-                Client.objects.update_or_create(
-                        name= name,
-                        address= street,
-                        zipCode= zipCode,
-                        company= company,
-                        city= city,
-                        state = state,
-                        )
-        except:
-            try:
-                if type(zip) == float:
-                    zip = int(zip)
-                if type(zip) == str:
-                    zip = (zip.split('-'))[0]
-                if int(zip) > 500 and int(zip) < 99951:
-                    if len(zip) == 4:
-                        zip = '0' + str(zip)
-                    elif len(zip) == 3:
-                        zip = '00' + str(zip)
-                    elif len(zip) != 5:
-                        return
-                    zipCode, created = ZipCode.objects.get_or_create(zipCode=str(zip))
-                    Client.objects.update_or_create(
-                            name= name,
-                            address= street,
-                            zipCode= zipCode,
-                            company= company,
-                            city= city,
-                            state = state,
-                            )
-            except Exception as e:
-                print(e)
+        zipCode, zipCreated = ZipCode.objects.get_or_create(zipCode=str(zip))
+        client, created = Client.objects.get_or_create(
+                name= name,
+                address= street,
+                zipCode= zipCode,
+                company= company,
+                city= city,
+                state = state,                
+                )
+        if created and company.product.customerLimit-Client.objects.filter(company=company).count()-5 < 0:
+            client.delete()
+            if zipCreated:
+                zipCode.delete()
+            return
+
+        client.servTitanID = serviceTitanID
+        client.save()
+            
     except Exception as e:
             print(e)
 
@@ -392,7 +385,7 @@ def get_serviceTitan_clients(company):
             city= city[0]            
             state=client['address']['state']
             street = parseStreets((str(client['address']['street'])).title())
-            saveClient.delay(street, zip, city, state, name, company.id)
+            saveClient.delay(street, zip, city, state, name, company.id, client['id'])
         except Exception as e:
             print(f"ERROR: {e} with client {client['name']}")
 
