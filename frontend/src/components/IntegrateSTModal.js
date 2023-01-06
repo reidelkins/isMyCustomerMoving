@@ -19,11 +19,8 @@ import { useDispatch } from 'react-redux';
 import { companyAsync } from '../redux/actions/authActions';
 import Iconify from './Iconify';
 
-IntegrateSTModal.propTypes = {
-    userInfo: Object
-}
 
-export default function IntegrateSTModal({userInfo}) {
+export default function IntegrateSTModal() {
     // const classes = useStyles();
     const [open, setOpen] = useState(false);
     const [integrateInfo, setIntegrateInfo] = useState(false);
@@ -47,7 +44,7 @@ export default function IntegrateSTModal({userInfo}) {
         validationSchema: IntegrateSTSchema,
         onSubmit: () => {
             setOpen(false);
-            dispatch(companyAsync(userInfo, "", "", values.tenantID, "", ""))
+            dispatch(companyAsync("", "", values.tenantID, "", "", "", "", ""))
         },
     });
 

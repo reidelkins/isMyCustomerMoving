@@ -159,6 +159,12 @@ def company(request):
             if request.data['clientID'] != "":
                 company.clientID = request.data['clientID']
                 company.clientSecret = request.data['clientSecret']
+            if request.data['forSaleTag'] != "":
+                company.serviceTitanForSaleTagID = request.data['forSaleTag']
+            if request.data['forRentTag'] != "":
+                company.serviceTitanForRentTagID = request.data['forRentTag']
+            if request.data['soldTag'] != "":
+                company.serviceTitanRecentlySoldTagID = request.data['soldTag']
             company.save()
             user = CustomUser.objects.get(id=request.data['user'])
             serializer = UserSerializerWithToken(user, many=False)

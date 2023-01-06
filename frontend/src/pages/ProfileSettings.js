@@ -7,15 +7,16 @@ import * as Yup from 'yup';
 import { useFormik, Form, FormikProvider } from 'formik';
 import { useNavigate } from 'react-router-dom';
 
-import { Box, Checkbox, LinearProgress, Link, TextField, Card, Grid, Container, Typography, Stack, Button, TableContainer, Table, TableBody, TableCell, TableRow, IconButton } from '@mui/material';
+import { Box, Checkbox, LinearProgress, Link, TextField, Card, Grid, Container, Typography, Stack, Button, TableContainer, Table, TableBody, TableCell, TableRow } from '@mui/material';
 
 // components
-import Iconify from '../components/Iconify';
+// import Iconify from '../components/Iconify';
 import Page from '../components/Page';
 import Scrollbar from '../components/Scrollbar';
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 import NewUserModal from '../components/NewUserModal';
 import IntegrateSTModal from '../components/IntegrateSTModal';
+import ServiceTitanTagsModal from '../components/ServiceTitanTagsModal';
 import AddSecretModal from '../components/AddSecretModal';
 import { applySortFilter, getComparator } from './CustomerData';
 // import ResetPasswordModal from '../components/ResetPasswordModal';
@@ -23,6 +24,7 @@ import { applySortFilter, getComparator } from './CustomerData';
 import UsersListCall from '../redux/calls/UsersListCall';
 import { showLoginInfo, logout, editUserAsync } from '../redux/actions/authActions';
 import { manageUser, selectUsers, makeAdminAsync } from '../redux/actions/usersActions';
+
 
 
 // ----------------------------------------------------------------------
@@ -45,8 +47,10 @@ export default function ProfileSettings() {
   const listUser = useSelector(selectUsers);
   const { loading, error, USERLIST } = listUser;
 
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  // const [page, setPage] = useState(0);
+  const page = 0;
+  // const [rowsPerPage, setRowsPerPage] = useState(10);
+  const rowsPerPage = 10;
   const [filterName, setFilterName] = useState('');
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('status');
@@ -81,7 +85,7 @@ export default function ProfileSettings() {
     },
   });
 
-  const { errors, touched, values, handleSubmit, isSubmitting, getFieldProps } = formik;
+  const { errors, touched, values, handleSubmit, getFieldProps } = formik;
 
 
   const handleRequestSort = (event, property) => {
@@ -127,7 +131,6 @@ export default function ProfileSettings() {
     setSelectedUsers(newSelectedUsers);
 
   };
-
   return (
     <Page title="Profile Settings">
       <Container maxWidth="xl">
@@ -176,7 +179,11 @@ export default function ProfileSettings() {
                           helperText={touched.servTitan && errors.servTitan}
                         />
                       ) : (
-                        userInfo.company.tenantID ? <p>{userInfo.company.tenantID}</p> : <IntegrateSTModal userInfo={userInfo} />                    
+                        <>
+                          userInfo.company.tenantID ? <p>{userInfo.company.tenantID}</p> : <IntegrateSTModal />
+                          (!userInfo.company.clientID && userInfo.company.tenantID) && <AddSecretModal />
+                          userInfo.company.clientID && <ServiceTitanTagsModal userInfo={userInfo}/>
+                        </>
                       )}
                       <br />
                       <Button
@@ -202,6 +209,7 @@ export default function ProfileSettings() {
                   <h3>Service Titan Tenant ID:</h3>                  
                   {userInfo.company.tenantID ? <p>{userInfo.company.tenantID}</p> : <IntegrateSTModal userInfo={userInfo} />}
                   {(!userInfo.company.clientID && userInfo.company.tenantID) && <AddSecretModal userInfo={userInfo}/>}
+                  {userInfo.company.clientID && <ServiceTitanTagsModal userInfo={userInfo}/>}
                   <br />
                   <Button 
                     fullWidth
@@ -284,6 +292,7 @@ export default function ProfileSettings() {
                                   </Button>
                                 )
                               }
+                              return null;
                             })()}
                           </TableCell>
                           <TableCell>

@@ -122,7 +122,7 @@ export const registerAsync = (company, accessToken, firstName, lastName, email, 
   }
 };
 
-export const companyAsync = (userInfo, email, phone, tenantID, clientID, clientSecret) => async (dispatch, getState) => {
+export const companyAsync = (email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag) => async (dispatch, getState) => {
   try {
     dispatch(companyLoading());
 
@@ -136,7 +136,7 @@ export const companyAsync = (userInfo, email, phone, tenantID, clientID, clientS
     };
     const { data } = await axios.put(
       `${DOMAIN}/api/v1/accounts/company/`,
-      { 'company': userInfo.company.id, email, phone, tenantID, clientID, clientSecret, 'user': userInfo.id},
+      { 'company': userInfo.company.id, email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag, 'user': userInfo.id},
       config
     );
     dispatch(company(data));
@@ -147,8 +147,8 @@ export const companyAsync = (userInfo, email, phone, tenantID, clientID, clientS
   }
 };
 
-export const resetPasswordAsync = (oldPassword, password) => async (dispatch) => {
-};
+// export const resetPasswordAsync = (oldPassword, password) => async (dispatch) => {
+// };
 
 export const addUserAsync = (firstName, lastName, email, password, token) => async (dispatch) => {
   try {

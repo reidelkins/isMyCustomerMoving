@@ -214,17 +214,18 @@ export default function CustomerData() {
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
   const filteredClients = userInfo ? applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName, userInfo.status) : [];
   
-  let tmpRent = 0;
-  let tmpSale = 0;
-  let tmpSold6 = 0;
+  
   // let tmpSold12 = 0;
 
-  const [rentCount, setRentCount] = useState(tmpRent);
-  const [saleCount, setSaleCount] = useState(tmpSale);
-  const [sold6Count, setSold6Count] = useState(tmpSold6);
+  const [rentCount, setRentCount] = useState(0);
+  const [saleCount, setSaleCount] = useState(0);
+  const [sold6Count, setSold6Count] = useState(0);
   // const [sold12Count, setSold12Count] = useState(tmpSold12);
 
   useEffect(() => {
+    let tmpRent = 0;
+    let tmpSale = 0;
+    let tmpSold6 = 0;
     CLIENTLIST.forEach((n) => {
       if (n.status === 'For Rent') {
         // setRentCount(rentCount + 1);
@@ -252,7 +253,7 @@ export default function CustomerData() {
         setShownClients(rentCount + saleCount + sold6Count);
       }
     }
-  });  
+  }, [CLIENTLIST, userInfo, rentCount, saleCount, sold6Count]);  
 
   return (
     <Page title="User">
@@ -376,7 +377,7 @@ export default function CustomerData() {
                                     </IconButton>
                                   )
                                 }
-                                
+                                return null;
                               })()}                          
                             </TableCell>
                             <TableCell>
