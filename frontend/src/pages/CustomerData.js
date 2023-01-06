@@ -91,8 +91,17 @@ export default function CustomerData() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const logoutHandler = () => {
+    dispatch(logout());
+    navigate('/login', { replace: true });
+  };
+
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
+
+  if (!userInfo) {
+    logoutHandler();
+  }
 
   const listClient = useSelector(selectClients);
   const { loading, error, CLIENTLIST } = listClient;
@@ -202,14 +211,8 @@ export default function CustomerData() {
     document.body.removeChild(link);
   };
 
-  const logoutHandler = () => {
-    dispatch(logout());
-    navigate('/login', { replace: true });
-  };
-
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
-
-  const filteredClients = applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName, userInfo.status);
+  const filteredClients = userInfo ? applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName, userInfo.status) : [];
   
   let tmpRent = 0;
   let tmpSale = 0;
@@ -242,14 +245,14 @@ export default function CustomerData() {
     setSaleCount(tmpSale);
     setSold6Count(tmpSold6);
     // setSold12Count(tmpSold12);
-    if (userInfo.status === 'admin') {
-      setShownClients(CLIENTLIST.length);
-    } else {
-      setShownClients(rentCount + saleCount + sold6Count);
+    if (userInfo) {
+      if (userInfo.status === 'admin') {
+        setShownClients(CLIENTLIST.length);
+      } else {
+        setShownClients(rentCount + saleCount + sold6Count);
+      }
     }
   });  
-
-  const isUserNotFound = filteredClients.length === 0;
 
   return (
     <Page title="User">
@@ -397,7 +400,7 @@ export default function CustomerData() {
                       )}
                     </TableBody>
 
-                    {isUserNotFound && (
+                    {filteredClients.length === 0 && (
                       <TableBody>
                         <TableRow>
                           <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
