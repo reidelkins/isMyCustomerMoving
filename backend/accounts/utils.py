@@ -90,7 +90,7 @@ def saveClientList(reader, company_id):
         saveClient.delay(street, zip, city, state, name, company_id)
 
 @shared_task
-def saveClient(street, zip, city, state, name, company_id):
+def saveClient(street, zip, city, state, name, company_id, servTitanID=""):
     try:
         company = Company.objects.get(id=company_id)
         if company.product.customerLimit-Client.objects.filter(company=company).count()-5 < 0:
@@ -113,6 +113,7 @@ def saveClient(street, zip, city, state, name, company_id):
                         company= company,
                         city= city,
                         state = state,
+                        servTitanID = servTitanID
                         )
         except:
             try:
@@ -135,6 +136,7 @@ def saveClient(street, zip, city, state, name, company_id):
                             company= company,
                             city= city,
                             state = state,
+                            servTitanID = servTitanID
                             )
             except Exception as e:
                 print(e)
@@ -392,11 +394,11 @@ def get_serviceTitan_clients(company):
             city= city[0]            
             state=client['address']['state']
             street = parseStreets((str(client['address']['street'])).title())
-            saveClient.delay(street, zip, city, state, name, company.id)
+            saveClient.delay(street, zip, city, state, name, company.id, client['id'])
         except Exception as e:
             print(f"ERROR: {e} with client {client['name']}")
 
-def update_serviceTitan_clients(clients, company):
+def update_serviceTitan_clients(company):
     try:
         company = Company.objects.get(id=company)
         tenant = company.tenantID
@@ -406,8 +408,26 @@ def update_serviceTitan_clients(clients, company):
         data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
         response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
         headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
-        customerIds = []
-        payload={'customerIds': ['240000932'], 'tagTypeIds': ['71']}
-        response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/tags', headers=headers, json=payload)
+        forSale = []
+        forSaleClients = list(Client.objects.filter(status='For Sale', company=company).values_list('servTitanID'))
+        for client in forSaleClients:
+            if client[0] != None:
+                forSale.append(str(client[0]))
+        payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
+        response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/tags', headers=headers, json=payload)
+        forRent = []
+        forRentClients = list(Client.objects.filter(status='For Rent', company=company).values_list('servTitanID'))
+        for client in forRentClients:
+            if client[0] != None:
+                forRent.append(str(client[0]))
+        payload={'customerIds': forRent, 'tagTypeIds': [str(company.serviceTitanForRentTagID)]}
+        response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/tags', headers=headers, json=payload)
+        recentlySold = []
+        recentlySoldClients = list(Client.objects.filter(status='Recently Sold (6)', company=company).values_list('servTitanID'))
+        for client in recentlySoldClients:
+            if client[0] != None:
+                recentlySold.append(str(client[0]))
+        payload={'customerIds': recentlySold, 'tagTypeIds': [str(company.serviceTitanRecentlySoldTagID)]}
+        response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/tags', headers=headers, json=payload)
     except Exception as e:
         print(f"ERROR: {e}")
