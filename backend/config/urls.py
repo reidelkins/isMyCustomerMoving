@@ -38,6 +38,7 @@ urlpatterns = [
 
     path('api/v1/accounts/', include('accounts.urls')),
     path('api/v1/payments/', include('payments.urls')),
+    path('ws/', include('accounts.routing')),
 
 ]
 

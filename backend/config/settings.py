@@ -47,6 +47,8 @@ ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "is-my-customer-moving.her
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
+
     'django.contrib.admin',
 
     # To generate Admin Docs  Requirement -> # pip install docutils
@@ -70,6 +72,7 @@ INSTALLED_APPS = [
     'corsheaders',  # To Connect API with React App if required in seprate apps
     'django_celery_beat',
     'django_rest_passwordreset',
+    
 ]
 
 
@@ -90,6 +93,8 @@ INTERNAL_IPS = [
     '127.0.0.1',
     # ...
 ]
+
+ASGI_APPLICATION = 'config.asgi.application' 
 
 # Auth user
 AUTH_USER_MODEL = "accounts.CustomUser"

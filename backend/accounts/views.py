@@ -309,35 +309,34 @@ class UploadFileView(generics.CreateAPIView):
     serializer_class = UploadFileSerializer
     
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        company_id = list(serializer.initial_data.dict().keys())[0]
-        file = serializer.initial_data[company_id]
+        company_id = self.kwargs['company']
         try:
             Company.objects.get(id=company_id)
         except Exception as e:
             print(e)
             return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
+        # try:
+        #     print(request.data)
+        #     reader = pd.read_csv(file, on_bad_lines='skip')
+        #     reader.columns= reader.columns.str.lower()
+        #     for column in reader.columns:
+        #         if "name" in column:
+        #             reader.columns = reader.columns.str.replace(column, 'name')
+        #         if "zip" in column:
+        #             reader.columns = reader.columns.str.replace(column, 'zip')
+        #         if "street" in column:
+        #             reader.columns = reader.columns.str.replace(column, 'street')
+        #         elif "address" in column:
+        #             reader.columns = reader.columns.str.replace(column, 'street')
+        #         if "city" in column:
+        #             reader.columns = reader.columns.str.replace(column, 'city')
+        #         if "state" in column:
+        #             reader.columns = reader.columns.str.replace(column, 'state')
+        # except Exception as e:
+        #     print(e)
+        #     return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            reader = pd.read_csv(file, on_bad_lines='skip')
-            reader.columns= reader.columns.str.lower()
-            for column in reader.columns:
-                if "name" in column:
-                    reader.columns = reader.columns.str.replace(column, 'name')
-                if "zip" in column:
-                    reader.columns = reader.columns.str.replace(column, 'zip')
-                if "street" in column:
-                    reader.columns = reader.columns.str.replace(column, 'street')
-                elif "address" in column:
-                    reader.columns = reader.columns.str.replace(column, 'street')
-                if "city" in column:
-                    reader.columns = reader.columns.str.replace(column, 'city')
-                if "state" in column:
-                    reader.columns = reader.columns.str.replace(column, 'state')
-        except Exception as e:
-            print(e)
-            return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            saveClientList.delay(reader.to_json(), company_id)
+            saveClientList.delay(request.data, company_id)
         except Exception as e:
             print(e)
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)

@@ -75,16 +75,14 @@ def parseStreets(street):
     return street
 
 @shared_task
-def saveClientList(reader, company_id):
-    reader = pd.read_json(reader)
+def saveClientList(clients, company_id):
     
-    for _, row in reader.iterrows():
-        row = row.to_dict()
-        street = (str(row['street'])).title()
-        zip = row['zip']
-        city = row['city']
-        state = row['state']
-        name = row['name']      
+    for client in clients:
+        street = (str(client['address'])).title()
+        zip = client['zip code']
+        city = client['city']
+        state = client['state']
+        name = client['name']      
         saveClient.delay(street, zip, city, state, name, company_id)
 
 @shared_task
@@ -92,15 +90,6 @@ def saveClient(street, zip, city, state, name, company_id, serviceTitanID=None):
     try:
         company = Company.objects.get(id=company_id)
         street = parseStreets(street)
-        # try:
-        #     if int(zip) > 500 and int(zip) < 99951:
-        #         if len(zip) == 4:
-        #             zip = '0' + str(zip)
-        #         elif len(zip) == 3:
-        #             zip = '00' + str(zip)
-        #         elif len(zip) != 5:
-        #             return
-        # except:
         if type(zip) == float:
             zip = int(zip)
         if type(zip) == str:
@@ -122,7 +111,7 @@ def saveClient(street, zip, city, state, name, company_id, serviceTitanID=None):
                 city= city,
                 state = state,                
                 )
-        if created and company.product.customerLimit-Client.objects.filter(company=company).count()-5 < 0:
+        if created and company.product.customerLimit-Client.objects.filter(company=company).count() < 0:
             client.delete()
             if zipCreated:
                 zipCode.delete()
@@ -372,8 +361,6 @@ def get_serviceTitan_clients(company):
             frm = response.json()['continueFrom']
         else:
             moreClients = False
-    with open('clients.json', 'w') as outfile:
-        json.dump(clients, outfile)
 
     for client in clients:
         try:
@@ -399,20 +386,32 @@ def update_serviceTitan_clients(company):
         data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
         response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
         headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
-        forSale = []
         forSaleClients = list(Client.objects.filter(status='For Sale', company=company).values_list('servTitanID'))
+        forSale = []
         for client in forSaleClients:
             if client[0] != None:
                 forSale.append(str(client[0]))
         payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
         response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/tags', headers=headers, json=payload)
-        forRent = []
-        forRentClients = list(Client.objects.filter(status='For Rent', company=company).values_list('servTitanID'))
-        for client in forRentClients:
-            if client[0] != None:
-                forRent.append(str(client[0]))
-        payload={'customerIds': forRent, 'tagTypeIds': [str(company.serviceTitanForRentTagID)]}
-        response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/tags', headers=headers, json=payload)
+        if response.status_code != 200:
+            resp = response.json()
+            error = resp['errors'][''][0]
+            error = error.replace('(', "").replace(')', "").replace(',', " ").replace(".", "").split()
+            for word in error:
+                if word.isdigit():
+                    #TODO: should the client just be deleted?
+                    Client.objects.filter(servTitanID=word).update(servTitanID=None)
+                    forSale.remove(word)
+            payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
+            response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/tags', headers=headers, json=payload)
+
+        # forRent = []
+        # forRentClients = list(Client.objects.filter(status='For Rent', company=company).values_list('servTitanID'))
+        # for client in forRentClients:
+        #     if client[0] != None:
+        #         forRent.append(str(client[0]))
+        # payload={'customerIds': forRent, 'tagTypeIds': [str(company.serviceTitanForRentTagID)]}
+        # response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/tags', headers=headers, json=payload)
         recentlySold = []
         recentlySoldClients = list(Client.objects.filter(status='Recently Sold (6)', company=company).values_list('servTitanID'))
         for client in recentlySoldClients:
@@ -420,5 +419,17 @@ def update_serviceTitan_clients(company):
                 recentlySold.append(str(client[0]))
         payload={'customerIds': recentlySold, 'tagTypeIds': [str(company.serviceTitanRecentlySoldTagID)]}
         response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/tags', headers=headers, json=payload)
+        if response.status_code != 200:
+            resp = response.json()
+            error = resp['errors'][''][0]
+            error = error.replace('(', "").replace(')', "").replace(',', " ").replace(".", "").split()
+            for word in error:
+                if word.isdigit():
+                    #TODO: should the client just be deleted?
+                    Client.objects.filter(servTitanID=word).update(servTitanID=None)
+                    recentlySold.remove(word)
+            payload={'customerIds': recentlySold, 'tagTypeIds': [str(company.serviceTitanRecentlySoldTagID)]}
+            response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/tags', headers=headers, json=payload)
+
     except Exception as e:
         print(f"ERROR: {e}")

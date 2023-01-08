@@ -15,6 +15,8 @@ urlpatterns = [
     path('verify_registration/', views.VerifyRegistrationView.as_view(), name='verify'),
     path('refresh_token/', TokenRefreshView.as_view(), name='refresh_token'),
     path('confirmation/<str:pk>/<str:uid>/', views.confirmation, name='email_confirmation'),
+
+    
     
     path('update/<str:company>/', views.UpdateStatusView.as_view(), name='update-status'),
     path('servicetitan/<str:company>/', views.ServiceTitanView.as_view(), name='servicetitian'),
@@ -22,7 +24,7 @@ urlpatterns = [
     path('manageuser/<str:id>/', views.ManageUserView.as_view(), name='manageuser'),    
     path('password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
     path('updateclient/<str:pk>/', views.update_client, name='updateclient'),
-    path('upload/', views.UploadFileView.as_view(), name='upload-file'),
+    path('upload/<str:company>/', views.UploadFileView.as_view(), name='upload-file'),
     path('clients/<str:company>/', views.ClientListView.as_view(), name='client-list'),
     path('users/<str:company>/', views.UserListView.as_view(), name='user-list'),
     path('register/', views.RegisterView.as_view(), name='register'),
