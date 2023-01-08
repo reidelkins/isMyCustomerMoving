@@ -122,7 +122,7 @@ export const registerAsync = (company, accessToken, firstName, lastName, email, 
   }
 };
 
-export const companyAsync = (userInfo, email, phone, tenantID, clientID, clientSecret) => async (dispatch, getState) => {
+export const companyAsync = (email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag) => async (dispatch, getState) => {
   try {
     dispatch(companyLoading());
 
@@ -136,7 +136,7 @@ export const companyAsync = (userInfo, email, phone, tenantID, clientID, clientS
     };
     const { data } = await axios.put(
       `${DOMAIN}/api/v1/accounts/company/`,
-      { 'company': userInfo.company.id, email, phone, tenantID, clientID, clientSecret, 'user': userInfo.id},
+      { 'company': userInfo.company.id, email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag, 'user': userInfo.id},
       config
     );
     dispatch(company(data));
@@ -147,8 +147,8 @@ export const companyAsync = (userInfo, email, phone, tenantID, clientID, clientS
   }
 };
 
-export const resetPasswordAsync = (oldPassword, password) => async (dispatch) => {
-};
+// export const resetPasswordAsync = (oldPassword, password) => async (dispatch) => {
+// };
 
 export const addUserAsync = (firstName, lastName, email, password, token) => async (dispatch) => {
   try {
@@ -209,6 +209,7 @@ export const submitNewPassAsync = (password, token) => async (dispatch) => {
 };
 
 export const logout = () => (dispatch) => {
+  console.log("logging out")
   localStorage.removeItem('userInfo');
   dispatch(logoutUser());
 };
@@ -217,100 +218,3 @@ export const { login, loginError, loginLoading, register, registerError, registe
 export const showLoginInfo = (state) => state.auth.userInfo;
 export const showRegisterInfo = (state) => state.auth.registerInfo;
 export default authSlice.reducer;
-
-// export const addUserOld = (firstName, lastName, email, password, token) => async (dispatch) => {
-//   try {
-//     dispatch({
-//       type: ADDUSER_REQUEST,
-//     });
-//     console.log(email)
-//     const config = {
-//       headers: {
-//         'Content-type': 'application/json',
-//       },
-//     };
-
-//     const { data } = await axios.post(
-//       `${DOMAIN}/api/v1/accounts/manageuser/${token}/`,
-//       { firstName, lastName, email, password },
-//       config
-//     );
-
-//     dispatch({
-//       type: ADDUSER_SUCCESS,
-//       payload: data,
-//     });
-
-//     dispatch({
-//       type: ADDUSER_SUCCESS,
-//       payload: data,
-//     });
-    
-//   } catch (error) {
-//     dispatch({
-//       type: ADDUSER_FAIL,
-//       payload: error.response && error.response.data.detail ? error.response.data.detail : error.message,
-//     });
-//   }
-// };
-
-// export const resetRequestOld = (email) => async (dispatch) => {
-//   try {
-//     dispatch({
-//       type: RESET_REQUEST_REQUEST,
-//     });
-
-//     const config = {
-//       headers: {
-//         'Content-type': 'application/json',
-//       },
-//     };
-
-//     const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/password_reset/`, { email }, config);
-
-//     dispatch({
-//       type: RESET_REQUEST_SUCCESS,
-//       payload: data,
-//     });
-//   } catch (error) {
-//     dispatch({
-//       type: RESET_REQUEST_FAIL,
-//       payload: error.response && error.response.data.detail ? error.response.data.detail : error.message,
-//     });
-//   }
-// };
-
-// export const submitNewPassOld = (password, token) => async (dispatch) => {
-//   try {
-//     dispatch({
-//       type: PASSWORD_RESET_REQUEST,
-//     });
-
-//     const config = {
-//       headers: {
-//         'Content-Type': 'application/json',
-//       },
-//     };
-
-//     await axios.post(
-//       `${DOMAIN}/api/v1/accounts/password_reset/confirm/`,
-//       { 
-//         token,
-//         password
-//       },
-//       config
-//     );
-
-//     dispatch({
-//       type: PASSWORD_RESET_SUCCESS,
-//     });
-//   } catch (error) {
-//     dispatch({
-//       type: PASSWORD_RESET_FAIL,
-//       payload:
-//         error.response && error.response.data.message
-//           ? error.response.data.message
-//           : error.message,
-//     });
-//   }
-// };

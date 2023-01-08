@@ -271,6 +271,26 @@ export const makeAdminAsync = (userId) => async (dispatch, getState) => {
   }
 };
 
+export const uploadClientsAsync = (clients) => async (dispatch, getState) => {
+   try {
+     const reduxStore = getState();
+     const {userInfo} = reduxStore.auth.userInfo;
+     const {id: company} = userInfo.company;
+
+     const config = {
+       headers: {
+         'Content-type': 'application/json',
+         Authorization: `Bearer ${userInfo.access}`,
+       },
+     };
+     dispatch(clientsLoading());
+     const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/upload/${company}/`, clients, config);
+     // dispatch(clients(data));
+   } catch (error) {
+     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+   }
+ };
+
 export const update = () => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
