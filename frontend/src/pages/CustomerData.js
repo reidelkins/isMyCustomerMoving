@@ -89,25 +89,22 @@ export function applySortFilter(array, comparator, query, userInfo) {
 
 export default function CustomerData() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  const logoutHandler = () => {
-    dispatch(logout());
-    navigate('/login', { replace: true });
-  };
+  const navigate = useNavigate();  
 
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
 
   if (!userInfo) {
-    logoutHandler();
+    dispatch(logout());
+    navigate('/login', { replace: true });
+    window.location.reload(false);
   }
 
   const listClient = useSelector(selectClients);
   const { loading, error, CLIENTLIST } = listClient;
 
   const [page, setPage] = useState(0);
-
+  
   const [order, setOrder] = useState('asc');
 
   const [selected, setSelected] = useState([]);
@@ -121,13 +118,11 @@ export default function CustomerData() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const [shownClients, setShownClients] = useState(0);
-
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
   };
-
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
       const newSelecteds = CLIENTLIST.map((n) => n.name);
@@ -143,7 +138,6 @@ export default function CustomerData() {
     setSelected([]);
     setSelectedClients([]);
   };
-
   const handleClick = (event, name, id) => {
     const selectedIndex = selected.indexOf(name);
     let newSelected = [];
@@ -165,32 +159,25 @@ export default function CustomerData() {
     setSelectedClients(newSelectedClients);
 
   };
-
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
-
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-
   const handleFilterByName = (event) => {
     setFilterName(event.target.value);
   };
-
   const updateContacted = (event, id, contacted) => {
     dispatch(updateClientAsync(id, contacted, ""));
   };
-
   const updateStatus = () => {
     dispatch(update());
   };
-
   const stSync = () => {
     dispatch(serviceTitanSync());
   };
-
 
   const exportCSV = () => {
     if (CLIENTLIST.length === 0) { return }
@@ -210,22 +197,18 @@ export default function CustomerData() {
     link.click();
     document.body.removeChild(link);
   };
-
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
   const filteredClients = userInfo ? applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName, userInfo.status) : [];
   
   const [rentCount, setRentCount] = useState(0);
   const [saleCount, setSaleCount] = useState(0);
   const [sold6Count, setSold6Count] = useState(0);
-  // const [sold12Count, setSold12Count] = useState(tmpSold12);
-
   useEffect(() => {
     let tmpRent = 0;
     let tmpSale = 0;
     let tmpSold6 = 0;
     CLIENTLIST.forEach((n) => {
       if (n.status === 'For Rent') {
-        // setRentCount(rentCount + 1);
         tmpRent +=  1;
       }
       if (n.status === 'For Sale') {
@@ -234,15 +217,12 @@ export default function CustomerData() {
       if (n.status === 'Recently Sold (6)' || n.status === 'Recently Sold (12)') {
         tmpSold6 += 1;
       }
-      // if (n.status === 'Recently Sold (12)') {
-      //   tmpSold12 += 1;
-      // }
+
 
     });
     setRentCount(tmpRent);
     setSaleCount(tmpSale);
     setSold6Count(tmpSold6);
-    // setSold12Count(tmpSold12);
     if (userInfo) {
       if (userInfo.status === 'admin') {
         setShownClients(CLIENTLIST.length);
@@ -251,7 +231,6 @@ export default function CustomerData() {
       }
     }
   }, [CLIENTLIST, userInfo, rentCount, saleCount, sold6Count]);  
-
   return (
     <Page title="User">
       <Container>

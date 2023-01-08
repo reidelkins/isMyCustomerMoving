@@ -42,6 +42,10 @@ export default function ProfileSettings() {
 
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
+  if(!userInfo) {
+    navigate('/login', { replace: true });
+    window.location.reload(false);
+  }
   const [editting, setEditting] = useState(false);
 
   const listUser = useSelector(selectUsers);
@@ -227,10 +231,7 @@ export default function ProfileSettings() {
           </Grid>
         </Grid>
         <Card sx={{marginTop:"3%", marginBottom:"3%", padding:'3%'}}>
-          <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedUsers={selectedUsers} setSelected setSelectedUsers/>
-          { error ? (                
-            logoutHandler
-          ) : null}
+          <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedUsers={selectedUsers} setSelected setSelectedUsers/>          
           {loading ? (
             <Box sx={{ width: '100%' }}>
               <LinearProgress />
