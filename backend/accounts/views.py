@@ -14,7 +14,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import pandas as pd
 from .utils import getAllZipcodes, saveClientList, makeCompany, get_serviceTitan_clients
-from .models import CustomUser, Client, Company, InviteToken
+from .models import CustomUser, Client, Company, InviteToken, ProgressUpdate
 from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, UserListSerializer, ClientListSerializer, MyTokenObtainPairSerializer, CompanySerializer
 import datetime
 import jwt
@@ -311,36 +311,38 @@ class UploadFileView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         company_id = self.kwargs['company']
         try:
-            Company.objects.get(id=company_id)
+            company = Company.objects.get(id=company_id)
         except Exception as e:
             print(e)
             return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
-        # try:
-        #     reader = pd.read_csv(file, on_bad_lines='skip')
-        #     reader.columns= reader.columns.str.lower()
-        #     for column in reader.columns:
-        #         if "name" in column:
-        #             reader.columns = reader.columns.str.replace(column, 'name')
-        #         if "zip" in column:
-        #             reader.columns = reader.columns.str.replace(column, 'zip')
-        #         if "street" in column:
-        #             reader.columns = reader.columns.str.replace(column, 'street')
-        #         elif "address" in column:
-        #             reader.columns = reader.columns.str.replace(column, 'street')
-        #         if "city" in column:
-        #             reader.columns = reader.columns.str.replace(column, 'city')
-        #         if "state" in column:
-        #             reader.columns = reader.columns.str.replace(column, 'state')
-        # except Exception as e:
-        #     print(e)
-        #     return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
+        update = ProgressUpdate.objects.create(company=company)
         try:
-            saveClientList.delay(request.data, company_id)
+            saveClientList.delay(request.data, company_id, update.id)
         except Exception as e:
             print(e)
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({"status": "success"},
-                        status.HTTP_201_CREATED)
+        
+        clients = Client.objects.filter(company=company)
+        clients = ClientListSerializer(clients, many=True).data
+        return Response({"clients": clients, "updateId": update.id} , status=status.HTTP_201_CREATED, headers="")
+	
+class ProgressUpdateView(APIView):
+    def get(self, request, *args, **kwargs):
+        try:
+            update = ProgressUpdate.objects.get(id=self.kwargs['updater'])
+            percentDone = update.percentDone
+            clients = Client.objects.filter(company=update.company)
+            clients = ClientListSerializer(clients, many=True).data
+            if percentDone == 100:
+                complete = True
+                update.delete()
+            else:
+                complete = False
+            
+            return Response({"complete": complete, "progress": percentDone, "clients": clients} , status=status.HTTP_201_CREATED, headers="")
+        except Exception as e:
+            print(e)
+            return Response({"status": "Error"}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['PUT', 'DELETE'])
 def update_client(request, pk):

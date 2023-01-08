@@ -292,13 +292,13 @@ export default function CustomerData() {
             </Stack>
             <Card sx={{marginBottom:"3%"}}>
               <ClientListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedClients={selectedClients} setSelected setSelectedClients />
-              {error ? (
+              {/* {error ? (
                 // <Alert severity="error">
                 //   <AlertTitle>List Loading Error</AlertTitle>
                 //   {error}
                 // </Alert>
                 logoutHandler
-              ) : null}
+              ) : null} */}
               {loading ? (
                 <Box sx={{ width: '100%' }}>
                   <LinearProgress />

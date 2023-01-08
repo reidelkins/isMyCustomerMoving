@@ -16,6 +16,7 @@ urlpatterns = [
     path('refresh_token/', TokenRefreshView.as_view(), name='refresh_token'),
     path('confirmation/<str:pk>/<str:uid>/', views.confirmation, name='email_confirmation'),
     
+    path('updates/<str:updater>/', views.ProgressUpdateView.as_view(), name='progress-update'),
     path('update/<str:company>/', views.UpdateStatusView.as_view(), name='update-status'),
     path('servicetitan/<str:company>/', views.ServiceTitanView.as_view(), name='servicetitian'),
     path('company/', views.company, name='createCompany'),

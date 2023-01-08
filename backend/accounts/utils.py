@@ -10,7 +10,7 @@ from scrapfly import ScrapeApiResponse, ScrapeConfig, ScrapflyClient
 from typing import List, Optional
 from typing_extensions import TypedDict
 
-from .models import Client, Company, ZipCode, HomeListing, CustomUser
+from .models import Client, Company, ZipCode, HomeListing, CustomUser, ProgressUpdate
 from .serializers import CompanySerializer
 
 from django.conf import settings
@@ -75,15 +75,29 @@ def parseStreets(street):
     return street
 
 @shared_task
-def saveClientList(clients, company_id):
+def saveClientList(clients, company_id, updater=None):
+    if updater:
+        updater = ProgressUpdate.objects.get(id=updater)
     
-    for client in clients:
-        street = (str(client['address'])).title()
-        zip = client['zip code']
-        city = client['city']
-        state = client['state']
-        name = client['name']           
-        saveClient.delay(street, zip, city, state, name, company_id)
+    for i in range(len(clients)):
+        try:
+            street = (str(clients[i]['address'])).title()
+            zip = clients[i]['zip code']
+            city = clients[i]['city']
+            state = clients[i]['state']
+            name = clients[i]['name']
+            saveClient(street, zip, city, state, name, company_id)
+            if updater:
+                x = math.floor((i/len(clients))*100)
+                if x == 99:
+                    updater.percentDone = 100
+                else:
+                    updater.percentDone = x
+                updater.save()
+        except Exception as e:
+            print(e)
+            continue
+
 
 @shared_task
 def saveClient(street, zip, city, state, name, company_id, serviceTitanID=None):
@@ -121,7 +135,7 @@ def saveClient(street, zip, city, state, name, company_id, serviceTitanID=None):
         client.save()
             
     except Exception as e:
-            print(e)
+        print(e)
 
 @shared_task
 def getAllZipcodes(company):

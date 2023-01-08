@@ -177,3 +177,9 @@ def password_reset_token_created(sender, instance, reset_password_token, *args, 
                 )
         msg.content_subtype ="html"# Main content is now text/html
         msg.send()
+
+class ProgressUpdate(models.Model):
+    id = models.UUIDField(primary_key=True, unique=True,
+                          default=uuid.uuid4, editable=False)
+    company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE)
+    percentDone = models.IntegerField(default=0)

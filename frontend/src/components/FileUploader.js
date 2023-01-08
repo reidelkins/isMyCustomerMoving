@@ -143,7 +143,6 @@ const FileUploader = () => {
       
       await sendData(data);
     } catch (err) {
-      console.log(err);
       setError('Error reading file');
     }
   };
@@ -164,8 +163,6 @@ const FileUploader = () => {
   };
 
   const sendData = (data) => {
-    // return axios.post('/api/upload', { data });
-    console.log(data);
     dispatch(uploadClientsAsync(data))
   };
 
