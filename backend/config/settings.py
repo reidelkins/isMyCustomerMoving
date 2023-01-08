@@ -94,7 +94,7 @@ INTERNAL_IPS = [
     # ...
 ]
 
-ASGI_APPLICATION = 'config.asgi.application' 
+ASGI_APPLICATION = 'config.asgi.application'
 
 # Auth user
 AUTH_USER_MODEL = "accounts.CustomUser"

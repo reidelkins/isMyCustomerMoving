@@ -7,6 +7,7 @@ from rest_framework.documentation import include_docs_urls
 from rest_framework.schemas import get_schema_view
 from drf_yasg import openapi
 from django.views.generic import TemplateView
+from accounts.consumers import ChatConsumer
 
 admin.site.site_header = "Django BoilerPlate Admin"
 admin.site.site_title = "Django BoilerPlate Admin"
@@ -38,8 +39,7 @@ urlpatterns = [
 
     path('api/v1/accounts/', include('accounts.urls')),
     path('api/v1/payments/', include('payments.urls')),
-    path('ws/', include('accounts.routing')),
-
+    path("chats/", ChatConsumer.as_asgi())
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
