@@ -209,6 +209,7 @@ export const submitNewPassAsync = (password, token) => async (dispatch) => {
 };
 
 export const logout = () => (dispatch) => {
+  console.log("logging out")
   localStorage.removeItem('userInfo');
   dispatch(logoutUser());
 };

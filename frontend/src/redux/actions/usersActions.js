@@ -17,6 +17,7 @@ export const userSlice = createSlice({
       error: null,
       USERLIST: [],
     },
+    progress: 0,
   },
   reducers: {
     // -----------------  CLIENTS  -----------------
@@ -51,6 +52,11 @@ export const userSlice = createSlice({
       state.usersInfo.USERLIST = [];
     },
 
+    // -----------------  PROGRESS  -----------------
+    updateProgress: (state, action) => {
+      state.progress = action.payload;
+    },
+
     // TODO
     sendNewUserEmail: (state) => {
       state.clientsInfo.loading = false;
@@ -68,6 +74,7 @@ export const userSlice = createSlice({
 export const { clients, clientsLoading, clientsError, users, usersLoading, usersError } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
 export const selectUsers = (state) => state.user.usersInfo;
+export const dataProgress = (state) => state.user.progress;
 export default userSlice.reducer;
 
 export const usersAsync = () => async (dispatch, getState) => {
@@ -127,6 +134,26 @@ export const clientsAsync = () => async (dispatch, getState) => {
     localStorage.removeItem('userInfo');
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
     dispatch(logout());
+  }
+};
+
+export const uploadClientsAsync = (clients) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const {id: company} = userInfo.company;
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+    dispatch(clientsLoading());
+    const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/upload/${company}/`, clients, config);
+    // dispatch(clients(data));
+  } catch (error) {
+    dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 };
 
@@ -197,6 +224,28 @@ export const serviceTitanSync = () => async (dispatch, getState) => {
     throw new Error(error);
     // dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
+};
+
+export const updateProgress = () => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const {id: company} = userInfo.company;
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+    // dispatch(usersLoading());
+    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/progress/${company}/`, config);
+    dispatch(updateProgress(data));
+  } catch (error) {
+    throw new Error(error);
+    // dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+
 };
 
 export const createCompany = (company, email) => async (dispatch, getState) => {

@@ -25,8 +25,8 @@ export default function NewCompanyModal() {
     };
 
     const NewCompanySchema = Yup.object().shape({
-        company: Yup.string().required('Company Name is required'),
-        email: Yup.string().email('Email must be a valid email address').required('Email is required'),
+        // company: Yup.string().required('Company Name is required'),
+        // email: Yup.string().email('Email must be a valid email address').required('Email is required'),
     });
     
     const formik = useFormik({
@@ -36,10 +36,11 @@ export default function NewCompanyModal() {
         },
         validationSchema: NewCompanySchema,
         onSubmit: () => {
+            console.log("here")
             dispatch(createCompany(values.company, values.email));
-            values.company = '';
-            values.email = '';
-            setOpen(false);
+            // values.company = '';
+            // values.email = '';
+            // setOpen(false);
         },
     });
 

@@ -33,10 +33,13 @@ import Iconify from '../components/Iconify';
 import SearchNotFound from '../components/SearchNotFound';
 import CounterCard from '../components/CounterCard';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
+import FileUploader from '../components/FileUploader';
 
 import ClientsListCall from '../redux/calls/ClientsListCall';
 import { selectClients, update, updateClientAsync, serviceTitanSync } from '../redux/actions/usersActions';
 import { logout, showLoginInfo } from '../redux/actions/authActions';
+import ProgressComponent from '../components/ProgressComponent';
+
 
 // ----------------------------------------------------------------------
 
@@ -261,6 +264,7 @@ export default function CustomerData() {
         {userInfo ? <ClientsListCall /> : null}
         {userInfo && (
           <>
+            <ProgressComponent />
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
               <Typography variant="h4" gutterBottom>
                 Welcome {userInfo.first_name} {userInfo.last_name} 👋
@@ -444,7 +448,11 @@ export default function CustomerData() {
               )}
               
             </Stack>
-            <FileUpload userInfo={userInfo}/>
+            {/* <FileUpload userInfo={userInfo}/> */}
+            { userInfo.status === 'admin' && (
+              <FileUploader />  
+            )}
+            
           </>
         )}
       </Container>
