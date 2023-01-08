@@ -40,7 +40,7 @@ class CompanyAdmin(admin.ModelAdmin):
 
 class ClientAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'status', 'city', 'state', 'contacted', 'note', 'zipCode', 'company', 'servTitanID')
-    search_fields = ('name', 'address', 'status', 'city', 'state')
+    search_fields = ('name', 'address', 'status', 'city', 'state', 'servTitanID')
 
 class ZipcodeAdmin(admin.ModelAdmin):
     list_display = ('zipCode', 'lastUpdated')

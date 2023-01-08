@@ -174,3 +174,5 @@ venv/
 backend/accounts/migrations/__pycache__
 
 website/
+backend/accounts/utils.py
+backend/dump.rdb

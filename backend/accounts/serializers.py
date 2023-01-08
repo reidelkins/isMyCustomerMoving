@@ -15,6 +15,9 @@ class CompanySerializer(serializers.ModelSerializer):
     stripeID = serializers.CharField(max_length=100, required=False)
     tenantID = serializers.CharField(max_length=100, required=False)
     clientID = serializers.CharField(max_length=100, required=False)
+    serviceTitanForRentTagID = serializers.CharField(max_length=100, required=False)
+    serviceTitanForSaleTagID = serializers.CharField(max_length=100, required=False)
+    serviceTitanRecentlySoldTagID = serializers.CharField(max_length=100, required=False)
 
     def create(self, validated_data):
         if Company.objects.filter(name=validated_data['name']).exists():
@@ -22,7 +25,7 @@ class CompanySerializer(serializers.ModelSerializer):
         return Company.objects.create(**validated_data, accessToken=get_random_string(length=32))
     class Meta:
         model = Company
-        fields=['id', 'name', 'phone', 'email', 'tenantID', 'clientID', 'stripeID']
+        fields=['id', 'name', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID']
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
