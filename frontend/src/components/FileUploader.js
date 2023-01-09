@@ -15,7 +15,6 @@ import {
   Fade,
   Modal,
   LinearProgress,
-  Stack
 
 } from '@mui/material';
 import { makeStyles } from '@mui/styles';
@@ -38,7 +37,6 @@ const FileUploader = () => {
   const dispatch = useDispatch();
   const classes = useStyles();
   const progress = useSelector(selectProgress);
-  console.log(progress)
 
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState('');
