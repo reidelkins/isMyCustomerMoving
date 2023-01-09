@@ -314,7 +314,7 @@ class UploadFileView(generics.CreateAPIView):
         except Exception as e:
             print(e)
             return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
-        update = ProgressUpdate.objects.create(company=company)
+        update = ProgressUpdate.objects.create(company=company, tasks=len(request.data))
         try:
             saveClientList.delay(request.data, company_id, update.id)
         except Exception as e:
@@ -329,10 +329,8 @@ class ProgressUpdateView(APIView):
     def get(self, request, *args, **kwargs):
         try:
             update = ProgressUpdate.objects.get(id=self.kwargs['updater'])
-
             completedTasks = Task.objects.filter(updater=update, complete=True).count()
-            totalTasks = Task.objects.filter(updater=update).count()
-            percentDone = int((completedTasks / totalTasks) * 100)
+            percentDone = int((completedTasks / update.tasks) * 100)
             update.percentDone = percentDone
             update.save()
             # percentDone = update.percentDone

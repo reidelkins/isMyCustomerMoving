@@ -183,6 +183,7 @@ class ProgressUpdate(models.Model):
                           default=uuid.uuid4, editable=False)
     company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE)
     percentDone = models.IntegerField(default=0)
+    tasks = models.IntegerField(default=0)
 
 class Task(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
