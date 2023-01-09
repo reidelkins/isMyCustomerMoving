@@ -331,6 +331,8 @@ class ProgressUpdateView(APIView):
             update = ProgressUpdate.objects.get(id=self.kwargs['updater'])
             completedTasks = Task.objects.filter(updater=update, complete=True).count()
             percentDone = int((completedTasks / update.tasks) * 100)
+            if percentDone == 99:
+                percentDone = 100
             update.percentDone = percentDone
             update.save()
             # percentDone = update.percentDone

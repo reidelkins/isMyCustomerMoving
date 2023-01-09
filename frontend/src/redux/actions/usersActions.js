@@ -92,6 +92,7 @@ export const userSlice = createSlice({
 export const { clients, clientsLoading, clientsError, users, usersLoading, usersError, progress, progressDone, progressError } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
 export const selectUsers = (state) => state.user.usersInfo;
+export const selectProgress = (state) => state.user.progress;
 export default userSlice.reducer;
 
 export const usersAsync = () => async (dispatch, getState) => {
@@ -297,7 +298,6 @@ export const makeAdminAsync = (userId) => async (dispatch, getState) => {
 
 export const getUpdates = (updateId) => async (dispatch, getState) => {
   try {
-    console.log("getUpdates")
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
 
@@ -308,7 +308,6 @@ export const getUpdates = (updateId) => async (dispatch, getState) => {
       },
     };
     setTimeout(async () => {
-      // dispatch(updatesLoading());
       const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/updates/${updateId}/`, config)
       console.log(data);
       dispatch(progress(data))
@@ -318,7 +317,7 @@ export const getUpdates = (updateId) => async (dispatch, getState) => {
       } else {
         dispatch(progressDone());
       }
-    }, 3000);
+    }, 1000);
     
   } catch (error) {
     dispatch(progressError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
