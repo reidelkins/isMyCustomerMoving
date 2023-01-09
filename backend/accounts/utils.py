@@ -10,7 +10,7 @@ from scrapfly import ScrapeApiResponse, ScrapeConfig, ScrapflyClient
 from typing import List, Optional
 from typing_extensions import TypedDict
 
-from .models import Client, Company, ZipCode, HomeListing, CustomUser, ProgressUpdate
+from .models import Task, Client, Company, ZipCode, HomeListing, CustomUser, ProgressUpdate
 from .serializers import CompanySerializer
 
 from django.conf import settings
@@ -86,22 +86,25 @@ def saveClientList(clients, company_id, updater=None):
             city = clients[i]['city']
             state = clients[i]['state']
             name = clients[i]['name']
-            saveClient(street, zip, city, state, name, company_id)
-            if updater:
-                x = math.floor((i/len(clients))*100)
-                if x == 99:
-                    updater.percentDone = 100
-                else:
-                    updater.percentDone = x
-                updater.save()
+            task = Task.objects.create(updater=updater)
+            saveClient.delay(street, zip, city, state, name, company_id, task=task.id)
+            # if updater:
+            #     x = math.floor((i/len(clients))*100)
+            #     if x == 99:
+            #         updater.percentDone = 100
+            #     else:
+            #         updater.percentDone = x
+            #     updater.save()
         except Exception as e:
             print(e)
             continue
 
 
 @shared_task
-def saveClient(street, zip, city, state, name, company_id, serviceTitanID=None):
+def saveClient(street, zip, city, state, name, company_id, serviceTitanID=None, task=None):
     try:
+        if task:
+            task = Task.objects.get(id=task)
         company = Company.objects.get(id=company_id)
         street = parseStreets(street)
         if type(zip) == float:
@@ -129,10 +132,16 @@ def saveClient(street, zip, city, state, name, company_id, serviceTitanID=None):
             client.delete()
             if zipCreated:
                 zipCode.delete()
+            if task:
+                task.complete = True
+                task.save()
             return
 
         client.servTitanID = serviceTitanID
         client.save()
+        if task:
+            task.complete = True
+            task.save()
             
     except Exception as e:
         print(e)

@@ -14,7 +14,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import pandas as pd
 from .utils import getAllZipcodes, saveClientList, makeCompany, get_serviceTitan_clients
-from .models import CustomUser, Client, Company, InviteToken, ProgressUpdate
+from .models import CustomUser, Client, Company, InviteToken, ProgressUpdate, Task
 from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, UserListSerializer, ClientListSerializer, MyTokenObtainPairSerializer, CompanySerializer
 import datetime
 import jwt
@@ -173,7 +173,6 @@ def company(request):
             print(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)   
 
-
 class VerifyRegistrationView(APIView):
     permission_classes = [permissions.AllowAny]
     throttle_classes = [AnonRateThrottle]
@@ -330,6 +329,9 @@ class ProgressUpdateView(APIView):
     def get(self, request, *args, **kwargs):
         try:
             update = ProgressUpdate.objects.get(id=self.kwargs['updater'])
+
+            completedTasks = Task.objects.filter(updater=update, complete=True).count()
+            totalTasks = Task.objects.filter(updater=update).count()
             percentDone = update.percentDone
             clients = Client.objects.filter(company=update.company)
             clients = ClientListSerializer(clients, many=True).data
