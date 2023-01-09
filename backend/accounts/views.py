@@ -332,7 +332,10 @@ class ProgressUpdateView(APIView):
 
             completedTasks = Task.objects.filter(updater=update, complete=True).count()
             totalTasks = Task.objects.filter(updater=update).count()
-            percentDone = update.percentDone
+            percentDone = int((completedTasks / totalTasks) * 100)
+            update.percentDone = percentDone
+            update.save()
+            # percentDone = update.percentDone
             clients = Client.objects.filter(company=update.company)
             clients = ClientListSerializer(clients, many=True).data
             if percentDone == 100:
