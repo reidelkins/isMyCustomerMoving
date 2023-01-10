@@ -399,6 +399,9 @@ def get_serviceTitan_clients(company, updater=None):
         updater = ProgressUpdate.objects.get(id=updater)
         updater.tasks = count
         updater.save()
+    with open('clients.json', 'w') as outfile:
+        json.dump(clients, outfile)
+    return
     for i in range(len(clients)):
         if clients[i]['active']:
             try:
@@ -432,9 +435,8 @@ def update_serviceTitan_clients(clients, company, status):
             # forSaleClients = list(Client.objects.filter(status=status, company=company).values_list('servTitanID'))
             forSale = []
             for client in clients:
-                if client[0] != None:
-                    forSale.append(str(client[0]))
-            print(f'for sale {len(forSale)}')
+                if client.servTitanID:
+                    forSale.append(str(client.servTitanID))
             if status == 'Recently Sold (6)':
                 payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
                 response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
