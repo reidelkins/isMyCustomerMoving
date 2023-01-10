@@ -154,7 +154,7 @@ def getAllZipcodes(company):
     company_object = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company_object).values('zipCode')
     zipCodes = zipCode_objects.distinct()
-    zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()+timedelta(days=2)).strftime('%Y-%m-%d'))
+    zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
     zips = list(zipCodes.order_by('zipCode').values('zipCode'))
     # zips = [{'zipCode': '37922'}]
     for i in range(len(zips) * 2):
@@ -409,7 +409,7 @@ def get_serviceTitan_clients(company, updater=None):
                 print(f"ERROR: {e} with client {client['name']}")
 
 def update_serviceTitan_clients(clients, company, status):
-    if clients:
+    if clients and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):
         try:
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

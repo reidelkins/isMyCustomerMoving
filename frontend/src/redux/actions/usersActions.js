@@ -22,6 +22,7 @@ export const userSlice = createSlice({
       error: null,
       value: 0,
       deleted: 0,
+      loading: false,
     }
   },
   reducers: {
@@ -73,23 +74,29 @@ export const userSlice = createSlice({
       state.progress.complete = false;
       state.clientsInfo.CLIENTLIST = action.payload.clients;
       state.progress.deleted = action.payload.deleted;
+
     },
 
     progressDone: (state) => {
       state.progress.complete = true;
       state.progress.value = 0;
+      state.progress.loading = false;
     },
 
     progressError: (state, action) => {
       state.progress.error = action.payload.progress;
       state.progress.complete = true;
       state.progress.value = 0;
+    },
+
+    progressLoading: (state) => {
+      state.progress.loading = true;
     }
 
   },
 });
 
-export const { clients, clientsLoading, clientsError, users, usersLoading, usersError, progress, progressDone, progressError } = userSlice.actions;
+export const { clients, clientsLoading, clientsError, users, usersLoading, usersError, progress, progressDone, progressError, progressLoading } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
 export const selectUsers = (state) => state.user.usersInfo;
 export const selectProgress = (state) => state.user.progress;
@@ -300,6 +307,7 @@ export const makeAdminAsync = (userId) => async (dispatch, getState) => {
 
 export const getUpdates = (updateId) => async (dispatch, getState) => {
   try {
+    dispatch(progressLoading());
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
 

@@ -19,6 +19,7 @@ import {
   Typography,
   TableContainer,
   TablePagination,
+  CircularProgress,
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -35,7 +36,7 @@ import CounterCard from '../components/CounterCard';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
 
 import ClientsListCall from '../redux/calls/ClientsListCall';
-import { selectClients, update, updateClientAsync, serviceTitanSync } from '../redux/actions/usersActions';
+import { selectClients, update, updateClientAsync, serviceTitanSync, selectProgress } from '../redux/actions/usersActions';
 import { logout, showLoginInfo } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
@@ -102,6 +103,7 @@ export default function CustomerData() {
 
   const listClient = useSelector(selectClients);
   const { loading, error, CLIENTLIST } = listClient;
+  const progress = useSelector(selectProgress);
 
   const [page, setPage] = useState(0);
   
@@ -400,26 +402,50 @@ export default function CustomerData() {
                 onRowsPerPageChange={handleChangeRowsPerPage}
               />
             </Card>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-              {((userInfo.first_name === 'reid' && userInfo.last_name === 'elkins') || (userInfo.first_name === 'Perspective' && userInfo.last_name === 'Customer')) && (
-                <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
-                  Update Status
-                </Button>
-              )}              
+            {progress.loading ? (
+              <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+                {((userInfo.first_name === 'reid' && userInfo.last_name === 'elkins') || (userInfo.first_name === 'Perspective' && userInfo.last_name === 'Customer')) && (
+                  <Button variant="contained" >
+                    <CircularProgress color="secondary"/>
+                  </Button>
+                )  }            
 
-              {(userInfo.status === 'admin' && userInfo.finishedSTIntegration) && (
-                <Button onClick={stSync} variant="contained">
-                  Sync With Service Titan
-                </Button>
-              )}
+                {(userInfo.status === 'admin' && userInfo.finishedSTIntegration) && (
+                  <Button variant="contained">
+                    <CircularProgress color="secondary"/>
+                  </Button>
+                )}
 
-              {userInfo.status === 'admin' && (
-                <Button onClick={exportCSV} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
-                  Download To CSV
-                </Button>
-              )}
+                {(userInfo.status === 'admin') && (
+                  <Button variant="contained">
+                    <CircularProgress color="secondary"/>
+                  </Button>
+                )}
+              </Stack>
+
+            ):(
+              <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+                {((userInfo.first_name === 'reid' && userInfo.last_name === 'elkins') || (userInfo.first_name === 'Perspective' && userInfo.last_name === 'Customer')) && (
+                  <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+                    Update Status
+                  </Button>
+                )}        
+
+                {(userInfo.status === 'admin' && userInfo.finishedSTIntegration) && (
+                  <Button onClick={stSync} variant="contained">
+                    Sync With Service Titan
+                  </Button>
+                )}
+
+                {(userInfo.status === 'admin') && (
+                  <Button onClick={exportCSV} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+                    Download To CSV
+                  </Button>
+                )}
+              </Stack>
+            )}
               
-            </Stack>
+              
             { userInfo.status === 'admin' && (
               <FileUploader />  
             )}
