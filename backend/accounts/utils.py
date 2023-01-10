@@ -78,6 +78,8 @@ def parseStreets(street):
 def saveClientList(clients, company_id, updater=None):
     if updater:
         updater = ProgressUpdate.objects.get(id=updater)
+        updater.tasks = len(clients)
+        updater.save()
     
     for i in range(len(clients)):
         try:
@@ -128,12 +130,13 @@ def saveClient(street, zip, city, state, name, company_id, serviceTitanID=None, 
                 city= city,
                 state = state,                
                 )
-        if created and company.product.customerLimit-Client.objects.filter(company=company).count()-5 < 0:
+        if created and company.product.customerLimit-Client.objects.filter(company=company).count() < 0:
             client.delete()
             if zipCreated:
                 zipCode.delete()
             if task:
                 task.complete = True
+                task.deleted = True
                 task.save()
             return
 
@@ -153,20 +156,20 @@ def getAllZipcodes(company):
     zipCodes = zipCode_objects.distinct()
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()+timedelta(days=2)).strftime('%Y-%m-%d'))
     zips = list(zipCodes.order_by('zipCode').values('zipCode'))
-    # zips = [{'zipCode': '01432'}]
-    for i in range(len(zips) * 3):
+    # zips = [{'zipCode': '37922'}]
+    for i in range(len(zips) * 2):
     # for i in range(100, 130):
         extra = ""
         if i % 3 == 0:
             status = "For Sale"
             url = "https://www.realtor.com/realestateandhomes-search"
         elif i % 3 == 1:
-            status = "For Rent"
-            url = "https://www.realtor.com/apartments"
-        elif i % 3 == 2:
             status = "Recently Sold (6)"
             url = "https://www.realtor.com/realestateandhomes-search"
             extra = "show-recently-sold/"
+        # elif i % 3 == 2:
+        #     status = "For Rent"
+        #     url = "https://www.realtor.com/apartments"
         find_data.delay(str(zips[i//3]['zipCode']), company, i, status, url, extra)
 
     zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
@@ -269,7 +272,6 @@ def find_data(zip, company, i, status, url, extra):
             total_pages = 1
         else:
             total_pages = math.ceil(total / count)
-        # print(f"total pages: {total_pages}, zip: {zip}, status: {status}")
         for page in range(2, total_pages+1):
             assert "pg-1" in url  # make sure we don't accidently scrape duplicate pages
             page_url = url.replace("pg-1", f"pg-{page}")
@@ -281,9 +283,7 @@ def find_data(zip, company, i, status, url, extra):
                 results = parsed["results"]
             create_home_listings(results, status) 
         updateStatus(zip, company, status)
-        # print(i)
-        # if i % 3 == 2:
-        #     print(zip)
+        
     except Exception as e:
         print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
         print(f"URL: {url}")
@@ -302,7 +302,7 @@ def updateStatus(zip, company, status):
             return
         listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')
         updatedClients = Client.objects.filter(company=company_object, address__in=listedAddresses).update(status=status)
-        # update_serviceTitan_clients(updatedClients, company_object)
+        update_serviceTitan_clients(updatedClients, company_object, status)
     
 def emailBody(company):
     foundCustomers = Client.objects.filter(company=company).exclude(status='No Change')
@@ -361,7 +361,8 @@ def auto_update():
         getAllZipcodes(company[0])
 
 @shared_task
-def get_serviceTitan_clients(company):
+def get_serviceTitan_clients(company, updater=None):
+    
     company = Company.objects.get(id=company)
     tenant = company.tenantID
     headers = {
@@ -382,68 +383,89 @@ def get_serviceTitan_clients(company):
             frm = response.json()['continueFrom']
         else:
             moreClients = False
-    with open('clients.json', 'w') as outfile:
-        json.dump(clients, outfile)
+    if updater:
+        
+        count = 0
+        for client in clients:
+            if client['active']:
+                count+=1
+        updater = ProgressUpdate.objects.get(id=updater)
+        updater.tasks = count
+        updater.save()
+    for i in range(len(clients)):
+        if clients[i]['active']:
+            try:
+                zip = clients[i]['address']['zip']
+                if len(zip) > 5:
+                    zip = zip[:5]
+                name=clients[i]['name']
+                city=clients[i]['address']['city'],
+                city= city[0]            
+                state=clients[i]['address']['state']
+                street = parseStreets((str(client['address']['street'])).title())
+                task = Task.objects.create(updater=updater)
+                saveClient.delay(street, zip, city, state, name, company.id, client['id'], task=task.id)
+            except Exception as e:
+                print(f"ERROR: {e} with client {client['name']}")
 
-    for client in clients:
+def update_serviceTitan_clients(clients, company, status):
+    if clients:
         try:
-            zip = client['address']['zip']
-            if len(zip) > 5:
-                zip = zip[:5]
-            name=client['name']
-            city=client['address']['city'],
-            city= city[0]            
-            state=client['address']['state']
-            street = parseStreets((str(client['address']['street'])).title())
-            saveClient.delay(street, zip, city, state, name, company.id, client['id'])
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
+            data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
+            response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
+            headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
+            if status == 'For Sale':
+                tagType = [str(company.serviceTitanForSaleTagID)]
+            elif status == 'Recently Sold (6)':
+                tagType = [str(company.serviceTitanRecentlySoldTagID)]
+            # forSaleClients = list(Client.objects.filter(status=status, company=company).values_list('servTitanID'))
+            forSale = []
+            for client in clients:
+                if client[0] != None:
+                    forSale.append(str(client[0]))
+            if status == 'Recently Sold (6)':
+                payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
+                response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
+            payload={'customerIds': forSale, 'tagTypeIds': tagType}
+            response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
+            if response.status_code != 200:
+                resp = response.json()
+                error = resp['errors'][''][0]
+                error = error.replace('(', "").replace(')', "").replace(',', " ").replace(".", "").split()
+                for word in error:
+                    if word.isdigit():
+                        Client.objects.filter(servTitanID=word).delete()
+                        forSale.remove(word)
+                if status == 'Recently Sold (6)':
+                    payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
+                    response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
+                payload={'customerIds': forSale, 'tagTypeIds': tagType}
+                response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
+            # else:
+            #     recentlySold = []
+            #     recentlySoldClients = list(Client.objects.filter(status=status, company=company).values_list('servTitanID'))
+            #     for client in recentlySoldClients:
+            #         if client[0] != None:
+            #             recentlySold.append(str(client[0]))
+            #     headers = {
+            #         'Content-Type': 'application/x-www-form-urlencoded',
+            #     }
+            #     payload={'customerIds': recentlySold, 'tagTypeIds': [str(company.serviceTitanRecentlySoldTagID)]}
+            #     response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
+            #     if response.status_code != 200:
+            #         resp = response.json()
+            #         error = resp['errors'][''][0]
+            #         error = error.replace('(', "").replace(')', "").replace(',', " ").replace(".", "").split()
+            #         for word in error:
+            #             if word.isdigit():
+            #                 #TODO: should the client just be deleted?
+            #                 Client.objects.filter(servTitanID=word).update(servTitanID=None)
+            #                 recentlySold.remove(word)
+            #         payload={'customerIds': recentlySold, 'tagTypeIds': [str(company.serviceTitanRecentlySoldTagID)]}
+            #         response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
         except Exception as e:
-            print(f"ERROR: {e} with client {client['name']}")
-
-def update_serviceTitan_clients(company):
-    try:
-        forSaleClients = list(Client.objects.filter(status='For Sale', company=company).values_list('servTitanID'))
-        forSale = []
-        for client in forSaleClients:
-            if client[0] != None:
-                forSale.append(str(client[0]))
-        payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
-        response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/tags', headers=headers, json=payload)
-        if response.status_code != 200:
-            resp = response.json()
-            error = resp['errors'][''][0]
-            error = error.replace('(', "").replace(')', "").replace(',', " ").replace(".", "").split()
-            for word in error:
-                if word.isdigit():
-                    #TODO: should the client just be deleted?
-                    Client.objects.filter(servTitanID=word).update(servTitanID=None)
-                    forSale.remove(word)
-            payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
-            response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/tags', headers=headers, json=payload)
-
-        # forRent = []
-        # forRentClients = list(Client.objects.filter(status='For Rent', company=company).values_list('servTitanID'))
-        # for client in forRentClients:
-        #     if client[0] != None:
-        #         forRent.append(str(client[0]))
-        # payload={'customerIds': forRent, 'tagTypeIds': [str(company.serviceTitanForRentTagID)]}
-        # response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/tags', headers=headers, json=payload)
-        recentlySold = []
-        recentlySoldClients = list(Client.objects.filter(status='Recently Sold (6)', company=company).values_list('servTitanID'))
-        for client in recentlySoldClients:
-            if client[0] != None:
-                recentlySold.append(str(client[0]))
-        payload={'customerIds': recentlySold, 'tagTypeIds': [str(company.serviceTitanRecentlySoldTagID)]}
-        response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/tags', headers=headers, json=payload)
-        if response.status_code != 200:
-            resp = response.json()
-            error = resp['errors'][''][0]
-            error = error.replace('(', "").replace(')', "").replace(',', " ").replace(".", "").split()
-            for word in error:
-                if word.isdigit():
-                    #TODO: should the client just be deleted?
-                    Client.objects.filter(servTitanID=word).update(servTitanID=None)
-                    recentlySold.remove(word)
-            payload={'customerIds': recentlySold, 'tagTypeIds': [str(company.serviceTitanRecentlySoldTagID)]}
-            response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/tags', headers=headers, json=payload)
-    except Exception as e:
-        print(f"ERROR: {e}")
+            print("updating service titan clients failed")
+            print(f"ERROR: {e}")

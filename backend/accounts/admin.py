@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext as _
-from .models import CustomUser, Company, Client, ZipCode, HomeListing, InviteToken, ProgressUpdate
+from .models import CustomUser, Company, Client, ZipCode, HomeListing, InviteToken, ProgressUpdate, Task
 
 
 class CustomUserAdmin(UserAdmin):
@@ -57,6 +57,9 @@ class InviteTokenAdmin(admin.ModelAdmin):
 class ProgressUpdateAdmin(admin.ModelAdmin):
     list_display = ('id', 'percentDone')
 
+class TaskAdmin(admin.ModelAdmin):
+    list_display = ('id', 'complete', 'updater', 'deleted')
+
 
 # Register your models here.
 admin.site.register(HomeListing, HomeListingAdmin)
@@ -66,3 +69,4 @@ admin.site.register(Company, CompanyAdmin)
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(InviteToken, InviteTokenAdmin)
 admin.site.register(ProgressUpdate, ProgressUpdateAdmin)
+admin.site.register(Task, TaskAdmin)

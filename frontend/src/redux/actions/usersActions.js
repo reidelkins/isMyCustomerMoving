@@ -21,6 +21,7 @@ export const userSlice = createSlice({
       complete: true,
       error: null,
       value: 0,
+      deleted: 0,
     }
   },
   reducers: {
@@ -71,6 +72,7 @@ export const userSlice = createSlice({
       state.progress.value = action.payload.progress;
       state.progress.complete = false;
       state.clientsInfo.CLIENTLIST = action.payload.clients;
+      state.progress.deleted = action.payload.deleted;
     },
 
     progressDone: (state) => {
@@ -83,8 +85,6 @@ export const userSlice = createSlice({
       state.progress.complete = true;
       state.progress.value = 0;
     }
-
-    
 
   },
 });
@@ -111,6 +111,7 @@ export const usersAsync = () => async (dispatch, getState) => {
     dispatch(users(data));
   } catch (error) {
     dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    dispatch(logout());
   }
 };
 
@@ -216,8 +217,9 @@ export const serviceTitanSync = () => async (dispatch, getState) => {
       },
     };
     // dispatch(usersLoading());
-    await axios.get(`${DOMAIN}/api/v1/accounts/servicetitan/${company}/`, config);
-    // dispatch(users(data));
+    const {data} = await axios.get(`${DOMAIN}/api/v1/accounts/servicetitan/${company}/`, config);
+    dispatch(clients(data.clients));
+    dispatch(getUpdates(data.updateId));
   } catch (error) {
     throw new Error(error);
     // dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));

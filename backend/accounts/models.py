@@ -189,4 +189,5 @@ class Task(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
     complete = models.BooleanField(default=False)
-    updater = models.ForeignKey(ProgressUpdate, blank=True, null=True, on_delete=models.SET_NULL)
+    deleted = models.BooleanField(default=False)
+    updater = models.ForeignKey(ProgressUpdate, on_delete=models.CASCADE)

@@ -15,6 +15,7 @@ import {
   Fade,
   Modal,
   LinearProgress,
+  Link
 
 } from '@mui/material';
 import { makeStyles } from '@mui/styles';
@@ -253,7 +254,7 @@ const FileUploader = () => {
             <LinearProgress variant="determinate" value={progress.value}/>
           </Grid>
           <Grid item xs={1}>
-            <Typography inline style={{marginLeft:'10px'}}>{progress.value}%</Typography>
+            <Typography style={{marginLeft:'10px'}}>{progress.value}%</Typography>
           </Grid>
         </Grid>
       )}
@@ -265,6 +266,17 @@ const FileUploader = () => {
         </IconButton>
         )
       }
+      {(progress.complete && progress.deleted > 0) && (
+        <div>
+          <Typography style={{color:'red'}}>{progress.deleted} clients were not uploaded due to your subscription tier.</Typography>
+          <Button variant="contained" color="primary" aria-label="Create Company" component="label">
+              <Link href="https://billing.stripe.com/p/login/aEU2aZ4PtbdD9A49AA" color="secondary" underline="none" target="_blank" rel="noopener noreferrer">
+                Upgrade Here
+              </Link>
+          </Button>
+        </div>
+      )}
+
       
     <Modal
           open={uploadInfo}

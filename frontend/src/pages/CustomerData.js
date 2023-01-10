@@ -239,7 +239,7 @@ export default function CustomerData() {
           <>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
               <Typography variant="h4" gutterBottom>
-                Welcome {userInfo.first_name} {userInfo.last_name} 👋
+                Welcome {(userInfo.first_name).charAt(0).toUpperCase()+(userInfo.first_name).slice(1)} {(userInfo.last_name).charAt(0).toUpperCase()+(userInfo.last_name).slice(1)} 👋
                 {/* Welcome */}
               </Typography>              
               {(userInfo.email === 'reid@gmail.com' || userInfo.email === 'jb@aquaclearws.com' || userInfo.email === 'reidelkins3@gmail.com') && (
@@ -247,17 +247,17 @@ export default function CustomerData() {
                 <NewCompanyModal/>
               )}
             </Stack>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5} mx={10}>
+            <Stack direction="row" alignItems="center" justifyContent="space-around" mb={5} mx={10}>
               <CounterCard
                 count={saleCount}
                 title="For Sale"
                 // description="From buttons, to inputs, navbars, alerts or cards, you are covered"
               />
-              <CounterCard
+              {/* <CounterCard
                 count={rentCount}
                 title="For Rent"
                 // description="From buttons, to inputs, navbars, alerts or cards, you are covered"
-              />
+              /> */}
               <CounterCard
                 count={sold6Count}
                 title="Recently Sold"
