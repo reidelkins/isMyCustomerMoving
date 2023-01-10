@@ -424,7 +424,7 @@ def update_serviceTitan_clients(clients, company, status):
             }
             data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
             response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
-            print(1)
+            print(response.json())
             headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
             if status == 'For Sale':
                 tagType = [str(company.serviceTitanForSaleTagID)]
