@@ -312,15 +312,17 @@ def emailBody(company):
 
 @shared_task
 def send_email():
-    
+    print("sending email")
     #https://mailtrap.io/blog/django-send-email/
     today = datetime.today().strftime('%Y-%m-%d')
     # companies = Company.objects.filter(next_email_date=today)
     companies = Company.objects.all()
     for company in companies:
+        print(company)
         zipCode_objects = Client.objects.filter(company=company).values('zipCode')
         zipCodes = zipCode_objects.distinct()
         zips = list(zipCodes.order_by('zipCode').values('zipCode'))
+        print(f"zips: {zips}")
         for zip in zips:
             zip = zip['zipCode']
             # stay in this order so if was for sale and then sold, it will show as such
@@ -339,6 +341,7 @@ def send_email():
         foundCustomers = Client.objects.filter(company=company, status__in=emailStatuses)
         foundCustomers = foundCustomers.exclude(contacted=True)
         foundCustomers = foundCustomers.order_by('status')
+        print(f"found {len(foundCustomers)} customers for {company} to email")
         message = get_template("dailyEmail.html").render({
             'clients': foundCustomers, 'customer': company
         })
