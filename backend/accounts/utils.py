@@ -282,27 +282,22 @@ def find_data(zip, company, i, status, url, extra):
             else:
                 results = parsed["results"]
             create_home_listings(results, status) 
-        updateStatus(zip, company, status)
+        # updateStatus(zip, company, status)
         
     except Exception as e:
         print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
         print(f"URL: {url}")
 
 def updateStatus(zip, company, status):
-    if company:
-        company_objects = Company.objects.filter(id=company)
-    else:
-        company_objects = Company.objects.all()
-
-    for company_object in company_objects:
-        try:
-            zipCode_object = ZipCode.objects.get(zipCode=zip)
-        except Exception as e:
-            print(f"ERROR during updateStatus: {e} with zipCode {zip}")
-            return
-        listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')
-        updatedClients = Client.objects.filter(company=company_object, address__in=listedAddresses).update(status=status)
-        update_serviceTitan_clients(updatedClients, company_object, status)
+    company = Company.objects.get(id=company)
+    try:
+        zipCode_object = ZipCode.objects.get(zipCode=zip)
+    except Exception as e:
+        print(f"ERROR during updateStatus: {e} with zipCode {zip}")
+        return
+    listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')
+    updatedClients = Client.objects.filter(company=company, address__in=listedAddresses).update(status=status)
+    update_serviceTitan_clients(updatedClients, company, status)
     
 def emailBody(company):
     foundCustomers = Client.objects.filter(company=company).exclude(status='No Change')
@@ -328,6 +323,7 @@ def send_email():
         zips = list(zipCodes.order_by('zipCode').values('zipCode'))
         for zip in zips:
             zip = zip['zipCode']
+            # stay in this order so if was for sale and then sold, it will show as such
             updateStatus(zip, company, "For Sale")
             updateStatus(zip, company, "Recently Sold (6)")
 
