@@ -344,6 +344,11 @@ class ProgressUpdateView(APIView):
                 complete = True
                 deleted = Task.objects.filter(updater=update, deleted=True).count()
                 update.delete()
+                if company.product.customerLimit-Client.objects.filter(company=company).count() < 0:
+                    clients = Client.objects.filter(company=company, status="No Change")
+                    for i in range(company.product.customerLimit-Client.objects.filter(company=company).count()):
+                        clients[i].delete()
+
             else:
                 complete = False
                 deleted = 0
