@@ -296,11 +296,8 @@ def updateStatus(zip, company, status):
         print(f"ERROR during updateStatus: {e} with zipCode {zip}")
         return
     listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')
-    print("listedAddresses", listedAddresses)
     updatedClients = Client.objects.filter(company=company, address__in=listedAddresses)
     updatedClients.update(status=status)
-    
-    print("updatedClients", updatedClients)
     update_serviceTitan_clients(updatedClients, company, status)
     
 def emailBody(company):
@@ -316,17 +313,14 @@ def emailBody(company):
 
 @shared_task
 def send_email():
-    print("sending email")
     #https://mailtrap.io/blog/django-send-email/
     today = datetime.today().strftime('%Y-%m-%d')
     # companies = Company.objects.filter(next_email_date=today)
     companies = Company.objects.all()
     for company in companies:
-        print(company)
         zipCode_objects = Client.objects.filter(company=company).values('zipCode')
         zipCodes = zipCode_objects.distinct()
         zips = list(zipCodes.order_by('zipCode').values('zipCode'))
-        print(f"zips: {zips}")
         for zip in zips:
             zip = zip['zipCode']
             # stay in this order so if was for sale and then sold, it will show as such
@@ -422,8 +416,8 @@ def get_serviceTitan_clients(company, updater=None):
                 print(f"ERROR: {e} with client {client['name']}")
 
 def update_serviceTitan_clients(clients, company, status):
-    print("clients: ", clients)
     if clients and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):
+        print("clients: ", clients)
         try:
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
