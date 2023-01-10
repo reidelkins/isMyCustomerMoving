@@ -424,6 +424,7 @@ def update_serviceTitan_clients(clients, company, status):
             }
             data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
             response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
+            print(1)
             headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
             if status == 'For Sale':
                 tagType = [str(company.serviceTitanForSaleTagID)]
@@ -434,11 +435,13 @@ def update_serviceTitan_clients(clients, company, status):
             for client in clients:
                 if client[0] != None:
                     forSale.append(str(client[0]))
+            print(f'for sale {len(forSale)}')
             if status == 'Recently Sold (6)':
                 payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
                 response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
             payload={'customerIds': forSale, 'tagTypeIds': tagType}
             response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
+            print(2)
             if response.status_code != 200:
                 resp = response.json()
                 error = resp['errors'][''][0]
@@ -447,6 +450,8 @@ def update_serviceTitan_clients(clients, company, status):
                     if word.isdigit():
                         Client.objects.filter(servTitanID=word).delete()
                         forSale.remove(word)
+                print(f'for sale {len(forSale)}')
+                print(error)
                 if status == 'Recently Sold (6)':
                     payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
                     response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
