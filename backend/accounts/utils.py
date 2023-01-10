@@ -170,7 +170,7 @@ def getAllZipcodes(company):
         # elif i % 3 == 2:
         #     status = "For Rent"
         #     url = "https://www.realtor.com/apartments"
-        find_data.delay(str(zips[i//3]['zipCode']), company, i, status, url, extra)
+        find_data.delay(str(zips[i//2]['zipCode']), company, i, status, url, extra)
 
     zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
 
@@ -323,13 +323,23 @@ def send_email():
     # companies = Company.objects.filter(next_email_date=today)
     companies = Company.objects.all()
     for company in companies:
+        zipCode_objects = Client.objects.filter(company=company).values('zipCode')
+        zipCodes = zipCode_objects.distinct()
+        zips = list(zipCodes.order_by('zipCode').values('zipCode'))
+        for zip in zips:
+            zip = zip['zipCode']
+            updateStatus(zip, company, "For Sale")
+            updateStatus(zip, company, "Recently Sold (6)")
 
-    #     next_email = (datetime.today() + timedelta(days=company.email_frequency)).strftime('%Y-%m-%d')
+        # company.next_email_date = (datetime.today() + timedelta(days=company.email_frequency)).strftime('%Y-%m-%d')
+        # company.save()
+
+
         emails = list(CustomUser.objects.filter(company=company).values_list('email'))
         subject = 'Did Your Customers Move?'
         
         # message = emailBody(company)
-        emailStatuses = ['For Sale', 'For Rent']
+        emailStatuses = ['For Sale', 'Recently Sold (6)']
         foundCustomers = Client.objects.filter(company=company, status__in=emailStatuses)
         foundCustomers = foundCustomers.exclude(contacted=True)
         foundCustomers = foundCustomers.order_by('status')
@@ -341,18 +351,18 @@ def send_email():
         #     message = "There were no updates found today for your client list but look back tomorrow for new leads!"
         
         # print(f"the message is {message}")
-
-        for email in emails:
-            email = email[0]
-            msg = EmailMessage(
-                subject,
-                message,
-                settings.EMAIL_HOST_USER,
-                [email]
-                # html_message=message,
-            )
-            msg.content_subtype ="html"# Main content is now text/html
-            msg.send()
+        if foundCustomers:
+            for email in emails:
+                email = email[0]
+                msg = EmailMessage(
+                    subject,
+                    message,
+                    settings.EMAIL_HOST_USER,
+                    [email]
+                    # html_message=message,
+                )
+                msg.content_subtype ="html"# Main content is now text/html
+                msg.send()
 
 @shared_task
 def auto_update():

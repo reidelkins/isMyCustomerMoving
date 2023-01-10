@@ -105,7 +105,7 @@ class Client(models.Model):
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=100)
     zipCode = models.ForeignKey(ZipCode, on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.SET_NULL)
+    company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE)
     status = models.CharField(max_length=20, choices=STATUS, default='No Change')
     city = models.CharField(max_length=30, blank=True, null=True)
     state = models.CharField(max_length=31, blank=True, null=True)
