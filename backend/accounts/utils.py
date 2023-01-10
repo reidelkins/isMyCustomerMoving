@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import json
 import requests
 import math
+import traceback
 import pandas as pd
 from scrapfly import ScrapeApiResponse, ScrapeConfig, ScrapflyClient
 from typing import List, Optional
@@ -417,6 +418,7 @@ def get_serviceTitan_clients(company, updater=None):
                 print(f"ERROR: {e} with client {client['name']}")
 
 def update_serviceTitan_clients(clients, company, status):
+    print("clients: ", clients)
     if clients and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):
         try:
             headers = {
@@ -424,7 +426,6 @@ def update_serviceTitan_clients(clients, company, status):
             }
             data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
             response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
-            print(response.json())
             headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
             if status == 'For Sale':
                 tagType = [str(company.serviceTitanForSaleTagID)]
@@ -482,3 +483,4 @@ def update_serviceTitan_clients(clients, company, status):
         except Exception as e:
             print("updating service titan clients failed")
             print(f"ERROR: {e}")
+            print(traceback.format_exc())
