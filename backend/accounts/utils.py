@@ -296,7 +296,11 @@ def updateStatus(zip, company, status):
         print(f"ERROR during updateStatus: {e} with zipCode {zip}")
         return
     listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')
-    updatedClients = Client.objects.filter(company=company, address__in=listedAddresses).update(status=status)
+    print("listedAddresses", listedAddresses)
+    updatedClients = Client.objects.filter(company=company, address__in=listedAddresses)
+    updatedClients.update(status=status)
+    
+    print("updatedClients", updatedClients)
     update_serviceTitan_clients(updatedClients, company, status)
     
 def emailBody(company):
