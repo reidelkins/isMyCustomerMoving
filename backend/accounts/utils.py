@@ -140,7 +140,6 @@ def saveClient(street, zip, city, state, name, company_id, serviceTitanID=None, 
                 task.deleted = True
                 task.save()
             return
-
         client.servTitanID = serviceTitanID
         client.save()
         if task:
@@ -411,7 +410,7 @@ def get_serviceTitan_clients(company, updater=None):
                 state=clients[i]['address']['state']
                 street = parseStreets((str(clients[i]['address']['street'])).title())
                 task = Task.objects.create(updater=updater)
-                saveClient.delay(street, zip, city, state, name, company.id, client['id'], task=task.id)
+                saveClient.delay(street, zip, city, state, name, company.id, clients[i]['id'], task=task.id)
             except Exception as e:
                 print(f"ERROR: {e} with client {client['name']}")
 
