@@ -289,7 +289,6 @@ def find_data(zip, company, i, status, url, extra):
         print(f"URL: {url}")
 
 def updateStatus(zip, company, status):
-    company = Company.objects.get(id=company)
     try:
         zipCode_object = ZipCode.objects.get(zipCode=zip)
     except Exception as e:
