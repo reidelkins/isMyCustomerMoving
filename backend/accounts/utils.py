@@ -398,10 +398,7 @@ def get_serviceTitan_clients(company, updater=None):
                 count+=1
         updater = ProgressUpdate.objects.get(id=updater)
         updater.tasks = count
-        updater.save()
-    with open('clients.json', 'w') as outfile:
-        json.dump(clients, outfile)
-    return
+        updater.save()    
     for i in range(len(clients)):
         if clients[i]['active']:
             try:
@@ -412,7 +409,7 @@ def get_serviceTitan_clients(company, updater=None):
                 city=clients[i]['address']['city'],
                 city= city[0]            
                 state=clients[i]['address']['state']
-                street = parseStreets((str(client['address']['street'])).title())
+                street = parseStreets((str(clients[i]['address']['street'])).title())
                 task = Task.objects.create(updater=updater)
                 saveClient.delay(street, zip, city, state, name, company.id, client['id'], task=task.id)
             except Exception as e:
