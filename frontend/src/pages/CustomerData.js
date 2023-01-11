@@ -1,7 +1,7 @@
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
 import { useState, useEffect } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 // material
 import {
   IconButton,
@@ -90,16 +90,16 @@ export function applySortFilter(array, comparator, query, userInfo) {
 
 export default function CustomerData() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();  
+  // const navigate = useNavigate();  
 
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
 
-  if (!userInfo) {
-    dispatch(logout());
-    navigate('/login', { replace: true });
-    window.location.reload(false);
-  }
+  // if (!userInfo) {
+  //   dispatch(logout());
+  //   navigate('/login', { replace: true });
+  //   window.location.reload(false);
+  // }
 
   const listClient = useSelector(selectClients);
   const { loading, error, CLIENTLIST } = listClient;

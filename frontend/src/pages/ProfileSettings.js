@@ -5,7 +5,7 @@ import {useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import * as Yup from 'yup';
 import { useFormik, Form, FormikProvider } from 'formik';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 
 import { Box, Checkbox, LinearProgress, Link, TextField, Card, Grid, Container, Typography, Stack, Button, TableContainer, Table, TableBody, TableCell, TableRow } from '@mui/material';
 
@@ -38,14 +38,14 @@ const TABLE_HEAD = [
 
 export default function ProfileSettings() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
-  if(!userInfo) {
-    navigate('/login', { replace: true });
-    window.location.reload(false);
-  }
+  // if(!userInfo) {
+  //   navigate('/login', { replace: true });
+  //   window.location.reload(false);
+  // }
   const [editting, setEditting] = useState(false);
 
   const listUser = useSelector(selectUsers);
