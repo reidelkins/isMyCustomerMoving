@@ -296,6 +296,9 @@ def updateStatus(zip, company, status):
         return
     listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')
     updatedClients = Client.objects.filter(company=company, address__in=listedAddresses)
+    previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status)
+    removeListed = previousListed.difference(updatedClients)
+    removeListed.update(status='No Change')
     updatedClients.update(status=status)
     update_serviceTitan_clients(updatedClients, company, status)
     
@@ -324,7 +327,7 @@ def send_email():
             zip = zip['zipCode']
             # stay in this order so if was for sale and then sold, it will show as such
             updateStatus(zip, company, "For Sale")
-            # updateStatus(zip, company, "Recently Sold (6)")
+            updateStatus(zip, company, "Recently Sold (6)")
 
         # company.next_email_date = (datetime.today() + timedelta(days=company.email_frequency)).strftime('%Y-%m-%d')
         # company.save()
@@ -432,7 +435,6 @@ def update_serviceTitan_clients(clients, company, status):
             for client in clients:
                 if client.servTitanID:
                     forSale.append(str(client.servTitanID))
-            print(f"for sale {forSale}")
             if status == 'Recently Sold (6)':
                 payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
                 response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
@@ -446,15 +448,11 @@ def update_serviceTitan_clients(clients, company, status):
                     if word.isdigit():
                         Client.objects.filter(servTitanID=word).delete()
                         forSale.remove(word)
-                print(f'for sale {len(forSale)}')
-                print(error)
                 if status == 'Recently Sold (6)':
                     payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
                     response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
                 payload={'customerIds': forSale, 'tagTypeIds': tagType}
                 response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
-            else:
-                print("success")
             # else:
             #     recentlySold = []
             #     recentlySoldClients = list(Client.objects.filter(status=status, company=company).values_list('servTitanID'))
