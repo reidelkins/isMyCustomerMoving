@@ -296,10 +296,13 @@ def updateStatus(zip, company, status):
         return
     listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')
     updatedClients = Client.objects.filter(company=company, address__in=listedAddresses)
+    updatedClients.update(status=status)
     previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status)
     removeListed = previousListed.difference(updatedClients)
-    removeListed.update(status='No Change')
-    updatedClients.update(status=status)
+    for remove in removeListed:
+        remove.status = "No Change"
+        remove.save()
+    
     update_serviceTitan_clients(updatedClients, company, status)
     
 def emailBody(company):
