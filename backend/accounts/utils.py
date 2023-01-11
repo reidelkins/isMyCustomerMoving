@@ -300,7 +300,7 @@ def updateStatus(zip, company, status):
     previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status)
     removeListed = previousListed.difference(updatedClients)
     for remove in removeListed:
-        remove.status = "No Change"
+        remove.status = "Taken Off Market"
         remove.save()
     
     update_serviceTitan_clients(updatedClients, company, status)

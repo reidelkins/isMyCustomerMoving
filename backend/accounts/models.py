@@ -27,7 +27,7 @@ STATUS = [
     ('For Rent','For Rent'),
     ('Recently Sold (6)','Recently Sold (6)'),
     ('Recently Sold (12)','Recently Sold (12)'),
-    ('Off Market', 'Off Market'),
+    ('Taken Off Market', 'Taken Off Market'),
     ('No Change', 'No Change')
 ]
 
