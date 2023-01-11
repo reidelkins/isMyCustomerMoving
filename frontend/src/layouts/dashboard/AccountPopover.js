@@ -1,11 +1,11 @@
-import { useRef, useState, useEffect } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useRef, useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 // @mui
 import { alpha } from '@mui/material/styles';
 import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton } from '@mui/material';
 
-import { useDispatch, useSelector } from 'react-redux';
-import { logout, showLoginInfo } from '../../redux/actions/authActions';
+import { useSelector } from 'react-redux';
+import { showLoginInfo } from '../../redux/actions/authActions';
 // components
 import MenuPopover from '../../components/MenuPopover';
 
@@ -32,8 +32,8 @@ const MENU_OPTIONS = [
 // ----------------------------------------------------------------------
 
 export default function AccountPopover() {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+  // const dispatch = useDispatch();
+  // const navigate = useNavigate();
   const anchorRef = useRef(null);
 
   const [open, setOpen] = useState(null);
@@ -49,16 +49,16 @@ export default function AccountPopover() {
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
 
-  useEffect(() => {
-    if (!userInfo) {
-      navigate('/login', { replace: true });
-    }
-  }, [navigate, userInfo]);
+  // useEffect(() => {
+  //   if (!userInfo) {
+  //     navigate('/login', { replace: true });
+  //   }
+  // }, [navigate, userInfo]);
 
-  const logoutHandler = () => {
-    dispatch(logout());
-    navigate('/login', { replace: true });
-  };
+  // const logoutHandler = () => {
+  //   dispatch(logout());
+  //   navigate('/login', { replace: true });
+  // };
 
   const initials = userInfo?.name?.split(' ').map((n) => n[0]).join('');
   return (

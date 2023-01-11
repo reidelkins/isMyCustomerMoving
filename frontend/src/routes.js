@@ -15,6 +15,8 @@ import ProfileSettings from './pages/ProfileSettings';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 
+import PrivateRoute from './components/PrivateRoute';
+
 // ----------------------------------------------------------------------
 
 export default function Router() {
