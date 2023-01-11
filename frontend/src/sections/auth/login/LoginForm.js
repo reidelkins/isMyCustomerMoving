@@ -44,11 +44,11 @@ export default function LoginForm() {
     setShowPassword((show) => !show);
   };
 
-  useEffect(() => {
-    if (userInfo) {
-      navigate('/dashboard/customers', { replace: true });
-    }
-  }, [navigate, userInfo]);
+  // useEffect(() => {
+  //   if (userInfo) {
+  //     navigate('/dashboard/customers', { replace: true });
+  //   }
+  // }, [navigate, userInfo]);
   return (
     <FormikProvider value={formik}>
       <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
