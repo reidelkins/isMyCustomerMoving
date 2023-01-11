@@ -1,12 +1,10 @@
 import { useRef, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // @mui
 import { alpha } from '@mui/material/styles';
 import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton } from '@mui/material';
 
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { showLoginInfo, logout } from '../../redux/actions/authActions';
 // components
 import MenuPopover from '../../components/MenuPopover';
