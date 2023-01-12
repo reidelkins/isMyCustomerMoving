@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Company, Client
+from .models import CustomUser, Company, Client, ClientUpdate
 from payments.models import Product
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -18,6 +18,16 @@ class CompanySerializer(serializers.ModelSerializer):
     serviceTitanForRentTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanForSaleTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanRecentlySoldTagID = serializers.CharField(max_length=100, required=False)
+    allTimeForSale = serializers.SerializerMethodField(required=False)
+    allTimeSoldHomes = serializers.SerializerMethodField(required=False)
+
+    def get_allTimeForSale(self, obj):
+        clients = Client.objects.filter(company=obj)
+        return ClientUpdate.objects.filter(client__in=clients, status="For Sale").count()
+
+    def get_allTimeSoldHomes(self, obj):
+        clients = Client.objects.filter(company=obj)
+        return ClientUpdate.objects.filter(client__in=clients, status="Recently Sold (6)").count()
 
     def create(self, validated_data):
         if Company.objects.filter(name=validated_data['name']).exists():
@@ -25,7 +35,7 @@ class CompanySerializer(serializers.ModelSerializer):
         return Company.objects.create(**validated_data, accessToken=get_random_string(length=32))
     class Meta:
         model = Company
-        fields=['id', 'name', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID']
+        fields=['id', 'name', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'allTimeForSale', 'allTimeSoldHomes']
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):

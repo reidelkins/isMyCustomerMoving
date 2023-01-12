@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext as _
-from .models import CustomUser, Company, Client, ZipCode, HomeListing, InviteToken, ProgressUpdate, Task
+from .models import CustomUser, Company, Client, ZipCode, HomeListing, InviteToken, ProgressUpdate, Task, ClientUpdate
 
 
 class CustomUserAdmin(UserAdmin):
@@ -42,6 +42,9 @@ class ClientAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'status', 'city', 'state', 'contacted', 'note', 'zipCode', 'company', 'servTitanID')
     search_fields = ('name', 'address', 'status', 'city', 'state', 'servTitanID')
 
+class ClientUpdateAdmin(admin.ModelAdmin):
+    list_display = ('id', 'client', 'status', 'listed')
+
 class ZipcodeAdmin(admin.ModelAdmin):
     list_display = ('zipCode', 'lastUpdated')
     search_fields = ['zipCode', 'lastUpdated']
@@ -70,3 +73,4 @@ admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(InviteToken, InviteTokenAdmin)
 admin.site.register(ProgressUpdate, ProgressUpdateAdmin)
 admin.site.register(Task, TaskAdmin)
+admin.site.register(ClientUpdate, ClientUpdateAdmin)

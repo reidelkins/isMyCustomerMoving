@@ -115,11 +115,12 @@ class Client(models.Model):
     note = models.TextField(default="")
     servTitanID = models.IntegerField(blank=True, null=True)
 
-class ClientList(models.Model):
+class ClientUpdate(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
-    file = models.FileField(upload_to='files')
-    # company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.SET_NULL)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=STATUS, default='No Change')
+    listed = models.CharField(max_length=30, default=datetime.utcnow)
 
 class HomeListing(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
