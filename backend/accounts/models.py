@@ -90,6 +90,8 @@ class Company(models.Model):
     serviceTitanForSaleTagID = models.IntegerField(blank=True, null=True)
     serviceTitanForRentTagID = models.IntegerField(blank=True, null=True)
     serviceTitanRecentlySoldTagID = models.IntegerField(blank=True, null=True)
+    allTimeForSaleCount = models.IntegerField(default=0)
+    allTimeHomeSoldCount = models.IntegerField(default=0)
 
 
 def zipTime():

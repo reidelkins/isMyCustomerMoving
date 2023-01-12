@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 IS_HEROKU = "DYNO" in os.environ
 # REDIS_URL = os.environ.get('REDIS_URL')
 if IS_HEROKU:
-    # DEBUG = False
+    DEBUG = False
     SECRET_KEY = os.environ['SECRET_KEY']
     RAPID_API = os.environ['RAPID_API']
     EMAIL_HOST_PASSWORD = os.environ['EMAIL_PASSWD']
@@ -34,14 +34,13 @@ if IS_HEROKU:
     ST_APP_KEY = os.environ['ST_APP_KEY']
     
 else:
-    # DEBUG = True
+    DEBUG = True
     SECRET_KEY = env('SECRET_KEY')
     RAPID_API = env('RAPID_API')
     EMAIL_HOST_PASSWORD = env('EMAIL_PASSWD')
     SCRAPFLY_KEY = env('SCRAPFLY_KEY')
     ST_APP_KEY = env('ST_APP_KEY')
     # REDIS_URL = 'redis://localhost:6379'
-DEBUG = True    
 
 ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "is-my-customer-moving.herokuapp.com"]
 

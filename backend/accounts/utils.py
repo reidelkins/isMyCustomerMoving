@@ -302,6 +302,12 @@ def updateStatus(zip, company, status):
     for remove in removeListed:
         remove.status = "Taken Off Market"
         remove.save()
+    newListed = updatedClients.difference(previousListed)
+    if status == "For Sale":
+        company.allTimeForSaleCount += len(newListed)
+    elif status == "Recently Sold (6)":
+        company.allTimeSoldCount += len(newListed)
+    company.save()
     
     update_serviceTitan_clients(updatedClients, company, status)
     
