@@ -98,10 +98,10 @@ export default function ProfileSettings() {
     setOrderBy(property);
   };
 
-  const logoutHandler = () => {
-    dispatch(logout());
-    navigate('/login', { replace: true });
-  };
+  // const logoutHandler = () => {
+  //   dispatch(logout());
+  //   navigate('/login', { replace: true });
+  // };
 
   const sendReminder = (event, email) => {
     dispatch(manageUser(email));

@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // @mui
 import { alpha } from '@mui/material/styles';
@@ -49,11 +49,11 @@ export default function AccountPopover() {
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
 
-  useEffect(() => {
-    if (!userInfo) {
-      navigate('/login', { replace: true });
-    }
-  }, [navigate, userInfo]);
+  // useEffect(() => {
+  //   if (!userInfo) {
+  //     navigate('/login', { replace: true });
+  //   }
+  // }, [navigate, userInfo]);
 
   const logoutHandler = () => {
     dispatch(logout());
