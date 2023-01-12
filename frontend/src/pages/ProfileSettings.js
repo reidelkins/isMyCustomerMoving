@@ -42,10 +42,12 @@ export default function ProfileSettings() {
 
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
-  if(!userInfo) {
+  if (!userInfo) {
+    dispatch(logout());
     navigate('/login', { replace: true });
-    window.location.reload(false);
+    window.location.reload(true);
   }
+
   const [editting, setEditting] = useState(false);
 
   const listUser = useSelector(selectUsers);
@@ -58,7 +60,7 @@ export default function ProfileSettings() {
   const [filterName, setFilterName] = useState('');
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('status');
-  const adminBool = userInfo.status === 'admin' ? 1 : 0;
+  const adminBool = (userInfo && userInfo.status === 'admin') ? 1 : 0;
 
   const handleFilterByName = (event) => {
     setFilterName(event.target.value);
@@ -77,10 +79,10 @@ export default function ProfileSettings() {
 
   const formik = useFormik({
     initialValues: {
-      firstName: userInfo.first_name,
-      lastName: userInfo.last_name,
-      email: userInfo.email,
-      servTitan: userInfo.company.tenantID,
+      firstName: userInfo ? userInfo.first_name: '',
+      lastName: userInfo ? userInfo.last_name: '',
+      email: userInfo ? userInfo.email: '',
+      servTitan: userInfo ? userInfo.company.tenantID: '',
     },
     validationSchema: SettingsSchema,
     onSubmit: () => {
@@ -205,15 +207,15 @@ export default function ProfileSettings() {
               ):(
                 <Stack direction='column'>
                   <h3>Name:</h3>
-                  <p>{userInfo.first_name} {userInfo.last_name}</p>
+                  <p>{userInfo && userInfo.first_name} {userInfo && userInfo.last_name}</p>
                   <br />
                   <h3>Email:</h3>
-                  <p>{userInfo.email}</p>
+                  <p>{userInfo ? userInfo.email : ''}</p>
                   <br />
                   <h3>Service Titan Tenant ID:</h3>                  
-                  {userInfo.company.tenantID ? <p>{userInfo.company.tenantID}</p> : <IntegrateSTModal userInfo={userInfo} />}
-                  {(!userInfo.company.clientID && userInfo.company.tenantID) && <AddSecretModal userInfo={userInfo}/>}
-                  {userInfo.company.clientID && <ServiceTitanTagsModal userInfo={userInfo}/>}
+                  {userInfo && userInfo.company.tenantID ? <p>{userInfo.company.tenantID}</p> : <IntegrateSTModal userInfo={userInfo} />}
+                  {userInfo && (!userInfo.company.clientID && userInfo.company.tenantID) && <AddSecretModal userInfo={userInfo}/>}
+                  {userInfo && userInfo.company.clientID && <ServiceTitanTagsModal userInfo={userInfo}/>}
                   <br />
                   <Button 
                     fullWidth
