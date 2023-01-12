@@ -4,8 +4,8 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { alpha } from '@mui/material/styles';
 import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton } from '@mui/material';
 
-import { useDispatch, useSelector } from 'react-redux';
-import { logout, showLoginInfo } from '../../redux/actions/authActions';
+import { useSelector, useDispatch } from 'react-redux';
+import { showLoginInfo, logout } from '../../redux/actions/authActions';
 // components
 import MenuPopover from '../../components/MenuPopover';
 
