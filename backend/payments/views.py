@@ -9,10 +9,6 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from djstripe import webhooks, models as djstripe_models
 
-
-
-logger = logging.getLogger(__name__)
-
 import stripe
 
 stripe.api_key = settings.STRIPE_LIVE_SECRET_KEY
