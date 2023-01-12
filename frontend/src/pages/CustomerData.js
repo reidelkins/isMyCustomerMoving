@@ -99,7 +99,7 @@ export default function CustomerData() {
   //   dispatch(logout());
   //   navigate('/login', { replace: true });
   //   window.location.reload(false);
-  // }
+  // } 
 
   const listClient = useSelector(selectClients);
   const { loading, error, CLIENTLIST } = listClient;
