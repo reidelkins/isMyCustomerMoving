@@ -27,7 +27,7 @@ def save_stripe_info(request):
         customer_data = stripe.Customer.list(email=email).data
         if len(customer_data) == 0:
             customer = stripe.Customer.create(
-            email=email, payment_method=payment_method_id, invoice_settings={
+            email=email, payment_method=payment_method_id, name=company, invoice_settings={
                 'default_payment_method': payment_method_id
             })
         else:
