@@ -15,7 +15,7 @@ import Iconify from '../../../components/Iconify';
 
 export default function LoginForm() {
   const dispatch = useDispatch();
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const userLogin = useSelector(showLoginInfo);
   const { error: loginError, loading: loginLoading, userInfo } = userLogin;
@@ -44,11 +44,11 @@ export default function LoginForm() {
     setShowPassword((show) => !show);
   };
 
-  // useEffect(() => {
-  //   if (userInfo) {
-  //     navigate('/dashboard/customers', { replace: true });
-  //   }
-  // }, [navigate, userInfo]);
+  useEffect(() => {
+    if (userInfo) {
+      navigate('/dashboard/customers', { replace: true });
+    }
+  }, [navigate, userInfo]);
   return (
     <FormikProvider value={formik}>
       <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
