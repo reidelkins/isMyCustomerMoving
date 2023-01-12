@@ -39,6 +39,8 @@ urlpatterns = [
     path('api/v1/accounts/', include('accounts.urls')),
     path('api/v1/payments/', include('payments.urls')),
 
+    path("stripe/", include("djstripe.urls", namespace="djstripe")),
+
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

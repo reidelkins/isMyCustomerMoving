@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 import stripe
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
+stripe.api_key = settings.STRIPE_LIVE_SECRET_KEY
 
 @api_view(['POST' ])
 def save_stripe_info(request):

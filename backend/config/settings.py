@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'corsheaders',  # To Connect API with React App if required in seprate apps
     'django_celery_beat',
     'django_rest_passwordreset',
+    'djstripe',
 ]
 
 
@@ -310,6 +311,12 @@ CACHES = {
 }
 
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLIC_KEY')
-STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_PUBLISHABLE_KEY_TEST = os.environ.get('STRIPE_PUBLIC_KEY_TEST')
-STRIPE_SECRET_KEY_TEST = os.environ.get('STRIPE_SECRET_KEY_TEST')
+
+
+STRIPE_LIVE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
+STRIPE_TEST_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY_TEST")
+STRIPE_LIVE_MODE = True
+
+DJSTRIPE_WEBHOOK_SECRET = "whsec_N8LMT9fUTcrtlEBvKaHLKTnXWLE2uybj"
+DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
