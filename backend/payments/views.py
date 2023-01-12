@@ -6,6 +6,13 @@ from .models import Product
 from accounts.utils import makeCompany
 from datetime import datetime, timedelta
 
+from django.utils import timezone
+from djstripe import webhooks, models as djstripe_models
+
+
+
+logger = logging.getLogger(__name__)
+
 import stripe
 
 stripe.api_key = settings.STRIPE_LIVE_SECRET_KEY
@@ -80,37 +87,78 @@ def publishable_key(request):
                 'data': {'publishable_key': settings.STRIPE_PUBLISHABLE_KEY } }
         )
 
-@api_view(['POST'])
-def stripe_webhooks(request):
-    print(1)
-    if request.method == 'POST':
-        print(2)
-        payload = request.body
-        print(3)
-        sig_header = request.META['HTTP_STRIPE_SIGNATURE']
-        print(4)
-        event = None
-        print(5)
-        try:
-            event = stripe.Webhook.construct_event(
-                payload, sig_header, settings.STRIPE_SECRET_TEST
-            )
-            print(6)
-        except ValueError as e:
-            print(7)
-            # Invalid payload
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        except stripe.error.SignatureVerificationError as e:
-            print(8)
-            # Invalid signature
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        # Handle the checkout.session.completed event
-        print(9)
-        print(event['type'])
-        if event['type'] == 'checkout.session.completed':
-            session = event['data']['object']
-            print(session)
-            # Fulfill the purchase...
-            print('Payment was successful.')
-            print(11)
-        return Response(status=status.HTTP_200_OK)
+
+@webhooks.handler('customer.created')
+def create_customer(event: djstripe_models.Event):
+    print("wassup duddddde")
+    obj = event.data['object']
+    print(obj)
+    print("done")
+
+@webhooks.handler('subscription_schedule.released')
+def capture_release_schedule(event: djstripe_models.Event):
+    """
+    Since we mostly operate on subscription schedules, in case the subscription is released by whatever reason
+    we want to assign it to a schedule again
+
+    :param event:
+    :return:
+    """
+    obj = event.data['object']
+    subscriptions.create_schedule(subscription=obj['released_subscription'])
+
+
+@webhooks.handler('payment_method.attached')
+def update_subscription_default_payment_method(event: djstripe_models.Event):
+    """
+    Remove this webhook if you don't want the newest payment method
+    to be a default one for the subscription.
+    The best alternative approach would most likely be to create a custom API
+    endpoint that sets a default payment method on demand called right after
+    the web app succeeds setup intent confirmation.
+
+    :param event:
+    :return:
+    """
+
+    obj = event.data['object']
+    customer = event.customer
+    if customer.default_payment_method is None:
+        customers.set_default_payment_method(customer=customer, payment_method=obj['id'])
+
+
+@webhooks.handler('payment_method.detached')
+def remove_detached_payment_method(event: djstripe_models.Event):
+    obj = event.data['object']
+    djstripe_models.PaymentMethod.objects.filter(id=obj['id']).delete()
+
+
+@webhooks.handler('invoice.payment_failed', 'invoice.payment_action_required')
+def cancel_trial_subscription_on_payment_failure(event: djstripe_models.Event):
+    obj = event.data['object']
+    subscription_id = obj.get('subscription', None)
+
+    subscription: djstripe_models.Subscription = djstripe_models.Subscription.objects.get(id=subscription_id)
+
+    # Check if the previous subscription period was trialing
+    # Unfortunately status field is already updated to active at this point
+    if subscription.current_period_start == subscription.trial_end:
+        subscription.cancel(at_period_end=False)
+
+
+@webhooks.handler('invoice.payment_failed', 'invoice.payment_action_required')
+def send_email_on_subscription_payment_failure(event: djstripe_models.Event):
+    """
+    This is an example of a handler that sends an email to a customer after a recurring payment fails
+
+    :param event:
+    :return:
+    """
+    notifications.SubscriptionErrorEmail(customer=event.customer).send()
+
+
+@webhooks.handler('customer.subscription.trial_will_end')
+def send_email_trial_expires_soon(event: djstripe_models.Event):
+    obj = event.data['object']
+    expiry_date = timezone.datetime.fromtimestamp(obj['trial_end'], tz=timezone.timezone.utc)
+    notifications.TrialExpiresSoonEmail(customer=event.customer, data={'expiry_date': expiry_date}).send()
