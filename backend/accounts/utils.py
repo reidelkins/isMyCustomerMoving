@@ -306,7 +306,7 @@ def updateStatus(zip, company, status):
     if status == "For Sale":
         company.allTimeForSaleCount += len(newListed)
     elif status == "Recently Sold (6)":
-        company.allTimeSoldCount += len(newListed)
+        company.allTimeHomeSoldCount += len(newListed)
     company.save()
     
     update_serviceTitan_clients(updatedClients, company, status)
