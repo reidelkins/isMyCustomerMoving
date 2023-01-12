@@ -15,8 +15,6 @@ import ProfileSettings from './pages/ProfileSettings';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 
-import PrivateRoute from './components/PrivateRoute';
-
 // ----------------------------------------------------------------------
 
 export default function Router() {
@@ -25,14 +23,14 @@ export default function Router() {
       path: '/dashboard',
       element: <DashboardLayout />,
       children: [
-        // { path: '', element: <Navigate to="/dashboard/customers" /> },
-        { path: '', element:<PrivateRoute path="/dashboard/customers" component={<Navigate to="/dashboard/customers" />} />},
-        { path: 'settings', element: <PrivateRoute path="/dashboard/settings" component={<ProfileSettings />} />},
-        // { path: 'settings', element: <ProfileSettings /> },
-        { path: 'customers', element: <PrivateRoute path="/dashboard/customers" component={<CustomerData />} /> },
-        // { path: 'customers', element: <CustomerData /> },
-        { path: 'adduser', element: <PrivateRoute path="/dashboard/adduser" component={<AddUser />} />}
-        // { path: 'adduser', element: <AddUser />},
+        // { path: '', element:<PrivateRoute path="/dashboard/customers" component={<Navigate to="/dashboard/customers" />} />},
+        { path: '', element: <Navigate to="/dashboard/customers" /> },
+        // { path: 'settings', element: <PrivateRoute path="/dashboard/settings" component={<ProfileSettings />} />},
+        { path: 'settings', element: <ProfileSettings /> },
+        // { path: 'customers', element: <PrivateRoute path="/dashboard/customers" component={<CustomerData />} /> },
+        { path: 'customers', element: <CustomerData /> },
+        // { path: 'adduser', element: <PrivateRoute path="/dashboard/adduser" component={<AddUser />} />}
+        { path: 'adduser', element: <AddUser />},
       ],
     },
     {
