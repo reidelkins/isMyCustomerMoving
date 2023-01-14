@@ -112,6 +112,10 @@ def cancel_subscription(event: djstripe_models.Event):
 def update_subscription(event: djstripe_models.Event):
     obj = event.data['object']
     customer = djstripe_models.Customer.objects.filter(id=obj['customer'])
+    plans = djstripe_models.Plan.objects.all()
+    for plan in plans:
+        print(plan.values())
+    return
     plan = djstripe_models.Subscription.objects.filter(customer=obj['customer']).values('plan')
     print(plan)
     plan = plan[0]['plan']
