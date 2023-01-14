@@ -95,22 +95,23 @@ def create_customer(event: djstripe_models.Event):
 #canceled subscription
 @webhooks.handler('customer.subscription.deleted')
 def cancel_subscription(event: djstripe_models.Event):
-    print("here")
     obj = event.data['object']
-    print("obj: ", obj)
-    customer = djstripe_models.Customer.objects.filter(id=obj['customer'])
-    print("customer: ", customer)
+    customer = djstripe_models.Customer.objects.get(id=obj['customer'])
     company = Company.objects.get(email=customer.email)
-    print("company: ", company)
     Client.objects.filter(company=company).update(isActive=False)
-    print("done")
     #TODO: send email to customer
 
 @webhooks.handler('customer.subscription.updated')
 def update_subscription(event: djstripe_models.Event):
     obj = event.data['object']
-    
     customer = djstripe_models.Customer.objects.filter(id=obj['customer'])
+    plan = djstripe_models.Subscription.objects.filter(customer=obj['customer']).values('plan')
+    print(plan)
+    plan = plan[0]['plan']
+    print(plan)
+    plan = djstripe_models.Plan.objects.get(id=plan)
+    print(plan)
+
     company = Company.objects.get(email=customer.email)
     
 
