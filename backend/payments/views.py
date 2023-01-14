@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from django.conf import settings
 from .models import Product
-from accounts.models import Company, Client
+from accounts.models import Company, CustomUser
 from accounts.utils import makeCompany
 from datetime import datetime, timedelta
 
@@ -102,7 +102,7 @@ def cancel_subscription(event: djstripe_models.Event):
     print(customer)
     company = Company.objects.get(email=customer.email)
     print(company)
-    Client.objects.filter(company=company).update(isActive=False)
+    CustomUser.objects.filter(company=company).update(isActive=False)
     print(2)
     #TODO: send email to customer
 
