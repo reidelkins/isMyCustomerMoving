@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view
 from django.conf import settings
 from .models import Product
 from accounts.models import Company, CustomUser
+from payments.models import Product
 from accounts.utils import makeCompany
 from datetime import datetime, timedelta
 
@@ -112,18 +113,18 @@ def cancel_subscription(event: djstripe_models.Event):
 def update_subscription(event: djstripe_models.Event):
     obj = event.data['object']
     customer = djstripe_models.Customer.objects.filter(id=obj['customer'])
-    plans = djstripe_models.Plan.objects.all()
-    for plan in plans:
-        print(plan.values())
-    return
     plan = djstripe_models.Subscription.objects.filter(customer=obj['customer']).values('plan')
     print(plan)
     plan = plan[0]['plan']
     print(plan)
-    plan = djstripe_models.Plan.objects.get(id=plan)
+    plan = djstripe_models.Plan.objects.get(djstripe_id=plan)
     print(plan)
+    print(plan.product_id)
+    product = Product.objects.get(pid=plan.product_id)
 
     company = Company.objects.get(email=customer.email)
+    company.product = product
+    company.save()
     
 
 # @webhooks.handler('payment_method.detached')
