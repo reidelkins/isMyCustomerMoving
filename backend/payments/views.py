@@ -125,19 +125,23 @@ def cancel_subscription(event: djstripe_models.Event):
 
 @webhooks.handler('customer.subscription.updated')
 def update_subscription(event: djstripe_models.Event):
-    obj = event.data['object']
-    customer = djstripe_models.Customer.objects.filter(id=obj['customer'])
-    plan = djstripe_models.Subscription.objects.filter(customer=obj['customer']).values('plan')
-    print(plan)
-    plan = plan[0]['plan']
-    print(plan)
-    plan = djstripe_models.Plan.objects.get(djstripe_id=plan)
-    print(plan.plan_id)
-    product = Product.objects.get(pid=plan.id)
-    print(product)
-    company = Company.objects.get(email=customer.email)
-    company.product = product
-    company.save()
+    try:
+        obj = event.data['object']
+        customer = djstripe_models.Customer.objects.filter(id=obj['customer'])
+        plan = djstripe_models.Subscription.objects.filter(customer=obj['customer']).values('plan')
+        print(plan)
+        plan = plan[0]['plan']
+        print(plan)
+        plan = djstripe_models.Plan.objects.get(djstripe_id=plan)
+        print(plan.plan_id)
+        product = Product.objects.get(pid=plan.id)
+        print(product)
+        company = Company.objects.get(email=customer.email)
+        company.product = product
+        company.save()
+    except Exception as e:
+        print(e)
+        print("error")
     
 
 # @webhooks.handler('payment_method.detached')
