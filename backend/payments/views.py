@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from django.conf import settings
 from .models import Product
+from accounts.models import Company, Client
 from accounts.utils import makeCompany
 from datetime import datetime, timedelta
 
@@ -91,36 +92,15 @@ def create_customer(event: djstripe_models.Event):
     print(obj)
     print("done")
 
-# @webhooks.handler('subscription_schedule.released')
-# def capture_release_schedule(event: djstripe_models.Event):
-#     """
-#     Since we mostly operate on subscription schedules, in case the subscription is released by whatever reason
-#     we want to assign it to a schedule again
+#canceled subscription
+@webhooks.handler('customer.subscription.deleted')
+def cancel_subscription(event: djstripe_models.Event):
+    obj = event.data['object']
+    customer = djstripe_models.Customer.objects.filter(id=obj['customer'])
+    company = Company.objects.get(email=customer.email)
+    Client.objects.filter(company=company).update(isActive=False)
+    #TODO: send email to customer
 
-#     :param event:
-#     :return:
-#     """
-#     obj = event.data['object']
-#     subscriptions.create_schedule(subscription=obj['released_subscription'])
-
-
-# @webhooks.handler('payment_method.attached')
-# def update_subscription_default_payment_method(event: djstripe_models.Event):
-#     """
-#     Remove this webhook if you don't want the newest payment method
-#     to be a default one for the subscription.
-#     The best alternative approach would most likely be to create a custom API
-#     endpoint that sets a default payment method on demand called right after
-#     the web app succeeds setup intent confirmation.
-
-#     :param event:
-#     :return:
-#     """
-
-#     obj = event.data['object']
-#     customer = event.customer
-#     if customer.default_payment_method is None:
-#         customers.set_default_payment_method(customer=customer, payment_method=obj['id'])
 
 
 # @webhooks.handler('payment_method.detached')
