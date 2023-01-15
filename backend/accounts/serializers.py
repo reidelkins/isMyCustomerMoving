@@ -97,6 +97,7 @@ class ClientUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientUpdate
         fields = ('id', 'status', 'date', 'listed', 'note', 'contacted')
+        read_only_fields = fields
 
 class ClientListSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
@@ -108,16 +109,12 @@ class ClientListSerializer(serializers.ModelSerializer):
     status = serializers.CharField(max_length=100)
     contacted = serializers.BooleanField()
     note = serializers.CharField(max_length=100)
-    clientUpdates = serializers.SerializerMethodField(read_only=True)
-
-    def get_clientUpdates(self, obj):
-        return ClientUpdateSerializer(ClientUpdate.objects.filter(client=obj), many=True).data
-
-
+    clientUpdates = ClientUpdateSerializer(many=True, read_only=True)
 
     class Meta:
         model = Client
         fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status', 'contacted', 'note', 'clientUpdates')
+        read_only_fields = fields
 
 class UserListSerializer(serializers.ModelSerializer):
     class Meta:

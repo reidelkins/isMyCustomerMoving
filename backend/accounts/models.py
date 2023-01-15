@@ -116,7 +116,7 @@ class Client(models.Model):
 class ClientUpdate(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='clientUpdates')
     date = models.DateField(default=datetime.utcnow)
     status = models.CharField(max_length=20, choices=STATUS, default='No Change', blank=True, null=True)
     listed = models.CharField(max_length=30, default=datetime.utcnow, blank=True, null=True)

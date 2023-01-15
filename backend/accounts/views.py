@@ -294,7 +294,7 @@ class ClientListView(generics.ListAPIView):
             company = Company.objects.get(id=self.kwargs['company'])
         except Exception as e:
             print(f"ERROR: Client List View: {e}")
-        clients = Client.objects.filter(company=company)
+        clients = Client.objects.prefetch_related('clientUpdates').filter(company=company)
         serializer = ClientListSerializer(clients, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

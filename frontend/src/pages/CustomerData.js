@@ -1,7 +1,8 @@
 /* eslint-disable no-nested-ternary */
+/* eslint-disable camelcase */
 import { filter} from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // material
 import {
@@ -305,14 +306,14 @@ export default function CustomerData() {
                       )}                        
                       </TableCell>
                     </TableRow>
-                  )) : (
-                    <TableRow>
-                      <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                        <SearchNotFound searchQuery="" tipe="event" />
-                      </TableCell>
-                    </TableRow>
-                  )
-                }
+                    )) : (
+                      <TableRow>
+                        <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
+                          <SearchNotFound searchQuery="" tipe="event" />
+                        </TableCell>
+                      </TableRow>
+                    )
+                  }
                 </TableBody>
               </Table>
             </Grid>
@@ -383,7 +384,7 @@ export default function CustomerData() {
                         const isItemSelected = selected.indexOf(name) !== -1;                        
                         
                         return (
-                          <>
+                          <React.Fragment key={row.id}>
                             <TableRow
                               hover
                               key={id}
@@ -453,8 +454,8 @@ export default function CustomerData() {
                                   <ExpandedRow clientUpdates={clientUpdates}/>
                                 </TableCell>
                               </TableRow>
-                            )}                                                                          
-                          </>
+                            )}
+                          </React.Fragment>
                         );
                       })}
                       {emptyRows > 0 && (
@@ -528,9 +529,7 @@ export default function CustomerData() {
                   </Button>
                 )}
               </Stack>
-            )}
-              
-              
+            )}                          
             { userInfo.status === 'admin' && (
               <FileUploader />  
             )}
