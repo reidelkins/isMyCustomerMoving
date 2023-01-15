@@ -87,10 +87,37 @@ class UploadFileSerializer(serializers.Serializer):
     file = serializers.FileField()
     # company = serializers.CharField()
 
+class ClientUpdateSerializer(serializers.ModelSerializer):
+    status = serializers.CharField(max_length=100)
+    date = serializers.DateField()
+    listed = serializers.CharField(max_length=100)
+    note = serializers.CharField(max_length=100)
+    contacted = serializers.BooleanField()
+
+    class Meta:
+        model = ClientUpdate
+        fields = ('id', 'status', 'date', 'listed', 'note', 'contacted')
+
 class ClientListSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(read_only=True)
+    name = serializers.CharField(max_length=100)
+    address = serializers.CharField(max_length=100)
+    city = serializers.CharField(max_length=100)
+    state = serializers.CharField(max_length=100)
+    zipCode = serializers.CharField(max_length=100)
+    status = serializers.CharField(max_length=100)
+    contacted = serializers.BooleanField()
+    note = serializers.CharField(max_length=100)
+    clientUpdates = serializers.SerializerMethodField(read_only=True)
+
+    def get_clientUpdates(self, obj):
+        return ClientUpdateSerializer(ClientUpdate.objects.filter(client=obj), many=True).data
+
+
+
     class Meta:
         model = Client
-        fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status', 'contacted', 'note')
+        fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status', 'contacted', 'note', 'clientUpdates')
 
 class UserListSerializer(serializers.ModelSerializer):
     class Meta:

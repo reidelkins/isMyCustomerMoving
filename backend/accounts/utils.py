@@ -310,10 +310,6 @@ def updateStatus(zip, company, status):
         listing = HomeListing.objects.get(zipCode=zipCode_object, address=toList.address, status=status)
         ClientUpdate.objects.get_or_create(client=toList, status=status, listed=listing.listed)
 
-
-    
-
-
     update_serviceTitan_clients(clientsToUpdate, company, status)
     
 def emailBody(company):
@@ -361,18 +357,18 @@ def send_email():
         })
         
       
-        # if foundCustomers:
-        #     for email in emails:
-        #         email = email[0]
-        #         msg = EmailMessage(
-        #             subject,
-        #             message,
-        #             settings.EMAIL_HOST_USER,
-        #             [email]
-        #             # html_message=message,
-        #         )
-        #         msg.content_subtype ="html"# Main content is now text/html
-        #         msg.send()
+        if foundCustomers:
+            for email in emails:
+                email = email[0]
+                msg = EmailMessage(
+                    subject,
+                    message,
+                    settings.EMAIL_HOST_USER,
+                    [email]
+                    # html_message=message,
+                )
+                msg.content_subtype ="html"# Main content is now text/html
+                msg.send()
 
 @shared_task
 def auto_update():

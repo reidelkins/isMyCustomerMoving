@@ -90,8 +90,6 @@ class Company(models.Model):
     serviceTitanForSaleTagID = models.IntegerField(blank=True, null=True)
     serviceTitanForRentTagID = models.IntegerField(blank=True, null=True)
     serviceTitanRecentlySoldTagID = models.IntegerField(blank=True, null=True)
-    allTimeForSaleCount = models.IntegerField(default=0)
-    allTimeHomeSoldCount = models.IntegerField(default=0)
 
 
 def zipTime():
@@ -119,8 +117,12 @@ class ClientUpdate(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
-    status = models.CharField(max_length=20, choices=STATUS, default='No Change')
-    listed = models.CharField(max_length=30, default=datetime.utcnow)
+    date = models.DateField(default=datetime.utcnow)
+    status = models.CharField(max_length=20, choices=STATUS, default='No Change', blank=True, null=True)
+    listed = models.CharField(max_length=30, default=datetime.utcnow, blank=True, null=True)
+    note = models.TextField(default="", blank=True, null=True)
+    contacted = models.BooleanField(blank=True, null=True)
+
 
 class HomeListing(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
