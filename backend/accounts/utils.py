@@ -302,8 +302,10 @@ def updateStatus(zip, company, status):
     newlyListed = clientsToUpdate.difference(previousListed)
     unlisted = previousListed.difference(clientsToUpdate)
     for toUnlist in unlisted:
-        toUnlist.status = "No Change"
+        toUnlist.status = "Taken Off Market"
         toUnlist.save()
+        listing = HomeListing.objects.get(zipCode=zipCode_object, address=toUnlist.address, status=status)
+        ClientUpdate.objects.get_or_create(client=toList, status=status, listed=listing.listed)
     for toList in newlyListed:
         toList.status = status
         toList.save()
