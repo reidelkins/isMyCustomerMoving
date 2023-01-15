@@ -327,7 +327,7 @@ export const getUpdates = (updateId) => async (dispatch, getState) => {
       } else {
         dispatch(progressDone());
       }
-    }, 1000);
+    }, 2000);
     
   } catch (error) {
     dispatch(progressError(error.response && error.response.data.detail ? error.response.data.detail : error.message));

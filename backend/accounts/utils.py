@@ -306,13 +306,21 @@ def updateStatus(zip, company, status):
     for toUnlist in unlisted:
         toUnlist.status = "Taken Off Market"
         toUnlist.save()
-        listing = HomeListing.objects.get(zipCode=zipCode_object, address=toUnlist.address, status=status)
-        ClientUpdate.objects.get_or_create(client=toList, status=status, listed=listing.listed)
+        try:
+            listing = HomeListing.objects.get(zipCode=zipCode_object, address=toUnlist.address, status=status)
+            ClientUpdate.objects.get_or_create(client=toList, status=status, listed=listing.listed)
+        except Exception as e:
+            print("Cant find listing to unlist")
+            print("This means the listing was removed from the database")
     for toList in newlyListed:
         toList.status = status
         toList.save()
-        listing = HomeListing.objects.get(zipCode=zipCode_object, address=toList.address, status=status)
-        ClientUpdate.objects.get_or_create(client=toList, status=status, listed=listing.listed)
+        try:
+            listing = HomeListing.objects.get(zipCode=zipCode_object, address=toList.address, status=status)
+            ClientUpdate.objects.get_or_create(client=toList, status=status, listed=listing.listed)
+        except Exception as e:
+            print("Cant find listing to list")
+            print("This should not be the case")
 
     update_serviceTitan_clients(clientsToUpdate, company, status)
     
