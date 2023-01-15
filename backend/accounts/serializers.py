@@ -99,11 +99,12 @@ class ClientListSerializer(serializers.ModelSerializer):
     status = serializers.CharField(max_length=100)
     contacted = serializers.BooleanField()
     note = serializers.CharField(max_length=100)
+    phoneNumber = serializers.CharField(max_length=100)
     clientUpdates = ClientUpdateSerializer(many=True, read_only=True)
 
     class Meta:
         model = Client
-        fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status', 'contacted', 'note', 'clientUpdates')
+        fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status', 'contacted', 'note', 'phoneNumber', 'clientUpdates')
         read_only_fields = fields
 
 class UserListSerializer(serializers.ModelSerializer):

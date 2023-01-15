@@ -89,8 +89,9 @@ def saveClientList(clients, company_id, updater=None):
             city = clients[i]['city']
             state = clients[i]['state']
             name = clients[i]['name']
+            phoneNumber = clients[i]['phone number']
             task = Task.objects.create(updater=updater)
-            saveClient.delay(street, zip, city, state, name, company_id, task=task.id)
+            saveClient.delay(street, zip, city, state, name, company_id, phoneNumber, task=task.id)
             # if updater:
             #     x = math.floor((i/len(clients))*100)
             #     if x == 99:
@@ -104,7 +105,7 @@ def saveClientList(clients, company_id, updater=None):
 
 
 @shared_task
-def saveClient(street, zip, city, state, name, company_id, serviceTitanID=None, task=None):
+def saveClient(street, zip, city, state, name, company_id, phoneNumber=None, serviceTitanID=None, task=None):
     try:
         if task:
             task = Task.objects.get(id=task)
@@ -141,6 +142,7 @@ def saveClient(street, zip, city, state, name, company_id, serviceTitanID=None, 
                 task.save()
             return
         client.servTitanID = serviceTitanID
+        client.phoneNumber = phoneNumber
         client.save()
         if task:
             task.complete = True
@@ -393,6 +395,7 @@ def get_serviceTitan_clients(company, updater=None):
     clients = []
     frm = ""
     moreClients = True
+    #get client data
     while(moreClients):
         response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/export/customers?from={frm}', headers=headers)
         for client in response.json()['data']:
@@ -401,8 +404,24 @@ def get_serviceTitan_clients(company, updater=None):
             frm = response.json()['continueFrom']
         else:
             moreClients = False
-    if updater:
-        
+
+    # get phone number data for each client
+    moreClients = True
+    frm = ""
+    numbers = {}
+    while moreClients:
+        response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/export/customers/contacts?from={frm}', headers=headers)
+        with open('numbers.json', 'w') as f:
+            json.dump(response.json(), f)
+        for client in response.json()['data']:            
+            if client['customerId'] and client['phoneSettings']:
+                numbers[client['customerId']] = client['phoneSettings']['phoneNumber']                
+        if response.json()['hasMore']:
+            frm = response.json()['continueFrom']
+        else:
+            moreClients = False
+
+    if updater:        
         count = 0
         for client in clients:
             if client['active']:
@@ -422,7 +441,14 @@ def get_serviceTitan_clients(company, updater=None):
                 state=clients[i]['address']['state']
                 street = parseStreets((str(clients[i]['address']['street'])).title())
                 task = Task.objects.create(updater=updater)
-                saveClient.delay(street, zip, city, state, name, company.id, clients[i]['id'], task=task.id)
+                try:
+                    if numbers[clients[i]['id']]:
+                        phoneNumber = numbers[clients[i]['id']]
+                    else:
+                        phoneNumber = None
+                except:
+                    phoneNumber = None
+                saveClient.delay(street, zip, city, state, name, company.id, phoneNumber, clients[i]['id'], task=task.id)
             except Exception as e:
                 print(f"ERROR: {e} with client {client['name']}")
 

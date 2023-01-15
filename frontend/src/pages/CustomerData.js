@@ -54,6 +54,7 @@ const TABLE_HEAD = [
   { id: 'status', label: 'Status', alignRight: false },
   { id: 'contacted', label: 'Contacted', alignRight: false },
   { id: 'note', label: 'Note', alignRight: false },
+  { id: 'phone', label: 'Phone Number', alignRight: false },
 ];
 
 // ----------------------------------------------------------------------
@@ -380,7 +381,7 @@ export default function CustomerData() {
                     />
                     <TableBody>
                       {filteredClients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                        const { id, name, address, city, state, zipCode, status, contacted, note, clientUpdates} = row;
+                        const { id, name, address, city, state, zipCode, status, contacted, note, phoneNumber, clientUpdates} = row;
                         const isItemSelected = selected.indexOf(name) !== -1;                        
                         
                         return (
@@ -445,7 +446,10 @@ export default function CustomerData() {
                                   id={id}
                                   name={name}
                                 />
-                              </TableCell>                            
+                              </TableCell>
+                              <TableCell>
+                                {phoneNumber}
+                              </TableCell>
                             </TableRow>                                                                            
                             {expandedRow === id && (
                               <TableRow style={{position:'relative', left:'10%'}}>

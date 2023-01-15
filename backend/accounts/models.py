@@ -112,6 +112,7 @@ class Client(models.Model):
     contacted = models.BooleanField(default=False)
     note = models.TextField(default="")
     servTitanID = models.IntegerField(blank=True, null=True)
+    phoneNumber = models.CharField(max_length=100, blank=True, null=True)
 
 class ClientUpdate(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,

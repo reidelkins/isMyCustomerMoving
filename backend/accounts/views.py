@@ -328,7 +328,7 @@ class UploadFileView(generics.CreateAPIView):
             print(e)
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
         
-        clients = Client.objects.filter(company=company)
+        clients = Client.objects.prefetch_related('clientUpdates').filter(company=company)
         clients = ClientListSerializer(clients, many=True).data
         return Response({"clients": clients, "updateId": update.id} , status=status.HTTP_201_CREATED, headers="")
 	
@@ -345,15 +345,15 @@ class ProgressUpdateView(APIView):
                 percentDone = 0
             update.percentDone = percentDone
             update.save()
-            clients = Client.objects.filter(company=update.company)
+            clients = Client.objects.prefetch_related('clientUpdates').filter(company=update.company)
             clients = ClientListSerializer(clients, many=True).data
             if percentDone == 100:
                 complete = True
                 deleted = Task.objects.filter(updater=update, deleted=True).count()
-                if update.company.product.customerLimit-Client.objects.filter(company=update.company).count() < 0:
-                    clients = Client.objects.filter(company=update.company, status="No Change")
-                    for i in range(update.company.product.customerLimit-Client.objects.filter(company=update.company).count()):
-                        clients[i].delete()
+                if update.company.product.customerLimit-clients.count() < 0:
+                    deleteClients = Client.objects.filter(company=update.company, status="No Change")
+                    for i in range(update.company.product.customerLimit-clients.count()):
+                        deleteClients[i].delete()
                 update.delete()
 
             else:
@@ -390,7 +390,7 @@ def update_client(request, pk):
             except Exception as e:
                 print(e)
                 return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-        clients = Client.objects.filter(company=company)
+        clients = Client.objects.prefetch_related('clientUpdates').filter(company=company)
         clients = ClientListSerializer(clients, many=True).data
         return Response(clients , status=status.HTTP_201_CREATED, headers="")
     except Exception as e:
@@ -408,7 +408,7 @@ class ServiceTitanView(APIView):
                 return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
             update = ProgressUpdate.objects.create(company=company, tasks=len(request.data))
             get_serviceTitan_clients.delay(company_id, update.id)
-            clients = Client.objects.filter(company=company)
+            clients = Client.objects.prefetch_related('clientUpdates').filter(company=company)
             clients = ClientListSerializer(clients, many=True).data
             return Response({"clients": clients, "updateId": update.id}, status=status.HTTP_201_CREATED, headers="")
         except Exception as e:
