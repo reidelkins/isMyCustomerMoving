@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Company, Client
+from .models import CustomUser, Company, Client, ClientUpdate
 from payments.models import Product
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -77,10 +77,34 @@ class UploadFileSerializer(serializers.Serializer):
     file = serializers.FileField()
     # company = serializers.CharField()
 
+class ClientUpdateSerializer(serializers.ModelSerializer):
+    status = serializers.CharField(max_length=100)
+    date = serializers.DateField()
+    listed = serializers.CharField(max_length=100)
+    note = serializers.CharField(max_length=100)
+    contacted = serializers.BooleanField()
+
+    class Meta:
+        model = ClientUpdate
+        fields = ('id', 'status', 'date', 'listed', 'note', 'contacted')
+        read_only_fields = fields
+
 class ClientListSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(read_only=True)
+    name = serializers.CharField(max_length=100)
+    address = serializers.CharField(max_length=100)
+    city = serializers.CharField(max_length=100)
+    state = serializers.CharField(max_length=100)
+    zipCode = serializers.CharField(max_length=100)
+    status = serializers.CharField(max_length=100)
+    contacted = serializers.BooleanField()
+    note = serializers.CharField(max_length=100)
+    clientUpdates = ClientUpdateSerializer(many=True, read_only=True)
+
     class Meta:
         model = Client
-        fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status', 'contacted', 'note')
+        fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status', 'contacted', 'note', 'clientUpdates')
+        read_only_fields = fields
 
 class UserListSerializer(serializers.ModelSerializer):
     class Meta:

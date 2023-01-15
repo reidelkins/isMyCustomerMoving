@@ -3,8 +3,13 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from django.conf import settings
 from .models import Product
+from accounts.models import Company, CustomUser
+from payments.models import Product
 from accounts.utils import makeCompany
 from datetime import datetime, timedelta
+
+from django.utils import timezone
+from djstripe import webhooks, models as djstripe_models
 
 import stripe
 
@@ -80,37 +85,94 @@ def publishable_key(request):
                 'data': {'publishable_key': settings.STRIPE_PUBLISHABLE_KEY } }
         )
 
-@api_view(['POST'])
-def stripe_webhooks(request):
-    print(1)
-    if request.method == 'POST':
-        print(2)
-        payload = request.body
-        print(3)
-        sig_header = request.META['HTTP_STRIPE_SIGNATURE']
-        print(4)
-        event = None
-        print(5)
-        try:
-            event = stripe.Webhook.construct_event(
-                payload, sig_header, settings.STRIPE_SECRET_TEST
-            )
-            print(6)
-        except ValueError as e:
-            print(7)
-            # Invalid payload
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        except stripe.error.SignatureVerificationError as e:
-            print(8)
-            # Invalid signature
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        # Handle the checkout.session.completed event
-        print(9)
-        print(event['type'])
-        if event['type'] == 'checkout.session.completed':
-            session = event['data']['object']
-            print(session)
-            # Fulfill the purchase...
-            print('Payment was successful.')
-            print(11)
-        return Response(status=status.HTTP_200_OK)
+
+@webhooks.handler('customer.created')
+def create_customer(event: djstripe_models.Event):
+    print("wassup duddddde")
+    obj = event.data['object']
+    print(obj)
+    print("done")
+
+@webhooks.handler('customer.subscription.created')
+def create_subscription(event: djstripe_models.Event):
+    try:
+        obj = event.data['object']
+        customer = djstripe_models.Customer.objects.get(id=obj['customer'])
+        company = Company.objects.get(email=customer.email)
+        users = CustomUser.objects.filter(company=company)
+        for user in users:
+            user.isVerified = True
+            user.save()
+    except Exception as e:
+        print(e)
+        print("error")
+
+#canceled subscription
+@webhooks.handler('customer.subscription.deleted')
+def cancel_subscription(event: djstripe_models.Event):
+    try:
+        obj = event.data['object']
+        customer = djstripe_models.Customer.objects.get(id=obj['customer'])
+        company = Company.objects.get(email=customer.email)
+        users = CustomUser.objects.filter(company=company)
+        for user in users:
+            user.isVerified = False
+            user.save()
+        #TODO: send email to customer
+    except Exception as e:
+        print(e)
+        print("error")
+
+@webhooks.handler('customer.subscription.updated')
+def update_subscription(event: djstripe_models.Event):
+    try:
+        obj = event.data['object']
+        customer = djstripe_models.Customer.objects.get(id=obj['customer'])
+
+        plan = djstripe_models.Subscription.objects.filter(customer=obj['customer']).values('plan')
+        plan = plan[0]['plan']
+        plan = djstripe_models.Plan.objects.get(djstripe_id=plan)
+        product = Product.objects.get(pid=plan.id)
+        company = Company.objects.get(email=customer.email)
+        company.product = product
+        company.save()
+    except Exception as e:
+        print(e)
+        print("error")
+    
+
+# @webhooks.handler('payment_method.detached')
+# def remove_detached_payment_method(event: djstripe_models.Event):
+#     obj = event.data['object']
+#     djstripe_models.PaymentMethod.objects.filter(id=obj['id']).delete()
+
+
+# @webhooks.handler('invoice.payment_failed', 'invoice.payment_action_required')
+# def cancel_trial_subscription_on_payment_failure(event: djstripe_models.Event):
+#     obj = event.data['object']
+#     subscription_id = obj.get('subscription', None)
+
+#     subscription: djstripe_models.Subscription = djstripe_models.Subscription.objects.get(id=subscription_id)
+
+#     # Check if the previous subscription period was trialing
+#     # Unfortunately status field is already updated to active at this point
+#     if subscription.current_period_start == subscription.trial_end:
+#         subscription.cancel(at_period_end=False)
+
+
+# @webhooks.handler('invoice.payment_failed', 'invoice.payment_action_required')
+# def send_email_on_subscription_payment_failure(event: djstripe_models.Event):
+#     """
+#     This is an example of a handler that sends an email to a customer after a recurring payment fails
+
+#     :param event:
+#     :return:
+#     """
+#     notifications.SubscriptionErrorEmail(customer=event.customer).send()
+
+
+# @webhooks.handler('customer.subscription.trial_will_end')
+# def send_email_trial_expires_soon(event: djstripe_models.Event):
+#     obj = event.data['object']
+#     expiry_date = timezone.datetime.fromtimestamp(obj['trial_end'], tz=timezone.timezone.utc)
+#     notifications.TrialExpiresSoonEmail(customer=event.customer, data={'expiry_date': expiry_date}).send()

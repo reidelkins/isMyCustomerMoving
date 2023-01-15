@@ -45,7 +45,7 @@ function CounterCard({ color, count, title, description, ...rest }) {
         <CountUp end={count} duration={1} {...rest} />
       </Typography>
       {title && (
-        <Typography variant="h5" mt={2} mb={1}>
+        <Typography variant="h3" mt={2} mb={1}>
           {title}
         </Typography>
       )}

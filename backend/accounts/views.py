@@ -288,8 +288,15 @@ class UserViewSet(ReadOnlyModelViewSet):
 
 class ClientListView(generics.ListAPIView):
     serializer_class = ClientListSerializer
-    def get_queryset(self):
-        return Client.objects.filter(company=self.kwargs['company'])
+    # send back all clients for a company and all client updates for each client
+    def get(self, request, *args, **kwargs):
+        try:
+            company = Company.objects.get(id=self.kwargs['company'])
+        except Exception as e:
+            print(f"ERROR: Client List View: {e}")
+        clients = Client.objects.prefetch_related('clientUpdates').filter(company=company)
+        serializer = ClientListSerializer(clients, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class UserListView(generics.ListAPIView):
     serializer_class = UserListSerializer

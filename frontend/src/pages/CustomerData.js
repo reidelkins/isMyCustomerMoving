@@ -1,6 +1,8 @@
-import { filter } from 'lodash';
+/* eslint-disable no-nested-ternary */
+/* eslint-disable camelcase */
+import { filter} from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // material
 import {
@@ -20,6 +22,8 @@ import {
   TableContainer,
   TablePagination,
   CircularProgress,
+  TableHead,
+  Grid
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -99,10 +103,10 @@ export default function CustomerData() {
     dispatch(logout());
     navigate('/login', { replace: true });
     window.location.reload(false);
-  } 
+  }
 
   const listClient = useSelector(selectClients);
-  const { loading, error, CLIENTLIST } = listClient;
+  const { loading, CLIENTLIST } = listClient;
   const progress = useSelector(selectProgress);
 
   const [page, setPage] = useState(0);
@@ -120,6 +124,17 @@ export default function CustomerData() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const [shownClients, setShownClients] = useState(0);
+
+  const [expandedRow, setExpandedRow] = useState(null);
+
+  const handleRowClick = (rowIndex) => {
+    if (expandedRow === rowIndex) {
+      setExpandedRow(null);
+    } else {
+      setExpandedRow(rowIndex);
+    }
+  };
+
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -205,26 +220,42 @@ export default function CustomerData() {
   const [rentCount, setRentCount] = useState(0);
   const [saleCount, setSaleCount] = useState(0);
   const [sold6Count, setSold6Count] = useState(0);
+  const [totalSaleCount, setTotalSaleCount] = useState(0);
+  const [totalSoldCount, setTotalSoldCount] = useState(0);
   useEffect(() => {
     let tmpRent = 0;
     let tmpSale = 0;
+    let tmpTotalSale = 0;
     let tmpSold6 = 0;
+    let tmpTotalSold = 0;
     CLIENTLIST.forEach((n) => {
       if (n.status === 'For Rent') {
         tmpRent +=  1;
       }
       if (n.status === 'For Sale') {
         tmpSale += 1;
+        tmpTotalSale += 1;
       }
       if (n.status === 'Recently Sold (6)' || n.status === 'Recently Sold (12)') {
         tmpSold6 += 1;
+        tmpTotalSold += 1;
       }
+      n.clientUpdates.forEach((u) => {
+        if (u.status === 'For Sale') {
+          tmpTotalSale += 1;
+        }
+        if (u.status === 'Recently Sold (6)' || u.status === 'Recently Sold (12)') {
+          tmpTotalSold += 1;
+        }
+      })
 
 
     });
     setRentCount(tmpRent);
     setSaleCount(tmpSale);
+    setTotalSaleCount(tmpTotalSale);
     setSold6Count(tmpSold6);
+    setTotalSoldCount(tmpTotalSold);
     if (userInfo) {
       if (userInfo.status === 'admin') {
         setShownClients(CLIENTLIST.length);
@@ -232,7 +263,67 @@ export default function CustomerData() {
         setShownClients(rentCount + saleCount + sold6Count);
       }
     }
-  }, [CLIENTLIST, userInfo, rentCount, saleCount, sold6Count]);  
+  }, [CLIENTLIST, userInfo, rentCount, saleCount, sold6Count]);
+
+  const ExpandedRow = (clientUpdates) => {
+    return (
+      <TableRow>
+        <TableCell>
+          <Grid container>
+            <Grid item xs={12}>
+              <Table size='small'  >
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Date</TableCell>
+                    <TableCell >Event Description</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {clientUpdates.clientUpdates.length > 0 ? clientUpdates.clientUpdates.map((update, index) => (                      
+                    <TableRow key={index}>
+                      <TableCell>{update.date}</TableCell>
+                      <TableCell>
+                      {update.listed ? (
+                        update.status === 'For Sale' ? (
+                          <Typography>
+                            Home listed for sale on {update.listed}
+                          </Typography>
+                        ) : (
+                          <Typography>
+                            Home sold on {update.listed}
+                          </Typography>
+                        )                        
+                      ):(
+                        update.note ? (
+                          <Typography>
+                            Note changed to {update.note}
+                          </Typography>
+                        ) : (
+                          <Typography>
+                            Client was marked as {update.contacted ? 'contacted' : 'not contacted'}
+                          </Typography>
+                        )
+                      )}                        
+                      </TableCell>
+                    </TableRow>
+                    )) : (
+                      <TableRow>
+                        <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
+                          <SearchNotFound searchQuery="" tipe="event" />
+                        </TableCell>
+                      </TableRow>
+                    )
+                  }
+                </TableBody>
+              </Table>
+            </Grid>
+          </Grid>
+        </TableCell>
+      </TableRow>
+    )
+  }
+
+
   return (
     <Page title="User">
       <Container>
@@ -250,36 +341,24 @@ export default function CustomerData() {
               )}
             </Stack>
             <Stack direction="row" alignItems="center" justifyContent="space-around" mb={5} mx={10}>
-              <CounterCard
-                count={saleCount}
-                title="For Sale"
-                // description="From buttons, to inputs, navbars, alerts or cards, you are covered"
-              />
-              {/* <CounterCard
-                count={rentCount}
-                title="For Rent"
-                // description="From buttons, to inputs, navbars, alerts or cards, you are covered"
-              /> */}
-              <CounterCard
-                count={sold6Count}
-                title="Recently Sold"
-                // description="From buttons, to inputs, navbars, alerts or cards, you are covered"
-              />
-              {/* <CounterCard
-                count={sold12Count}
-                title="Sold in last 6-12 months"
-                // description="From buttons, to inputs, navbars, alerts or cards, you are covered"
-              /> */}
+              <Stack direction="column" alignItems="center" justifyContent="center">
+                <CounterCard
+                  count={saleCount}
+                  title="For Sale"
+                />
+                <Typography variant="h6" gutterBottom mt={-3}> All Time: {totalSaleCount}</Typography>
+              </Stack>
+
+              <Stack direction="column" alignItems="center" justifyContent="center">
+                <CounterCard
+                  count={sold6Count}
+                  title="Recently Sold"
+                />
+                <Typography variant="h6" gutterBottom mt={-3}> All Time: {totalSoldCount}</Typography>
+              </Stack>
             </Stack>
             <Card sx={{marginBottom:"3%"}}>
               <ClientListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedClients={selectedClients} setSelected setSelectedClients />
-              {/* {error ? (
-                // <Alert severity="error">
-                //   <AlertTitle>List Loading Error</AlertTitle>
-                //   {error}
-                // </Alert>
-                logoutHandler
-              ) : null} */}
               {loading ? (
                 <Box sx={{ width: '100%' }}>
                   <LinearProgress />
@@ -301,75 +380,82 @@ export default function CustomerData() {
                     />
                     <TableBody>
                       {filteredClients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                        const { id, name, address, city, state, zipCode, status, contacted, note } = row;
+                        const { id, name, address, city, state, zipCode, status, contacted, note, clientUpdates} = row;
                         const isItemSelected = selected.indexOf(name) !== -1;                        
                         
                         return (
-                          <TableRow
-                            hover
-                            key={id}
-                            tabIndex={-1}
-                            role="checkbox"
-                            selected={isItemSelected}
-                            aria-checked={isItemSelected}
-                          >
-                            <TableCell padding="checkbox">
-                              <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, name, id)} />
-                            </TableCell>
-                            <TableCell component="th" scope="row" padding="none">
-                              <Stack direction="row" alignItems="center" spacing={2}>
-                                <Typography variant="subtitle2" noWrap>
-                                  {name}
-                                </Typography>
-                              </Stack>
-                            </TableCell>
-                            <TableCell align="left">{address}</TableCell>
-                            <TableCell align="left">{city}</TableCell>
-                            <TableCell align="left">{state}</TableCell>
-                            <TableCell align="left">{zipCode}</TableCell>
-                            <TableCell align="left">
-                              {userInfo.email !== 'demo@demo.com' ? (
-                                <Label variant="ghost" color={(status === 'No Change' && 'warning') || (contacted === 'False' && 'error'  || 'success')}>
-                                  {sentenceCase(status)}
-                                </Label>
-                              ) : (
-                                <Label variant="ghost" color='warning'>
-                                  Demo
-                                </Label>
-                              )}
-                              
-                            </TableCell>
-                            <TableCell>
-                              {(() => {
-                                if (status !== 'No Change') {
-                                  if (contacted) {
+                          <React.Fragment key={row.id}>
+                            <TableRow
+                              hover
+                              key={id}
+                              tabIndex={-1}
+                              role="checkbox"
+                              selected={isItemSelected}
+                              aria-checked={isItemSelected}
+                              onClick={() => handleRowClick(id)}
+                            >
+                              <TableCell padding="checkbox">
+                                <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, name, id)} />
+                              </TableCell>
+                              <TableCell component="th" scope="row" padding="none">
+                                <Stack direction="row" alignItems="center" spacing={2}>
+                                  <Typography variant="subtitle2" noWrap>
+                                    {name}
+                                  </Typography>
+                                </Stack>
+                              </TableCell>
+                              <TableCell align="left">{address}</TableCell>
+                              <TableCell align="left">{city}</TableCell>
+                              <TableCell align="left">{state}</TableCell>
+                              <TableCell align="left">{zipCode}</TableCell>
+                              <TableCell align="left">
+                                {userInfo.email !== 'demo@demo.com' ? (
+                                  <Label variant="ghost" color={(status === 'No Change' && 'warning') || (contacted === 'False' && 'error'  || 'success')}>
+                                    {sentenceCase(status)}
+                                  </Label>
+                                ) : (
+                                  <Label variant="ghost" color='warning'>
+                                    Demo
+                                  </Label>
+                                )}
+                                
+                              </TableCell>
+                              <TableCell>
+                                {(() => {
+                                  if (status !== 'No Change') {
+                                    if (contacted) {
+                                      return(
+                                        <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, false)}>
+                                          <Iconify icon="bi:check-lg" />
+                                        </IconButton>
+                                      )
+                                    }
                                     return(
-                                      <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, false)}>
-                                        <Iconify icon="bi:check-lg" />
+                                      <IconButton color="error" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, true)}>
+                                        <Iconify icon="ps:check-box-empty" />
                                       </IconButton>
                                     )
                                   }
-                                  return(
-                                    <IconButton color="error" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, true)}>
-                                      <Iconify icon="ps:check-box-empty" />
-                                    </IconButton>
-                                  )
-                                }
-                                return null;                                
-                              })()}                          
-                            </TableCell>
-                            <TableCell>
-                              <NoteModal 
-                                passedNote={note}
-                                id={id}
-                                name={name}
-                              />
-                            </TableCell>
-
-                            {/* <TableCell align="right">
-                              <UserMoreMenu />
-                            </TableCell> */}
-                          </TableRow>
+                                  return null;                                
+                                })()}                          
+                              </TableCell>
+                              <TableCell>
+                                <NoteModal 
+                                  passedNote={note}
+                                  id={id}
+                                  name={name}
+                                />
+                              </TableCell>                            
+                            </TableRow>                                                                            
+                            {expandedRow === id && (
+                              <TableRow style={{position:'relative', left:'10%'}}>
+                                <TableCell/>
+                                <TableCell colSpan={6}>
+                                  <ExpandedRow clientUpdates={clientUpdates}/>
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </React.Fragment>
                         );
                       })}
                       {emptyRows > 0 && (
@@ -383,7 +469,7 @@ export default function CustomerData() {
                       <TableBody>
                         <TableRow>
                           <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                            <SearchNotFound searchQuery={filterName} />
+                            <SearchNotFound searchQuery={filterName} tipe="client"/>
                           </TableCell>
                         </TableRow>
                       </TableBody>
@@ -443,9 +529,7 @@ export default function CustomerData() {
                   </Button>
                 )}
               </Stack>
-            )}
-              
-              
+            )}                          
             { userInfo.status === 'admin' && (
               <FileUploader />  
             )}

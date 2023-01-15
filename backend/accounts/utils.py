@@ -11,7 +11,7 @@ from scrapfly import ScrapeApiResponse, ScrapeConfig, ScrapflyClient
 from typing import List, Optional
 from typing_extensions import TypedDict
 
-from .models import Task, Client, Company, ZipCode, HomeListing, CustomUser, ProgressUpdate
+from .models import Task, Client, Company, ZipCode, HomeListing, CustomUser, ProgressUpdate, ClientUpdate
 from .serializers import CompanySerializer
 
 from django.conf import settings
@@ -294,16 +294,25 @@ def updateStatus(zip, company, status):
     except Exception as e:
         print(f"ERROR during updateStatus: {e} with zipCode {zip}")
         return
+    #addresses from all home listings with the provided zip code and status
     listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')
-    updatedClients = Client.objects.filter(company=company, address__in=listedAddresses)
-    updatedClients.update(status=status)
-    previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status)
-    removeListed = previousListed.difference(updatedClients)
-    for remove in removeListed:
-        remove.status = "Taken Off Market"
-        remove.save()
     
-    update_serviceTitan_clients(updatedClients, company, status)
+    clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses)
+    previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status)
+    newlyListed = clientsToUpdate.difference(previousListed)
+    unlisted = previousListed.difference(clientsToUpdate)
+    for toUnlist in unlisted:
+        toUnlist.status = "Taken Off Market"
+        toUnlist.save()
+        listing = HomeListing.objects.get(zipCode=zipCode_object, address=toUnlist.address, status=status)
+        ClientUpdate.objects.get_or_create(client=toList, status=status, listed=listing.listed)
+    for toList in newlyListed:
+        toList.status = status
+        toList.save()
+        listing = HomeListing.objects.get(zipCode=zipCode_object, address=toList.address, status=status)
+        ClientUpdate.objects.get_or_create(client=toList, status=status, listed=listing.listed)
+
+    update_serviceTitan_clients(clientsToUpdate, company, status)
     
 def emailBody(company):
     foundCustomers = Client.objects.filter(company=company).exclude(status='No Change')
@@ -349,10 +358,7 @@ def send_email():
             'clients': foundCustomers, 'customer': company
         })
         
-        # if not message:
-        #     message = "There were no updates found today for your client list but look back tomorrow for new leads!"
-        
-        # print(f"the message is {message}")
+      
         if foundCustomers:
             for email in emails:
                 email = email[0]
