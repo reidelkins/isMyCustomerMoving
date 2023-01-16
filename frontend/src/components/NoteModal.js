@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
     IconButton,
     Button,
@@ -18,15 +18,16 @@ NoteModal.propTypes = {
     passedNote: PropTypes.string,
     id: PropTypes.string,
     name: PropTypes.string,
+
 }
 
 export default function NoteModal({
   passedNote,
   id,
   name,
+
 }) {
-    // const classes = useStyles();
-    const [open, setOpen] = React.useState(false);
+    const [open, setOpen] = useState(false);
     const dispatch = useDispatch();
     const handleOpen = () => {
         setOpen(true);
@@ -71,8 +72,7 @@ export default function NoteModal({
                                 defaultValue="Enter Note Here"
                                 {...getFieldProps('note')}
                             />
-                        )}
-                        
+                        )}                        
                         </Stack>
                     </Form>
                 </FormikProvider>

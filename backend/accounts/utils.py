@@ -89,16 +89,12 @@ def saveClientList(clients, company_id, updater=None):
             city = clients[i]['city']
             state = clients[i]['state']
             name = clients[i]['name']
-            phoneNumber = clients[i]['phone number']
+            if 'phone number' in clients[i]:
+                phoneNumber = clients[i]['phone number']
+            else:
+                phoneNumber = ""
             task = Task.objects.create(updater=updater)
             saveClient.delay(street, zip, city, state, name, company_id, phoneNumber, task=task.id)
-            # if updater:
-            #     x = math.floor((i/len(clients))*100)
-            #     if x == 99:
-            #         updater.percentDone = 100
-            #     else:
-            #         updater.percentDone = x
-            #     updater.save()
         except Exception as e:
             print(e)
             continue
@@ -453,7 +449,7 @@ def get_serviceTitan_clients(company, updater=None):
                     if numbers[clients[i]['id']]:
                         phoneNumber = numbers[clients[i]['id']]
                     else:
-                        phoneNumber = None
+                        phoneNumber = ""
                 except:
                     phoneNumber = None
                 saveClient.delay(street, zip, city, state, name, company.id, phoneNumber, clients[i]['id'], task=task.id)

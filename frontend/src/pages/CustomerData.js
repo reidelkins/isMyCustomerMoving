@@ -200,9 +200,9 @@ export default function CustomerData() {
   const exportCSV = () => {
     if (CLIENTLIST.length === 0) { return }
     let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += 'Name,Address,City,State,ZipCode,Status,Contacted,Note\r\n';
+    csvContent += 'Name,Address,City,State,ZipCode,Status,Contacted,Note,Phone Number\r\n';
     CLIENTLIST.forEach((n) => {
-      csvContent += `${n.name}, ${n.address}, ${n.city}, ${n.state}, ${n.zipCode}, ${n.status}, ${n.contacted}, ${n.note}\r\n`
+      csvContent += `${n.name}, ${n.address}, ${n.city}, ${n.state}, ${n.zipCode}, ${n.status}, ${n.contacted}, ${n.note}, ${n.phoneNumber}\r\n`
     });
 
     const encodedUri = encodeURI(csvContent);
@@ -323,7 +323,6 @@ export default function CustomerData() {
       </TableRow>
     )
   }
-
 
   return (
     <Page title="User">

@@ -32,6 +32,11 @@ export const userSlice = createSlice({
       state.clientsInfo.loading = false;
       state.clientsInfo.error = null;
     },
+    moreClients: (state, action) => {
+      state.clientsInfo.CLIENTLIST = [...state.clientsInfo.CLIENTLIST, ...action.payload];
+      state.clientsInfo.loading = false;
+      state.clientsInfo.error = null;
+    },
     clientsError: (state, action) => {
       state.clientsInfo.error = action.payload;
       state.clientsInfo.loading = false;
@@ -96,7 +101,7 @@ export const userSlice = createSlice({
   },
 });
 
-export const { clients, clientsLoading, clientsError, users, usersLoading, usersError, progress, progressDone, progressError, progressLoading } = userSlice.actions;
+export const { clients, moreClients, clientsLoading, clientsError, users, usersLoading, usersError, progress, progressDone, progressError, progressLoading } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
 export const selectUsers = (state) => state.user.usersInfo;
 export const selectProgress = (state) => state.user.progress;
@@ -154,8 +159,17 @@ export const clientsAsync = () => async (dispatch, getState) => {
       },
     };
     dispatch(clientsLoading());
-    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}`, config);
-    dispatch(clients(data));
+    // print how long it takes to get data
+    console.time('clients');
+    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}?page=1&per_page=1000`, config);
+    dispatch(clients(data.results));
+    const loops = Math.ceil(data.count / 1000);
+    let i = 2;
+    /* eslint-disable no-plusplus */
+    for (i; i <= loops; i++) {
+      const { data: newData } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}?page=${i}&per_page=1000`, config);
+      dispatch(moreClients(newData.results));
+    }
   } catch (error) {
     localStorage.removeItem('userInfo');
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
@@ -167,7 +181,6 @@ export const deleteClientAsync = (ids) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
-    const {id: company} = userInfo.company;
 
     const config = {
       headers: {
@@ -179,13 +192,12 @@ export const deleteClientAsync = (ids) => async (dispatch, getState) => {
     const chunkSize = 1000;
     let i = 0;
     for (i; i < ids.length; i += chunkSize) {
-
       const chunk = ids.slice(i, i + chunkSize);
-      axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { data: {'clients': chunk}}, config);
+      await axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/`, { data: {'clients': chunk}}, config);
     }
     const chunk = ids.slice(i, i + chunkSize);
-    const { data } = await axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { data: {'clients': chunk}}, config);
-    dispatch(clients(data));
+    await axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/`, { data: {'clients': chunk}}, config);
+    dispatch(clientsAsync());
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
@@ -195,7 +207,6 @@ export const updateClientAsync = (id, contacted, note) => async (dispatch, getSt
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
-    const {id: company} = userInfo.company;
 
     const config = {
       headers: {
@@ -204,8 +215,8 @@ export const updateClientAsync = (id, contacted, note) => async (dispatch, getSt
       },
     };
     dispatch(clientsLoading());
-    const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/updateclient/${company}/`, { 'clients': id, contacted, note }, config);
-    dispatch(clients(data));
+    await axios.put(`${DOMAIN}/api/v1/accounts/updateclient/`, { 'clients': id, contacted, note }, config);
+    dispatch(clientsAsync());
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
@@ -319,15 +330,15 @@ export const getUpdates = (updateId) => async (dispatch, getState) => {
     };
     setTimeout(async () => {
       const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/updates/${updateId}/`, config)
-      console.log(data);
       dispatch(progress(data))
 
       if (data.complete !== true) {
         dispatch(getUpdates(updateId));
       } else {
         dispatch(progressDone());
+        dispatch(clientsAsync());
       }
-    }, 2000);
+    }, 1000);
     
   } catch (error) {
     dispatch(progressError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
@@ -348,7 +359,6 @@ export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
      };
     //  dispatch(clientsLoading());
     const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/upload/${company}/`, customers, config);
-    dispatch(clients(data.clients));
     dispatch(getUpdates(data.updateId));
    } catch (error) {
      dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
@@ -370,279 +380,3 @@ export const update = () => async (dispatch, getState) => {
     throw new Error(error);
   }
 };
-
-// export const sendNewUserEmail = (email) => async (dispatch, getState) => {
-//   try {
-//     dispatch({
-//       type: ADDUSER_REQUEST,
-//     });
-//     console.log(email)
-//     const config = {
-//       headers: {
-//         'Content-type': 'application/json',
-//       },
-//     };
-
-//     const {
-//       userLogin: { userInfo },
-//     } = getState();
-
-//     const { data } = await axios.post(
-//       `${DOMAIN}/api/v1/accounts/manageuser/${userInfo.company}/`,
-//       { email },
-//       config
-//     );
-
-//     dispatch({
-//       type: ADDUSER_SUCCESS,
-//       payload: data,
-//     });
-
-//     dispatch({
-//       type: ADDUSER_SUCCESS,
-//       payload: data,
-//     });
-    
-//   } catch (error) {
-//     dispatch({
-//       type: ADDUSER_FAIL,
-//       payload: error.response && error.response.data.detail ? error.response.data.detail : error.message,
-//     });
-//   }
-// };
-
-// export const users = () => async (dispatch, getState) => {
-//   try {
-//     dispatch({
-//       type: LIST_REQUEST,
-//     });
-
-//     const {
-//       userLogin: { userInfo },
-//     } = getState();
-
-//     const config = {
-//       headers: {
-//         'Content-type': 'application/json',
-//         Authorization: `Bearer ${userInfo.access}`,
-//       },
-//     };
-
-//     const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}`, config);
-
-//     dispatch({
-//       type: LIST_SUCCESS,
-//       payload: data,
-//     });
-//   } catch (error) {
-//     localStorage.removeItem('userInfo');
-//     dispatch({
-//       type: LIST_FAIL,
-//       payload: error.response && error.response.data.detail ? error.response.data.detail : error.message,
-//     });
-//   }
-// };
-
-// export const update = () => async (dispatch, getState) => {
-//   try {
-//     dispatch({
-//       type: STATUS_REQUEST,
-//     });
-
-//     const {
-//       userLogin: { userInfo },
-//     } = getState();
-
-//     const config = {
-//       headers: {
-//         'Content-type': 'application/json',
-//         Authorization: `Bearer ${userInfo.access}`,
-//       },
-//     };
-
-//     const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/update/${userInfo.company}`, config);
-//     dispatch({
-//       type: STATUS_SUCCESS,
-//       payload: data,
-//     });
-//   } catch (error) {
-//     dispatch({
-//       type: STATUS_FAIL,
-//       payload: error.response && error.response.data.detail ? error.response.data.detail : error.message,
-//     });
-//   }
-// };
-
-// export const updateNote = (note, id) => async (dispatch, getState) => {
-//   try {
-//     dispatch({
-//       type: NOTE_REQUEST,
-//     });
-
-//     const {
-//       userLogin: { userInfo },
-//     } = getState();
-
-//     const config = {
-//       headers: {
-//         'Content-type': 'application/json',
-//         Authorization: `Bearer ${userInfo.access}`,
-//       },
-//     };
-
-//     const { data } = await axios.post(
-//       `${DOMAIN}/api/v1/accounts/updatenote/${userInfo.company}/`,
-//       { note, id},
-//       config
-//     );
-//     dispatch({
-//       type: NOTE_SUCCESS,
-//       payload: data,
-//     });
-//   } catch (error) {
-//     dispatch({
-//       type: NOTE_FAIL,
-//       payload: error.response && error.response.data.detail ? error.response.data.detail : error.message,
-//     });
-//   }
-//   // users();
-// };
-
-// export const contact = (id) => async (dispatch, getState) => {
-//   try {
-//     dispatch({
-//       type: NOTE_REQUEST,
-//     });
-
-//     const {
-//       userLogin: { userInfo },
-//     } = getState();
-
-//     const config = {
-//       headers: {
-//         'Content-type': 'application/json',
-//         Authorization: `Bearer ${userInfo.access}`,
-//       },
-//     };
-//     const { data } = await axios.post(
-//       `${DOMAIN}/api/v1/accounts/contacted/${userInfo.company}/`,
-//       {id},
-//       config
-//     );
-//     dispatch({
-//       type: NOTE_SUCCESS,
-//       payload: data,
-//     });
-//   } catch (error) {
-//     dispatch({
-//       type: NOTE_FAIL,
-//       payload: error.response && error.response.data.detail ? error.response.data.detail : error.message,
-//     });
-//   }
-// };
-
-// export const deleteClient = (selectedClients) => async (dispatch, getState) => {
-//   try {
-//     dispatch({
-//       type: DELETE_REQUEST,
-//     });
-
-//     const {
-//       userLogin: { userInfo },
-//     } = getState();
-
-//     const config = {
-//       headers: {
-//         'Content-type': 'application/json',
-//         Authorization: `Bearer ${userInfo.access}`,
-//       },
-//     };
-
-//     const { data } = await axios.post(
-//       `${DOMAIN}/api/v1/accounts/deleteClient/${userInfo.company}/`,
-//       selectedClients,
-//       config
-//     );
-//     dispatch({
-//       type: DELETE_SUCCESS,
-//       payload: data,
-//     });
-//   } catch (error) {
-//     dispatch({
-//       type: DELETE_FAIL,
-//       payload: error.response && error.response.data.detail ? error.response.data.detail : error.message,
-//     });
-//   }
-// };
-
-// export const createCompany = (company, email) => async (dispatch, getState) => {
-//   try {
-//     dispatch({
-//       type: NOTE_REQUEST,
-//     });
-
-//     const {
-//       userLogin: { userInfo },
-//     } = getState();
-
-//     const config = {
-//       headers: {
-//         'Content-type': 'application/json',
-//         Authorization: `Bearer ${userInfo.access}`,
-//       },
-//     };
-
-//     const { data } = await axios.post(
-//       `${DOMAIN}/api/v1/accounts/createCompany/`,
-//       { 'name': company, email},
-//       config
-//     );
-//     dispatch({
-//       type: NOTE_SUCCESS,
-//       payload: data,
-//     });
-//   } catch (error) {
-//     dispatch({
-//       type: NOTE_FAIL,
-//       payload: error.response && error.response.data.detail ? error.response.data.detail : error.message,
-//     });
-//   }
-// };
-
-// export const updateCompany = (email, phone, tenantID) => async (dispatch, getState) => {
-//   try {
-//     dispatch({
-//       type: COMPANY_REQUEST,
-//     });
-
-//     const {
-//       userLogin: { userInfo },
-//     } = getState();
-
-//     const config = {
-//       headers: {
-//         'Content-type': 'application/json',
-//         Authorization: `Bearer ${userInfo.access}`,
-//       },
-//     };
-
-//     const { data } = await axios.put(
-//       `${DOMAIN}/api/v1/accounts/company/`,
-//       { 'company': userInfo.company.id, email, phone, tenantID, 'user': userInfo.id},
-//       config
-//     );
-//     dispatch({
-//       type: COMPANY_SUCCESS,
-//       payload: data,
-//     });
-
-//     localStorage.setItem('userInfo', JSON.stringify(data));
-//     console.log(localStorage.getItem('userInfo'));
-    
-
-//   } catch (error) {
-//     dispatch({
-//       type: COMPANY_FAIL,
-//       payload: error.response && error.response.data.detail ? error.response.data.detail : error.message,
-//     });
-//   }

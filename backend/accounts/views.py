@@ -4,6 +4,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.template.loader import get_template
 from django.http import HttpResponse
+from rest_framework.pagination import PageNumberPagination
 from rest_framework import permissions, status, generics
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
@@ -15,7 +16,7 @@ from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import pandas as pd
 from .utils import getAllZipcodes, saveClientList, makeCompany, get_serviceTitan_clients
 from .models import CustomUser, Client, Company, InviteToken, ProgressUpdate, Task
-from .serializers import UserSerializer, UserSerializerWithToken, UploadFileSerializer, UserListSerializer, ClientListSerializer, MyTokenObtainPairSerializer, CompanySerializer
+from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, ClientListSerializer, MyTokenObtainPairSerializer
 import datetime
 import jwt
 from config import settings
@@ -242,14 +243,14 @@ class RegisterView(APIView):
                     isVerified=True
                 )
                 user = CustomUser.objects.get(email=email)
-                # current_site = get_current_site(request)
-                # tokenSerializer = UserSerializerWithToken(user, many=False)
-                # mail_subject = "Activation Link for Is My Customer Moving"
-                # messagePlain = "Verify your account for Is My Customer Moving by going here {}/api/v1/accounts/confirmation/{}/{}/".format(current_site, tokenSerializer.data['refresh'], user.id)
-                # message = get_template("registration.html").render({
-                #     'current_site': current_site, 'token': tokenSerializer.data['refresh'], 'user_id': user.id
-                # })
-                # send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)
+                current_site = get_current_site(request)
+                tokenSerializer = UserSerializerWithToken(user, many=False)
+                mail_subject = "Activation Link for Is My Customer Moving"
+                messagePlain = "Verify your account for Is My Customer Moving by going here {}/api/v1/accounts/confirmation/{}/{}/".format(current_site, tokenSerializer.data['refresh'], user.id)
+                message = get_template("registration.html").render({
+                    'current_site': current_site, 'token': tokenSerializer.data['refresh'], 'user_id': user.id
+                })
+                send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)
                 serializer = UserSerializerWithToken(user, many=False)
             else:
                 return Response({'detail': f'Access Token Already Used. Ask an admin to login and create profile for you.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -286,17 +287,15 @@ class UserViewSet(ReadOnlyModelViewSet):
     queryset = CustomUser.objects.all()
     permission_classes = [IsAuthenticated]
 
+class CustomPagination(PageNumberPagination):
+    page_size = 1000
+
 class ClientListView(generics.ListAPIView):
     serializer_class = ClientListSerializer
-    # send back all clients for a company and all client updates for each client
-    def get(self, request, *args, **kwargs):
-        try:
-            company = Company.objects.get(id=self.kwargs['company'])
-        except Exception as e:
-            print(f"ERROR: Client List View: {e}")
-        clients = Client.objects.prefetch_related('clientUpdates').filter(company=company)
-        serializer = ClientListSerializer(clients, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    pagination_class = CustomPagination
+    def get_queryset(self):
+        company = Company.objects.get(id=self.kwargs['company'])
+        return Client.objects.prefetch_related('clientUpdates').filter(company=company)
 
 class UserListView(generics.ListAPIView):
     serializer_class = UserListSerializer
@@ -311,9 +310,14 @@ class UpdateStatusView(APIView):
             print(f"ERROR: Update Status View: {e}")
         return Response("", status=status.HTTP_201_CREATED, headers="")
 
-class UploadFileView(generics.CreateAPIView):
-    serializer_class = UploadFileSerializer
-    
+class ClientListAndUpdatesView(generics.ListAPIView):
+    serializer_class = ClientListSerializer
+    pagination_class = CustomPagination
+    def get_queryset(self):
+        company = Company.objects.get(id=self.kwargs['company'])
+        return Client.objects.prefetch_related('clientUpdates').filter(company=company).order_by('status')
+
+class UploadFileView(generics.ListAPIView):
     def post(self, request, *args, **kwargs):
         company_id = self.kwargs['company']
         try:
@@ -327,12 +331,10 @@ class UploadFileView(generics.CreateAPIView):
         except Exception as e:
             print(e)
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        clients = Client.objects.prefetch_related('clientUpdates').filter(company=company)
-        clients = ClientListSerializer(clients, many=True).data
-        return Response({"clients": clients, "updateId": update.id} , status=status.HTTP_201_CREATED, headers="")
-	
-class ProgressUpdateView(APIView):
+        return Response({"status": "File Uploaded", "updateId": update.id}, status=status.HTTP_201_CREATED, headers="")
+
+class ProgressUpdateView(generics.ListAPIView):
+    list_serializer_class = ClientListSerializer
     def get(self, request, *args, **kwargs):
         try:
             update = ProgressUpdate.objects.get(id=self.kwargs['updater'])
@@ -350,9 +352,9 @@ class ProgressUpdateView(APIView):
             if percentDone == 100:
                 complete = True
                 deleted = Task.objects.filter(updater=update, deleted=True).count()
-                if update.company.product.customerLimit-clients.count() < 0:
+                if update.company.product.customerLimit-len(clients) < 0:
                     deleteClients = Client.objects.filter(company=update.company, status="No Change")
-                    for i in range(update.company.product.customerLimit-clients.count()):
+                    for i in range(update.company.product.customerLimit-len(clients)):
                         deleteClients[i].delete()
                 update.delete()
 
@@ -360,15 +362,14 @@ class ProgressUpdateView(APIView):
                 complete = False
                 deleted = 0
             
-            return Response({"complete": complete, "progress": percentDone, "clients": clients, "deleted": deleted} , status=status.HTTP_201_CREATED, headers="")
+            return Response({"complete": complete, "progress": percentDone, "clients": clients[:500], "deleted": deleted} , status=status.HTTP_201_CREATED, headers="")
         except Exception as e:
             print(e)
             return Response({"status": "Error"}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['PUT', 'DELETE'])
-def update_client(request, pk):
+def update_client(request):
     try:
-        company = Company.objects.get(id=pk)
         if request.method == 'PUT':
             try:
                 client = Client.objects.get(id=request.data['clients'])
@@ -386,18 +387,17 @@ def update_client(request, pk):
                     client = Client.objects.get(id=request.data['clients'][0])
                     client.delete()
                 else:
-                    clients = Client.objects.filter(id__in=request.data['clients']).delete()
+                    Client.objects.filter(id__in=request.data['clients']).delete()
             except Exception as e:
                 print(e)
                 return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-        clients = Client.objects.prefetch_related('clientUpdates').filter(company=company)
-        clients = ClientListSerializer(clients, many=True).data
-        return Response(clients , status=status.HTTP_201_CREATED, headers="")
+        return Response({"status": "Success"}, status=status.HTTP_201_CREATED, headers="")
     except Exception as e:
         print(e)
         return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
 
-class ServiceTitanView(APIView):
+class ServiceTitanView(generics.ListAPIView):
+    list_serializer_class = ClientListSerializer
     def get(self, request, *args, **kwargs):
         try:
             company_id = self.kwargs['company']

@@ -130,7 +130,6 @@ const FileUploader = () => {
       setError('No file selected');
       e = true;
     }
-
     const fileType = file.name.split('.').pop();
     if (fileType !== 'csv' && fileType !== 'xlsx') {
       setError('Invalid file type');
@@ -142,7 +141,6 @@ const FileUploader = () => {
         return;
       }
       const fileData = await readFile(file);
-
       const data = fileData.map((row) => {
         const newRow = {};
         Object.keys(row).forEach((key) => {
@@ -155,8 +153,6 @@ const FileUploader = () => {
         });
         return newRow;
       });
-
-      
       await sendData(data);
     } catch (err) {
       setError('Error reading file');

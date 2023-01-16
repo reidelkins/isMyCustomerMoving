@@ -73,10 +73,6 @@ class UserSerializerWithToken(UserSerializer):
         token = RefreshToken.for_user(obj)
         return str(token)
 
-class UploadFileSerializer(serializers.Serializer):
-    file = serializers.FileField()
-    # company = serializers.CharField()
-
 class ClientUpdateSerializer(serializers.ModelSerializer):
     status = serializers.CharField(max_length=100)
     date = serializers.DateField()
@@ -89,7 +85,7 @@ class ClientUpdateSerializer(serializers.ModelSerializer):
         fields = ('id', 'status', 'date', 'listed', 'note', 'contacted')
         read_only_fields = fields
 
-class ClientListSerializer(serializers.ModelSerializer):
+class ClientListSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
     name = serializers.CharField(max_length=100)
     address = serializers.CharField(max_length=100)
@@ -101,11 +97,6 @@ class ClientListSerializer(serializers.ModelSerializer):
     note = serializers.CharField(max_length=100)
     phoneNumber = serializers.CharField(max_length=100)
     clientUpdates = ClientUpdateSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Client
-        fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status', 'contacted', 'note', 'phoneNumber', 'clientUpdates')
-        read_only_fields = fields
 
 class UserListSerializer(serializers.ModelSerializer):
     class Meta:
