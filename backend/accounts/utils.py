@@ -302,12 +302,7 @@ def updateStatus(zip, company, status):
     for toUnlist in unlisted:
         toUnlist.status = "Taken Off Market"
         toUnlist.save()
-        try:
-            listing = HomeListing.objects.get(zipCode=zipCode_object, address=toUnlist.address, status=status)
-            ClientUpdate.objects.get_or_create(client=toList, status=status, listed=listing.listed)
-        except Exception as e:
-            print("Cant find listing to unlist")
-            print("This means the listing was removed from the database")
+        ClientUpdate.objects.create(client=toUnlist, status="Taken Off Market")
     for toList in newlyListed:
         toList.status = status
         toList.save()
@@ -333,9 +328,6 @@ def emailBody(company):
 
 @shared_task
 def send_email():
-    #https://mailtrap.io/blog/django-send-email/
-    today = datetime.today().strftime('%Y-%m-%d')
-    # companies = Company.objects.filter(next_email_date=today)
     companies = Company.objects.all()
     for company in companies:
         zipCode_objects = Client.objects.filter(company=company).values('zipCode')
@@ -364,7 +356,6 @@ def send_email():
             'clients': foundCustomers, 'customer': company
         })
         
-      
         if foundCustomers:
             for email in emails:
                 email = email[0]
@@ -377,6 +368,7 @@ def send_email():
                 )
                 msg.content_subtype ="html"# Main content is now text/html
                 msg.send()
+    HomeListing.objects.all().delete()
 
 @shared_task
 def auto_update():

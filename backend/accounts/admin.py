@@ -36,7 +36,7 @@ class CustomUserAdmin(UserAdmin):
     list_filter = ('is_staff', 'isVerified',)
 
 class CompanyAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'accessToken', 'avatarUrl', 'product')
+    list_display = ('id', 'name', 'accessToken', 'product')
 
 class ClientAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'status', 'city', 'state', 'contacted', 'note', 'zipCode', 'company', 'servTitanID', 'phoneNumber')

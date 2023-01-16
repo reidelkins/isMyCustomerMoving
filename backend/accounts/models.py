@@ -76,10 +76,6 @@ class Company(models.Model):
                           default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     accessToken = models.CharField(default=create_access_token, max_length=100)
-    avatarUrl = models.ImageField(
-        upload_to='customers', null=True, blank=True, default='/placeholder.png')
-    email_frequency = models.IntegerField(default=0)
-    next_email_date = models.DateField(default=datetime.utcnow)
     product = models.ForeignKey(Product, blank=True, null=True, on_delete=models.SET_NULL)
     phone = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(max_length=100, blank=True, null=True)
@@ -114,11 +110,14 @@ class Client(models.Model):
     servTitanID = models.IntegerField(blank=True, null=True)
     phoneNumber = models.CharField(max_length=100, blank=True, null=True)
 
+def formatToday():
+    return datetime.today().strftime('%Y-%m-%d')
+
 class ClientUpdate(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='clientUpdates')
-    date = models.DateField(default=datetime.utcnow)
+    date = models.DateField(default=formatToday)
     status = models.CharField(max_length=20, choices=STATUS, default='No Change', blank=True, null=True)
     listed = models.CharField(max_length=30, default=datetime.utcnow, blank=True, null=True)
     note = models.TextField(default="", blank=True, null=True)

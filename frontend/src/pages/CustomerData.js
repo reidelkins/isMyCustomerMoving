@@ -1,4 +1,3 @@
-/* eslint-disable no-nested-ternary */
 /* eslint-disable camelcase */
 import { filter} from 'lodash';
 import { sentenceCase } from 'change-case';
@@ -22,8 +21,6 @@ import {
   TableContainer,
   TablePagination,
   CircularProgress,
-  TableHead,
-  Grid
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -37,6 +34,7 @@ import Scrollbar from '../components/Scrollbar';
 import Iconify from '../components/Iconify';
 import SearchNotFound from '../components/SearchNotFound';
 import CounterCard from '../components/CounterCard';
+import ClientEventTable from '../components/ClientEventTable';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
 
 import ClientsListCall from '../redux/calls/ClientsListCall';
@@ -235,11 +233,11 @@ export default function CustomerData() {
       }
       if (n.status === 'For Sale') {
         tmpSale += 1;
-        tmpTotalSale += 1;
+        // tmpTotalSale += 1;
       }
       if (n.status === 'Recently Sold (6)' || n.status === 'Recently Sold (12)') {
         tmpSold6 += 1;
-        tmpTotalSold += 1;
+        // tmpTotalSold += 1;
       }
       n.clientUpdates.forEach((u) => {
         if (u.status === 'For Sale') {
@@ -265,64 +263,6 @@ export default function CustomerData() {
       }
     }
   }, [CLIENTLIST, userInfo, rentCount, saleCount, sold6Count]);
-
-  const ExpandedRow = (clientUpdates) => {
-    return (
-      <TableRow>
-        <TableCell>
-          <Grid container>
-            <Grid item xs={12}>
-              <Table size='small'  >
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Date</TableCell>
-                    <TableCell >Event Description</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {clientUpdates.clientUpdates.length > 0 ? clientUpdates.clientUpdates.map((update, index) => (                      
-                    <TableRow key={index}>
-                      <TableCell>{update.date}</TableCell>
-                      <TableCell>
-                      {update.listed ? (
-                        update.status === 'For Sale' ? (
-                          <Typography>
-                            Home listed for sale on {update.listed}
-                          </Typography>
-                        ) : (
-                          <Typography>
-                            Home sold on {update.listed}
-                          </Typography>
-                        )                        
-                      ):(
-                        update.note ? (
-                          <Typography>
-                            Note changed to {update.note}
-                          </Typography>
-                        ) : (
-                          <Typography>
-                            Client was marked as {update.contacted ? 'contacted' : 'not contacted'}
-                          </Typography>
-                        )
-                      )}                        
-                      </TableCell>
-                    </TableRow>
-                    )) : (
-                      <TableRow>
-                        <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                          <SearchNotFound searchQuery="" tipe="event" />
-                        </TableCell>
-                      </TableRow>
-                    )
-                  }
-                </TableBody>
-              </Table>
-            </Grid>
-          </Grid>
-        </TableCell>
-      </TableRow>
-    )
-  }
 
   return (
     <Page title="User">
@@ -454,7 +394,7 @@ export default function CustomerData() {
                               <TableRow style={{position:'relative', left:'10%'}}>
                                 <TableCell/>
                                 <TableCell colSpan={6}>
-                                  <ExpandedRow clientUpdates={clientUpdates}/>
+                                  <ClientEventTable clientUpdates={clientUpdates}/>
                                 </TableCell>
                               </TableRow>
                             )}
