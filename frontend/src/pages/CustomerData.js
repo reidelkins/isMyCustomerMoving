@@ -38,7 +38,7 @@ import ClientEventTable from '../components/ClientEventTable';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
 
 import ClientsListCall from '../redux/calls/ClientsListCall';
-import { selectClients, update, updateClientAsync, serviceTitanSync, selectProgress } from '../redux/actions/usersActions';
+import { selectClients, update, updateClientAsync, serviceTitanSync } from '../redux/actions/usersActions';
 import { logout, showLoginInfo } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
@@ -106,7 +106,6 @@ export default function CustomerData() {
 
   const listClient = useSelector(selectClients);
   const { loading, CLIENTLIST } = listClient;
-  const progress = useSelector(selectProgress);
 
   const [page, setPage] = useState(0);
   
@@ -431,7 +430,7 @@ export default function CustomerData() {
                 onRowsPerPageChange={handleChangeRowsPerPage}
               />
             </Card>
-            {progress.loading ? (
+            {loading ? (
               <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
                 {((userInfo.first_name === 'reid' && userInfo.last_name === 'elkins') || (userInfo.first_name === 'Perspective' && userInfo.last_name === 'Customer')) && (
                   <Button variant="contained" >
@@ -472,9 +471,10 @@ export default function CustomerData() {
                   </Button>
                 )}
               </Stack>
-            )}                          
+            )}
+                                      
             { userInfo.status === 'admin' && (
-              <FileUploader />  
+                <FileUploader />
             )}
           </>
         )}

@@ -11,7 +11,7 @@ from scrapfly import ScrapeApiResponse, ScrapeConfig, ScrapflyClient
 from typing import List, Optional
 from typing_extensions import TypedDict
 
-from .models import Task, Client, Company, ZipCode, HomeListing, CustomUser, ProgressUpdate, ClientUpdate
+from .models import Client, Company, ZipCode, HomeListing, CustomUser, ClientUpdate
 from .serializers import CompanySerializer
 
 from django.conf import settings
@@ -75,78 +75,94 @@ def parseStreets(street):
             street = street.replace(word, conversions[word])
     return street
 
+def formatZip(zip):
+    if type(zip) == float:
+        zip = int(zip)
+    if type(zip) == str:
+        zip = (zip.split('-'))[0]
+    if int(zip) > 500 and int(zip) < 99951:
+        if len(zip) == 4:
+            zip = '0' + str(zip)
+        elif len(zip) == 3:
+            zip = '00' + str(zip)
+        elif len(zip) != 5:
+            return False
+    return zip
+
 @shared_task
-def saveClientList(clients, company_id, updater=None):
-    if updater:
-        updater = ProgressUpdate.objects.get(id=updater)
-        updater.tasks = len(clients)
-        updater.save()
-    
+def saveClientList(clients, company_id, numbers=None):
+    #create
+    clientsToAdd = []
+    company = Company.objects.get(id=company_id)        
+
     for i in range(len(clients)):
+        #service titan
         try:
-            street = (str(clients[i]['address'])).title()
-            zip = clients[i]['zip code']
-            city = clients[i]['city']
-            state = clients[i]['state']
-            name = clients[i]['name']
-            if 'phone number' in clients[i]:
-                phoneNumber = clients[i]['phone number']
-            else:
-                phoneNumber = ""
-            task = Task.objects.create(updater=updater)
-            saveClient.delay(street, zip, city, state, name, company_id, phoneNumber, task=task.id)
+            if 'active' in clients[i]:
+                if clients[i]['active']:
+                    street = parseStreets((str(clients[i]['address']['street'])).title())                                        
+                    zip = formatZip(clients[i]['address']['zip'])
+                    if not zip:
+                        continue
+                    zipCode, zipCreated = ZipCode.objects.get_or_create(zipCode=str(zip))                     
+                    city=clients[i]['address']['city'],
+                    city= city[0]            
+                    state=clients[i]['address']['state']
+                    name=clients[i]['name']
+                    try:
+                        if numbers[clients[i]['id']]:
+                            phoneNumber = numbers[clients[i]['id']]
+                        else:
+                            phoneNumber = ""
+                    except:
+                        phoneNumber = None
+                    clientsToAdd.append(Client(address=street, zipCode=zipCode, city=city, state=state, name=name, company=company, phoneNumber=phoneNumber, servTitanID=clients[i]['id']))                   
+            #file upload
+            else:                
+                street = parseStreets((str(clients[i]['address'])).title())
+                zip = formatZip(clients[i]['zip code'])
+                if not zip:
+                    continue
+                zipCode, zipCreated = ZipCode.objects.get_or_create(zipCode=str(zip))
+                city = clients[i]['city']
+                state = clients[i]['state']
+                name = clients[i]['name']
+                if 'phone number' in clients[i]:
+                    phoneNumber = clients[i]['phone number']
+                else:
+                    phoneNumber = "" 
+                clientsToAdd.append(Client(address=street, zipCode=zipCode, city=city, state=state, name=name, company=company, phoneNumber=phoneNumber))
         except Exception as e:
             print(e)
-            continue
+    Client.objects.bulk_create(clientsToAdd, ignore_conflicts=True)
 
-
-@shared_task
-def saveClient(street, zip, city, state, name, company_id, phoneNumber=None, serviceTitanID=None, task=None):
-    try:
-        if task:
-            task = Task.objects.get(id=task)
-        company = Company.objects.get(id=company_id)
-        street = parseStreets(street)
-        if type(zip) == float:
-            zip = int(zip)
-        if type(zip) == str:
-            zip = (zip.split('-'))[0]
-        if int(zip) > 500 and int(zip) < 99951:
-            if len(zip) == 4:
-                zip = '0' + str(zip)
-            elif len(zip) == 3:
-                zip = '00' + str(zip)
-            elif len(zip) != 5:
-                return
-
-        zipCode, zipCreated = ZipCode.objects.get_or_create(zipCode=str(zip))
-        client, created = Client.objects.get_or_create(
-                name= name,
-                address= street,
-                zipCode= zipCode,
-                company= company,
-                city= city,
-                state = state,                
-                )
-        if created and company.product.customerLimit-Client.objects.filter(company=company).count() < 0:
-            client.delete()
-            if zipCreated:
-                zipCode.delete()
-            if task:
-                task.complete = True
-                task.deleted = True
-                task.save()
-            return
-        client.servTitanID = serviceTitanID
-        client.phoneNumber = phoneNumber
-        client.save()
-        if task:
-            task.complete = True
-            task.save()
+    #update
+    allClients = Client.objects.filter(company=company)
+    clientsToUpdate = []
+    for client in clients:
+        if 'active' in client:
+            try:
+                street = (str(client['address']['street'])).title()
+                street = parseStreets(street)             
+                clientToUpdate = allClients.get(name=client['name'], address=street)
+                clientToUpdate.phoneNumber = numbers[client['id']]
+                clientToUpdate.servTitanID = client['id']
+                clientsToUpdate.append(clientToUpdate)
+            except Exception as e:
+                print(e)
+        else:
+            if 'phone number' in clients[i]:
+                try:
+                    street = (str(client['address'])).title()
+                    street = parseStreets(street)
+                    clientToUpdate = allClients.get(name=client['name'], address=street)                
+                    clientToUpdate.phoneNumber = client['phone number']
+                    clientsToUpdate.append(clientToUpdate)
+                except Exception as e:
+                    print(e)
             
-    except Exception as e:
-        print(e)
-
+    Client.objects.bulk_update(clientsToUpdate, ['phoneNumber'])
+    
 @shared_task
 def getAllZipcodes(company):
     company_object = Company.objects.get(id=company)
@@ -377,9 +393,9 @@ def auto_update():
         getAllZipcodes(company[0])
 
 @shared_task
-def get_serviceTitan_clients(company, updater=None):
+def get_serviceTitan_clients(company_id):
     
-    company = Company.objects.get(id=company)
+    company = Company.objects.get(id=company_id)
     tenant = company.tenantID
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -416,37 +432,8 @@ def get_serviceTitan_clients(company, updater=None):
             frm = response.json()['continueFrom']
         else:
             moreClients = False
+    saveClientList(clients, company_id, numbers)
 
-    if updater:        
-        count = 0
-        for client in clients:
-            if client['active']:
-                count+=1
-        updater = ProgressUpdate.objects.get(id=updater)
-        updater.tasks = count
-        updater.save()    
-    for i in range(len(clients)):
-        if clients[i]['active']:
-            try:
-                zip = clients[i]['address']['zip']
-                if len(zip) > 5:
-                    zip = zip[:5]
-                name=clients[i]['name']
-                city=clients[i]['address']['city'],
-                city= city[0]            
-                state=clients[i]['address']['state']
-                street = parseStreets((str(clients[i]['address']['street'])).title())
-                task = Task.objects.create(updater=updater)
-                try:
-                    if numbers[clients[i]['id']]:
-                        phoneNumber = numbers[clients[i]['id']]
-                    else:
-                        phoneNumber = ""
-                except:
-                    phoneNumber = None
-                saveClient.delay(street, zip, city, state, name, company.id, phoneNumber, clients[i]['id'], task=task.id)
-            except Exception as e:
-                print(f"ERROR: {e} with client {client['name']}")
 
 def update_serviceTitan_clients(clients, company, status):
     if clients and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):
