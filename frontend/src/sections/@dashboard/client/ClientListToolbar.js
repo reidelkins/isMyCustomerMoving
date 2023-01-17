@@ -44,7 +44,7 @@ export default function UserListToolbar({ numSelected, filterName, onFilterName,
 
   const clickDelete = (event, clients) => {
     dispatch(deleteClientAsync(clients));
-    const timer = Math.ceil(clients.length / 1000)*100;
+    const timer = Math.ceil(clients.length / 1000)*250;
     setTimeout(() => {
      window.location.reload();
     }, timer);

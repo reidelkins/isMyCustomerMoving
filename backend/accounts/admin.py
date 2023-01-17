@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext as _
-from .models import CustomUser, Company, Client, ZipCode, HomeListing, InviteToken, ProgressUpdate, Task, ClientUpdate
+from .models import CustomUser, Company, Client, ZipCode, HomeListing, InviteToken, ClientUpdate
 
 
 class CustomUserAdmin(UserAdmin):
@@ -71,6 +71,4 @@ admin.site.register(Client, ClientAdmin)
 admin.site.register(Company, CompanyAdmin)
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(InviteToken, InviteTokenAdmin)
-admin.site.register(ProgressUpdate, ProgressUpdateAdmin)
-admin.site.register(Task, TaskAdmin)
 admin.site.register(ClientUpdate, ClientUpdateAdmin)

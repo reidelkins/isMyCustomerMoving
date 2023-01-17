@@ -14,13 +14,11 @@ import {
   Box,
   Fade,
   Modal,
-  LinearProgress,
-  Link
 
 } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import Iconify from './Iconify';
-import { uploadClientsAsync, selectProgress } from '../redux/actions/usersActions';
+import { uploadClientsAsync, selectClients } from '../redux/actions/usersActions';
 
 const useStyles = makeStyles((theme) => ({
   uploaderDiv: {
@@ -37,11 +35,11 @@ const useStyles = makeStyles((theme) => ({
 const FileUploader = () => {
   const dispatch = useDispatch();
   const classes = useStyles();
-  const progress = useSelector(selectProgress);
 
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState('');
   const [error, setError] = useState(null);
+  const [uploaded, setUploaded] = useState(false);
   const [headers, setHeaders] = useState([]);
   const [uploadInfo, setUploadInfo] = useState(false);
   const [headerMappings, setHeaderMappings] = useState({
@@ -52,6 +50,9 @@ const FileUploader = () => {
     'zip code': '',
     'phone number': '',
   });
+
+  const listClient = useSelector(selectClients);
+  const { loading } = listClient;
 
   const exportTemplate = () => {
     let csvContent = 'data:text/csv;charset=utf-8,';
@@ -154,6 +155,8 @@ const FileUploader = () => {
         return newRow;
       });
       await sendData(data);
+      setUploaded(true);
+      setFile(null);
     } catch (err) {
       setError('Error reading file');
     }
@@ -180,89 +183,84 @@ const FileUploader = () => {
 
   return (
     <div>
-      {progress.complete ? (
-        <form onSubmit={handleSubmit}>
-          <div
-            onDrop={(event) => handleDrop(event)}
-            onDragOver={(event) => handleDragOver(event)}
-            className={classes.uploaderDiv}
-          >
-            <label htmlFor="file" style={{ cursor: 'pointer', textDecoration:'underline' }}>
-              {file ? `Uploading ${fileName}` : "Upload Your Client List"}
-            </label>
-            <input
-              type="file"
-              id="file"
-              accept=".csv, .xlsx, .xls, .xlsm"
-              onChange={handleFileChange}
-              style={{ display: 'none' }}
-            />
-          </div>
-          <Grid container spacing={3}>
-            {file && (
-              Object.keys(headerMappings).map((header) => (
-                <Grid item xs={12} sm={6} md={4} key={header}>
-                  <Typography style={{ width: '100px' }}>{header}</Typography>
-                  <div>
-                    <FormControl>
-                      <InputLabel id="inputLabel">
-                        { headers.includes(header.toLowerCase()) ? header : "Choose Header" }
-                      </InputLabel>
-                      <Select
-                        labelId="inputLabel"
-                        name={header}
-                        onChange={handleHeaderMappingChange}
-                        value={headers.includes(header.toLowerCase()) ? header : headerMappings[header]}
-                        style={{ minWidth: '200px' }}
-                      >
-                        <MenuItem value={ headers.includes(header.toLowerCase()) ? header : "" }/>
-                        {header !== 'phone number' ? (
-                          headers.map((headerName) => (
-                            <MenuItem key={headerName} value={headerName}>
-                              {headerName}
-                            </MenuItem>
-                          ))
-                        ) : (
-                          [...headers, 'None'].map((headerName) => (
-                            <MenuItem key={headerName} value={headerName}>
-                              {headerName}
-                            </MenuItem>
-                          ))
-                        )}
-                      </Select>
-                    </FormControl>
-                  </div>
-                </Grid>
-              ))
-            )}
-          </Grid>
+      {!loading && (
+        <>
+          <form onSubmit={handleSubmit}>
+            <div
+              onDrop={(event) => handleDrop(event)}
+              onDragOver={(event) => handleDragOver(event)}
+              className={classes.uploaderDiv}
+            >
+              <label htmlFor="file" style={{ cursor: 'pointer', textDecoration:'underline' }}>
+                {!file && uploaded && `Success! ${fileName} has been uploaded.`}
+                {file && `Uploading ${fileName}`}
+                {!file && !uploaded && "Upload Your Client List"}
+              </label>
+              <input
+                type="file"
+                id="file"
+                accept=".csv, .xlsx, .xls, .xlsm"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+              />
+            </div>
+            <Grid container spacing={3}>
+              {file && (
+                Object.keys(headerMappings).map((header) => (
+                  <Grid item xs={12} sm={6} md={4} key={header}>
+                    <Typography style={{ width: '100px' }}>{header}</Typography>
+                    <div>
+                      <FormControl>
+                        <InputLabel id="inputLabel">
+                          { headers.includes(header.toLowerCase()) ? header : "Choose Header" }
+                        </InputLabel>
+                        <Select
+                          labelId="inputLabel"
+                          name={header}
+                          onChange={handleHeaderMappingChange}
+                          value={headers.includes(header.toLowerCase()) ? header : headerMappings[header]}
+                          style={{ minWidth: '200px' }}
+                        >
+                          <MenuItem value={ headers.includes(header.toLowerCase()) ? header : "" }/>
+                          {header !== 'phone number' ? (
+                            headers.map((headerName) => (
+                              <MenuItem key={headerName} value={headerName}>
+                                {headerName}
+                              </MenuItem>
+                            ))
+                          ) : (
+                            [...headers, 'None'].map((headerName) => (
+                              <MenuItem key={headerName} value={headerName}>
+                                {headerName}
+                              </MenuItem>
+                            ))
+                          )}
+                        </Select>
+                      </FormControl>
+                    </div>
+                  </Grid>
+                ))
+              )}
+            </Grid>
 
-          {file && (
-            <Button type="submit" variant="contained">
-              Submit
-            </Button>
-          )}
-          {error && <p style={{ color: 'red' }}>{error}</p>}
-        </form>
-      ) : (
-        <Grid container spacing={1}>
-          <Grid item xs={11}>
-            <LinearProgress variant="determinate" value={progress.value}/>
-          </Grid>
-          <Grid item xs={1}>
-            <Typography style={{marginLeft:'10px'}}>{progress.value}%</Typography>
-          </Grid>
-        </Grid>
+            {file && (
+              <Button type="submit" variant="contained">
+                Submit
+              </Button>
+            )}
+            {error && <p style={{ color: 'red' }}>{error}</p>}
+          </form>
+          
+          <br/>
+          {!file && !uploaded && (
+            <IconButton onClick={()=>setUploadInfo(true)} >
+                <Iconify icon="bi:question-circle-fill" />
+            </IconButton>
+            )
+          }
+        </>
       )}
-        
-      <br/>
-      {!file && (
-        <IconButton onClick={()=>setUploadInfo(true)} >
-            <Iconify icon="bi:question-circle-fill" />
-        </IconButton>
-        )
-      }
-      {(progress.complete && progress.deleted > 0) && (
+      {/* {(progress.complete && progress.deleted > 0) && (
         <div>
           <Typography style={{color:'red'}}>{progress.deleted} clients were not uploaded due to your subscription tier.</Typography>
           <Button variant="contained" color="primary" aria-label="Create Company" component="label">
@@ -271,8 +269,7 @@ const FileUploader = () => {
               </Link>
           </Button>
         </div>
-      )}
-
+      )} */}
       
     <Modal
           open={uploadInfo}
@@ -310,9 +307,6 @@ const FileUploader = () => {
           </Fade>
       </Modal>
     </div>
-
-
-
   );
 };
 
