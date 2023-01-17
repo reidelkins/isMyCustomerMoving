@@ -201,7 +201,7 @@ export const serviceTitanSync = () => async (dispatch, getState) => {
         Authorization: `Bearer ${userInfo.access}`,
       },
     };
-    // dispatch(usersLoading());
+    dispatch(clientsLoading());
     await axios.put(`${DOMAIN}/api/v1/accounts/servicetitan/${company}/`, config);
     setTimeout(() => {
       dispatch(clientsAsync());
