@@ -140,26 +140,24 @@ def saveClientList(clients, company_id, numbers=None):
     allClients = Client.objects.filter(company=company)
     clientsToUpdate = []
     for client in clients:
-        if 'active' in client:
-            try:
-                street = (str(client['address']['street'])).title()
-                street = parseStreets(street)             
-                clientToUpdate = allClients.get(name=client['name'], address=street)
-                clientToUpdate.phoneNumber = numbers[client['id']]
-                clientToUpdate.servTitanID = client['id']
-                clientsToUpdate.append(clientToUpdate)
-            except Exception as e:
-                print(e)
-        else:
-            if 'phone number' in clients[i]:
-                try:
-                    street = (str(client['address'])).title()
-                    street = parseStreets(street)
-                    clientToUpdate = allClients.get(name=client['name'], address=street)                
-                    clientToUpdate.phoneNumber = client['phone number']
+        try:
+            if 'active' in client:
+                    street = (str(client['address']['street'])).title()
+                    street = parseStreets(street)             
+                    clientToUpdate = allClients.get(name=client['name'], address=street)
+                    clientToUpdate.phoneNumber = numbers[client['id']]
+                    clientToUpdate.servTitanID = client['id']
                     clientsToUpdate.append(clientToUpdate)
-                except Exception as e:
-                    print(e)
+            else:
+                if 'phone number' in clients[i]:                    
+                        street = (str(client['address'])).title()
+                        street = parseStreets(street)
+                        clientToUpdate = allClients.get(name=client['name'], address=street)                
+                        clientToUpdate.phoneNumber = client['phone number']
+                        clientsToUpdate.append(clientToUpdate)
+        except Exception as e:
+            print(e)
+            print(client['name'] + " " + street)
             
     Client.objects.bulk_update(clientsToUpdate, ['phoneNumber'])
     

@@ -11,6 +11,8 @@ export const userSlice = createSlice({
       loading: false,
       error: null,
       CLIENTLIST: [],
+      done: true,
+      
     },
     usersInfo: {
       loading: false,
@@ -24,6 +26,7 @@ export const userSlice = createSlice({
       state.clientsInfo.CLIENTLIST = action.payload;
       state.clientsInfo.loading = false;
       state.clientsInfo.error = null;
+      state.clientsInfo.done = false;
     },
     moreClients: (state, action) => {
       state.clientsInfo.CLIENTLIST = [...state.clientsInfo.CLIENTLIST, ...action.payload];
@@ -38,6 +41,9 @@ export const userSlice = createSlice({
     clientsLoading: (state) => {
       state.clientsInfo.loading = true;
       state.clientsInfo.CLIENTLIST = [];
+    },
+    noMoreClients: (state) => {
+      state.clientsInfo.done = true;
     },
 
     // -----------------  USERS  -----------------
@@ -69,7 +75,7 @@ export const userSlice = createSlice({
   },
 });
 
-export const { clients, moreClients, clientsUploading, clientsLoading, clientsError, users, usersLoading, usersError } = userSlice.actions;
+export const { clients, moreClients, noMoreClients, clientsUploading, clientsLoading, clientsError, users, usersLoading, usersError } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
 export const selectUsers = (state) => state.user.usersInfo;
 export default userSlice.reducer;
@@ -137,6 +143,7 @@ export const clientsAsync = () => async (dispatch, getState) => {
       const { data: newData } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}?page=${i}&per_page=1000`, config);
       dispatch(moreClients(newData.results));
     }
+    dispatch(noMoreClients());
   } catch (error) {
     localStorage.removeItem('userInfo');
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));

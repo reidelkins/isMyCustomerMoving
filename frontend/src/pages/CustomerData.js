@@ -105,7 +105,7 @@ export default function CustomerData() {
   }
 
   const listClient = useSelector(selectClients);
-  const { loading, CLIENTLIST } = listClient;
+  const { loading, CLIENTLIST, done } = listClient;
 
   const [page, setPage] = useState(0);
   
@@ -221,39 +221,42 @@ export default function CustomerData() {
   const [totalSaleCount, setTotalSaleCount] = useState(0);
   const [totalSoldCount, setTotalSoldCount] = useState(0);
   useEffect(() => {
-    let tmpRent = 0;
-    let tmpSale = 0;
-    let tmpTotalSale = 0;
-    let tmpSold6 = 0;
-    let tmpTotalSold = 0;
-    CLIENTLIST.forEach((n) => {
-      if (n.status === 'For Rent') {
-        tmpRent +=  1;
-      }
-      if (n.status === 'For Sale') {
-        tmpSale += 1;
-        // tmpTotalSale += 1;
-      }
-      if (n.status === 'Recently Sold (6)' || n.status === 'Recently Sold (12)') {
-        tmpSold6 += 1;
-        // tmpTotalSold += 1;
-      }
-      n.clientUpdates.forEach((u) => {
-        if (u.status === 'For Sale') {
-          tmpTotalSale += 1;
+    if (done) {
+      let tmpRent = 0;
+      let tmpSale = 0;
+      let tmpTotalSale = 0;
+      let tmpSold6 = 0;
+      let tmpTotalSold = 0;
+      CLIENTLIST.forEach((n) => {
+        if (n.status === 'For Rent') {
+          tmpRent +=  1;
         }
-        if (u.status === 'Recently Sold (6)' || u.status === 'Recently Sold (12)') {
-          tmpTotalSold += 1;
+        if (n.status === 'For Sale') {
+          tmpSale += 1;
+          // tmpTotalSale += 1;
         }
-      })
+        if (n.status === 'Recently Sold (6)' || n.status === 'Recently Sold (12)') {
+          tmpSold6 += 1;
+          // tmpTotalSold += 1;
+        }
+        n.clientUpdates.forEach((u) => {
+          if (u.status === 'For Sale') {
+            tmpTotalSale += 1;
+          }
+          if (u.status === 'Recently Sold (6)' || u.status === 'Recently Sold (12)') {
+            tmpTotalSold += 1;
+          }
+        })
+        tmpSale+=1;
+        tmpTotalSold +=2;
 
-
-    });
-    setRentCount(tmpRent);
-    setSaleCount(tmpSale);
-    setTotalSaleCount(tmpTotalSale);
-    setSold6Count(tmpSold6);
-    setTotalSoldCount(tmpTotalSold);
+      });
+      setRentCount(tmpRent);
+      setSaleCount(tmpSale);
+      setTotalSaleCount(tmpTotalSale);
+      setSold6Count(tmpSold6);
+      setTotalSoldCount(tmpTotalSold);
+    }
     if (userInfo) {
       if (userInfo.status === 'admin') {
         setShownClients(CLIENTLIST.length);
@@ -261,7 +264,8 @@ export default function CustomerData() {
         setShownClients(rentCount + saleCount + sold6Count);
       }
     }
-  }, [CLIENTLIST, userInfo, rentCount, saleCount, sold6Count]);
+  
+  }, [done, CLIENTLIST]);
 
   return (
     <Page title="User">
