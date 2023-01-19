@@ -85,13 +85,16 @@ class ClientUpdateSerializer(serializers.ModelSerializer):
         fields = ('id', 'status', 'date', 'listed', 'note', 'contacted')
         read_only_fields = fields
 
+class ZipCodeSerializer(serializers.Serializer):
+    zipCode = serializers.CharField(max_length=100)
+
 class ClientListSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
     name = serializers.CharField(max_length=100)
     address = serializers.CharField(max_length=100)
     city = serializers.CharField(max_length=100)
     state = serializers.CharField(max_length=100)
-    zipCode = serializers.CharField(max_length=100)
+    zipCode = ZipCodeSerializer(many=False, read_only=True)
     status = serializers.CharField(max_length=100)
     contacted = serializers.BooleanField()
     note = serializers.CharField(max_length=100)

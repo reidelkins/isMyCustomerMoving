@@ -76,33 +76,39 @@ def parseStreets(street):
     return street
 
 def formatZip(zip):
-    if type(zip) == float:
-        zip = int(zip)
-    if type(zip) == str:
-        zip = (zip.split('-'))[0]
-    if int(zip) > 500 and int(zip) < 99951:
-        if len(zip) == 4:
-            zip = '0' + str(zip)
-        elif len(zip) == 3:
-            zip = '00' + str(zip)
-        elif len(zip) != 5:
-            return False
-    return zip
+    try:
+        if type(zip) == float:
+            zip = int(zip)
+        if type(zip) == str:
+            zip = zip.replace(' ', '')
+            zip = (zip.split('-'))[0]
+        if int(zip) > 500 and int(zip) < 99951:
+            if len(zip) == 4:
+                zip = '0' + str(zip)
+            elif len(zip) == 3:
+                zip = '00' + str(zip)
+            elif len(zip) != 5:
+                return False
+        return zip
+    except:
+        return False
 
 @shared_task
 def saveClientList(clients, company_id, numbers=None):
     #create
     clientsToAdd = []
     company = Company.objects.get(id=company_id)        
-
+    badStreets = ['none', 'null', 'na', 'n/a', 'tbd']
     for i in range(len(clients)):
         #service titan
         try:
             if 'active' in clients[i]:
-                if clients[i]['active']:
-                    street = parseStreets((str(clients[i]['address']['street'])).title())                                        
+                if clients[i]['active']:                    
+                    street = parseStreets((str(clients[i]['address']['street'])).title())
+                    if street.lower() in badStreets or 'tbd' in street.lower():
+                        continue
                     zip = formatZip(clients[i]['address']['zip'])
-                    if not zip:
+                    if int(zip) < 500 or int(zip) > 99951:
                         continue
                     zipCode, zipCreated = ZipCode.objects.get_or_create(zipCode=str(zip))                     
                     city=clients[i]['address']['city'],
@@ -116,13 +122,15 @@ def saveClientList(clients, company_id, numbers=None):
                             phoneNumber = ""
                     except:
                         phoneNumber = None
+                    if clients[i]['address']['zip'] == None or not street or not zip or not city or not state or not name or zip == 0:
+                        continue
                     clientsToAdd.append(Client(address=street, zipCode=zipCode, city=city, state=state, name=name, company=company, phoneNumber=phoneNumber, servTitanID=clients[i]['id']))                   
             #file upload
             else:                
                 street = parseStreets((str(clients[i]['address'])).title())
+                if street.lower() in badStreets:
+                        continue
                 zip = formatZip(clients[i]['zip code'])
-                if not zip:
-                    continue
                 zipCode, zipCreated = ZipCode.objects.get_or_create(zipCode=str(zip))
                 city = clients[i]['city']
                 state = clients[i]['state']
@@ -130,7 +138,9 @@ def saveClientList(clients, company_id, numbers=None):
                 if 'phone number' in clients[i]:
                     phoneNumber = clients[i]['phone number']
                 else:
-                    phoneNumber = "" 
+                    phoneNumber = ""
+                if clients[i]['zip code'] == None or not street or not zip or not city or not state or not name or zip == 0:
+                        continue
                 clientsToAdd.append(Client(address=street, zipCode=zipCode, city=city, state=state, name=name, company=company, phoneNumber=phoneNumber))
         except Exception as e:
             print("create error")
@@ -160,6 +170,7 @@ def saveClientList(clients, company_id, numbers=None):
                     clientsToUpdate.append(clientToUpdate)
         except Exception as e:
             print("Update Error")
+            print(client['name'])
             print(e)
             
             
@@ -420,7 +431,8 @@ def get_serviceTitan_clients(company_id, task_id):
             frm = response.json()['continueFrom']
         else:
             moreClients = False
-
+    with open('clients.json', 'w') as f:
+        json.dump(clients, f)
     # get phone number data for each client
     moreClients = True
     frm = ""
@@ -435,10 +447,16 @@ def get_serviceTitan_clients(company_id, task_id):
         if response.json()['hasMore']:
             frm = response.json()['continueFrom']
         else:
-            moreClients = False
+            moreClients = False 
     saveClientList(clients, company_id, numbers)
+    clients = Client.objects.filter(company=company)
+    limit = company.product.customerLimit
+    diff = clients.count() - limit
+    deleteClients = clients[:diff].values_list('id')
+    # Client.objects.filter(id__in=deleteClients).delete()
     task = Task.objects.get(id=task_id)
     task.completed = True
+    task.deletedClients = diff
     task.save()
 
 
@@ -492,7 +510,7 @@ def update_serviceTitan_tasks(clients, company, status):
             data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
             response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
             headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
-            response = requests.get(f'https://api-integration.servicetitan.io/taskmanagement/v2/tenant/{str(company.tenantID)}/data', headers=headers)
+            response = requests.get(f'https://api.servicetitan.io/taskmanagement/v2/tenant/{str(company.tenantID)}/data', headers=headers)
             with open('tasks.json', 'w') as f:
                 json.dump(response.json(), f)
             # if response.status_code != 200:

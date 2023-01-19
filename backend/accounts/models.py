@@ -190,3 +190,4 @@ class Task(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
     completed = models.BooleanField(default=False)
+    deletedClients = models.IntegerField(default=0)

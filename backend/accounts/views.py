@@ -367,8 +367,9 @@ class ServiceTitanView(APIView):
             try:
                 task = Task.objects.get(id=self.kwargs['company'])
                 if task.completed:
+                    deleted = task.deletedClients
                     task.delete()
-                    return Response({"status": "SUCCESS"}, status=status.HTTP_201_CREATED, headers="")
+                    return Response({"status": "SUCCESS", "deleted": deleted}, status=status.HTTP_201_CREATED, headers="")
                 else:
                     return Response({"status": "UNFINISHED"}, status=status.HTTP_201_CREATED)
             except Exception as e:

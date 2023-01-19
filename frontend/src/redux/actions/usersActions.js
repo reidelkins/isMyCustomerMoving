@@ -12,6 +12,7 @@ export const userSlice = createSlice({
       error: null,
       CLIENTLIST: [],
       done: true,
+      deleted: 0
       
     },
     usersInfo: {
@@ -45,6 +46,9 @@ export const userSlice = createSlice({
     noMoreClients: (state) => {
       state.clientsInfo.done = true;
     },
+    clientsNotAdded: (state, action) => {
+      state.clientsInfo.deleted = action.payload;
+    },
 
     // -----------------  USERS  -----------------
     users: (state, action) => {
@@ -75,7 +79,7 @@ export const userSlice = createSlice({
   },
 });
 
-export const { clients, moreClients, noMoreClients, clientsUploading, clientsLoading, clientsError, users, usersLoading, usersError } = userSlice.actions;
+export const { clientsNotAdded, clients, moreClients, noMoreClients, clientsUploading, clientsLoading, clientsError, users, usersLoading, usersError } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
 export const selectUsers = (state) => state.user.usersInfo;
 export default userSlice.reducer;
@@ -133,7 +137,7 @@ export const clientsAsync = () => async (dispatch, getState) => {
     };
     dispatch(clientsLoading());
     // print how long it takes to get data
-    console.time('clients');
+    // console.time('clients');
     const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}?page=1&per_page=1000`, config);
     dispatch(clients(data.results));
     const loops = Math.ceil(data.count / 1000);
@@ -206,11 +210,11 @@ export const serviceTitanUpdateAsync = (id, access) => async (dispatch) => {
     };
     const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/servicetitan/${id}/`, config);
     if (data.status === 'SUCCESS') {
+      dispatch(clientsNotAdded(data.deleted))
       setTimeout(() => {
         dispatch(clientsAsync());
       }, 2000);
     } else {
-      console.log(data.status)
       setTimeout(() => {
         dispatch(serviceTitanUpdateAsync(id, access));
       }, 2000);
@@ -236,7 +240,6 @@ export const serviceTitanSync = () => async (dispatch, getState) => {
     };
     dispatch(clientsLoading());
     const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/servicetitan/${company}/`, config);
-    console.log(data.task)
     dispatch(serviceTitanUpdateAsync(data.task, userInfo.access))
     
   } catch (error) {
