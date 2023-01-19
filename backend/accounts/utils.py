@@ -452,11 +452,12 @@ def get_serviceTitan_clients(company_id, task_id):
     clients = Client.objects.filter(company=company)
     limit = company.product.customerLimit
     diff = clients.count() - limit
-    deleteClients = clients[:diff].values_list('id')
-    # Client.objects.filter(id__in=deleteClients).delete()
     task = Task.objects.get(id=task_id)
+    if diff > 0:
+        deleteClients = clients[:diff].values_list('id')
+        Client.objects.filter(id__in=deleteClients).delete()
+        task.deletedClients = diff
     task.completed = True
-    task.deletedClients = diff
     task.save()
 
 
