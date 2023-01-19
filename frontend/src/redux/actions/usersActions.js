@@ -196,6 +196,32 @@ export const updateClientAsync = (id, contacted, note) => async (dispatch, getSt
   }
 };
 
+export const serviceTitanUpdateAsync = (id, access) => async (dispatch) => {
+  try {
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        'Authorization': `Bearer ${access}`,
+      },
+    };
+    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/servicetitan/${id}/`, config);
+    if (data.status === 'SUCCESS') {
+      setTimeout(() => {
+        dispatch(clientsAsync());
+      }, 2000);
+    } else {
+      console.log(data.status)
+      setTimeout(() => {
+        dispatch(serviceTitanUpdateAsync(id, access));
+      }, 2000);
+      
+    }
+  } catch (error) {
+    dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+};
+        
+
 export const serviceTitanSync = () => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
@@ -209,10 +235,10 @@ export const serviceTitanSync = () => async (dispatch, getState) => {
       },
     };
     dispatch(clientsLoading());
-    await axios.put(`${DOMAIN}/api/v1/accounts/servicetitan/${company}/`, config);
-    setTimeout(() => {
-      dispatch(clientsAsync());
-    }, 2000);
+    const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/servicetitan/${company}/`, config);
+    console.log(data.task)
+    dispatch(serviceTitanUpdateAsync(data.task, userInfo.access))
+    
   } catch (error) {
     throw new Error(error);
     // dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));

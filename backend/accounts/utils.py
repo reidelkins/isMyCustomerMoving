@@ -11,7 +11,7 @@ from scrapfly import ScrapeApiResponse, ScrapeConfig, ScrapflyClient
 from typing import List, Optional
 from typing_extensions import TypedDict
 
-from .models import Client, Company, ZipCode, HomeListing, CustomUser, ClientUpdate
+from .models import Client, Company, ZipCode, HomeListing, CustomUser, ClientUpdate, Task
 from .serializers import CompanySerializer
 
 from django.conf import settings
@@ -133,6 +133,7 @@ def saveClientList(clients, company_id, numbers=None):
                     phoneNumber = "" 
                 clientsToAdd.append(Client(address=street, zipCode=zipCode, city=city, state=state, name=name, company=company, phoneNumber=phoneNumber))
         except Exception as e:
+            print("create error")
             print(e)
     Client.objects.bulk_create(clientsToAdd, ignore_conflicts=True)
 
@@ -142,22 +143,25 @@ def saveClientList(clients, company_id, numbers=None):
     for client in clients:
         try:
             if 'active' in client:
+                if client['active']:
                     street = (str(client['address']['street'])).title()
                     street = parseStreets(street)             
                     clientToUpdate = allClients.get(name=client['name'], address=street)
-                    clientToUpdate.phoneNumber = numbers[client['id']]
+                    if client['id'] in numbers:
+                        clientToUpdate.phoneNumber = numbers[client['id']]
                     clientToUpdate.servTitanID = client['id']
                     clientsToUpdate.append(clientToUpdate)
             else:
-                if 'phone number' in clients[i]:                    
-                        street = (str(client['address'])).title()
-                        street = parseStreets(street)
-                        clientToUpdate = allClients.get(name=client['name'], address=street)                
-                        clientToUpdate.phoneNumber = client['phone number']
-                        clientsToUpdate.append(clientToUpdate)
+                if 'phone number' in clients[i]:
+                    street = (str(client['address'])).title()
+                    street = parseStreets(street)
+                    clientToUpdate = allClients.get(name=client['name'], address=street)                
+                    clientToUpdate.phoneNumber = client['phone number']
+                    clientsToUpdate.append(clientToUpdate)
         except Exception as e:
+            print("Update Error")
             print(e)
-            print(client['name'] + " " + street)
+            
             
     Client.objects.bulk_update(clientsToUpdate, ['phoneNumber'])
     
@@ -393,7 +397,7 @@ def auto_update():
         getAllZipcodes(company[0])
 
 @shared_task
-def get_serviceTitan_clients(company_id):
+def get_serviceTitan_clients(company_id, task_id):
     
     company = Company.objects.get(id=company_id)
     tenant = company.tenantID
@@ -433,6 +437,9 @@ def get_serviceTitan_clients(company_id):
         else:
             moreClients = False
     saveClientList(clients, company_id, numbers)
+    task = Task.objects.get(id=task_id)
+    task.completed = True
+    task.save()
 
 
 def update_serviceTitan_client_tags(clients, company, status):

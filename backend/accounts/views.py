@@ -15,7 +15,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import pandas as pd
 from .utils import getAllZipcodes, saveClientList, makeCompany, get_serviceTitan_clients
-from .models import CustomUser, Client, Company, InviteToken
+from .models import CustomUser, Client, Company, InviteToken, Task
 from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, ClientListSerializer, MyTokenObtainPairSerializer
 import datetime
 import jwt
@@ -295,7 +295,7 @@ class ClientListView(generics.ListAPIView):
     pagination_class = CustomPagination
     def get_queryset(self):
         company = Company.objects.get(id=self.kwargs['company'])
-        return Client.objects.prefetch_related('clientUpdates').filter(company=company)
+        return Client.objects.prefetch_related('clientUpdates').filter(company=company).order_by('name')
 
 class UserListView(generics.ListAPIView):
     serializer_class = UserListSerializer
@@ -361,14 +361,30 @@ def update_client(request):
         print(e)
         return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
 
-class ServiceTitanView(APIView):    
+class ServiceTitanView(APIView):
+    def get(self, request, *args, **kwargs):
+        try:
+            try:
+                task = Task.objects.get(id=self.kwargs['company'])
+                if task.completed:
+                    task.delete()
+                    return Response({"status": "SUCCESS"}, status=status.HTTP_201_CREATED, headers="")
+                else:
+                    return Response({"status": "UNFINISHED"}, status=status.HTTP_201_CREATED)
+            except Exception as e:
+                print(e)
+                return Response({"status": "Task Error"}, status=status.HTTP_400_BAD_REQUEST)          
+        except Exception as e:
+            print(e)
+            return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
     def put(self, request, *args, **kwargs):
         try:
             company_id = self.kwargs['company']
             try:
-                company = Company.objects.get(id=company_id)
-                get_serviceTitan_clients.delay(company_id)            
-                return Response({"status": "Success"}, status=status.HTTP_201_CREATED, headers="")
+                Company.objects.get(id=company_id)
+                task = Task.objects.create() 
+                get_serviceTitan_clients.delay(company_id, task.id)                          
+                return Response({"status": "Success", "task": task.id}, status=status.HTTP_201_CREATED, headers="")
             except Exception as e:
                 print(e)
                 return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)            
