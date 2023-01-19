@@ -1,60 +1,12 @@
-{% load static %}
-
-<!DOCTYPE html>
-<html>
-  <body>
-    <br />
-    <a href="https://www.ismycustomermoving.com" target="_blank">
-      <img
-        src="https://is-my-customer-moving.herokuapp.com/static/logo.svg"
-        alt="logo"
-        width="300"
-        height="100"
-      />
-    </a>
-    <h1>Please veryify your account!</h1>
-    <div style="margin: 5%">
-      <h2>
-        Click either the button or link below and you'll be verified! You'll
-        then be redirected to the login page.
-      </h2>
-      <h5>
-        Go to
-        <a
-          href="https://{{current_site}}/api/v1/accounts/confirmation/{{token}}/{{user}}/"
-          target="_blank"
-          >app.ismycustomermoving.com </a
-        >or click the button below to complete the sign up process!
-      </h5>
-      <button
-        style="
-          background-color: #8ce8c5;
-          text-align: center;
-          vertical-align: middle;
-          border-radius: 8px;
-          width: 100px;
-          height: 50px;
-          color: white;
-          line-height: 50px;
-          cursor: pointer;
-        "
-      >
-        <a
-          href="https://{{current_site}}/api/v1/accounts/confirmation/{{token}}/{{user}}/"
-          target="_blank"
-        />
-        Verify
-      </button>
-      <br />
-      <p>Thanks,</p>
-      <p>Is My Customer Moving Team</p>
-      <br />
-      <br />
-      <p>
-        If you think you received this by mistake but are still interested, you
-        can check us out and sign up for a demo
-        <a href="https://app.ismycustomermoving.com" target="_blank">here</a>.
-      </p>
-    </div>
-  </body>
-</html>
+{% extends "base.html" %} {% block content %}
+<h1>Verify Your Account</h1>
+<p>
+  Click the button below to verify your email. You will then be redirected to
+  the login page.
+</p>
+<a
+  href="https://{{current_site}}/api/v1/accounts/confirmation/{{token}}/{{user}}/"
+  class="btn"
+  >Verify</a
+>
+{%endblock%}

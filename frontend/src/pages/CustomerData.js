@@ -220,43 +220,46 @@ export default function CustomerData() {
   const [sold6Count, setSold6Count] = useState(0);
   const [totalSaleCount, setTotalSaleCount] = useState(0);
   const [totalSoldCount, setTotalSoldCount] = useState(0);
-  useEffect(() => {
-    if (done) {
-      let tmpRent = 0;
-      let tmpSale = 0;
-      let tmpTotalSale = 0;
-      let tmpSold6 = 0;
-      let tmpTotalSold = 0;
-      CLIENTLIST.forEach((n) => {
-        if (n.status === 'For Rent') {
-          tmpRent +=  1;
-        }
-        if (n.status === 'For Sale') {
-          tmpSale += 1;
-          // tmpTotalSale += 1;
-        }
-        if (n.status === 'Recently Sold (6)' || n.status === 'Recently Sold (12)') {
-          tmpSold6 += 1;
-          // tmpTotalSold += 1;
-        }
-        n.clientUpdates.forEach((u) => {
-          if (u.status === 'For Sale') {
-            tmpTotalSale += 1;
-          }
-          if (u.status === 'Recently Sold (6)' || u.status === 'Recently Sold (12)') {
-            tmpTotalSold += 1;
-          }
-        })
-        tmpSale+=1;
-        tmpTotalSold +=2;
 
-      });
-      setRentCount(tmpRent);
-      setSaleCount(tmpSale);
-      setTotalSaleCount(tmpTotalSale);
-      setSold6Count(tmpSold6);
-      setTotalSoldCount(tmpTotalSold);
-    }
+  const [rentCountStart, setRentCountStart] = useState(0);
+  const [saleCountStart, setSaleCountStart] = useState(0);
+  const [sold6CountStart, setSold6CountStart] = useState(0);
+  useEffect(() => {
+    setRentCountStart(rentCount)
+    setSaleCountStart(saleCount)
+    setSold6CountStart(sold6Count)
+    
+    let tmpRent = 0;
+    let tmpSale = 0;
+    let tmpTotalSale = 0;
+    let tmpSold6 = 0;
+    let tmpTotalSold = 0;
+    CLIENTLIST.forEach((n) => {
+      if (n.status === 'For Rent') {
+        tmpRent += 1;
+      }
+      if (n.status === 'For Sale') {
+        tmpSale += 1;
+      }
+      if (n.status === 'Recently Sold (6)' || n.status === 'Recently Sold (12)') {
+        tmpSold6 += 1;
+      }
+      n.clientUpdates.forEach((u) => {
+        if (u.status === 'For Sale') {
+          tmpTotalSale += 1;
+        }
+        if (u.status === 'Recently Sold (6)' || u.status === 'Recently Sold (12)') {
+          tmpTotalSold += 1;
+        }
+      })
+
+    });
+    setRentCount(tmpRent);
+    setSaleCount(tmpSale);
+    setTotalSaleCount(tmpTotalSale);
+    setSold6Count(tmpSold6);
+    setTotalSoldCount(tmpTotalSold);
+  
     if (userInfo) {
       if (userInfo.status === 'admin') {
         setShownClients(CLIENTLIST.length);
@@ -286,7 +289,8 @@ export default function CustomerData() {
             <Stack direction="row" alignItems="center" justifyContent="space-around" mb={5} mx={10}>
               <Stack direction="column" alignItems="center" justifyContent="center">
                 <CounterCard
-                  count={saleCount}
+                  start={saleCountStart}
+                  end={saleCount}
                   title="For Sale"
                 />
                 <Typography variant="h6" gutterBottom mt={-3}> All Time: {totalSaleCount}</Typography>
@@ -294,7 +298,8 @@ export default function CustomerData() {
 
               <Stack direction="column" alignItems="center" justifyContent="center">
                 <CounterCard
-                  count={sold6Count}
+                  start={sold6CountStart}
+                  end={sold6Count}
                   title="Recently Sold"
                 />
                 <Typography variant="h6" gutterBottom mt={-3}> All Time: {totalSoldCount}</Typography>
