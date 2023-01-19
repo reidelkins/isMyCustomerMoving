@@ -33,16 +33,17 @@ CounterCard.propTypes = {
     "light",
     "dark",
   ]),
-  count: PropTypes.number.isRequired,
+  start: PropTypes.number.isRequired,
+  end: PropTypes.number.isRequired,
   title: PropTypes.string,
   description: PropTypes.string,
 };
 
-function CounterCard({ color, count, title, description, ...rest }) {
+function CounterCard({ color, start, end, title, description, ...rest }) {
   return (
     <Box p={2} textAlign="center" lineHeight={1}>
       <Typography variant="h2" color={color}>
-        <CountUp end={count} duration={1} {...rest} />
+        <CountUp start={start} end={end} duration={1} {...rest} />
       </Typography>
       {title && (
         <Typography variant="h3" mt={2} mb={1}>

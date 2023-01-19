@@ -1,34 +1,11 @@
-{% load static %}
-
-<!DOCTYPE html>
-<html>
-  <body>
-    <br />
-    <a href="https://www.ismycustomermoving.com" target="_blank">
-      <img
-        src="https://is-my-customer-moving.herokuapp.com/static/logo.svg"
-        alt="logo"
-        width="300"
-        height="100"
-      />
-    </a>
-    <h1>Good Morning {{customer.name}}, Here is your daily update!</h1>
-    {% if clients %}
-    <div style="margin: 10%">
-      {% for client in clients %}
-      <p>
-        The home belonging to <b>{{client.name}}</b> at {{client.address}}was
-        found to be <b>{{client.status}}</b>. No one from your team has
-        contacted them yet, be the first!"
-      </p>
-
-      {% endfor %}
-    </div>
-    {% else %}
-    <h2>
-      There were no updates found today for your client list but look back
-      tomorrow for new leads!
-    </h2>
-    {% endif %}
-  </body>
-</html>
+{% extends "base.html" %} {% block content %}
+<h1>Good Morning {{customer.name}}!</h1>
+<p>
+  You have {{forSale}} customers with homes for sale and {{sold}} customers that
+  recently sold their homes which you haven't contacted yet!
+</p>
+<p>Login below to see who they are.</p>
+<a href="https://app.ismycustomermoving.com/login" class="btn">
+  <i class="fa fa-sign-in" aria-hidden="true" />Login</a
+>
+{%endblock%}
