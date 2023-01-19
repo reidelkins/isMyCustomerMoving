@@ -90,7 +90,14 @@ def publishable_key(request):
 def create_customer(event: djstripe_models.Event):
     print("wassup duddddde")
     obj = event.data['object']
-    print(obj)
+    company = obj['name']
+    email = obj['email']
+    stripeID = obj['id']
+    phone = obj['phone']
+    try:
+        Company.objects.get(name=company, email=email, stripeID=stripeID)
+    except:
+        makeCompany(company, email, phone, stripeID)
     print("done")
 
 @webhooks.handler('customer.subscription.created')
