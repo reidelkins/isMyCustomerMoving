@@ -402,10 +402,19 @@ def send_email():
     HomeListing.objects.all().delete()
 
 @shared_task
-def auto_update():
-    companies = Company.objects.all().values_list('id')
-    for company in companies:
-        getAllZipcodes(company[0])
+def auto_update(company_id=None):
+    if company_id:
+        try:
+            company = Company.objects.get(id=company_id)
+            getAllZipcodes(company_id)
+
+        except:
+            print("Company does not exist")
+            return
+    else:
+        companies = Company.objects.all().values_list('id')
+        for company in companies:
+            getAllZipcodes(company[0])
 
 @shared_task
 def get_serviceTitan_clients(company_id, task_id):
