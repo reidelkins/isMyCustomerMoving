@@ -2,7 +2,7 @@ amqp==5.1.1
 apify-client==0.6.0
 argon2-cffi==21.3.0
 argon2-cffi-bindings==21.2.0
-asgiref==3.5.0
+asgiref==3.6.0
 async-timeout==4.0.2
 atomicwrites==1.4.1
 attrs==21.4.0
