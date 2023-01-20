@@ -98,7 +98,7 @@ def saveClientList(clients, company_id, numbers=None):
     #create
     clientsToAdd = []
     company = Company.objects.get(id=company_id)        
-    badStreets = ['none', 'null', 'na', 'n/a', 'tbd']
+    badStreets = ['none', 'null', 'na', 'n/a', 'tbd', '.']
     for i in range(len(clients)):
         #service titan
         try:
@@ -155,8 +155,11 @@ def saveClientList(clients, company_id, numbers=None):
             if 'active' in client:
                 if client['active']:
                     street = (str(client['address']['street'])).title()
-                    street = parseStreets(street)             
-                    clientToUpdate = allClients.get(name=client['name'], address=street)
+                    street = parseStreets(street)
+                    try:
+                        clientToUpdate = allClients.get(name=client['name'], address=street)
+                    except:
+                        continue
                     if client['id'] in numbers:
                         clientToUpdate.phoneNumber = numbers[client['id']]
                     clientToUpdate.servTitanID = client['id']
@@ -437,7 +440,10 @@ def get_serviceTitan_clients(company_id, task_id):
     frm = ""
     moreClients = True
     #get client data
+    count = 0
     while(moreClients):
+        print("Client: ", count)
+        count += 1
         response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/export/customers?from={frm}', headers=headers)
         for client in response.json()['data']:
             clients.append(client)
@@ -445,13 +451,14 @@ def get_serviceTitan_clients(company_id, task_id):
             frm = response.json()['continueFrom']
         else:
             moreClients = False
-    with open('clients.json', 'w') as f:
-        json.dump(clients, f)
     # get phone number data for each client
     moreClients = True
     frm = ""
     numbers = {}
+    count = 0
     while moreClients:
+        print("Phone: ", count)
+        count += 1
         response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/export/customers/contacts?from={frm}', headers=headers)
         with open('numbers.json', 'w') as f:
             json.dump(response.json(), f)
@@ -462,6 +469,7 @@ def get_serviceTitan_clients(company_id, task_id):
             frm = response.json()['continueFrom']
         else:
             moreClients = False 
+    print("Save Clients")
     saveClientList(clients, company_id, numbers)
     clients = Client.objects.filter(company=company)
     limit = company.product.customerLimit
