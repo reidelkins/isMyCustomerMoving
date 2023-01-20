@@ -356,8 +356,11 @@ def emailBody(company):
     return body
 
 @shared_task
-def send_email():
-    companies = Company.objects.all()
+def send_email(company_id=None):
+    if company_id:
+        companies = Company.objects.filter(id=company_id)
+    else:
+        companies = Company.objects.all()
     for company in companies:
         zipCode_objects = Client.objects.filter(company=company).values('zipCode')
         zipCodes = zipCode_objects.distinct()
@@ -399,7 +402,9 @@ def send_email():
                 )
                 msg.content_subtype ="html"# Main content is now text/html
                 msg.send()
-    HomeListing.objects.all().delete()
+    if not company_id:
+        HomeListing.objects.all().delete()
+    ZipCode.objects.filter(lastUpdated__lt = datetime.today() - timedelta(days=3)).delete()
 
 @shared_task
 def auto_update(company_id=None):

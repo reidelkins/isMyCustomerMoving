@@ -39,7 +39,6 @@ export default function ServiceTitanTagsModal({userInfo}) {
 
     const IntegrateSTSchema = Yup.object().shape({
         forSale: Yup.string("'"),
-        forRent: Yup.string(""),
         recentlySold: Yup.string(""),
         
     });
@@ -47,7 +46,7 @@ export default function ServiceTitanTagsModal({userInfo}) {
     const formik = useFormik({
         initialValues: {
         forSale: userInfo.company.serviceTitanForSaleTagID,
-        forRent: userInfo.company.serviceTitanForRentTagID,
+        forRent: "",
         recentlySold: userInfo.company.serviceTitanRecentlySoldTagID,
         },
         validationSchema: IntegrateSTSchema,
@@ -100,7 +99,7 @@ export default function ServiceTitanTagsModal({userInfo}) {
             </FormikProvider>
             <Stack direction="row" justifyContent="right">
                 <Button color="error" onClick={handleClose}>Cancel</Button>
-                <Button onClick={handleSubmit }>Submit</Button>
+                <Button onClick={handleSubmit}>Submit</Button>
             </Stack>
         </Dialog>
         <Modal
