@@ -145,6 +145,8 @@ def saveClientList(clients, company_id, numbers=None):
         except Exception as e:
             print("create error")
             print(e)
+        if i % 100 == 0:
+            print(f"Client {i} of {len(clients)}")
     Client.objects.bulk_create(clientsToAdd, ignore_conflicts=True)
 
     #update
