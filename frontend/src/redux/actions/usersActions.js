@@ -124,6 +124,30 @@ export const deleteUserAsync = (ids) => async (dispatch, getState) => {
   }
 };
 
+export const sendRequest = (i, done) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const {id: company} = userInfo.company;
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+
+    const { data: newData } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}?page=${i}`, config);
+    dispatch(moreClients(newData.results));
+    if (done) {
+      dispatch(noMoreClients());
+    }
+  } catch (error) {
+    dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+};
+
+
 export const clientsAsync = () => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
@@ -138,16 +162,19 @@ export const clientsAsync = () => async (dispatch, getState) => {
     dispatch(clientsLoading());
     // print how long it takes to get data
     // console.time('clients');
-    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}?page=1&per_page=1000`, config);
+    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}?page=1`, config);
     dispatch(clients(data.results));
-    const loops = Math.ceil(data.count / 1000);
+    const loops = Math.ceil(data.count / 1000)-1;
     let i = 2;
     /* eslint-disable no-plusplus */
+    let done = false;
     for (i; i <= loops; i++) {
-      const { data: newData } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}?page=${i}&per_page=1000`, config);
-      dispatch(moreClients(newData.results));
+      if ( i === loops) {
+        done = true;
+      }
+      dispatch(sendRequest(i, done));
     }
-    dispatch(noMoreClients());
+    // dispatch(noMoreClients());
   } catch (error) {
     localStorage.removeItem('userInfo');
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
