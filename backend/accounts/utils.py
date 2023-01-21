@@ -518,7 +518,7 @@ def update_clients_statuses(company_id=None):
         count = 0
         for zip in zips:
             count += 1
-            print(f"Updating {count} of {zips.count()}")
+            print(f"Updating {count} of {len(zips)}")
             zip = zip['zipCode']
             # stay in this order so if was for sale and then sold, it will show as such
             updateStatus.delay(zip, company.id, "House For Sale")
