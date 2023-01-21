@@ -16,6 +16,7 @@ from django.conf import settings
 from django.core.mail import send_mail, EmailMessage
 from django.core.management import call_command
 from django.template.loader import get_template
+import gc
 
 
 scrapflies = []
@@ -656,12 +657,13 @@ def get_serviceTitan_clients(company_id, task_id):
     #get client data
     page = 1
     while(moreClients):
+        print(f'getting page {page} of clients')
         response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/customers?page={page}&pageSize=5000', headers=headers)
         page += 1
         clients = response.json()['data']
         if response.json()['hasMore'] == False:
             moreClients = False
-        saveClientList(clients, company_id)
+        saveClientList.delay(clients, company_id)
     clients = Client.objects.filter(company=company)
     diff = clients.count() - company.product.customerLimit
     task = Task.objects.get(id=task_id)
@@ -671,7 +673,6 @@ def get_serviceTitan_clients(company_id, task_id):
         task.deletedClients = diff
     task.completed = True
     task.save()
-    return
 
     # clearing out old data
     try:
@@ -686,9 +687,13 @@ def get_serviceTitan_clients(company_id, task_id):
         del diff
     except:
         pass
+    gc.collect()
     frm = ""
     moreClients = True
+    count = 0
     while(moreClients):
+        count += 1
+        print(f'getting page {page} of clients')
         response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/export/customers/contacts?from={frm}', headers=headers)
         # for number in response.json()['data']:
         #     numbers.append(number)
@@ -698,6 +703,7 @@ def get_serviceTitan_clients(company_id, task_id):
         else:
             moreClients = False
         updateClientList.delay(numbers)
+    gc.collect()
     try:
         del numbers
     except:
