@@ -124,28 +124,7 @@ export const deleteUserAsync = (ids) => async (dispatch, getState) => {
   }
 };
 
-export const sendRequest = (i, done) => async (dispatch, getState) => {
-  try {
-    const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
-    const {id: company} = userInfo.company;
 
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
-      },
-    };
-
-    const { data: newData } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}?page=${i}`, config);
-    dispatch(moreClients(newData.results));
-    if (done) {
-      dispatch(noMoreClients());
-    }
-  } catch (error) {
-    dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-  }
-};
 
 
 export const clientsAsync = () => async (dispatch, getState) => {
@@ -164,15 +143,12 @@ export const clientsAsync = () => async (dispatch, getState) => {
     // console.time('clients');
     const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}?page=1`, config);
     dispatch(clients(data.results));
-    const loops = Math.ceil(data.count / 1000)-1;
+    const loops = Math.ceil(data.count / 1000);
     let i = 2;
     /* eslint-disable no-plusplus */
-    let done = false;
     for (i; i <= loops; i++) {
-      if ( i === loops) {
-        done = true;
-      }
-      dispatch(sendRequest(i, done));
+      const { data: newData } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}?page=${i}`, config);
+      dispatch(moreClients(newData.results));
     }
     // dispatch(noMoreClients());
   } catch (error) {
