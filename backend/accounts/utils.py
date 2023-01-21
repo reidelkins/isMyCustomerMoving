@@ -397,8 +397,7 @@ def updateStatus(zip, company, status):
         print(f"ERROR during updateStatus: {e} with zipCode {zip}")
         return
     #addresses from all home listings with the provided zip code and status
-    listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')
-    
+    listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')    
     clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses)
     previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status)
     newlyListed = clientsToUpdate.difference(previousListed)
@@ -418,7 +417,10 @@ def updateStatus(zip, company, status):
             print("This should not be the case")
     clientsToUpdate = list(clientsToUpdate.values_list('servTitanID', flat=True))
     if clientsToUpdate:
+        print(f"{len(clientsToUpdate)} clients to be updated with status {status} and zip {zip}")
         update_serviceTitan_client_tags.delay(clientsToUpdate, company.id, status)
+    print(f"Finished updating status {status} for zip {zip}")
+    gc.collect()
     try:
         del company
     except:
@@ -513,11 +515,15 @@ def update_clients_statuses(company_id=None):
         zipCode_objects = Client.objects.filter(company=company).values('zipCode')
         zipCodes = zipCode_objects.distinct()
         zips = list(zipCodes.order_by('zipCode').values('zipCode'))
+        count = 0
         for zip in zips:
+            count += 1
+            print(f"Updating {count} of {zips.count()}")
             zip = zip['zipCode']
             # stay in this order so if was for sale and then sold, it will show as such
             updateStatus.delay(zip, company.id, "House For Sale")
             updateStatus.delay(zip, company.id, "House Recently Sold (6)")
+    gc.collect()
     try:
         del companies
     except:
