@@ -171,41 +171,41 @@ def updateClientList(numbers):
                       
 @shared_task
 def getAllZipcodes(company):
-    BATCH_SIZE = 100
     company_object = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company_object).values('zipCode')
     zipCodes = zipCode_objects.distinct()
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
     zips = list(zipCodes.order_by('zipCode').values('zipCode'))
-    total_zips = zips.count()
-    for i in range(0, total_zips, BATCH_SIZE):
-        batch_zips = zips[i:i+BATCH_SIZE]
-        for zip_code in batch_zips:
-            for i in range(len(batch_zips) * 2):
-                extra = ""
-                if i % 3 == 0:
-                    status = "House For Sale"
-                    url = "https://www.realtor.com/realestateandhomes-search"
-                elif i % 3 == 1:
-                    status = "House Recently Sold (6)"
-                    url = "https://www.realtor.com/realestateandhomes-search"
-                    extra = "show-recently-sold/"
-                find_data.delay(str(zip_code['zipCode']), company, i, status, url, extra)
     # zips = [{'zipCode': '37922'}]
-    # for i in range(len(zips) * 2):
-    # # for i in range(100, 130):
-    #     extra = ""
-    #     if i % 3 == 0:
-    #         status = "House For Sale"
-    #         url = "https://www.realtor.com/realestateandhomes-search"
-    #     elif i % 3 == 1:
-    #         status = "House Recently Sold (6)"
-    #         url = "https://www.realtor.com/realestateandhomes-search"
-    #         extra = "show-recently-sold/"
-    #     # elif i % 3 == 2:
-    #     #     status = "For Rent"
-    #     #     url = "https://www.realtor.com/apartments"
-    #     find_data.delay(str(zips[i//2]['zipCode']), company, i, status, url, extra)
+    for i in range(len(zips) * 2):
+    # for i in range(100, 130):
+        extra = ""
+        if i % 3 == 0:
+            status = "House For Sale"
+            url = "https://www.realtor.com/realestateandhomes-search"
+        elif i % 3 == 1:
+            status = "House Recently Sold (6)"
+            url = "https://www.realtor.com/realestateandhomes-search"
+            extra = "show-recently-sold/"
+        # elif i % 3 == 2:
+        #     status = "For Rent"
+        #     url = "https://www.realtor.com/apartments"
+        find_data.delay(str(zips[i//2]['zipCode']), company, i, status, url, extra)
+    # total_zips = zips.count()
+    # for i in range(0, total_zips, BATCH_SIZE):
+    #     batch_zips = zips[i:i+BATCH_SIZE]
+    #     for zip_code in batch_zips:
+    #         for i in range(len(batch_zips) * 2):
+    #             extra = ""
+    #             if i % 3 == 0:
+    #                 status = "House For Sale"
+    #                 url = "https://www.realtor.com/realestateandhomes-search"
+    #             elif i % 3 == 1:
+    #                 status = "House Recently Sold (6)"
+    #                 url = "https://www.realtor.com/realestateandhomes-search"
+    #                 extra = "show-recently-sold/"
+    #             find_data.delay(str(zip_code['zipCode']), company, i, status, url, extra)
+    
 
     zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
     del zipCodes
