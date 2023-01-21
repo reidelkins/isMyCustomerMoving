@@ -288,7 +288,7 @@ class UserViewSet(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
 
 class CustomPagination(PageNumberPagination):
-    page_size = 1000
+    page_size = 10000
 
 class ClientListView(generics.ListAPIView):
     serializer_class = ClientListSerializer
