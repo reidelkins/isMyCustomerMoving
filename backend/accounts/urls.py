@@ -24,6 +24,7 @@ urlpatterns = [
     path('updateclient/', views.update_client, name='updateclient'),
     path('upload/<str:company>/', views.UploadFileView.as_view(), name='upload-file'),
     path('clients/<str:company>/', views.ClientListView.as_view(), name='client-list'),
+    path('clients1/<str:company>/', views.ClientListView1.as_view(), name='client-list'),
     path('users/<str:company>/', views.UserListView.as_view(), name='user-list'),
     path('register/', views.RegisterView.as_view(), name='register'),
     path('login/', views.MyTokenObtainPairView.as_view(), name='login'),
