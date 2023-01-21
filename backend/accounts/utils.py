@@ -23,9 +23,6 @@ for i in range(1, 21):
     scrapfly = ScrapflyClient( key=settings.SCRAPFLY_KEY, max_concurrency=1)
     scrapflies.append(scrapfly)
 
-
-
-
 def makeCompany(companyName, email, phone, stripeID,):
     try:
         comp = {'name': companyName, 'phone': phone, 'email': email, 'stripeID': stripeID}
@@ -123,7 +120,27 @@ def saveClientList(clients, company_id):
             print("create error")
             print(e)
     Client.objects.bulk_create(clientsToAdd, ignore_conflicts=True)
-    del(clientsToAdd)
+    try:
+        del clientsToAdd
+    except:
+        pass
+    try:
+        del clients
+    except:
+        pass
+    try:
+        del company
+    except:
+        pass
+    try:
+        del company_id
+    except:
+        pass
+    try:
+        del badStreets
+    except:
+        pass
+
 
 @shared_task
 def updateClientList(numbers):
@@ -137,7 +154,18 @@ def updateClientList(numbers):
     for client in clients:
         client.phoneNumber = phoneNumbers[client.servTitanID]
         client.save()
-
+    try:
+        del phoneNumbers
+    except:
+        pass
+    try:
+        del clients
+    except:
+        pass
+    try:
+        del numbers   
+    except:
+        pass 
 
                       
 @shared_task
@@ -179,6 +207,10 @@ def getAllZipcodes(company):
     #     find_data.delay(str(zips[i//2]['zipCode']), company, i, status, url, extra)
 
     zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
+    del zipCodes
+    del zipCode_objects
+    del zips
+    del company_object
 
 class PropertyPreviewResult(TypedDict):
     property_id: str
@@ -215,7 +247,7 @@ def parse_search(result: ScrapeApiResponse, searchType: str) -> SearchResults:
         return False
 
 def create_home_listings(results, status):
-     for listing in results:
+    for listing in results:
         zip_object, created = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
         try:
             if status == "House Recently Sold (6)":
@@ -233,12 +265,27 @@ def create_home_listings(results, status):
         except Exception as e: 
             print(f"ERROR for Single Listing: {e} with zipCode {zip_object}")
             print((listing['location']['address']['line']).title())
-            
+    try:
+        del results
+    except:
+        pass
+    try:
+        del zip_object
+    except:
+        pass
+    try:
+        del created
+    except:
+        pass
+    try:
+        del listType
+    except:
+        pass
 
+            
 @shared_task
 def find_data(zip, company, i, status, url, extra):
-    scrapfly = scrapflies[i % 20]
-    
+    scrapfly = scrapflies[i % 20]    
     try:
         first_page = f"{url}/{zip}/{extra}"
         first_result = scrapfly.scrape(ScrapeConfig(first_page, country="US", asp=False, proxy_pool="public_datacenter_pool"))
@@ -278,11 +325,67 @@ def find_data(zip, company, i, status, url, extra):
                 results = parsed["properties"]
             else:
                 results = parsed["results"]
-            create_home_listings(results, status) 
-        
+            create_home_listings(results, status)         
     except Exception as e:
         print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
         print(f"URL: {url}")
+    try:
+        del scrapfly
+    except:
+        pass
+    try:
+        del first_page
+    except:
+        pass
+    try:
+        del first_result
+    except:
+        pass
+    try:
+        del content
+    except:
+        pass
+    try:
+        del soup
+    except:
+        pass
+    try:
+        del first_data
+    except:
+        pass
+    try:
+        del results
+    except:
+        pass
+    try:
+        del total
+    except:
+        pass
+    try:
+        del count
+    except:
+        pass
+    try:
+        del url
+    except:
+        pass
+    try:
+        del extra
+    except:
+        pass
+    try:
+        del page_url
+    except:
+        pass
+    try:
+        del new_results
+    except:
+        pass
+    try:
+        del parsed
+    except:
+        pass
+
 
 @shared_task
 def updateStatus(zip, company, status):
@@ -315,6 +418,50 @@ def updateStatus(zip, company, status):
     clientsToUpdate = list(clientsToUpdate.values_list('servTitanID', flat=True))
     if clientsToUpdate:
         update_serviceTitan_client_tags.delay(clientsToUpdate, company.id, status)
+    try:
+        del company
+    except:
+        pass
+    try:
+        del zipCode_object
+    except:
+        pass
+    try:
+        del listedAddresses
+    except:
+        pass
+    try:
+        del clientsToUpdate
+    except:
+        pass
+    try:
+        del previousListed
+    except:
+        pass
+    try:
+        del newlyListed
+    except:
+        pass
+    try:
+        del unlisted
+    except:
+        pass
+    try:
+        del toUnlist
+    except:
+        pass
+    try:
+        del toList
+    except:
+        pass
+    try:
+        del listing
+    except:
+        pass
+    try:
+        del clientsToUpdate
+    except:
+        pass
 
 # def updateStatus(zip, company, status):
 #     company = Company.objects.get(id=company)
@@ -353,7 +500,6 @@ def emailBody(company):
     body = ""
     for customer in foundCustomers:
         body += f"The home belonging to {customer.name} was found to be {customer.status}. No one from your team has contacted them yet, be the first!\n"
-
     return body
 
 @shared_task
@@ -370,7 +516,35 @@ def update_clients_statuses(company_id=None):
             zip = zip['zipCode']
             # stay in this order so if was for sale and then sold, it will show as such
             updateStatus.delay(zip, company.id, "House For Sale")
-            updateStatus.delay(zip, company.id, "House Recently Sold (6)")                        
+            updateStatus.delay(zip, company.id, "House Recently Sold (6)")
+    try:
+        del companies
+    except:
+        pass
+    try:
+        del companies
+    except:
+        pass
+    try:
+        del zipCode_objects
+    except:
+        pass
+    try:
+        del zipCodes
+    except:
+        pass
+    try:
+        del zips
+    except:
+        pass
+    try:
+        del zip
+    except:
+        pass
+    try:
+        del company
+    except:
+        pass                  
 
 def sendDailyEmail(company_id=None):
     if company_id:
@@ -405,6 +579,38 @@ def sendDailyEmail(company_id=None):
     if not company_id:
         HomeListing.objects.all().delete()
     ZipCode.objects.filter(lastUpdated__lt = datetime.today() - timedelta(days=3)).delete()
+    try:
+        del companies
+    except:
+        pass
+    try:
+        del emails
+    except:
+        pass
+    try:
+        del subject
+    except:
+        pass
+    try:
+        del forSaleCustomers
+    except:
+        pass
+    try:
+        del soldCustomers
+    except:
+        pass
+    try:
+        del message
+    except:
+        pass
+    try:
+        del email
+    except:
+        pass
+    try:
+        del msg
+    except:
+        pass
 
 @shared_task
 def auto_update(company_id=None):
@@ -420,6 +626,18 @@ def auto_update(company_id=None):
         companies = Company.objects.all().values_list('id')
         for company in companies:
             getAllZipcodes(company[0])
+    try:
+        del company
+    except:
+        pass
+    try:
+        del companies
+    except:
+        pass
+    try:
+        del company_id
+    except:
+        pass
 
 @shared_task
 def get_serviceTitan_clients(company_id, task_id):
@@ -456,9 +674,51 @@ def get_serviceTitan_clients(company_id, task_id):
     task.save()
 
     # clearing out old data
-    del(clients)
-    del(response)
-    del(deleteClients)
+    try:
+        del clients
+    except:
+        pass
+    try:
+        del moreClients
+    except:
+        pass
+    try:
+        del page
+    except:
+        pass
+    try:
+        del limit
+    except:
+        pass
+    try:
+        del diff
+    except:
+        pass
+    try:
+        del task
+    except:
+        pass
+    try:        
+        del deleteClients
+    except:
+        pass
+    try:
+        del headers
+    except:
+        pass
+    try:        
+        del response
+    except:
+        pass
+    try:
+        del data
+    except:
+        pass
+    try:
+        del tenant
+    except:
+        pass    
+    
 
     frm = ""
     moreClients = True
@@ -472,8 +732,38 @@ def get_serviceTitan_clients(company_id, task_id):
         else:
             moreClients = False
         updateClientList.delay(numbers)
-    # get phone number data for each client
-    
+    try:
+        del numbers
+    except:
+        pass
+    try:
+        del response
+    except:
+        pass
+    try:
+        del frm
+    except:
+        pass
+    try:
+        del moreClients
+    except:
+        pass
+    try:
+        del headers
+    except:
+        pass
+    try:
+        del data
+    except:
+        pass
+    try:
+        del company
+    except:
+        pass
+    try:
+        del tenant
+    except:
+        pass    
 
 @shared_task
 def update_serviceTitan_client_tags(forSale, company, status):
@@ -517,6 +807,51 @@ def update_serviceTitan_client_tags(forSale, company, status):
         print("updating service titan clients failed")
         print(f"ERROR: {e}")
         print(traceback.format_exc())
+    try:
+        del headers
+    except:
+        pass
+    try:
+        del data
+    except:
+        pass
+    try:
+        del response
+    except:
+        pass
+    try:
+        del payload
+    except:
+        pass
+    try:
+        del company
+    except:
+        pass
+    try:
+        del status
+    except:
+        pass
+    try:
+        del tagType
+    except:
+        pass
+    try:
+        del forSale
+    except:
+        pass
+    try:
+        del resp
+    except:
+        pass
+    try:
+        del error
+    except:
+        pass
+    try:
+        del word
+    except:
+        pass
+
 
 def update_serviceTitan_tasks(clients, company, status):
     if clients and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):
@@ -544,3 +879,26 @@ def update_serviceTitan_tasks(clients, company, status):
             print("updating service titan tasks failed")
             print(f"ERROR: {e}")
             print(traceback.format_exc())
+    try:
+        del headers
+    except:
+        pass
+    try:
+        del data
+    except:
+        pass
+    try:
+        del response
+    except:
+        pass
+    try:
+        del company
+    except:
+        pass
+    try:
+        del status
+    except:
+        pass
+
+
+    
