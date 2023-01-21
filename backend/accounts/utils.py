@@ -396,10 +396,12 @@ def updateStatus(zip, company, status):
     except Exception as e:
         print(f"ERROR during updateStatus: {e} with zipCode {zip}")
         return
+    print(f"UPDATE: updating status for {zip} with {status}")
     #addresses from all home listings with the provided zip code and status
-    listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')    
+    listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')       
     clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses)
     previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status)
+    print(f"UPDATE: listedAddresses: {listedAddresses.count()}, clientsToUpdate: {clientsToUpdate.count()}, previousListed: {previousListed.count()}") 
     newlyListed = clientsToUpdate.difference(previousListed)
     unlisted = previousListed.difference(clientsToUpdate)
     for toUnlist in unlisted:
@@ -419,7 +421,7 @@ def updateStatus(zip, company, status):
     if clientsToUpdate:
         print(f"{len(clientsToUpdate)} clients to be updated with status {status} and zip {zip}")
         update_serviceTitan_client_tags.delay(clientsToUpdate, company.id, status)
-    print(f"Finished updating status {status} for zip {zip}")
+    print(f"UPDATE: Finished updating status {status} for zip {zip}")
     gc.collect()
     try:
         del company
@@ -515,10 +517,7 @@ def update_clients_statuses(company_id=None):
         zipCode_objects = Client.objects.filter(company=company).values('zipCode')
         zipCodes = zipCode_objects.distinct()
         zips = list(zipCodes.order_by('zipCode').values('zipCode'))
-        count = 0
         for zip in zips:
-            count += 1
-            print(f"Updating {count} of {len(zips)}")
             zip = zip['zipCode']
             # stay in this order so if was for sale and then sold, it will show as such
             updateStatus.delay(zip, company.id, "House For Sale")
