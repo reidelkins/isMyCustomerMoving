@@ -1,4 +1,3 @@
-from asgiref.sync import sync_to_async
 from bs4 import BeautifulSoup
 from celery import shared_task
 from datetime import datetime, timedelta
@@ -6,7 +5,6 @@ import json
 import requests
 import math
 import traceback
-import pandas as pd
 from scrapfly import ScrapeApiResponse, ScrapeConfig, ScrapflyClient
 from typing import List, Optional
 from typing_extensions import TypedDict
@@ -20,26 +18,12 @@ from django.core.management import call_command
 from django.template.loader import get_template
 
 
-scrapfly1 = ScrapflyClient(
-    key=settings.SCRAPFLY_KEY,
-    max_concurrency=1  # increase this for faster scraping
-)
-scrapfly2 = ScrapflyClient(
-    key=settings.SCRAPFLY_KEY,
-    max_concurrency=1  # increase this for faster scraping
-)
-scrapfly3 = ScrapflyClient(
-    key=settings.SCRAPFLY_KEY,
-    max_concurrency=1  # increase this for faster scraping
-)
-scrapfly4 = ScrapflyClient(
-    key=settings.SCRAPFLY_KEY,
-    max_concurrency=1  # increase this for faster scraping
-)
-scrapfly5 = ScrapflyClient(
-    key=settings.SCRAPFLY_KEY,
-    max_concurrency=1  # increase this for faster scraping
-)
+scrapflies = []
+for i in range(1, 21):
+    scrapfly = ScrapflyClient( key=settings.SCRAPFLY_KEY, max_concurrency=1)
+    scrapflies.append(scrapfly)
+
+
 
 
 def makeCompany(companyName, email, phone, stripeID,):
@@ -94,7 +78,7 @@ def formatZip(zip):
         return False
 
 @shared_task
-def saveClientList(clients, company_id, numbers=None):
+def saveClientList(clients, company_id):
     #create
     clientsToAdd = []
     company = Company.objects.get(id=company_id)        
@@ -115,16 +99,9 @@ def saveClientList(clients, company_id, numbers=None):
                     city= city[0]            
                     state=clients[i]['address']['state']
                     name=clients[i]['name']
-                    try:
-                        if numbers[clients[i]['id']]:
-                            phoneNumber = numbers[clients[i]['id']]
-                        else:
-                            phoneNumber = ""
-                    except:
-                        phoneNumber = None
                     if clients[i]['address']['zip'] == None or not street or not zip or not city or not state or not name or zip == 0:
                         continue
-                    clientsToAdd.append(Client(address=street, zipCode=zipCode, city=city, state=state, name=name, company=company, phoneNumber=phoneNumber, servTitanID=clients[i]['id']))                   
+                    clientsToAdd.append(Client(address=street, zipCode=zipCode, city=city, state=state, name=name, company=company, servTitanID=clients[i]['id']))                   
             #file upload
             else:                
                 street = parseStreets((str(clients[i]['address'])).title())
@@ -145,42 +122,23 @@ def saveClientList(clients, company_id, numbers=None):
         except Exception as e:
             print("create error")
             print(e)
-        if i % 100 == 0:
-            print(f"Client {i} of {len(clients)}")
     Client.objects.bulk_create(clientsToAdd, ignore_conflicts=True)
 
-    #update
-    allClients = Client.objects.filter(company=company)
-    clientsToUpdate = []
-    for client in clients:
+@shared_task
+def updateClientList(numbers):
+    phoneNumbers = {}
+    for number in numbers:
         try:
-            if 'active' in client:
-                if client['active']:
-                    street = (str(client['address']['street'])).title()
-                    street = parseStreets(street)
-                    try:
-                        clientToUpdate = allClients.get(name=client['name'], address=street)
-                    except:
-                        continue
-                    if client['id'] in numbers:
-                        clientToUpdate.phoneNumber = numbers[client['id']]
-                    clientToUpdate.servTitanID = client['id']
-                    clientsToUpdate.append(clientToUpdate)
-            else:
-                if 'phone number' in clients[i]:
-                    street = (str(client['address'])).title()
-                    street = parseStreets(street)
-                    clientToUpdate = allClients.get(name=client['name'], address=street)                
-                    clientToUpdate.phoneNumber = client['phone number']
-                    clientsToUpdate.append(clientToUpdate)
-        except Exception as e:
-            print("Update Error")
-            print(client['name'])
-            print(e)
-            
-            
-    Client.objects.bulk_update(clientsToUpdate, ['phoneNumber'])
-    
+            phoneNumbers[number['customerId']] = number['phoneSettings']['phoneNumber']
+        except:
+            continue
+    clients = Client.objects.filter(servTitanID__in=list(phoneNumbers.keys()))
+    for client in clients:
+        client.phoneNumber = phoneNumbers[client.servTitanID]
+        client.save()
+
+
+                      
 @shared_task
 def getAllZipcodes(company):
     company_object = Company.objects.get(id=company)
@@ -193,10 +151,10 @@ def getAllZipcodes(company):
     # for i in range(100, 130):
         extra = ""
         if i % 3 == 0:
-            status = "For Sale"
+            status = "House For Sale"
             url = "https://www.realtor.com/realestateandhomes-search"
         elif i % 3 == 1:
-            status = "Recently Sold (6)"
+            status = "House Recently Sold (6)"
             url = "https://www.realtor.com/realestateandhomes-search"
             extra = "show-recently-sold/"
         # elif i % 3 == 2:
@@ -244,7 +202,7 @@ def create_home_listings(results, status):
      for listing in results:
         zip_object, created = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
         try:
-            if status == "Recently Sold (6)":
+            if status == "House Recently Sold (6)":
                 listType = listing["description"]["sold_date"]
             else:
                 listType = listing["list_date"]
@@ -263,16 +221,7 @@ def create_home_listings(results, status):
 
 @shared_task
 def find_data(zip, company, i, status, url, extra):
-    if i % 5 == 0:
-        scrapfly = scrapfly1
-    elif i % 5 == 1:
-        scrapfly = scrapfly2
-    elif i % 5 == 2:
-        scrapfly = scrapfly3
-    elif i % 5 == 3:
-        scrapfly = scrapfly4
-    elif i % 5 == 4:
-        scrapfly = scrapfly5
+    scrapfly = scrapflies[i % 20]
     
     try:
         first_page = f"{url}/{zip}/{extra}"
@@ -314,13 +263,14 @@ def find_data(zip, company, i, status, url, extra):
             else:
                 results = parsed["results"]
             create_home_listings(results, status) 
-        # updateStatus(zip, company, status)
         
     except Exception as e:
         print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
         print(f"URL: {url}")
 
+@shared_task
 def updateStatus(zip, company, status):
+    company = Company.objects.get(id=company)
     try:
         zipCode_object = ZipCode.objects.get(zipCode=zip)
     except Exception as e:
@@ -346,8 +296,38 @@ def updateStatus(zip, company, status):
         except Exception as e:
             print("Cant find listing to list")
             print("This should not be the case")
+    clientsToUpdate = list(clientsToUpdate.values_list('servTitanID', flat=True))
+    if clientsToUpdate:
+        update_serviceTitan_client_tags.delay(clientsToUpdate, company.id, status)
 
-    update_serviceTitan_client_tags(clientsToUpdate, company, status)
+# def updateStatus(zip, company, status):
+#     company = Company.objects.get(id=company)
+#     try:
+#         zipCode_object = ZipCode.objects.get(zipCode=zip)
+#     except Exception as e:
+#         print(f"ERROR during updateStatus: {e} with zipCode {zip}")
+#         return
+
+#     # Use select_related() to reduce number of queries to retrieve related data
+#     listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).select_related('address').values('address')
+#     clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses)
+
+#     # Use update() to update multiple clients at once
+#     unlisted = Client.objects.filter(company=company, zipCode=zipCode_object, status=status).exclude(address__in=listedAddresses)
+#     unlisted.update(status="Taken Off Market")
+#     ClientUpdate.objects.bulk_create([ClientUpdate(client=client, status="Taken Off Market") for client in unlisted])
+
+#     newlyListed = clientsToUpdate.exclude(status=status)
+#     newlyListed.update(status=status)
+#     for toList in newlyListed:
+#         try:
+#             listing = HomeListing.objects.get(zipCode=zipCode_object, address=toList.address, status=status)
+#             ClientUpdate.objects.get_or_create(client=toList, status=status, listed=listing.listed)
+#         except Exception as e:
+#             print("Cant find listing to list")
+#             print("This should not be the case")
+#     clientsToUpdate = list(clientsToUpdate.values_list('servTitanID', flat=True))
+
     
 def emailBody(company):
     foundCustomers = Client.objects.filter(company=company).exclude(status='No Change')
@@ -361,7 +341,7 @@ def emailBody(company):
     return body
 
 @shared_task
-def send_email(company_id=None):
+def update_clients_statuses(company_id=None):
     if company_id:
         companies = Company.objects.filter(id=company_id)
     else:
@@ -373,22 +353,22 @@ def send_email(company_id=None):
         for zip in zips:
             zip = zip['zipCode']
             # stay in this order so if was for sale and then sold, it will show as such
-            updateStatus(zip, company, "For Sale")
-            updateStatus(zip, company, "Recently Sold (6)")
+            updateStatus.delay(zip, company.id, "House For Sale")
+            updateStatus.delay(zip, company.id, "House Recently Sold (6)")                        
 
-        # company.next_email_date = (datetime.today() + timedelta(days=company.email_frequency)).strftime('%Y-%m-%d')
-        # company.save()
-
-
+def sendDailyEmail(company_id=None):
+    if company_id:
+        companies = Company.objects.filter(id=company_id)
+    else:
+        companies = Company.objects.all()
+    for company in companies:
         emails = list(CustomUser.objects.filter(company=company).values_list('email'))
         subject = 'Did Your Customers Move?'
         
-        # message = emailBody(company)
-        emailStatuses = ['For Sale', 'Recently Sold (6)']
-        forSaleCustomers = Client.objects.filter(company=company, status="For Sale")
+        forSaleCustomers = Client.objects.filter(company=company, status="House For Sale")
         forSaleCustomers = forSaleCustomers.exclude(contacted=True)
         forSaleCustomers = forSaleCustomers.count()
-        soldCustomers = Client.objects.filter(company=company, status="Recently Sold (6)")
+        soldCustomers = Client.objects.filter(company=company, status="House Recently Sold (6)")
         soldCustomers = soldCustomers.exclude(contacted=True)
         soldCustomers = soldCustomers.count()
         message = get_template("dailyEmail.html").render({
@@ -403,9 +383,8 @@ def send_email(company_id=None):
                     message,
                     settings.EMAIL_HOST_USER,
                     [email]
-                    # html_message=message,
                 )
-                msg.content_subtype ="html"# Main content is now text/html
+                msg.content_subtype ="html"
                 msg.send()
     if not company_id:
         HomeListing.objects.all().delete()
@@ -439,40 +418,16 @@ def get_serviceTitan_clients(company_id, task_id):
 
     headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
     clients = []
-    frm = ""
     moreClients = True
     #get client data
-    count = 0
+    page = 1
     while(moreClients):
-        print("Client: ", count)
-        count += 1
-        response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/export/customers?from={frm}', headers=headers)
-        for client in response.json()['data']:
-            clients.append(client)
-        if response.json()['hasMore']:
-            frm = response.json()['continueFrom']
-        else:
+        response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/customers?page={page}&pageSize=5000', headers=headers)
+        page += 1
+        clients = response.json()['data']
+        if response.json()['hasMore'] == False:
             moreClients = False
-    # get phone number data for each client
-    moreClients = True
-    frm = ""
-    numbers = {}
-    count = 0
-    while moreClients:
-        print("Phone: ", count)
-        count += 1
-        response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/export/customers/contacts?from={frm}', headers=headers)
-        with open('numbers.json', 'w') as f:
-            json.dump(response.json(), f)
-        for client in response.json()['data']:            
-            if client['customerId'] and client['phoneSettings']:
-                numbers[client['customerId']] = client['phoneSettings']['phoneNumber']                
-        if response.json()['hasMore']:
-            frm = response.json()['continueFrom']
-        else:
-            moreClients = False 
-    print("Save Clients")
-    saveClientList(clients, company_id, numbers)
+        saveClientList.delay(clients, company_id)
     clients = Client.objects.filter(company=company)
     limit = company.product.customerLimit
     diff = clients.count() - limit
@@ -483,27 +438,42 @@ def get_serviceTitan_clients(company_id, task_id):
         task.deletedClients = diff
     task.completed = True
     task.save()
+    frm = ""
+    moreClients = True
+    while(moreClients):
+        response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/export/customers/contacts?from={frm}', headers=headers)
+        # for number in response.json()['data']:
+        #     numbers.append(number)
+        numbers = response.json()['data']
+        if response.json()['hasMore'] == True:
+            frm = response.json()['continueFrom']
+        else:
+            moreClients = False
+        updateClientList.delay(numbers)
+    # get phone number data for each client
+    
 
-
-def update_serviceTitan_client_tags(clients, company, status):
-    if clients and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):
-        try:
+@shared_task
+def update_serviceTitan_client_tags(forSale, company, status):
+    try:
+        Company.objects.get(id=company)
+        if forSale and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):        
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
             data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
             response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
             headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
-            if status == 'For Sale':
+            if status == 'House For Sale':
                 tagType = [str(company.serviceTitanForSaleTagID)]
-            elif status == 'Recently Sold (6)':
+            elif status == 'House Recently Sold (6)':
                 tagType = [str(company.serviceTitanRecentlySoldTagID)]
             # forSaleClients = list(Client.objects.filter(status=status, company=company).values_list('servTitanID'))
             forSale = []
-            for client in clients:
-                if client.servTitanID:
-                    forSale.append(str(client.servTitanID))
-            if status == 'Recently Sold (6)':
+            # for client in clients:
+            #     if client.servTitanID:
+            #         forSale.append(str(client.servTitanID))
+            if status == 'House Recently Sold (6)':
                 payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
                 response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
             payload={'customerIds': forSale, 'tagTypeIds': tagType}
@@ -516,15 +486,15 @@ def update_serviceTitan_client_tags(clients, company, status):
                     if word.isdigit():
                         Client.objects.filter(servTitanID=word).delete()
                         forSale.remove(word)
-                if status == 'Recently Sold (6)':
+                if status == 'House Recently Sold (6)':
                     payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
                     response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
                 payload={'customerIds': forSale, 'tagTypeIds': tagType}
                 response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
-        except Exception as e:
-            print("updating service titan clients failed")
-            print(f"ERROR: {e}")
-            print(traceback.format_exc())
+    except Exception as e:
+        print("updating service titan clients failed")
+        print(f"ERROR: {e}")
+        print(traceback.format_exc())
 
 def update_serviceTitan_tasks(clients, company, status):
     if clients and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):

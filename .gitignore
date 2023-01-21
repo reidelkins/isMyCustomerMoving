@@ -2,6 +2,7 @@
 backend/accounts/__pycache__/
 backend/config/__pycache__/
 backend/payments/__pycache__/
+backend/accounts/management/commands/__pycache__/
 backend/*.py[cod]
 backend/*$py.class
 
@@ -176,3 +177,4 @@ backend/accounts/migrations/__pycache__
 website/
 backend/accounts/utils.py
 backend/dump.rdb
+.gitignore

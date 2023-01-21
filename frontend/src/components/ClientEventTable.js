@@ -20,7 +20,7 @@ const RowInformation = (info) => {
     
     const update = info.info;
     if (update.listed) {
-        if (update.status === 'For Sale') {
+        if (update.status === 'House For Sale') {
             return (
                 <Typography>
                     Home listed for sale on {update.listed}

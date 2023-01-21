@@ -238,17 +238,17 @@ export default function CustomerData() {
       if (n.status === 'For Rent') {
         tmpRent += 1;
       }
-      if (n.status === 'For Sale') {
+      if (n.status === 'House For Sale') {
         tmpSale += 1;
       }
-      if (n.status === 'Recently Sold (6)' || n.status === 'Recently Sold (12)') {
+      if (n.status === 'House Recently Sold (6)' || n.status === 'Recently Sold (12)') {
         tmpSold6 += 1;
       }
       n.clientUpdates.forEach((u) => {
-        if (u.status === 'For Sale') {
+        if (u.status === 'House For Sale') {
           tmpTotalSale += 1;
         }
-        if (u.status === 'Recently Sold (6)' || u.status === 'Recently Sold (12)') {
+        if (u.status === 'House Recently Sold (6)' || u.status === 'Recently Sold (12)') {
           tmpTotalSold += 1;
         }
       })

@@ -23,9 +23,9 @@ STATUS_CHOICES = (
 )
 
 STATUS = [
-    ('For Sale','For Sale'),
-    ('For Rent','For Rent'),
-    ('Recently Sold (6)','Recently Sold (6)'),
+    ('House For Sale','House For Sale'),
+    ('House For Rent','House For Rent'),
+    ('House Recently Sold (6)','House Recently Sold (6)'),
     ('Recently Sold (12)','Recently Sold (12)'),
     ('Taken Off Market', 'Taken Off Market'),
     ('No Change', 'No Change')
@@ -102,7 +102,7 @@ class Client(models.Model):
     address = models.CharField(max_length=100)
     zipCode = models.ForeignKey(ZipCode, on_delete=models.CASCADE)
     company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE)
-    status = models.CharField(max_length=20, choices=STATUS, default='No Change')
+    status = models.CharField(max_length=25, choices=STATUS, default='No Change')
     city = models.CharField(max_length=30, blank=True, null=True)
     state = models.CharField(max_length=31, blank=True, null=True)
     contacted = models.BooleanField(default=False)
@@ -121,7 +121,7 @@ class ClientUpdate(models.Model):
                           default=uuid.uuid4, editable=False)
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='clientUpdates')
     date = models.DateField(default=formatToday)
-    status = models.CharField(max_length=20, choices=STATUS, default='No Change', blank=True, null=True)
+    status = models.CharField(max_length=25, choices=STATUS, default='No Change', blank=True, null=True)
     listed = models.CharField(max_length=30, default=datetime.utcnow, blank=True, null=True)
     note = models.TextField(default="", blank=True, null=True)
     contacted = models.BooleanField(blank=True, null=True)
@@ -132,7 +132,7 @@ class HomeListing(models.Model):
                           default=uuid.uuid4, editable=False)
     zipCode = models.ForeignKey(ZipCode, blank=True, null=True, on_delete=models.SET_NULL)
     address = models.CharField(max_length=100)
-    status = models.CharField(max_length=20, choices=STATUS, default='Off Market')
+    status = models.CharField(max_length=25, choices=STATUS, default='Off Market')
     listed = models.CharField(max_length=30, default=" ")
 
 class CustomUser(AbstractUser):

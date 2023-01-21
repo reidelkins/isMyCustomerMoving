@@ -295,7 +295,7 @@ class ClientListView(generics.ListAPIView):
     pagination_class = CustomPagination
     def get_queryset(self):
         company = Company.objects.get(id=self.kwargs['company'])
-        return Client.objects.prefetch_related('clientUpdates').filter(company=company).order_by('name')
+        return Client.objects.prefetch_related('clientUpdates').filter(company=company).order_by('status')
 
 class UserListView(generics.ListAPIView):
     serializer_class = UserListSerializer
