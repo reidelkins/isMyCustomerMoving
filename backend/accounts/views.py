@@ -287,16 +287,6 @@ class UserViewSet(ReadOnlyModelViewSet):
     queryset = CustomUser.objects.all()
     permission_classes = [IsAuthenticated]
 
-class CustomPagination1(PageNumberPagination):
-    page_size = 1000
-
-class ClientListView1(generics.ListAPIView):
-    serializer_class = ClientListSerializer
-    pagination_class = CustomPagination1
-    def get_queryset(self):
-        company = Company.objects.get(id=self.kwargs['company'])
-        return Client.objects.prefetch_related('clientUpdates').filter(company=company).order_by('status')
-
 class CustomPagination(PageNumberPagination):
     page_size = 10000
 

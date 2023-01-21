@@ -138,15 +138,13 @@ export const clientsAsync = () => async (dispatch, getState) => {
     dispatch(clientsLoading());
     // print how long it takes to get data
     // console.time('clients');
-    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients1/${userInfo.company.id}?page=1&per_page=1000`, config);
+    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}?page=1&per_page=1000`, config);
     dispatch(clients(data.results));
-    const loops = Math.ceil(data.count / 10000);
-    const { largeData } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}?page=1&per_page=10000`, config);
-    dispatch(clients(largeData.results));
+    const loops = Math.ceil(data.count / 1000);
     let i = 2;
     /* eslint-disable no-plusplus */
     for (i; i <= loops; i++) {
-      const { data: newData } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}?page=${i}&per_page=10000`, config);
+      const { data: newData } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}?page=${i}&per_page=1000`, config);
       dispatch(moreClients(newData.results));
     }
     dispatch(noMoreClients());
