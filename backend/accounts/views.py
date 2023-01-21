@@ -315,6 +315,7 @@ class ClientListAndUpdatesView(generics.ListAPIView):
     pagination_class = CustomPagination
     def get_queryset(self):
         company = Company.objects.get(id=self.kwargs['company'])
+        print(Client.objects.filter(company=company).count())
         return Client.objects.prefetch_related('clientUpdates').filter(company=company).order_by('status')
 
 class UploadFileView(generics.ListAPIView):

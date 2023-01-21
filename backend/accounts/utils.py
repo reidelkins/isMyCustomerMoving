@@ -663,8 +663,7 @@ def get_serviceTitan_clients(company_id, task_id):
             moreClients = False
         saveClientList.delay(clients, company_id)
     clients = Client.objects.filter(company=company)
-    limit = company.product.customerLimit
-    diff = clients.count() - limit
+    diff = clients.count() - company.product.customerLimit
     task = Task.objects.get(id=task_id)
     if diff > 0:
         deleteClients = clients[:diff].values_list('id')
@@ -679,47 +678,13 @@ def get_serviceTitan_clients(company_id, task_id):
     except:
         pass
     try:
-        del moreClients
-    except:
-        pass
-    try:
-        del page
-    except:
-        pass
-    try:
-        del limit
+        deleteClients
     except:
         pass
     try:
         del diff
     except:
         pass
-    try:
-        del task
-    except:
-        pass
-    try:        
-        del deleteClients
-    except:
-        pass
-    try:
-        del headers
-    except:
-        pass
-    try:        
-        del response
-    except:
-        pass
-    try:
-        del data
-    except:
-        pass
-    try:
-        del tenant
-    except:
-        pass    
-    
-
     frm = ""
     moreClients = True
     while(moreClients):
