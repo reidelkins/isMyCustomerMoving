@@ -661,7 +661,7 @@ def get_serviceTitan_clients(company_id, task_id):
         clients = response.json()['data']
         if response.json()['hasMore'] == False:
             moreClients = False
-        saveClientList.delay(clients, company_id)
+        saveClientList(clients, company_id)
     clients = Client.objects.filter(company=company)
     diff = clients.count() - company.product.customerLimit
     task = Task.objects.get(id=task_id)
@@ -671,6 +671,7 @@ def get_serviceTitan_clients(company_id, task_id):
         task.deletedClients = diff
     task.completed = True
     task.save()
+    return
 
     # clearing out old data
     try:
