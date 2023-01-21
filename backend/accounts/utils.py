@@ -658,12 +658,20 @@ def get_serviceTitan_clients(company_id, task_id):
     page = 1
     while(moreClients):
         print(f'getting page {page} of clients')
-        response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/customers?page={page}&pageSize=5000', headers=headers)
+        response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/customers?page={page}&pageSize=2500', headers=headers)
         page += 1
         clients = response.json()['data']
         if response.json()['hasMore'] == False:
             moreClients = False
         saveClientList.delay(clients, company_id)
+        try:
+            del clients
+        except:
+            pass
+        try:
+            del response
+        except:
+            pass
     clients = Client.objects.filter(company=company)
     diff = clients.count() - company.product.customerLimit
     task = Task.objects.get(id=task_id)
@@ -674,11 +682,7 @@ def get_serviceTitan_clients(company_id, task_id):
     task.completed = True
     task.save()
 
-    # clearing out old data
-    try:
-        del clients
-    except:
-        pass
+    # clearing out old data    
     try:
         deleteClients
     except:
@@ -701,17 +705,17 @@ def get_serviceTitan_clients(company_id, task_id):
         if response.json()['hasMore'] == True:
             frm = response.json()['continueFrom']
         else:
-            moreClients = False
+            moreClients = False        
         updateClientList.delay(numbers)
-    gc.collect()
-    try:
-        del numbers
-    except:
-        pass
-    try:
-        del response
-    except:
-        pass
+        try:
+            del numbers
+        except:
+            pass
+        try:
+            del response
+        except:
+            pass
+    gc.collect()        
     try:
         del frm
     except:
