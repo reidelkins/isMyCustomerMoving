@@ -690,10 +690,10 @@ def get_serviceTitan_clients(company_id, task_id):
     gc.collect()
     frm = ""
     moreClients = True
-    count = 0
+    page = 0
     while(moreClients):
-        count += 1
-        print(f'getting page {page} of clients')
+        page += 1
+        print(f'getting phone page {page} of clients')
         response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/export/customers/contacts?from={frm}', headers=headers)
         # for number in response.json()['data']:
         #     numbers.append(number)

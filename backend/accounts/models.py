@@ -103,7 +103,7 @@ class Client(models.Model):
     zipCode = models.ForeignKey(ZipCode, on_delete=models.CASCADE)
     company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE, db_index=True)
     status = models.CharField(max_length=25, choices=STATUS, default='No Change', db_index=True)
-    city = models.CharField(max_length=30, blank=True, null=True)
+    city = models.CharField(max_length=40, blank=True, null=True)
     state = models.CharField(max_length=31, blank=True, null=True)
     contacted = models.BooleanField(default=False)
     note = models.TextField(default="")
