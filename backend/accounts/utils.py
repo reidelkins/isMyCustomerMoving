@@ -396,12 +396,10 @@ def updateStatus(zip, company, status):
     except Exception as e:
         print(f"ERROR during updateStatus: {e} with zipCode {zip}")
         return
-    print(f"UPDATE: updating status for {zip} with {status}")
     #addresses from all home listings with the provided zip code and status
     listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')       
     clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses)
     previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status)
-    print(f"UPDATE: listedAddresses: {listedAddresses.count()}, clientsToUpdate: {clientsToUpdate.count()}, previousListed: {previousListed.count()}") 
     newlyListed = clientsToUpdate.difference(previousListed)
     unlisted = previousListed.difference(clientsToUpdate)
     for toUnlist in unlisted:
@@ -419,9 +417,7 @@ def updateStatus(zip, company, status):
             print("This should not be the case")
     clientsToUpdate = list(clientsToUpdate.values_list('servTitanID', flat=True))
     if clientsToUpdate:
-        print(f"{len(clientsToUpdate)} clients to be updated with status {status} and zip {zip}")
         update_serviceTitan_client_tags.delay(clientsToUpdate, company.id, status)
-    print(f"UPDATE: Finished updating status {status} for zip {zip}")
     gc.collect()
     try:
         del company
@@ -749,7 +745,7 @@ def get_serviceTitan_clients(company_id, task_id):
 @shared_task
 def update_serviceTitan_client_tags(forSale, company, status):
     try:
-        Company.objects.get(id=company)
+        company = Company.objects.get(id=company)
         if forSale and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):        
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

@@ -218,6 +218,9 @@ export const serviceTitanUpdateAsync = (id, access) => async (dispatch) => {
         dispatch(clientsAsync());
       }, 2000);
     } else {
+      // if (data.clients.length !== 0) {
+      //   dispatch(clients(data.clients))
+      // }      
       setTimeout(() => {
         dispatch(serviceTitanUpdateAsync(id, access));
       }, 2000);

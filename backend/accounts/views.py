@@ -372,7 +372,10 @@ class ServiceTitanView(APIView):
                     task.delete()
                     return Response({"status": "SUCCESS", "deleted": deleted}, status=status.HTTP_201_CREATED, headers="")
                 else:
-                    return Response({"status": "UNFINISHED"}, status=status.HTTP_201_CREATED)
+                    # clients = Company.objects.get(id="faee8ca7-e5de-4c60-8578-0ac6bc576930").client_set.all()
+                    # if clients.count() > 0:
+                    #     return Response({"status": "UNFINISHED", "clients": ClientListSerializer(clients[:1000], many=True).data}, status=status.HTTP_201_CREATED)
+                    return Response({"status": "UNFINISHED", "clients": []}, status=status.HTTP_201_CREATED)
             except Exception as e:
                 print(e)
                 return Response({"status": "Task Error"}, status=status.HTTP_400_BAD_REQUEST)          
