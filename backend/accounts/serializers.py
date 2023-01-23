@@ -45,7 +45,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class UserSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
-    avatarUrl = serializers.ImageField(read_only=True)
     first_name = serializers.CharField(read_only=True)
     last_name = serializers.CharField(read_only=True)
     
@@ -56,6 +55,9 @@ class UserSerializer(serializers.Serializer):
     company = CompanySerializer(read_only=True)
     accessToken = serializers.CharField(read_only=True)
     finishedSTIntegration = serializers.SerializerMethodField(read_only=True)
+    otp_enabled = serializers.BooleanField(read_only=True)
+    otp_base32 = serializers.CharField(read_only=True)
+    otp_auth_url = serializers.CharField(read_only=True)
 
     def get_finishedSTIntegration(self, obj):
         return obj.company.tenantID != None and obj.company.clientID != None and obj.company.clientSecret != None
