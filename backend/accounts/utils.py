@@ -254,12 +254,16 @@ def create_home_listings(results, status):
         try:
             if status == "House Recently Sold (6)":
                 listType = listing["last_update_date"]
-                if datetime.strptime(listType, "%Y-%m-%dT%H:%M:%SZ") < two_years_ago:
+                try:
+                    dateCompare = datetime.strptime(listType, "%Y-%m-%dT%H:%M:%SZ")
+                except:
+                    dateCompare = datetime.strptime(listType, "%Y-%m-%d")
+                if dateCompare < two_years_ago:
                     continue
             else:
                 listType = listing["list_date"]
             if listType == None:
-                listType = "2022-01-01T12:00:00Z"
+                listType = "2022-01-01"
             #if the found date is after 2022, it is valid
             HomeListing.objects.get_or_create(
                         zipCode= zip_object,
