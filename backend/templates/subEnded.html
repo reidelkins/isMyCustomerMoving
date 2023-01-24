@@ -1,0 +1,16 @@
+{% extends "base.html" %} {% block content %}
+<h1>Sorry to see you go</h1>
+<p>
+  Your companies subscription has ended. This means you either canceled the
+  membership or the credit card on file with stripe is no longer good.
+</p>
+<p>
+  If you would like to renew your membership or switch to a different tier,
+  click the button below.
+</p>
+<a
+  href="https://{{current_site}}/api/v1/accounts/confirmation/{{token}}/{{user}}/"
+  class="btn"
+  >Renew Membership</a
+>
+{%endblock%}
