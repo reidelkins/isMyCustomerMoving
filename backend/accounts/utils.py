@@ -851,6 +851,7 @@ def remove_all_serviceTitan_tags(company):
                 response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)                
                 if response.status_code != 200:
                     resp = response.json()
+                    print(resp)
                     error = resp['errors'][''][0]
                     error = error.replace('(', "").replace(')', "").replace(',', " ").replace(".", "").split()
                     for word in error:
@@ -862,6 +863,7 @@ def remove_all_serviceTitan_tags(company):
                     payload={'customerIds': clients, 'tagTypeIds': tag}
                     response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
                     print(response.status_code)
+                    print(response.json())
 
                     
                     
