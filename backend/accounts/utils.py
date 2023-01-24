@@ -254,12 +254,23 @@ def create_home_listings(results, status):
         try:
             if status == "House Recently Sold (6)":
                 listType = listing["last_update_date"]
-                try:
-                    dateCompare = datetime.strptime(listType, "%Y-%m-%dT%H:%M:%SZ")
-                except:
-                    dateCompare = datetime.strptime(listType, "%Y-%m-%d")
-                if dateCompare < two_years_ago:
-                    continue
+                if listType != None:
+                    try:
+                        dateCompare = datetime.strptime(listType, "%Y-%m-%dT%H:%M:%SZ")
+                    except:
+                        dateCompare = datetime.strptime(listType, "%Y-%m-%d")
+                    if dateCompare < two_years_ago:
+                        continue
+                else:
+                    listType = listing["description"]["sold_date"]
+                    if listType != None:
+                        try:
+                            dateCompare = datetime.strptime(listType, "%Y-%m-%dT%H:%M:%SZ")
+                        except:
+                            dateCompare = datetime.strptime(listType, "%Y-%m-%d")
+                        if dateCompare < two_years_ago:
+                            continue
+
             else:
                 listType = listing["list_date"]
             if listType == None:
