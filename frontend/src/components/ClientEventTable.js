@@ -43,7 +43,7 @@ const RowInformation = (info) => {
         if (update.note) {
             return (
                 <Typography>
-                    Note changed to {update.note}
+                    Note changed to "{update.note}"
                 </Typography>
             )
         } else {

@@ -15,7 +15,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import pandas as pd
 from .utils import getAllZipcodes, saveClientList, makeCompany, get_serviceTitan_clients
-from .models import CustomUser, Client, Company, InviteToken, Task
+from .models import CustomUser, Client, Company, InviteToken, Task, ClientUpdate
 from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, ClientListSerializer, MyTokenObtainPairSerializer
 import datetime
 import jwt
@@ -440,8 +440,10 @@ def update_client(request):
                 client = Client.objects.get(id=request.data['clients'])
                 if request.data['note']:
                     client.note = request.data['note']
+                    ClientUpdate.objects.create(client=client, note=request.data['note'])
                 if request.data['contacted'] != "":
                     client.contacted = request.data['contacted']
+                    ClientUpdate.objects.create(client=client, contacted=request.data['contacted'])
                 client.save()
             except Exception as e:
                 print(e)

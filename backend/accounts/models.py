@@ -122,7 +122,7 @@ class ClientUpdate(models.Model):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='clientUpdates')
     date = models.DateField(default=formatToday)
     status = models.CharField(max_length=25, choices=STATUS, default='No Change', blank=True, null=True)
-    listed = models.CharField(max_length=30, default=datetime.utcnow, blank=True, null=True)
+    listed = models.CharField(max_length=30, blank=True, null=True)
     note = models.TextField(default="", blank=True, null=True)
     contacted = models.BooleanField(blank=True, null=True)
 
