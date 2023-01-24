@@ -248,21 +248,26 @@ def parse_search(result: ScrapeApiResponse, searchType: str) -> SearchResults:
         return False
 
 def create_home_listings(results, status):
+    two_years_ago = datetime.now() - timedelta(days=365*2)
     for listing in results:
         zip_object, created = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
         try:
             if status == "House Recently Sold (6)":
-                listType = listing["description"]["sold_date"]
+                listType = listing["last_update_date"]
+                if datetime.strptime(listType, "%Y-%m-%dT%H:%M:%SZ") < two_years_ago:
+                    continue
             else:
                 listType = listing["list_date"]
             if listType == None:
-                listType = "2022-01-01"
+                listType = "2022-01-01T12:00:00Z"
+            #if the found date is after 2022, it is valid
             HomeListing.objects.get_or_create(
                         zipCode= zip_object,
                         address= parseStreets((listing['location']['address']['line']).title()),
                         status= status,
-                        listed= listType
+                        listed= listType[:10]
                         )
+
         except Exception as e: 
             print(f"ERROR for Single Listing: {e} with zipCode {zip_object}")
             print((listing['location']['address']['line']).title())
@@ -828,6 +833,39 @@ def update_serviceTitan_client_tags(forSale, company, status):
         del word
     except:
         pass
+
+@shared_task
+def remove_all_serviceTitan_tags(company):
+    try:
+        company = Company.objects.get(id=company)
+        if company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID:
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
+            data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
+            response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
+            headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
+            tagTypes = [[str(company.serviceTitanForSaleTagID)], [str(company.serviceTitanRecentlySoldTagID)]]
+            for tag in tagTypes:
+                # get a list of all the servTitanIDs for the clients with one from this company
+                # clients = list(Client.objects.filter(company=company).values_list('servTitanID'))
+                clients = list(Client.objects.filter(company=company).exclude(status="No Change").values_list('servTitanID'))
+                count = 0        
+                for client in clients:
+                    print(f"REMOVING: {count} out of {len(clients)}")
+                    count += 1
+                    payload={'customerIds': clients, 'tagTypeIds': tag}
+                    response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
+                    print(f"REMOVING: {response.status_code}")
+                    if response.status_code != 200:
+                        print(f"REMOVING: {response.json()}")
+                    
+                
+    except Exception as e:
+        print("updating service titan clients failed")
+        print(f"ERROR: {e}")
+        print(traceback.format_exc())
+
 
 
 def update_serviceTitan_tasks(clients, company, status):
