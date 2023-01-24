@@ -513,17 +513,6 @@ def updateStatus(zip, company, status):
 #             print("This should not be the case")
 #     clientsToUpdate = list(clientsToUpdate.values_list('servTitanID', flat=True))
 
-    
-def emailBody(company):
-    foundCustomers = Client.objects.filter(company=company).exclude(status='No Change')
-    foundCustomers = foundCustomers.exclude(contacted=True)
-    foundCustomers = foundCustomers.order_by('status')
-    # body = f"{len(foundCustomers)}"
-    body = ""
-    for customer in foundCustomers:
-        body += f"The home belonging to {customer.name} was found to be {customer.status}. No one from your team has contacted them yet, be the first!\n"
-    return body
-
 @shared_task
 def update_clients_statuses(company_id=None):
     if company_id:
@@ -571,6 +560,7 @@ def update_clients_statuses(company_id=None):
     except:
         pass                  
 
+@shared_task
 def sendDailyEmail(company_id=None):
     if company_id:
         companies = Company.objects.filter(id=company_id)
