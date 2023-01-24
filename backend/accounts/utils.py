@@ -404,17 +404,14 @@ def updateStatus(zip, company, status):
     #addresses from all home listings with the provided zip code and status
     listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')       
     clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses)
-    print(clientsToUpdate)
     previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status)
-    print(previousListed)
     newlyListed = clientsToUpdate.difference(previousListed)
-    print(newlyListed)
-    unlisted = previousListed.difference(clientsToUpdate)
-    print(unlisted)
-    for toUnlist in unlisted:
-        toUnlist.status = "Taken Off Market"
-        toUnlist.save()
-        ClientUpdate.objects.create(client=toUnlist, status="Taken Off Market")
+    # TODO There is an issue where clients uploaded with wrong zip code and are being marked to be unlisted when they should not be
+    # unlisted = previousListed.difference(clientsToUpdate)
+    # for toUnlist in unlisted:
+    #     toUnlist.status = "Taken Off Market"
+    #     toUnlist.save()
+    #     ClientUpdate.objects.create(client=toUnlist, status="Taken Off Market")
     for toList in newlyListed:
         toList.status = status
         toList.save()
@@ -758,7 +755,6 @@ def update_serviceTitan_client_tags(forSale, company, status):
     try:
         company = Company.objects.get(id=company)
         if forSale and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):
-            print(f"UPDATE TAGS: {forSale}, {status}")   
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
@@ -771,10 +767,8 @@ def update_serviceTitan_client_tags(forSale, company, status):
                 tagType = [str(company.serviceTitanRecentlySoldTagID)]
                 payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
                 response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
-                print(f"UPDATE TAGS DELETING: {response.status_code} {forSale}")
             payload={'customerIds': forSale, 'tagTypeIds': tagType}
             response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
-            print(f"UPDATE TAGS RESPONSE: {response.status_code} {forSale}")
             if response.status_code != 200:
                 resp = response.json()
                 error = resp['errors'][''][0]
@@ -856,7 +850,17 @@ def remove_all_serviceTitan_tags(company):
                 payload={'customerIds': clients, 'tagTypeIds': tag}
                 response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)                
                 if response.status_code != 200:
-                    print(f"REMOVING: {response.json()}")
+                    resp = response.json()
+                    error = resp['errors'][''][0]
+                    error = error.replace('(', "").replace(')', "").replace(',', " ").replace(".", "").split()
+                    for word in error:
+                        if word.isdigit():
+                            Client.objects.filter(servTitanID=word).delete()
+                            clients.remove(word)
+
+                    payload={'customerIds': clients, 'tagTypeIds': tag}
+                    response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
+                    print(response.status_code)
 
                     
                     
