@@ -519,11 +519,12 @@ def update_clients_statuses(company_id=None):
         zipCodes = zipCode_objects.distinct()
         zips = list(zipCodes.order_by('zipCode').values('zipCode'))
         for zip in zips:
+            zip = zip['zipCode']            
+            updateStatus.delay(zip, company.id, "House For Sale")
+        for zip in zips:
             zip = zip['zipCode']
-            if zip == 30710:
-                # stay in this order so if was for sale and then sold, it will show as such
-                updateStatus.delay(zip, company.id, "House For Sale")
-                updateStatus.delay(zip, company.id, "House Recently Sold (6)")
+            updateStatus.delay(zip, company.id, "House Recently Sold (6)")
+                
     gc.collect()
     try:
         del companies
