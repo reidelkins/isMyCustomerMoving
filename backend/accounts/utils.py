@@ -854,7 +854,7 @@ def remove_all_serviceTitan_tags(company):
                 for client in clients:
                     print(f"REMOVING: {count} out of {len(clients)}")
                     count += 1
-                    payload={'customerIds': clients, 'tagTypeIds': tag}
+                    payload={'customerIds': [str(client)], 'tagTypeIds': tag}
                     response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
                     print(f"REMOVING: {response.status_code}")
                     if response.status_code != 200:
