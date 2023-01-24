@@ -856,7 +856,8 @@ def remove_all_serviceTitan_tags(company):
                     for word in error:
                         if word.isdigit():
                             Client.objects.filter(servTitanID=word).delete()
-                            clients.remove(word)
+                            if word in clients:
+                                clients.remove(word)
 
                     payload={'customerIds': clients, 'tagTypeIds': tag}
                     response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
