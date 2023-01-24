@@ -422,8 +422,7 @@ def updateStatus(zip, company, status):
             print("This should not be the case")
     clientsToUpdate = list(clientsToUpdate.values_list('servTitanID', flat=True))
     if clientsToUpdate:
-        print(clientsToUpdate)
-        # update_serviceTitan_client_tags.delay(clientsToUpdate, company.id, status)
+        update_serviceTitan_client_tags.delay(clientsToUpdate, company.id, status)
     gc.collect()
     try:
         del company
@@ -752,7 +751,8 @@ def get_serviceTitan_clients(company_id, task_id):
 def update_serviceTitan_client_tags(forSale, company, status):
     try:
         company = Company.objects.get(id=company)
-        if forSale and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):        
+        if forSale and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):
+            print("UPDATE TAGS: ", forSale, status)   
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
@@ -773,6 +773,7 @@ def update_serviceTitan_client_tags(forSale, company, status):
                 response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
             payload={'customerIds': forSale, 'tagTypeIds': tagType}
             response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
+            print(f"UPDATE TAGS RESPONSE: {response.status_code} {forSale}")
             if response.status_code != 200:
                 resp = response.json()
                 error = resp['errors'][''][0]
