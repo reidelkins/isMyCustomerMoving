@@ -124,14 +124,11 @@ export const deleteUserAsync = (ids) => async (dispatch, getState) => {
   }
 };
 
-
-
-
 export const clientsAsync = () => async (dispatch, getState) => {
   try {
-    const reduxStore = getState();
+    let reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
-    const {clientsInfo} = reduxStore.user;
+    
 
     const config = {
       headers: {
@@ -150,7 +147,9 @@ export const clientsAsync = () => async (dispatch, getState) => {
     for (i; i <= loops; i++) {
       const { data: newData } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}?page=${i}`, config);
       dispatch(moreClients(newData.results));
-      if(clientsInfo.done === true) {
+      reduxStore = getState();
+      const {done} = reduxStore.user.clientsInfo;
+      if(done === true) {
         break;
       }
     }
