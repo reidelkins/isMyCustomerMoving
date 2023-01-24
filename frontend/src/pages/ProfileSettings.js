@@ -347,34 +347,9 @@ export default function ProfileSettings() {
             </p>
             {userInfo &&
               <TwoFactorAuth userInfo={userInfo}/>
-            //   userInfo.otp_enabled ? (
-            //   <Button
-            //     variant="contained" color="primary" aria-label="Disable2FA" component="label"
-            //     onClick={() => disableTwoFactorAuth(userInfo.id)}
-            //   >
-            //     Disable 2FA
-            //   </Button>
-            // ) : (
-            //   <Button
-            //     variant="contained" color="primary" aria-label="Enable2FA" component="label"
-            //     onClick={() =>
-            //       generateQrCode({email: userInfo.email})
-            //     }
-            //   >
-            //     Setup 2FA
-            //   </Button>
-            //   )
             }
             
           </Box> 
-          {/* {open2FAModal && (
-            <TwoFactorAuth
-              base32={secret.base32}
-              otpauth_url={secret.otpauth_url}
-              user_id={userInfo.id}
-              closeModal={() => setOpen2FAModal(false)}
-            />
-          )} */}
 
       </Container>
     </Page>
