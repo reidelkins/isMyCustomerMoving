@@ -849,12 +849,12 @@ def remove_all_serviceTitan_tags(company):
             for tag in tagTypes:
                 # get a list of all the servTitanIDs for the clients with one from this company
                 # clients = list(Client.objects.filter(company=company).values_list('servTitanID'))
-                clients = list(Client.objects.filter(company=company).exclude(status="No Change").values_list('servTitanID'))
+                clients = list(Client.objects.filter(company=company).exclude(status="No Change").values_list('servTitanID', flat=True))
                 count = 0        
                 for client in clients:
                     print(f"REMOVING: {count} out of {len(clients)}")
                     count += 1
-                    payload={'customerIds': [str(client)], 'tagTypeIds': tag}
+                    payload={'customerIds': [str(client[0])], 'tagTypeIds': tag}
                     response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
                     print(f"REMOVING: {response.status_code}")
                     if response.status_code != 200:
