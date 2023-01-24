@@ -404,9 +404,13 @@ def updateStatus(zip, company, status):
     #addresses from all home listings with the provided zip code and status
     listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')       
     clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses)
+    print(clientsToUpdate)
     previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status)
+    print(previousListed)
     newlyListed = clientsToUpdate.difference(previousListed)
+    print(newlyListed)
     unlisted = previousListed.difference(clientsToUpdate)
+    print(unlisted)
     for toUnlist in unlisted:
         toUnlist.status = "Taken Off Market"
         toUnlist.save()
@@ -519,11 +523,12 @@ def update_clients_statuses(company_id=None):
         zipCodes = zipCode_objects.distinct()
         zips = list(zipCodes.order_by('zipCode').values('zipCode'))
         for zip in zips:
-            zip = zip['zipCode']            
-            updateStatus.delay(zip, company.id, "House For Sale")
-        for zip in zips:
             zip = zip['zipCode']
-            updateStatus.delay(zip, company.id, "House Recently Sold (6)")
+            if zip == "37075":        
+                updateStatus.delay(zip, company.id, "House For Sale")
+        # for zip in zips:
+        #     zip = zip['zipCode']
+        #     updateStatus.delay(zip, company.id, "House Recently Sold (6)")
                 
     gc.collect()
     try:
