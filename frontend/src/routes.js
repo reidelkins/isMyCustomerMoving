@@ -5,6 +5,7 @@ import LogoOnlyLayout from './layouts/LogoOnlyLayout';
 //
 import CustomerData from './pages/CustomerData';
 import Login from './pages/Login';
+import Validate2fa from './pages/Validate2fa';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/NewPassword';
 import NotFound from './pages/Page404';
@@ -39,6 +40,7 @@ export default function Router() {
       children: [
         { path: '/', element: <Navigate to="/dashboard/customers" /> },
         { path: 'login', element: <Login /> },
+        { path: 'validate2fa', element: <Validate2fa />},
         { path: 'register', element: <Register /> },
         { path: 'addeduser/:token', element: <AddUser /> },
         { path: 'forgot_password', element: <ForgotPassword /> },

@@ -10,6 +10,7 @@ export const authSlice = createSlice({
       userInfo: localStorage.getItem('userInfo') ? JSON.parse(localStorage.getItem('userInfo')) : null,
       loading: false,
       error: null,
+      twoFA: localStorage.getItem('twoFA') ? JSON.parse(localStorage.getItem('twoFA')) : false,
     },
     registerInfo: {
       loading: false,
@@ -22,6 +23,12 @@ export const authSlice = createSlice({
       state.userInfo.userInfo = action.payload;
       state.userInfo.error = null;
       state.userInfo.loading = false;
+    },
+    validate: (state, action) => {
+      state.userInfo.userInfo = action.payload;
+      state.userInfo.error = null;
+      state.userInfo.loading = false;
+      state.userInfo.twoFA = true;
     },
     loginError: (state, action) => {
       state.userInfo.error = action.payload;
@@ -211,10 +218,89 @@ export const submitNewPassAsync = (password, token) => async (dispatch) => {
 export const logout = () => (dispatch) => {
   console.log("logging out")
   localStorage.removeItem('userInfo');
+  localStorage.removeItem('twoFA');
   dispatch(logoutUser());
 };
 
-export const { login, loginError, loginLoading, register, registerError, registerLoading, logoutUser, company, companyError, companyLoading, reset } = authSlice.actions;
+export const generateQrCodeAsync = () => async (dispatch, getState) => {
+  try {
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+      },
+    };
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const {id} = userInfo;
+    dispatch(loginLoading());
+    const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/otp/generate/`, { id }, config);
+    dispatch(login(data));
+    localStorage.setItem('userInfo', JSON.stringify(data));
+  } catch (error) {
+    dispatch(loginError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+};
+
+export const verifyOtp = (otp) => async (dispatch, getState) => {
+  try {
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+      },
+    };
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const {id} = userInfo;
+    dispatch(loginLoading());
+    const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/otp/verify/`, { id, otp }, config);
+    dispatch(login(data));
+    localStorage.setItem('userInfo', JSON.stringify(data));
+    localStorage.setItem('twoFA', JSON.stringify(true));
+  } catch (error) {
+    dispatch(loginError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+};
+
+export const validateOtp = (otp) => async (dispatch, getState) => {
+  try {
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+      },
+    };
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const {id} = userInfo;
+    dispatch(loginLoading());
+    const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/otp/validate/`, { id, otp }, config);
+    dispatch(validate(data));
+    localStorage.setItem('userInfo', JSON.stringify(data));
+    localStorage.setItem('twoFA', JSON.stringify(true));
+  } catch (error) {
+    dispatch(loginError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+};
+
+export const disableTwoFactorAuth = () => async (dispatch, getState) => {
+  try {
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+      },
+    };
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const {id} = userInfo;
+    dispatch(loginLoading());
+    const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/otp/disable/`, { id }, config);
+    dispatch(login(data));
+    localStorage.setItem('userInfo', JSON.stringify(data));
+  } catch (error) {
+    dispatch(loginError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+};
+
+export const { login, validate, loginError, loginLoading, register, registerError, registerLoading, logoutUser, company, companyError, companyLoading, reset } = authSlice.actions;
 export const showLoginInfo = (state) => state.auth.userInfo;
 export const showRegisterInfo = (state) => state.auth.registerInfo;
 export default authSlice.reducer;

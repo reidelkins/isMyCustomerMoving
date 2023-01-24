@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-nested-ternary */
 
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import * as Yup from 'yup';
 import { useFormik, Form, FormikProvider } from 'formik';
@@ -18,12 +18,13 @@ import NewUserModal from '../components/NewUserModal';
 import IntegrateSTModal from '../components/IntegrateSTModal';
 import ServiceTitanTagsModal from '../components/ServiceTitanTagsModal';
 import AddSecretModal from '../components/AddSecretModal';
+import TwoFactorAuth from '../components/TwoFactorAuth';
 import { applySortFilter, getComparator } from './CustomerData';
 // import ResetPasswordModal from '../components/ResetPasswordModal';
 
 import UsersListCall from '../redux/calls/UsersListCall';
 import { showLoginInfo, logout, editUserAsync } from '../redux/actions/authActions';
-import { manageUser, selectUsers, makeAdminAsync } from '../redux/actions/usersActions';
+import { manageUser, selectUsers, makeAdminAsync, noMoreClients } from '../redux/actions/usersActions';
 
 
 
@@ -41,17 +42,26 @@ export default function ProfileSettings() {
   const navigate = useNavigate();
 
   const userLogin = useSelector(showLoginInfo);
-  const { userInfo } = userLogin;
-  if (!userInfo) {
-    dispatch(logout());
-    navigate('/login', { replace: true });
-    window.location.reload(true);
-  }
+  const { userInfo, twoFA } = userLogin;
+  
 
   const [editting, setEditting] = useState(false);
 
+  useEffect(() => {
+    if (!userInfo) {
+      dispatch(logout());
+      navigate('/login', { replace: true });
+      window.location.reload(false);
+    } else if (userInfo.otp_enabled && twoFA === false) {
+      navigate('/login', { replace: true });
+      window.location.reload(true);
+    }
+    dispatch(noMoreClients());
+
+  }, [userInfo, dispatch, navigate]);
+
   const listUser = useSelector(selectUsers);
-  const { loading, error, USERLIST } = listUser;
+  const { loading, USERLIST } = listUser;
 
   // const [page, setPage] = useState(0);
   const page = 0;
@@ -328,7 +338,44 @@ export default function ProfileSettings() {
             </Button>
           </>       
         ) : null}
-                           
+        <Box>
+            <Typography variant="h3" sx={{ mt: 5 }}>
+              Mobile App Authentication (2FA)
+            </Typography>
+            <p style={{"marginBottom": 20}}>
+              Secure your account with TOTP two-factor authentication.
+            </p>
+            {userInfo &&
+              <TwoFactorAuth userInfo={userInfo}/>
+            //   userInfo.otp_enabled ? (
+            //   <Button
+            //     variant="contained" color="primary" aria-label="Disable2FA" component="label"
+            //     onClick={() => disableTwoFactorAuth(userInfo.id)}
+            //   >
+            //     Disable 2FA
+            //   </Button>
+            // ) : (
+            //   <Button
+            //     variant="contained" color="primary" aria-label="Enable2FA" component="label"
+            //     onClick={() =>
+            //       generateQrCode({email: userInfo.email})
+            //     }
+            //   >
+            //     Setup 2FA
+            //   </Button>
+            //   )
+            }
+            
+          </Box> 
+          {/* {open2FAModal && (
+            <TwoFactorAuth
+              base32={secret.base32}
+              otpauth_url={secret.otpauth_url}
+              user_id={userInfo.id}
+              closeModal={() => setOpen2FAModal(false)}
+            />
+          )} */}
+
       </Container>
     </Page>
   );

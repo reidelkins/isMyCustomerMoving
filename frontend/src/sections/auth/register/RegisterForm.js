@@ -31,7 +31,12 @@ export default function RegisterForm() {
     company: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Company required'),
     accessToken: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Access token required'),
     email: Yup.string().email('Email must be a valid email address').required('Email is required'),
-    password: Yup.string().required('Password is required'),
+    password: Yup.string().required('Password is required').matches(
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{12,})/,
+            "Must Contain 12 Characters, One Uppercase, One Lowercase, One Number and One Special Case Character"
+            ),
+    verifiedPassword: Yup.string()
+            .oneOf([Yup.ref('password'), null], 'Passwords must match'),
   });
 
   const formik = useFormik({
@@ -42,6 +47,7 @@ export default function RegisterForm() {
       lastName: '',
       email: '',
       password: '',
+      verifiedPassword: '',
     },
     validationSchema: RegisterSchema,
     onSubmit: () => {
@@ -122,6 +128,13 @@ export default function RegisterForm() {
             }}
             error={Boolean(touched.password && errors.password)}
             helperText={touched.password && errors.password}
+          />
+          <TextField
+            fullWidth
+            label="Verify Password"
+            {...getFieldProps('verifiedPassword')}            
+            error={Boolean(touched.verifiedPassword && errors.verifiedPassword)}
+            helperText={touched.verifiedPassword && errors.verifiedPassword}
           />
 
           {registerError ? (

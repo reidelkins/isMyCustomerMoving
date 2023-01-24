@@ -38,7 +38,7 @@ import ClientEventTable from '../components/ClientEventTable';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
 
 import ClientsListCall from '../redux/calls/ClientsListCall';
-import { selectClients, update, updateClientAsync, serviceTitanSync } from '../redux/actions/usersActions';
+import { selectClients, update, updateClientAsync, serviceTitanSync, noMoreClients } from '../redux/actions/usersActions';
 import { logout, showLoginInfo } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
@@ -96,13 +96,18 @@ export default function CustomerData() {
   const navigate = useNavigate();  
 
   const userLogin = useSelector(showLoginInfo);
-  const { userInfo } = userLogin;
+  const { userInfo, twoFA } = userLogin;
+  useEffect(() => {
+    if (!userInfo) {
+      dispatch(logout());
+      navigate('/login', { replace: true });
+      window.location.reload(false);
+    } else if (userInfo.otp_enabled && twoFA === false) {
+      dispatch(noMoreClients())
+      navigate('/login', { replace: true });
+    }
 
-  if (!userInfo) {
-    dispatch(logout());
-    navigate('/login', { replace: true });
-    window.location.reload(false);
-  }
+  }, [userInfo, dispatch, navigate]);
 
   const listClient = useSelector(selectClients);
   const { loading, CLIENTLIST, done } = listClient;

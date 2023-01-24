@@ -131,6 +131,7 @@ export const clientsAsync = () => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
+    const {clientsInfo} = reduxStore.user;
 
     const config = {
       headers: {
@@ -149,6 +150,9 @@ export const clientsAsync = () => async (dispatch, getState) => {
     for (i; i <= loops; i++) {
       const { data: newData } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.company.id}?page=${i}`, config);
       dispatch(moreClients(newData.results));
+      if(clientsInfo.done === true) {
+        break;
+      }
     }
     // dispatch(noMoreClients());
   } catch (error) {

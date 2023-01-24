@@ -141,11 +141,13 @@ class CustomUser(AbstractUser):
                           default=uuid.uuid4, editable=False)
     email = models.EmailField(_('email address'), unique=True)
     isVerified = models.BooleanField(default=False)
-    avatarUrl = models.ImageField(
-        upload_to='users', null=True, blank=True, default='/placeholder.png')
     status = models.CharField(
         max_length=100, choices=STATUS_CHOICES, default='active')
     company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE)
+    otp_enabled = models.BooleanField(default=False)
+    otp_verified = models.BooleanField(default=False)
+    otp_base32 = models.CharField(max_length=255, null=True)
+    otp_auth_url = models.CharField(max_length=255, null=True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', "last_name"]
 

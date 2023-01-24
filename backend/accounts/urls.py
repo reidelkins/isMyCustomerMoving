@@ -16,6 +16,10 @@ urlpatterns = [
     path('refresh_token/', TokenRefreshView.as_view(), name='refresh_token'),
     path('confirmation/<str:pk>/<str:uid>/', views.confirmation, name='email_confirmation'),
     
+    path('otp/disable/', views.OTPDisableView.as_view(), name='otp-disable'),
+    path('otp/validate/', views.OTPValidateView.as_view(), name='otp-validate'),
+    path('otp/verify/', views.OTPVerifyView.as_view(), name='otp-verify'),
+    path('otp/generate/', views.OTPGenerateView.as_view(), name='otp-generate'),
     path('update/<str:company>/', views.UpdateStatusView.as_view(), name='update-status'),
     path('servicetitan/<str:company>/', views.ServiceTitanView.as_view(), name='servicetitian'),
     path('company/', views.company, name='createCompany'),

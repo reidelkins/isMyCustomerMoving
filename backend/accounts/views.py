@@ -21,6 +21,7 @@ import datetime
 import jwt
 from config import settings
 import pytz
+import pyotp
 
 class ManageUserView(APIView):
     def post(self, request, *args, **kwargs):
@@ -286,6 +287,104 @@ class UserViewSet(ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     queryset = CustomUser.objects.all()
     permission_classes = [IsAuthenticated]
+
+class OTPGenerateView(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [AnonRateThrottle]
+    authentication_classes = []
+
+    def post(self, request):
+        try:
+            user = CustomUser.objects.get(id=request.data['id'])
+            if user == None:
+                return Response({'detail': f'User with this email does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+            otp_base32 = pyotp.random_base32()
+            otp_auth_url = pyotp.totp.TOTP(otp_base32).provisioning_uri(
+                name=user.email.lower(), issuer_name='Is My Customer Moving')
+
+            user.otp_auth_url = otp_auth_url
+            user.otp_base32 = otp_base32
+            user.save()
+            serializer = UserSerializerWithToken(user, many=False)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            print(e)
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+
+class OTPVerifyView(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [AnonRateThrottle]
+    authentication_classes = []
+
+    def post(self, request):
+        print(request.data['otp'])
+        try:
+            user = CustomUser.objects.get(id=request.data['id'])
+            if user == None:
+                return Response({'detail': f'User with this email does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+            if user.otp_base32 == None:
+                return Response({'detail': f'OTP not generated for this user'}, status=status.HTTP_400_BAD_REQUEST)
+            totp = pyotp.TOTP(user.otp_base32)
+            if totp.verify(request.data['otp']):
+                user.otp_enabled = True
+                user.otp_verified = True
+                user.save()
+                serializer = UserSerializerWithToken(user, many=False)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                print("verification failed")
+                return Response({'detail': f'OTP verification failed'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        except Exception as e:
+            print(e)
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)       
+
+class OTPValidateView(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [AnonRateThrottle]
+    authentication_classes = []
+
+    def post(self, request):
+        otp = request.data['otp']
+        messages = {'errors': []}
+        user = CustomUser.objects.get(id=request.data['id'])
+        if not user.otp_verified:
+            messages['errors'].append('OTP not verified')
+        if user.otp_base32 == None:
+            return Response({'detail': f'OTP not generated for this user'}, status=status.HTTP_400_BAD_REQUEST)
+        if len(messages['errors']) > 0:
+            return Response({"detail": messages['errors']}, status=status.HTTP_400_BAD_REQUEST)
+        try:                                    
+            totp = pyotp.TOTP(user.otp_base32)
+            if totp.verify(otp, valid_window=1):
+                serializer = UserSerializerWithToken(user, many=False)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({'detail': f'OTP verification failed'}, status=status.HTTP_400_BAD_REQUEST)            
+        except Exception as e:
+            print(e)
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+
+class OTPDisableView(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [AnonRateThrottle]
+    authentication_classes = []
+
+    def post(self, request):
+        try:            
+            user = CustomUser.objects.get(id=request.data['id'])            
+            user.otp_enabled = False
+            user.otp_verified = False
+            user.otp_base32 = None
+            user.otp_auth_url = None
+            user.save()
+            serializer = UserSerializerWithToken(user, many=False)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            print(e)
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 
 class CustomPagination(PageNumberPagination):
     page_size = 1000
