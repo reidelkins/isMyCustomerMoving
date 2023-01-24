@@ -422,7 +422,8 @@ def updateStatus(zip, company, status):
             print("This should not be the case")
     clientsToUpdate = list(clientsToUpdate.values_list('servTitanID', flat=True))
     if clientsToUpdate:
-        update_serviceTitan_client_tags.delay(clientsToUpdate, company.id, status)
+        print(clientsToUpdate)
+        # update_serviceTitan_client_tags.delay(clientsToUpdate, company.id, status)
     gc.collect()
     try:
         del company
@@ -849,7 +850,7 @@ def remove_all_serviceTitan_tags(company):
             for tag in tagTypes:
                 # get a list of all the servTitanIDs for the clients with one from this company
                 # clients = list(Client.objects.filter(company=company).values_list('servTitanID'))
-                clients = list(Client.objects.filter(company=company).exclude(status="No Change").values_list('servTitanID', flat=True))
+                clients = list(Client.objects.filter(company=company).exclude(status="No Change").exclude(servTitanID=None).values_list('servTitanID', flat=True))
                 count = 0        
                 for client in clients:
                     print(f"REMOVING: {count} out of {len(clients)}")
