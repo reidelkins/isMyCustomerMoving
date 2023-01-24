@@ -422,7 +422,6 @@ def updateStatus(zip, company, status):
             print("This should not be the case")
     clientsToUpdate = list(clientsToUpdate.values_list('servTitanID', flat=True))
     if clientsToUpdate:
-        print(f"UPDATE TAGS: {clientsToUpdate}")
         update_serviceTitan_client_tags.delay(clientsToUpdate, company.id, status)
     gc.collect()
     try:
@@ -764,14 +763,11 @@ def update_serviceTitan_client_tags(forSale, company, status):
                 tagType = [str(company.serviceTitanForSaleTagID)]
             elif status == 'House Recently Sold (6)':
                 tagType = [str(company.serviceTitanRecentlySoldTagID)]
-            # forSaleClients = list(Client.objects.filter(status=status, company=company).values_list('servTitanID'))
-            # forSale = []
-            # for client in clients:
-            #     if client.servTitanID:
-            #         forSale.append(str(client.servTitanID))
+
             if status == 'House Recently Sold (6)':
                 payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
                 response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
+                print(f"UPDATE TAGS DELETING: {response.status_code} {forSale}")
             payload={'customerIds': forSale, 'tagTypeIds': tagType}
             response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
             print(f"UPDATE TAGS RESPONSE: {response.status_code} {forSale}")
