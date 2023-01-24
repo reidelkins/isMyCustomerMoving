@@ -520,9 +520,10 @@ def update_clients_statuses(company_id=None):
         zips = list(zipCodes.order_by('zipCode').values('zipCode'))
         for zip in zips:
             zip = zip['zipCode']
-            # stay in this order so if was for sale and then sold, it will show as such
-            updateStatus.delay(zip, company.id, "House For Sale")
-            updateStatus.delay(zip, company.id, "House Recently Sold (6)")
+            if zip == 30710:
+                # stay in this order so if was for sale and then sold, it will show as such
+                updateStatus.delay(zip, company.id, "House For Sale")
+                updateStatus.delay(zip, company.id, "House Recently Sold (6)")
     gc.collect()
     try:
         del companies
@@ -763,8 +764,6 @@ def update_serviceTitan_client_tags(forSale, company, status):
                 tagType = [str(company.serviceTitanForSaleTagID)]
             elif status == 'House Recently Sold (6)':
                 tagType = [str(company.serviceTitanRecentlySoldTagID)]
-
-            if status == 'House Recently Sold (6)':
                 payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
                 response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
                 print(f"UPDATE TAGS DELETING: {response.status_code} {forSale}")
@@ -849,15 +848,12 @@ def remove_all_serviceTitan_tags(company):
                 # get a list of all the servTitanIDs for the clients with one from this company
                 # clients = list(Client.objects.filter(company=company).values_list('servTitanID'))
                 clients = list(Client.objects.filter(company=company).exclude(status="No Change").exclude(servTitanID=None).values_list('servTitanID', flat=True))
-                count = 0        
-                for client in clients:
-                    print(f"REMOVING: {count} out of {len(clients)}")
-                    count += 1
-                    payload={'customerIds': [str(client)], 'tagTypeIds': tag}
-                    response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
-                    print(f"REMOVING: {response.status_code} for {client}")
-                    if response.status_code != 200:
-                        print(f"REMOVING: {response.json()}")
+                payload={'customerIds': clients, 'tagTypeIds': tag}
+                response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)                
+                if response.status_code != 200:
+                    print(f"REMOVING: {response.json()}")
+
+                    
                     
                 
     except Exception as e:
