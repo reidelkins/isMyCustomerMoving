@@ -524,11 +524,10 @@ def update_clients_statuses(company_id=None):
         zips = list(zipCodes.order_by('zipCode').values('zipCode'))
         for zip in zips:
             zip = zip['zipCode']
-            if zip == "37075":        
-                updateStatus.delay(zip, company.id, "House For Sale")
-        # for zip in zips:
-        #     zip = zip['zipCode']
-        #     updateStatus.delay(zip, company.id, "House Recently Sold (6)")
+            updateStatus.delay(zip, company.id, "House For Sale")
+        for zip in zips:
+            zip = zip['zipCode']
+            updateStatus.delay(zip, company.id, "House Recently Sold (6)")
                 
     gc.collect()
     try:
