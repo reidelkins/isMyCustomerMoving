@@ -422,6 +422,7 @@ def updateStatus(zip, company, status):
             print("This should not be the case")
     clientsToUpdate = list(clientsToUpdate.values_list('servTitanID', flat=True))
     if clientsToUpdate:
+        print(f"UPDATE TAGS: {clientsToUpdate}")
         update_serviceTitan_client_tags.delay(clientsToUpdate, company.id, status)
     gc.collect()
     try:
@@ -752,7 +753,7 @@ def update_serviceTitan_client_tags(forSale, company, status):
     try:
         company = Company.objects.get(id=company)
         if forSale and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):
-            print("UPDATE TAGS: ", forSale, status)   
+            print(f"UPDATE TAGS: {forSale}, {status}")   
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
@@ -764,7 +765,7 @@ def update_serviceTitan_client_tags(forSale, company, status):
             elif status == 'House Recently Sold (6)':
                 tagType = [str(company.serviceTitanRecentlySoldTagID)]
             # forSaleClients = list(Client.objects.filter(status=status, company=company).values_list('servTitanID'))
-            forSale = []
+            # forSale = []
             # for client in clients:
             #     if client.servTitanID:
             #         forSale.append(str(client.servTitanID))
