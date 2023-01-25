@@ -15,6 +15,7 @@ class CompanySerializer(serializers.ModelSerializer):
     stripeID = serializers.CharField(max_length=100, required=False)
     tenantID = serializers.CharField(max_length=100, required=False)
     clientID = serializers.CharField(max_length=100, required=False)
+    validSubscription = serializers.BooleanField()
     serviceTitanForRentTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanForSaleTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanRecentlySoldTagID = serializers.CharField(max_length=100, required=False)
@@ -40,8 +41,10 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
         if user.isVerified:
             return token
+        elif not user.company.validSubscription:
+            raise serializers.ValidationError("Company does not have an active subscription. If you think this is an error send an email for help to reid@ismycustomermoving.com.")
         else:
-            raise serializers.ValidationError("User is not verified")
+            raise serializers.ValidationError("User is not verified. Have your administrator send another invitation link or send an email to reid@ismycustomermoving.com for help.")
 
 class UserSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)

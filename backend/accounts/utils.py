@@ -520,15 +520,16 @@ def update_clients_statuses(company_id=None):
     else:
         companies = Company.objects.all()
     for company in companies:
-        zipCode_objects = Client.objects.filter(company=company).values('zipCode')
-        zipCodes = zipCode_objects.distinct()
-        zips = list(zipCodes.order_by('zipCode').values('zipCode'))
-        for zip in zips:
-            zip = zip['zipCode']
-            updateStatus.delay(zip, company.id, "House For Sale")
-        for zip in zips:
-            zip = zip['zipCode']
-            updateStatus.delay(zip, company.id, "House Recently Sold (6)")
+        if company.validSubscription:
+            zipCode_objects = Client.objects.filter(company=company).values('zipCode')
+            zipCodes = zipCode_objects.distinct()
+            zips = list(zipCodes.order_by('zipCode').values('zipCode'))
+            for zip in zips:
+                zip = zip['zipCode']
+                updateStatus.delay(zip, company.id, "House For Sale")
+            for zip in zips:
+                zip = zip['zipCode']
+                updateStatus.delay(zip, company.id, "House Recently Sold (6)")
                 
     gc.collect()
     try:
@@ -567,30 +568,31 @@ def sendDailyEmail(company_id=None):
     else:
         companies = Company.objects.all()
     for company in companies:
-        emails = list(CustomUser.objects.filter(company=company).values_list('email'))
-        subject = 'Did Your Customers Move?'
-        
-        forSaleCustomers = Client.objects.filter(company=company, status="House For Sale")
-        forSaleCustomers = forSaleCustomers.exclude(contacted=True)
-        forSaleCustomers = forSaleCustomers.count()
-        soldCustomers = Client.objects.filter(company=company, status="House Recently Sold (6)")
-        soldCustomers = soldCustomers.exclude(contacted=True)
-        soldCustomers = soldCustomers.count()
-        message = get_template("dailyEmail.html").render({
-            'forSale': forSaleCustomers, 'sold': soldCustomers
-        })
-        
-        if soldCustomers > 0 or forSaleCustomers > 0:
-            for email in emails:
-                email = email[0]
-                msg = EmailMessage(
-                    subject,
-                    message,
-                    settings.EMAIL_HOST_USER,
-                    [email]
-                )
-                msg.content_subtype ="html"
-                msg.send()
+        if company.validSubscription:
+            emails = list(CustomUser.objects.filter(company=company).values_list('email'))
+            subject = 'Did Your Customers Move?'
+            
+            forSaleCustomers = Client.objects.filter(company=company, status="House For Sale")
+            forSaleCustomers = forSaleCustomers.exclude(contacted=True)
+            forSaleCustomers = forSaleCustomers.count()
+            soldCustomers = Client.objects.filter(company=company, status="House Recently Sold (6)")
+            soldCustomers = soldCustomers.exclude(contacted=True)
+            soldCustomers = soldCustomers.count()
+            message = get_template("dailyEmail.html").render({
+                'forSale': forSaleCustomers, 'sold': soldCustomers
+            })
+            
+            if soldCustomers > 0 or forSaleCustomers > 0:
+                for email in emails:
+                    email = email[0]
+                    msg = EmailMessage(
+                        subject,
+                        message,
+                        settings.EMAIL_HOST_USER,
+                        [email]
+                    )
+                    msg.content_subtype ="html"
+                    msg.send()
     if not company_id:
         HomeListing.objects.all().delete()
     ZipCode.objects.filter(lastUpdated__lt = datetime.today() - timedelta(days=3)).delete()
@@ -640,7 +642,8 @@ def auto_update(company_id=None):
     else:
         companies = Company.objects.all().values_list('id')
         for company in companies:
-            getAllZipcodes(company[0])
+            if company.validSubscription:
+                getAllZipcodes(company[0])
     try:
         del company
     except:

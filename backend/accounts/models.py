@@ -1,7 +1,5 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-from django.core.validators import MinValueValidator, MaxValueValidator
 from django.dispatch import receiver
-from django.urls import reverse
 from django_rest_passwordreset.signals import reset_password_token_created
 from django.core.mail import EmailMessage
 from django.db import models
@@ -77,6 +75,7 @@ class Company(models.Model):
     name = models.CharField(max_length=100)
     accessToken = models.CharField(default=create_access_token, max_length=100)
     product = models.ForeignKey(Product, blank=True, null=True, on_delete=models.SET_NULL)
+    validSubscription = models.BooleanField(default=True)
     phone = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(max_length=100, blank=True, null=True)
     tenantID = models.IntegerField(blank=True, null=True)
