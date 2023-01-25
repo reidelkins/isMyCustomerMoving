@@ -219,6 +219,9 @@ export default function CustomerData() {
   };
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
   const filteredClients = userInfo ? applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName, userInfo.status) : [];
+  useEffect(() => {
+    setShownClients(filteredClients.length)
+  }, [filteredClients])
   
   const [rentCount, setRentCount] = useState(0);
   const [saleCount, setSaleCount] = useState(0);
@@ -264,14 +267,6 @@ export default function CustomerData() {
     setTotalSaleCount(tmpTotalSale);
     setSold6Count(tmpSold6);
     setTotalSoldCount(tmpTotalSold);
-  
-    if (userInfo) {
-      if (userInfo.status === 'admin') {
-        setShownClients(CLIENTLIST.length);
-      } else {
-        setShownClients(rentCount + saleCount + sold6Count);
-      }
-    }
   
   }, [done, CLIENTLIST]);
 

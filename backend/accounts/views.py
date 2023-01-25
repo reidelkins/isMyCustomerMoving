@@ -393,8 +393,11 @@ class ClientListView(generics.ListAPIView):
     serializer_class = ClientListSerializer
     pagination_class = CustomPagination
     def get_queryset(self):
-        company = Company.objects.get(id=self.kwargs['company'])
-        return Client.objects.prefetch_related('clientUpdates').filter(company=company).order_by('status')
+        user = CustomUser.objects.get(id=self.kwargs['user'])
+        if user.status == 'admin':
+            return Client.objects.prefetch_related('clientUpdates').filter(company=user.company).order_by('status')
+        else:
+            return Client.objects.prefetch_related('clientUpdates').filter(company=user.company).exclude(status='No Change').order_by('status')
 
 class UserListView(generics.ListAPIView):
     serializer_class = UserListSerializer
