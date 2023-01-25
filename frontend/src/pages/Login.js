@@ -78,10 +78,15 @@ export default function Login() {
         </HeaderStyle>
 
         {mdUp && (
+          // "title": "Don't Lose Your Customers,",
+          // "subtitle": "Move With Them!",
+          // "description": "You don't know when your customers are moving, and they're too busy to remember your name. We instantly notify you when your customers list their home for sale, so you can be the first one to the new home.",
           <SectionStyle>
-            <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
-              Welcome Back
+            <Typography variant="h2" sx={{ px: 5, mt: 10, mb: 5 }}>
+              <span >Don't Lose Your Customers,</span>{" "}
+              <span style={{color:"#8ce8c5"}}>Move With Them!</span>            
             </Typography>
+            <Typography variant="body1" sx={{mx:4}}>We instantly notify you when your customers list their home for sale, so you can be the first one to the new home.</Typography>
             <img src="/static/illustrations/illustration_login.png" alt="login" />
           </SectionStyle>
         )}
@@ -99,7 +104,7 @@ export default function Login() {
             {!smUp && (
               <Typography variant="body2" align="center" sx={{ mt: 3 }}>
                 Don’t have an account?{' '}
-                <Link variant="subtitle2" component={RouterLink} to="/register">
+                <Link variant="subtitle2" component={RouterLink} to="www.ismycustomermoving.com/#pricing">
                   Get started
                 </Link>
               </Typography>

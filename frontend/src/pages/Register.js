@@ -77,9 +77,12 @@ export default function Register() {
 
         {mdUp && (
           <SectionStyle>
-            <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
-              Sign Up Here
+            <Typography variant="h2" sx={{ px: 5, mt: 10, mb: 5 }}>
+              <span >Don't Lose Your Customers,</span>{" "}
+              <span style={{color:"#8ce8c5"}}>Move With Them!</span>            
             </Typography>
+            <Typography variant="body1" sx={{mx:4}}>We instantly notify you when your customers list their home for sale, so you can be the first one to the new home.</Typography>
+            
             <img alt="register" src="/static/illustrations/illustration_register.png" />
           </SectionStyle>
         )}
@@ -90,7 +93,6 @@ export default function Register() {
               Register
             </Typography>
 
-            <Typography sx={{ color: 'text.secondary', mb: 5 }}> </Typography>
 
             <RegisterForm />
 
