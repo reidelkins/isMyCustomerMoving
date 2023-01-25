@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { filter} from 'lodash';
+import _, { filter} from 'lodash';
 import { sentenceCase } from 'change-case';
 import React, { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
@@ -86,7 +86,7 @@ export function applySortFilter(array, comparator, query, userInfo) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    return filter(array, (_user) => _.some(_user, val=>val && val.toString().toLowerCase().includes(query.toLowerCase())));
   }
   return stabilizedThis.map((el) => el[0]);
 }
@@ -204,7 +204,7 @@ export default function CustomerData() {
     let csvContent = 'data:text/csv;charset=utf-8,';
     csvContent += 'Name,Address,City,State,ZipCode,Status,Contacted,Note,Phone Number\r\n';
     CLIENTLIST.forEach((n) => {
-      csvContent += `${n.name}, ${n.address}, ${n.city}, ${n.state}, ${n.zipCode.zipCode}, ${n.status}, ${n.contacted}, ${n.note}, ${n.phoneNumber}\r\n`
+      csvContent += `${n.name}, ${n.address}, ${n.city}, ${n.state}, ${n.zipCode}, ${n.status}, ${n.contacted}, ${n.note}, ${n.phoneNumber}\r\n`
     });
 
     const encodedUri = encodeURI(csvContent);
@@ -360,7 +360,7 @@ export default function CustomerData() {
                               <TableCell align="left">{address}</TableCell>
                               <TableCell align="left">{city}</TableCell>
                               <TableCell align="left">{state}</TableCell>
-                              <TableCell align="left">{zipCode.zipCode}</TableCell>
+                              <TableCell align="left">{zipCode}</TableCell>
                               <TableCell align="left">
                                 {userInfo.email !== 'demo@demo.com' ? (
                                   <Label variant="ghost" color={(status === 'No Change' && 'warning') || (contacted === 'False' && 'error'  || 'success')}>
