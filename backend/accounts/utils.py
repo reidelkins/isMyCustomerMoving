@@ -591,8 +591,8 @@ def sendDailyEmail(company_id=None):
                 )
                 msg.content_subtype ="html"
                 msg.send()
-    if not company_id:
-        HomeListing.objects.all().delete()
+    # if not company_id:
+    #     HomeListing.objects.all().delete()
     ZipCode.objects.filter(lastUpdated__lt = datetime.today() - timedelta(days=3)).delete()
     try:
         del companies
@@ -780,7 +780,7 @@ def update_serviceTitan_client_tags(forSale, company, status):
                 error = error.replace('(', "").replace(')', "").replace(',', " ").replace(".", "").split()
                 for word in error:
                     if word.isdigit():
-                        Client.objects.filter(servTitanID=word).delete()
+                        # Client.objects.filter(servTitanID=word).delete()
                         forSale.remove(word)
                 if status == 'House Recently Sold (6)':
                     payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
