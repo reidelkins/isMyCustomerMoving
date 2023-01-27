@@ -126,6 +126,13 @@ class ClientUpdate(models.Model):
     note = models.TextField(default="", blank=True, null=True)
     contacted = models.BooleanField(blank=True, null=True)
 
+class ScrapeResponse(models.Model):
+    id = models.UUIDField(primary_key=True, unique=True,
+                          default=uuid.uuid4, editable=False)
+    date = models.DateField(default=formatToday)
+    response = models.TextField(default="")
+    zip = models.IntegerField(blank=True, null=True)
+    status = models.CharField(max_length=25, choices=STATUS, default='No Change', blank=True, null=True)
 
 class HomeListing(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
@@ -134,6 +141,7 @@ class HomeListing(models.Model):
     address = models.CharField(max_length=100)
     status = models.CharField(max_length=25, choices=STATUS, default='Off Market')
     listed = models.CharField(max_length=30, default=" ")
+    ScrapeResponse = models.ForeignKey(ScrapeResponse, blank=True, null=True, on_delete=models.SET_NULL)
 
 class CustomUser(AbstractUser):
     username = None

@@ -9,7 +9,7 @@ from scrapfly import ScrapeApiResponse, ScrapeConfig, ScrapflyClient
 from typing import List, Optional
 from typing_extensions import TypedDict
 
-from .models import Client, Company, ZipCode, HomeListing, CustomUser, ClientUpdate, Task
+from .models import Client, Company, ZipCode, HomeListing, CustomUser, ClientUpdate, Task, ScrapeResponse
 from .serializers import CompanySerializer
 
 from django.conf import settings
@@ -236,6 +236,7 @@ def parse_search(result: ScrapeApiResponse, searchType: str) -> SearchResults:
     if not data:
         print(f"page {result.context['url']} is not a property listing page")
         return
+    
     data = dict(json.loads(data))
     try:
         if(searchType == "For Rent"):
@@ -247,7 +248,7 @@ def parse_search(result: ScrapeApiResponse, searchType: str) -> SearchResults:
         print(f"page {result.context['url']} is not a property listing page")
         return False
 
-def create_home_listings(results, status):
+def create_home_listings(results, status, resp):
     two_years_ago = datetime.now() - timedelta(days=365*2)
     for listing in results:
         zip_object, created = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
@@ -280,7 +281,8 @@ def create_home_listings(results, status):
                         zipCode= zip_object,
                         address= parseStreets((listing['location']['address']['line']).title()),
                         status= status,
-                        listed= listType[:10]
+                        listed= listType[:10],
+                        ScrapeResponse= ScrapeResponse.objects.get(id=resp.id),
                         )
 
         except Exception as e: 
@@ -320,6 +322,7 @@ def find_data(zip, company, i, status, url, extra):
         first_data = parse_search(first_result, status)
         if not first_data:
             return
+        resp = ScrapeResponse.objects.create(response=first_data, zip=zip, status=status)
         if status == "For Rent":
             results = first_data["properties"]
             total = int(soup.find('div', {'data-testid': 'total-results'}).text)
@@ -330,7 +333,7 @@ def find_data(zip, company, i, status, url, extra):
             total = soup.find('span', {'class': 'result-count'}).text
             total = int(total.split(' ')[0])
             count = first_data["count"]
-        create_home_listings(results, status)        
+        create_home_listings(results, status, resp.id)        
         if count == 0 or total == 0:
             return
         if count < 20: #I believe this can be 10

@@ -44,8 +44,14 @@ class CompanyAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'accessToken', 'product')
 
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ('name', 'address', 'status', 'city', 'state', 'contacted', 'note', 'zipCode', 'company', 'servTitanID', 'phoneNumber')
-    search_fields = ('name', 'address', 'status', 'city', 'state', 'servTitanID')
+    list_display = ('name', 'address', 'status', 'city', 'state', 'contacted', 'note', 'zipCode__zip', 'company__name', 'servTitanID', 'phoneNumber')
+    search_fields = ('name', 'address', 'status', 'city', 'state', 'servTitanID', 'zipCode__zipCode', 'company__name')
+
+    def zipCode__zip(self, obj):
+        return obj.zipCode.zipCode
+
+    def company__name(self, obj):
+        return obj.company.name
 
 class ClientUpdateAdmin(admin.ModelAdmin):
     list_display = ('id', 'client__name', 'company__name', 'status', 'listed')
