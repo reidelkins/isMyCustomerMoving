@@ -49,7 +49,7 @@ class ClientAdmin(admin.ModelAdmin):
 
 class ClientUpdateAdmin(admin.ModelAdmin):
     list_display = ('id', 'client__name', 'company__name', 'status', 'listed')
-    search_fields = ('id', 'client__name', 'status', 'listed')
+    search_fields = ('id', 'client__name', 'status', 'listed', 'client__company__name')
 
     def client__name(self, obj):
         return obj.client.name
