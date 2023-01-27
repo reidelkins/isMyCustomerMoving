@@ -345,11 +345,12 @@ def find_data(zip, company, i, status, url, extra):
             page_url = url.replace("pg-1", f"pg-{page}")
             new_results = scrapfly.scrape(ScrapeConfig(url=page_url, country="US", asp=False, proxy_pool="public_datacenter_pool"))
             parsed = parse_search(new_results, status)
+            resp = ScrapeResponse.objects.create(response=first_data, zip=zip, status=status)
             if status == "For Rent":
                 results = parsed["properties"]
             else:
                 results = parsed["results"]
-            create_home_listings(results, status)         
+            create_home_listings(results, status, resp.id)         
     except Exception as e:
         print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
         print(f"URL: {url}")
