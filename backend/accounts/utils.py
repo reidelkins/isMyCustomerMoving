@@ -176,7 +176,7 @@ def getAllZipcodes(company):
     zipCodes = zipCode_objects.distinct()
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
     zips = list(zipCodes.order_by('zipCode').values('zipCode'))
-    # zips = [{'zipCode': '37922'}]
+    zips = [{'zipCode': '37922'}]
     for i in range(len(zips) * 2):
     # for i in range(100, 130):
         extra = ""
