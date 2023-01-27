@@ -119,8 +119,7 @@ class ManageUserView(APIView):
                 return Response({"status": "User Not Found"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             print(e)
-            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)        
     def delete(self, request, *args, **kwargs):
         try:
             if len(request.data) == 1:
