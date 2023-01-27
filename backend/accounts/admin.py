@@ -45,7 +45,7 @@ class CompanyAdmin(admin.ModelAdmin):
 
 class ClientAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'status', 'city', 'state', 'contacted', 'note', 'zipCode', 'company', 'servTitanID', 'phoneNumber')
-    search_fields = ('name', 'address', 'status', 'city', 'state', 'servTitanID', '')
+    search_fields = ('name', 'address', 'status', 'city', 'state', 'servTitanID')
 
 class ClientUpdateAdmin(admin.ModelAdmin):
     list_display = ('id', 'client__name', 'company__name', 'status', 'listed')
