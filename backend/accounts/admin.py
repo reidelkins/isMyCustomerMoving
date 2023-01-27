@@ -32,24 +32,37 @@ class CustomUserAdmin(UserAdmin):
     )
 
     list_display = ('first_name', 'last_name', 'email',
-                    'isVerified')
+                    'isVerified', 'company__name')
     search_fields = ('id', 'first_name', 'last_name', 'email')
     ordering = ('id',)
     list_filter = ('is_staff', 'isVerified',)
+
+    def company__name(self, obj):
+        return obj.company.name
 
 class CompanyAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'accessToken', 'product')
 
 class ClientAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'status', 'city', 'state', 'contacted', 'note', 'zipCode', 'company', 'servTitanID', 'phoneNumber')
-    search_fields = ('name', 'address', 'status', 'city', 'state', 'servTitanID')
+    search_fields = ('name', 'address', 'status', 'city', 'state', 'servTitanID', '')
 
 class ClientUpdateAdmin(admin.ModelAdmin):
-    list_display = ('id', 'client', 'status', 'listed')
+    list_display = ('id', 'client__name', 'company__name', 'status', 'listed')
+    search_fields = ('id', 'client__name', 'status', 'listed')
+
+    def client__name(self, obj):
+        return obj.client.name
+
+    def company__name(self, obj):
+        return obj.client.company.name
 
 class ZipcodeAdmin(admin.ModelAdmin):
-    list_display = ('zipCode', 'lastUpdated')
+    list_display = ('zipCode', 'lastUpdated', 'count')
     search_fields = ['zipCode', 'lastUpdated']
+
+    def count(self, obj):
+        return Client.objects.filter(zipCode=obj.zipCode).count()
 
 class HomeListingAdmin(admin.ModelAdmin):
     list_display = ('address', 'zipCode', 'status', 'listed')
