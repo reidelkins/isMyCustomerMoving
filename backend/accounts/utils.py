@@ -282,7 +282,7 @@ def create_home_listings(results, status, resp):
                         address= parseStreets((listing['location']['address']['line']).title()),
                         status= status,
                         listed= listType[:10],
-                        ScrapeResponse= ScrapeResponse.objects.get(id=resp.id),
+                        ScrapeResponse= ScrapeResponse.objects.get(id=resp),
                         )
 
         except Exception as e: 

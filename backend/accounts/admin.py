@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext as _
-from .models import CustomUser, Company, Client, ZipCode, HomeListing, InviteToken, ClientUpdate
+from .models import CustomUser, Company, Client, ZipCode, HomeListing, InviteToken, ClientUpdate, ScrapeResponse
 
 
 class CustomUserAdmin(UserAdmin):
@@ -71,7 +71,7 @@ class ZipcodeAdmin(admin.ModelAdmin):
         return Client.objects.filter(zipCode=obj.zipCode).count()
 
 class HomeListingAdmin(admin.ModelAdmin):
-    list_display = ('address', 'zipCode', 'status', 'listed')
+    list_display = ('address', 'zipCode', 'status', 'listed', 'ScrapeResponse')
     search_fields = ['address', 'status']
 
 class InviteTokenAdmin(admin.ModelAdmin):
@@ -84,6 +84,11 @@ class ProgressUpdateAdmin(admin.ModelAdmin):
 class TaskAdmin(admin.ModelAdmin):
     list_display = ('id', 'complete', 'updater', 'deleted')
 
+class ScrapeResponseAdmin(admin.ModelAdmin):
+    list_display = ('id', 'date', 'zip', 'status')
+
+
+
 
 # Register your models here.
 admin.site.register(HomeListing, HomeListingAdmin)
@@ -93,3 +98,4 @@ admin.site.register(Company, CompanyAdmin)
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(InviteToken, InviteTokenAdmin)
 admin.site.register(ClientUpdate, ClientUpdateAdmin)
+admin.site.register(ScrapeResponse, ScrapeResponseAdmin)
