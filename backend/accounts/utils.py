@@ -190,7 +190,7 @@ def getAllZipcodes(company):
         # elif i % 3 == 2:
         #     status = "For Rent"
         #     url = "https://www.realtor.com/apartments"
-        find_data.delay(str(zips[i//2]['zipCode']), company, i, status, url, extra)
+        find_data.delay(str(zips[i//2]['zipCode']), i, status, url, extra)
     # total_zips = zips.count()
     # for i in range(0, total_zips, BATCH_SIZE):
     #     batch_zips = zips[i:i+BATCH_SIZE]
@@ -307,14 +307,17 @@ def create_home_listings(results, status, resp):
 
             
 @shared_task
-def find_data(zip, company, i, status, url, extra):
+def find_data(zip, i, status, url, extra):
     scrapfly = scrapflies[i % 20]    
     try:
         first_page = f"{url}/{zip}/{extra}"
-        first_result = scrapfly.scrape(ScrapeConfig(first_page, country="US", asp=False, proxy_pool="public_datacenter_pool"))
-
+        first_result = scrapfly.scrape(ScrapeConfig(first_page, country="US", asp=False, proxy_pool="public_datacenter_pool"))        
+        if first_result.status_code >= 400:
+            scrapfly = scrapflies[i+5 % 20]
+            first_result = scrapfly.scrape(ScrapeConfig(first_page, country="US", asp=False, proxy_pool="public_datacenter_pool"))        
         content = first_result.scrape_result['content']
         soup = BeautifulSoup(content, features='html.parser')
+        resp = ScrapeResponse.objects.create(response=first_result, zip=zip, status=status)
         if "pg-1" not in first_result.context["url"]:
             url = first_result.context["url"] + "/pg-1"
         else:
@@ -322,7 +325,7 @@ def find_data(zip, company, i, status, url, extra):
         first_data = parse_search(first_result, status)
         if not first_data:
             return
-        resp = ScrapeResponse.objects.create(response=first_data, zip=zip, status=status)
+        
         if status == "For Rent":
             results = first_data["properties"]
             total = int(soup.find('div', {'data-testid': 'total-results'}).text)
@@ -344,8 +347,11 @@ def find_data(zip, company, i, status, url, extra):
             assert "pg-1" in url  # make sure we don't accidently scrape duplicate pages
             page_url = url.replace("pg-1", f"pg-{page}")
             new_results = scrapfly.scrape(ScrapeConfig(url=page_url, country="US", asp=False, proxy_pool="public_datacenter_pool"))
-            parsed = parse_search(new_results, status)
-            resp = ScrapeResponse.objects.create(response=first_data, zip=zip, status=status)
+            if first_result.status_code >= 400:
+                scrapfly = scrapflies[i+5 % 20]
+                new_results = scrapfly.scrape(ScrapeConfig(url=page_url, country="US", asp=False, proxy_pool="public_datacenter_pool"))
+            resp = ScrapeResponse.objects.create(response=new_results, zip=zip, status=status)
+            parsed = parse_search(new_results, status)            
             if status == "For Rent":
                 results = parsed["properties"]
             else:
