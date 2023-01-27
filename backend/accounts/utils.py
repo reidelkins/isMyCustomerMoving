@@ -418,7 +418,7 @@ def updateStatus(zip, company, status):
         return
     #addresses from all home listings with the provided zip code and status
     listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')       
-    clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses)
+    clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses, zipCode=zipCode_object)
     previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status)
     newlyListed = clientsToUpdate.difference(previousListed)
     # TODO There is an issue where clients uploaded with wrong zip code and are being marked to be unlisted when they should not be
