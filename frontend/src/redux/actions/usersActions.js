@@ -11,7 +11,16 @@ export const userSlice = createSlice({
       loading: false,
       error: null,
       CLIENTLIST: [],
-      done: true,
+      count: 0,
+      forSale: {
+        current: 0,
+        total: 0,
+      },
+      recentlySold: {
+        current: 0,
+        total: 0,
+      },
+      highestPage: 0,
       deleted: 0
       
     },
@@ -24,15 +33,23 @@ export const userSlice = createSlice({
   reducers: {
     // -----------------  CLIENTS  -----------------
     clients: (state, action) => {
-      state.clientsInfo.CLIENTLIST = action.payload;
+      state.clientsInfo.CLIENTLIST = action.payload.results.clients;
+      state.clientsInfo.count = action.payload.count;
+      state.clientsInfo.forSale.current = action.payload.results.forSale;
+      state.clientsInfo.forSale.total = action.payload.results.forSaleAllTime;    
+      state.clientsInfo.recentlySold.current = action.payload.results.recentlySold;
+      state.clientsInfo.recentlySold.total = action.payload.results.recentlySoldAllTime;   
       state.clientsInfo.loading = false;
       state.clientsInfo.error = null;
       state.clientsInfo.done = false;
     },
     moreClients: (state, action) => {
-      state.clientsInfo.CLIENTLIST = [...state.clientsInfo.CLIENTLIST, ...action.payload];
+      state.clientsInfo.CLIENTLIST = [...state.clientsInfo.CLIENTLIST, ...action.payload.results.clients];
       state.clientsInfo.loading = false;
       state.clientsInfo.error = null;
+    },
+    newPage: (state, action) => {
+      state.clientsInfo.highestPage = action.payload;
     },
     clientsError: (state, action) => {
       state.clientsInfo.error = action.payload;
@@ -42,9 +59,6 @@ export const userSlice = createSlice({
     clientsLoading: (state) => {
       state.clientsInfo.loading = true;
       state.clientsInfo.CLIENTLIST = [];
-    },
-    noMoreClients: (state) => {
-      state.clientsInfo.done = true;
     },
     clientsNotAdded: (state, action) => {
       state.clientsInfo.deleted = action.payload;
@@ -79,7 +93,7 @@ export const userSlice = createSlice({
   },
 });
 
-export const { clientsNotAdded, clients, moreClients, noMoreClients, clientsUploading, clientsLoading, clientsError, users, usersLoading, usersError } = userSlice.actions;
+export const { clientsNotAdded, clients, moreClients, newPage, clientsUploading, clientsLoading, clientsError, users, usersLoading, usersError } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
 export const selectUsers = (state) => state.user.usersInfo;
 export default userSlice.reducer;
@@ -124,9 +138,9 @@ export const deleteUserAsync = (ids) => async (dispatch, getState) => {
   }
 };
 
-export const clientsAsync = () => async (dispatch, getState) => {
+export const clientsAsync = (page) => async (dispatch, getState) => {
   try {
-    let reduxStore = getState();
+    const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
     
 
@@ -136,24 +150,19 @@ export const clientsAsync = () => async (dispatch, getState) => {
         Authorization: `Bearer ${userInfo.access}`,
       },
     };
-    dispatch(clientsLoading());
-    // print how long it takes to get data
-    // console.time('clients');
-    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.id}?page=1`, config);
-    dispatch(clients(data.results));
-    const loops = Math.ceil(data.count / 1000);
-    let i = 2;
-    /* eslint-disable no-plusplus */
-    for (i; i <= loops; i++) {
-      const { data: newData } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.id}?page=${i}`, config);
-      dispatch(moreClients(newData.results));
-      reduxStore = getState();
-      const {done} = reduxStore.user.clientsInfo;
-      if(done === true) {
-        break;
+    if (page === 1) {
+      dispatch(clientsLoading());
+    }
+    if (page > reduxStore.user.clientsInfo.highestPage) {
+      dispatch(newPage(page))
+      const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.id}?page=${page}`, config);
+      console.log(data)
+      if (page === 1) {
+        dispatch(clients(data));        
+      } else {
+        dispatch(moreClients(data));
       }
     }
-    // dispatch(noMoreClients());
   } catch (error) {
     localStorage.removeItem('userInfo');
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));

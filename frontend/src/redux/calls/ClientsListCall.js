@@ -10,7 +10,7 @@ const ClientsListCall = () => {
 
   // ** Get data on mount
   useEffect(() => {
-    dispatch(clientsAsync());
+    dispatch(clientsAsync(1));
   }, [dispatch]);
 
   return null;

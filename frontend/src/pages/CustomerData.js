@@ -38,7 +38,7 @@ import ClientEventTable from '../components/ClientEventTable';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
 
 import ClientsListCall from '../redux/calls/ClientsListCall';
-import { selectClients, update, updateClientAsync, serviceTitanSync, noMoreClients } from '../redux/actions/usersActions';
+import { selectClients, update, updateClientAsync, serviceTitanSync, clientsAsync } from '../redux/actions/usersActions';
 import { logout, showLoginInfo } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
@@ -103,14 +103,13 @@ export default function CustomerData() {
       navigate('/login', { replace: true });
       window.location.reload(false);
     } else if (userInfo.otp_enabled && twoFA === false) {
-      dispatch(noMoreClients())
       navigate('/login', { replace: true });
     }
 
   }, [userInfo, dispatch, navigate]);
 
   const listClient = useSelector(selectClients);
-  const { loading, CLIENTLIST, done } = listClient;
+  const { loading, CLIENTLIST, forSale, recentlySold, count } = listClient;
 
   const [page, setPage] = useState(0);
   
@@ -180,6 +179,10 @@ export default function CustomerData() {
 
   };
   const handleChangePage = (event, newPage) => {
+    // fetch new page if two away from needing to see new page
+    if ((newPage+2) * rowsPerPage % 1000 === 0) {
+      dispatch(clientsAsync(((newPage+2) * rowsPerPage / 1000)+1))
+    }
     setPage(newPage);
   };
   const handleChangeRowsPerPage = (event) => {
@@ -220,55 +223,8 @@ export default function CustomerData() {
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
   const filteredClients = userInfo ? applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName, userInfo.status) : [];
   useEffect(() => {
-    setShownClients(filteredClients.length)
-  }, [filteredClients])
-  
-  const [rentCount, setRentCount] = useState(0);
-  const [saleCount, setSaleCount] = useState(0);
-  const [sold6Count, setSold6Count] = useState(0);
-  const [totalSaleCount, setTotalSaleCount] = useState(0);
-  const [totalSoldCount, setTotalSoldCount] = useState(0);
-
-  const [rentCountStart, setRentCountStart] = useState(0);
-  const [saleCountStart, setSaleCountStart] = useState(0);
-  const [sold6CountStart, setSold6CountStart] = useState(0);
-  useEffect(() => {
-    setRentCountStart(rentCount)
-    setSaleCountStart(saleCount)
-    setSold6CountStart(sold6Count)
-    
-    let tmpRent = 0;
-    let tmpSale = 0;
-    let tmpTotalSale = 0;
-    let tmpSold6 = 0;
-    let tmpTotalSold = 0;
-    CLIENTLIST.forEach((n) => {
-      if (n.status === 'For Rent') {
-        tmpRent += 1;
-      }
-      if (n.status === 'House For Sale') {
-        tmpSale += 1;
-      }
-      if (n.status === 'House Recently Sold (6)' || n.status === 'Recently Sold (12)') {
-        tmpSold6 += 1;
-      }
-      n.clientUpdates.forEach((u) => {
-        if (u.status === 'House For Sale') {
-          tmpTotalSale += 1;
-        }
-        if (u.status === 'House Recently Sold (6)' || u.status === 'Recently Sold (12)') {
-          tmpTotalSold += 1;
-        }
-      })
-
-    });
-    setRentCount(tmpRent);
-    setSaleCount(tmpSale);
-    setTotalSaleCount(tmpTotalSale);
-    setSold6Count(tmpSold6);
-    setTotalSoldCount(tmpTotalSold);
-  
-  }, [done, CLIENTLIST]);
+    setShownClients(count)
+  }, [count])
 
   return (
     <Page title="User">
@@ -289,20 +245,20 @@ export default function CustomerData() {
             <Stack direction="row" alignItems="center" justifyContent="space-around" mb={5} mx={10}>
               <Stack direction="column" alignItems="center" justifyContent="center">
                 <CounterCard
-                  start={saleCountStart}
-                  end={saleCount}
+                  start={0}
+                  end={forSale.current}
                   title="For Sale"
                 />
-                <Typography variant="h6" gutterBottom mt={-3}> All Time: {totalSaleCount}</Typography>
+                <Typography variant="h6" gutterBottom mt={-3}> All Time: {forSale.total}</Typography>
               </Stack>
 
               <Stack direction="column" alignItems="center" justifyContent="center">
                 <CounterCard
-                  start={sold6CountStart}
-                  end={sold6Count}
+                  start={0}
+                  end={recentlySold.current}
                   title="Recently Sold"
                 />
-                <Typography variant="h6" gutterBottom mt={-3}> All Time: {totalSoldCount}</Typography>
+                <Typography variant="h6" gutterBottom mt={-3}> All Time: {recentlySold.total}</Typography>
               </Stack>
             </Stack>
             <Card sx={{marginBottom:"3%"}}>

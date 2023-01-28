@@ -24,7 +24,7 @@ import { applySortFilter, getComparator } from './CustomerData';
 
 import UsersListCall from '../redux/calls/UsersListCall';
 import { showLoginInfo, logout, editUserAsync } from '../redux/actions/authActions';
-import { manageUser, selectUsers, makeAdminAsync, noMoreClients } from '../redux/actions/usersActions';
+import { manageUser, selectUsers, makeAdminAsync } from '../redux/actions/usersActions';
 
 
 
@@ -56,7 +56,6 @@ export default function ProfileSettings() {
       navigate('/login', { replace: true });
       window.location.reload(true);
     }
-    dispatch(noMoreClients());
 
   }, [userInfo, dispatch, navigate]);
 

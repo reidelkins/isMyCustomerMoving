@@ -391,12 +391,31 @@ class CustomPagination(PageNumberPagination):
 class ClientListView(generics.ListAPIView):
     serializer_class = ClientListSerializer
     pagination_class = CustomPagination
+    
     def get_queryset(self):
         user = CustomUser.objects.get(id=self.kwargs['user'])
         if user.status == 'admin':
             return Client.objects.prefetch_related('clientUpdates').filter(company=user.company).order_by('status')
         else:
             return Client.objects.prefetch_related('clientUpdates').filter(company=user.company).exclude(status='No Change').order_by('status')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        user = CustomUser.objects.get(id=self.kwargs['user'])
+
+        forSale = Client.objects.filter(company=user.company, status="House For Sale").count()
+        recentlySold = Client.objects.filter(company=user.company, status="House Recently Sold (6)").count()
+        forSaleAllTime = ClientUpdate.objects.filter(client__company=user.company, status="House For Sale").count()
+        recentlySoldAllTime = ClientUpdate.objects.filter(client__company=user.company, status="House Recently Sold (6)").count()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            clients = serializer.data
+            return self.get_paginated_response({"forSale": forSale, "forSaleAllTime": forSaleAllTime, "recentlySoldAllTime": recentlySoldAllTime, "recentlySold": recentlySold, "clients": clients})
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"forSale": forSale, "forSaleAllTime": forSaleAllTime, "recentlySoldAllTime": recentlySoldAllTime, "recentlySold": recentlySold, "clients": clients})
 
 class UserListView(generics.ListAPIView):
     serializer_class = UserListSerializer
