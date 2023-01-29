@@ -385,6 +385,13 @@ class OTPDisableView(generics.GenericAPIView):
             print(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 
+class AllClientListView(generics.ListAPIView):
+    serializer_class = ClientListSerializer
+    permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        user = CustomUser.objects.get(id=self.request.user.id)
+        return Client.objects.filter(company=user.company).order_by('status')
+        
 class CustomPagination(PageNumberPagination):
     page_size = 1000
 

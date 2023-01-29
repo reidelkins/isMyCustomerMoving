@@ -38,7 +38,7 @@ import ClientEventTable from '../components/ClientEventTable';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
 
 import ClientsListCall from '../redux/calls/ClientsListCall';
-import { selectClients, update, updateClientAsync, serviceTitanSync, clientsAsync } from '../redux/actions/usersActions';
+import { selectClients, update, updateClientAsync, serviceTitanSync, clientsAsync, getAllClientsAsync } from '../redux/actions/usersActions';
 import { logout, showLoginInfo } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
@@ -109,7 +109,7 @@ export default function CustomerData() {
   }, [userInfo, dispatch, navigate]);
 
   const listClient = useSelector(selectClients);
-  const { loading, CLIENTLIST, forSale, recentlySold, count } = listClient;
+  const { csvLoading, loading, CLIENTLIST, forSale, recentlySold, count } = listClient;
 
   const [page, setPage] = useState(0);
   
@@ -143,8 +143,10 @@ export default function CustomerData() {
     setOrderBy(property);
   };
   const handleSelectAllClick = (event) => {
+    
     if (event.target.checked) {
-      const newSelecteds = CLIENTLIST.map((n) => n.name);
+
+      const newSelecteds = CLIENTLIST.slice((page * rowsPerPage), ((page+1) * rowsPerPage)).map((n) => n.address);
       setSelected(newSelecteds);
       
       const newSelectedClients = []
@@ -157,12 +159,13 @@ export default function CustomerData() {
     setSelected([]);
     setSelectedClients([]);
   };
-  const handleClick = (event, name, id) => {
-    const selectedIndex = selected.indexOf(name);
+
+  const handleClick = (event, address, id) => {
+    const selectedIndex = selected.indexOf(address);
     let newSelected = [];
     let newSelectedClients = [];
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
+      newSelected = newSelected.concat(selected, address);
       newSelectedClients = newSelectedClients.concat(selectedClients, id);
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
@@ -202,26 +205,34 @@ export default function CustomerData() {
     dispatch(serviceTitanSync());
   };
 
-  const exportCSV = () => {
+  const exportCSV = async () => {
     if (CLIENTLIST.length === 0) { return }
-    let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += 'Name,Address,City,State,ZipCode,Status,Contacted,Note,Phone Number\r\n';
-    CLIENTLIST.forEach((n) => {
-      csvContent += `${n.name}, ${n.address}, ${n.city}, ${n.state}, ${n.zipCode}, ${n.status}, ${n.contacted}, ${n.note}, ${n.phoneNumber}\r\n`
-    });
+    dispatch(getAllClientsAsync());
+    // const startTime = performance.now();
+    // const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/allClients/${userInfo.id}`, config);
+    // const endTime = performance.now();
+    // const timeElapsed = endTime - startTime;
+    // console.log(`Time elapsed: ${timeElapsed} milliseconds`);
+    // let csvContent = 'data:text/csv;charset=utf-8,';
+    // csvContent += 'Name,Address,City,State,ZipCode,Status,Contacted,Note,Phone Number\r\n';
+    // console.log(data);
+    // data.forEach((n) => {
+    //   csvContent += `${n.name}, ${n.address}, ${n.city}, ${n.state}, ${n.zipCode}, ${n.status}, ${n.contacted}, ${n.note}, ${n.phoneNumber}\r\n`
+    // });
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    const d1 = new Date().toLocaleDateString('en-US')
-    const docName = `isMyCustomerMoving_${d1}`
-    link.setAttribute('download', `${docName}.csv`);
-    document.body.appendChild(link); // Required for FF
-    link.click();
-    document.body.removeChild(link);
+    // const encodedUri = encodeURI(csvContent);
+    // const link = document.createElement('a');
+    // link.setAttribute('href', encodedUri);
+    // const d1 = new Date().toLocaleDateString('en-US')
+    // const docName = `isMyCustomerMoving_${d1}`
+    // link.setAttribute('download', `${docName}.csv`);
+    // document.body.appendChild(link); // Required for FF
+    // link.click();
+    // document.body.removeChild(link);
   };
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
   const filteredClients = userInfo ? applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName, userInfo.status) : [];
+  
   useEffect(() => {
     setShownClients(count)
   }, [count])
@@ -276,7 +287,7 @@ export default function CustomerData() {
                       order={order}
                       orderBy={orderBy}
                       headLabel={TABLE_HEAD}
-                      rowCount={CLIENTLIST.length}
+                      rowCount={rowsPerPage}
                       numSelected={selected.length}
                       onRequestSort={handleRequestSort}
                       onSelectAllClick={handleSelectAllClick}
@@ -285,7 +296,7 @@ export default function CustomerData() {
                     <TableBody>
                       {filteredClients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                         const { id, name, address, city, state, zipCode, status, contacted, note, phoneNumber, clientUpdates} = row;
-                        const isItemSelected = selected.indexOf(name) !== -1;                        
+                        const isItemSelected = selected.indexOf(address) !== -1;                        
                         
                         return (
                           <React.Fragment key={row.id}>
@@ -299,7 +310,7 @@ export default function CustomerData() {
                               onClick={() => handleRowClick(id)}
                             >
                               <TableCell padding="checkbox">
-                                <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, name, id)} />
+                                <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, address, id)} />
                               </TableCell>
                               <TableCell component="th" scope="row" padding="none">
                                 <Stack direction="row" alignItems="center" spacing={2}>
@@ -429,12 +440,20 @@ export default function CustomerData() {
                     Sync With Service Titan
                   </Button>
                 )}
-
-                {(userInfo.status === 'admin') && (
-                  <Button onClick={exportCSV} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
-                    Download To CSV
-                  </Button>
+                {csvLoading ? (
+                  (userInfo.status === 'admin') && (
+                    <Button variant="contained">
+                      <CircularProgress color="secondary"/>
+                    </Button>
+                  )
+                ):(
+                  (userInfo.status === 'admin') && (
+                    <Button onClick={exportCSV} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+                      Download To CSV
+                    </Button>
+                  )
                 )}
+                
               </Stack>
             )}
                                       

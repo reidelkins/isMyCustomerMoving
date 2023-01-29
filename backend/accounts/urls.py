@@ -27,6 +27,7 @@ urlpatterns = [
     path('password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
     path('updateclient/', views.update_client, name='updateclient'),
     path('upload/<str:company>/', views.UploadFileView.as_view(), name='upload-file'),
+    path('allClients/<str:user>/', views.AllClientListView.as_view(), name='all-client-list'),
     path('clients/<str:user>/', views.ClientListView.as_view(), name='client-list'),
     path('users/<str:company>/', views.UserListView.as_view(), name='user-list'),
     path('register/', views.RegisterView.as_view(), name='register'),

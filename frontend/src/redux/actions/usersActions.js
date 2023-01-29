@@ -48,6 +48,7 @@ export const userSlice = createSlice({
       state.clientsInfo.loading = false;
       state.clientsInfo.error = null;
     },
+
     newPage: (state, action) => {
       state.clientsInfo.highestPage = action.payload;
     },
@@ -156,7 +157,6 @@ export const clientsAsync = (page) => async (dispatch, getState) => {
     if (page > reduxStore.user.clientsInfo.highestPage) {
       dispatch(newPage(page))
       const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.id}?page=${page}`, config);
-      console.log(data)
       if (page === 1) {
         dispatch(clients(data));        
       } else {
