@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 import _, { filter} from 'lodash';
+import axios from 'axios';
 import { sentenceCase } from 'change-case';
 import React, { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
@@ -23,6 +24,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
+import { DOMAIN } from '../redux/constants';
 
 // components
 import NoteModal from '../components/NoteModal';
@@ -38,7 +40,7 @@ import ClientEventTable from '../components/ClientEventTable';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
 
 import ClientsListCall from '../redux/calls/ClientsListCall';
-import { selectClients, update, updateClientAsync, serviceTitanSync, clientsAsync, getAllClientsAsync } from '../redux/actions/usersActions';
+import { selectClients, update, updateClientAsync, serviceTitanSync, clientsAsync } from '../redux/actions/usersActions';
 import { logout, showLoginInfo } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
@@ -109,7 +111,7 @@ export default function CustomerData() {
   }, [userInfo, dispatch, navigate]);
 
   const listClient = useSelector(selectClients);
-  const { csvLoading, loading, CLIENTLIST, forSale, recentlySold, count } = listClient;
+  const {loading, CLIENTLIST, forSale, recentlySold, count } = listClient;
 
   const [page, setPage] = useState(0);
   
@@ -128,6 +130,8 @@ export default function CustomerData() {
   const [shownClients, setShownClients] = useState(0);
 
   const [expandedRow, setExpandedRow] = useState(null);
+
+  const [csvLoading, setCsvLoading] = useState(false);
 
   const handleRowClick = (rowIndex) => {
     if (expandedRow === rowIndex) {
@@ -207,28 +211,32 @@ export default function CustomerData() {
 
   const exportCSV = async () => {
     if (CLIENTLIST.length === 0) { return }
-    dispatch(getAllClientsAsync());
-    // const startTime = performance.now();
-    // const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/allClients/${userInfo.id}`, config);
-    // const endTime = performance.now();
-    // const timeElapsed = endTime - startTime;
-    // console.log(`Time elapsed: ${timeElapsed} milliseconds`);
-    // let csvContent = 'data:text/csv;charset=utf-8,';
-    // csvContent += 'Name,Address,City,State,ZipCode,Status,Contacted,Note,Phone Number\r\n';
-    // console.log(data);
-    // data.forEach((n) => {
-    //   csvContent += `${n.name}, ${n.address}, ${n.city}, ${n.state}, ${n.zipCode}, ${n.status}, ${n.contacted}, ${n.note}, ${n.phoneNumber}\r\n`
-    // });
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+    setCsvLoading(true);
+    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/allClients/${userInfo.id}`, config);
+    let csvContent = 'data:text/csv;charset=utf-8,';
+    csvContent += 'Name,Address,City,State,ZipCode,Status,Contacted,Note,Phone Number\r\n';
+    data.forEach((n) => {
+      csvContent += `${n.name}, ${n.address}, ${n.city}, ${n.state}, ${n.zipCode}, ${n.status}, ${n.contacted}, ${n.note}, ${n.phoneNumber}\r\n`
+    });
 
-    // const encodedUri = encodeURI(csvContent);
-    // const link = document.createElement('a');
-    // link.setAttribute('href', encodedUri);
-    // const d1 = new Date().toLocaleDateString('en-US')
-    // const docName = `isMyCustomerMoving_${d1}`
-    // link.setAttribute('download', `${docName}.csv`);
-    // document.body.appendChild(link); // Required for FF
-    // link.click();
-    // document.body.removeChild(link);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    // Create a download link for the CSV file
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    const d1 = new Date().toLocaleDateString('en-US')
+    const docName = `isMyCustomerMoving_${d1}`    
+
+    link.setAttribute('download', `${docName}.csv`);
+    document.body.appendChild(link); // add the link to body
+    link.click();
+    document.body.removeChild(link); // remove the link from body
+    setCsvLoading(false);
   };
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
   const filteredClients = userInfo ? applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName, userInfo.status) : [];
