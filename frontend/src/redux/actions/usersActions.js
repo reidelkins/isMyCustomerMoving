@@ -143,8 +143,6 @@ export const clientsAsync = (page) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
-    
-
     const config = {
       headers: {
         'Content-type': 'application/json',
@@ -155,8 +153,9 @@ export const clientsAsync = (page) => async (dispatch, getState) => {
       dispatch(clientsLoading());
     }
     if (page > reduxStore.user.clientsInfo.highestPage) {
-      dispatch(newPage(page))
       const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.id}?page=${page}`, config);
+      if (data.results.clients.length > 0) {
+        dispatch(newPage(page));      }
       if (page === 1) {
         dispatch(clients(data));        
       } else {
@@ -226,16 +225,11 @@ export const serviceTitanUpdateAsync = (id, access) => async (dispatch) => {
     const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/servicetitan/${id}/`, config);
     if (data.status === 'SUCCESS') {
       dispatch(clientsNotAdded(data.deleted))
-      setTimeout(() => {
-        dispatch(clientsAsync());
-      }, 2000);
-    } else {
-      // if (data.clients.length !== 0) {
-      //   dispatch(clients(data.clients))
-      // }      
+      dispatch(clientsAsync(1));
+    } else {     
       setTimeout(() => {
         dispatch(serviceTitanUpdateAsync(id, access));
-      }, 2000);
+      }, 1000);
       
     }
   } catch (error) {
