@@ -29,6 +29,12 @@ export const userSlice = createSlice({
       error: null,
       USERLIST: [],
     },
+    recentlySoldInfo: {
+      loading: false,
+      error: null,
+      RECENTLYSOLDLIST: [],
+      hightestPage: 0
+    }
   },
   reducers: {
     // -----------------  CLIENTS  -----------------
@@ -81,6 +87,31 @@ export const userSlice = createSlice({
       state.usersInfo.USERLIST = [];
     },
 
+    // -----------------  RECENTLY SOLD  -----------------
+    recentlySold: (state, action) => {
+      state.recentlySoldInfo.RECENTLYSOLDLIST = action.payload;
+      state.recentlySoldInfo.loading = false;
+      state.recentlySoldInfo.error = null;
+    },
+    recentlySoldError: (state, action) => {
+      state.recentlySoldInfo.error = action.payload;
+      state.recentlySoldInfo.loading = false;
+      state.recentlySoldInfo.RECENTLYSOLDLIST = [];
+    },
+    recentlySoldLoading: (state) => {
+      state.recentlySoldInfo.loading = true;
+      state.recentlySoldInfo.RECENTLYSOLDLIST = [];
+    },
+    moreRecentlySold: (state, action) => {
+      state.recentlySoldInfo.RECENTLYSOLDLIST = [...state.recentlySoldInfo.RECENTLYSOLDLIST, ...action.payload.results.recentlysold];
+      state.recentlySoldInfo.loading = false;
+      state.recentlySoldInfo.error = null;
+    },
+
+    newRecentlySoldPage: (state, action) => {
+      state.recentlySoldInfo.highestPage = action.payload;
+    },
+
     // TODO
     sendNewUserEmail: (state) => {
       state.clientsInfo.loading = false;
@@ -94,8 +125,11 @@ export const userSlice = createSlice({
   },
 });
 
-export const { clientsNotAdded, clients, moreClients, newPage, clientsUploading, clientsLoading, clientsError, users, usersLoading, usersError } = userSlice.actions;
+export const { clientsNotAdded, clients, moreClients, newPage, clientsUploading, clientsLoading, clientsError,
+   users, usersLoading, usersError,
+   recentlySold, recentlySoldLoading, recentlySoldError, newRecentlySoldPage, moreRecentlySold } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
+export const selectRecentlySold = (state) => state.user.recentlySoldInfo;
 export const selectUsers = (state) => state.user.usersInfo;
 export default userSlice.reducer;
 
@@ -369,3 +403,31 @@ export const update = () => async (dispatch, getState) => {
     throw new Error(error);
   }
 };
+
+export const recentlySoldAsync = (page) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+    if (page === 1) {
+      dispatch(recentlySoldLoading());
+    }
+    if (page > reduxStore.user.clientsInfo.highestPage) {
+      const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/recentlysold/${userInfo.company.id}?page=${page}`, config);
+      if (data.results.clients.length > 0) {
+        dispatch(newRecentlySoldPage(page));      }
+      if (page === 1) {
+        dispatch(recentlySold(data));        
+      } else {
+        dispatch(moreRecentlySold(data));
+      }
+    }
+  } catch (error) {
+    dispatch(recentlySoldError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+}

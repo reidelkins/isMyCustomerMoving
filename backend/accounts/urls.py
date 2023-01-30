@@ -15,6 +15,8 @@ urlpatterns = [
     path('verify_registration/', views.VerifyRegistrationView.as_view(), name='verify'),
     path('refresh_token/', TokenRefreshView.as_view(), name='refresh_token'),
     path('confirmation/<str:pk>/<str:uid>/', views.confirmation, name='email_confirmation'),
+
+    path('recentlysold/<str:company>/', views.RecentlySoldView.as_view(), name='recently-sold'),
     
     path('otp/disable/', views.OTPDisableView.as_view(), name='otp-disable'),
     path('otp/validate/', views.OTPValidateView.as_view(), name='otp-validate'),

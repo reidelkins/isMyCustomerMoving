@@ -682,7 +682,7 @@ def get_serviceTitan_clients(company_id, task_id):
     page = 1
     while(moreClients):
         print(f'getting page {page} of clients')
-        response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/customers?page={page}&pageSize=2500', headers=headers)
+        response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/locations?page={page}&pageSize=2500', headers=headers)
         page += 1
         clients = response.json()['data']
         if response.json()['hasMore'] == False:

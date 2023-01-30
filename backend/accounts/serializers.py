@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Company, Client, ClientUpdate
+from .models import CustomUser, Company, Client, ClientUpdate, HomeListing
 from payments.models import Product
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -113,4 +113,17 @@ class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ('id', 'first_name', 'last_name', 'email', 'status')
+
+class HomeListingSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(read_only=True)
+    address = serializers.CharField(max_length=100)
+    zipCode = serializers.SerializerMethodField(read_only=True)
+    listed = serializers.CharField(max_length=30)
+
+    def get_zipCode(self, obj):
+        return obj.zipCode.zipCode
+    
+    class Meta:
+        model = HomeListing
+        fields = ('address', 'listed', 'zipCode')
 
