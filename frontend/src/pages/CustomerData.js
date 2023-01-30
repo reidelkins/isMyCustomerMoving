@@ -88,9 +88,7 @@ export function applySortFilter(array, comparator, query, userInfo) {
     return a[1] - b[1];
   });
   if (query) {
-    const filter = filter(array, (_user) => _.some(_user, val=>val && val.toString().toLowerCase().includes(query.toLowerCase())));
-    setShownClients(filter.length);
-    return filter;
+    return filter(array, (_user) => _.some(_user, val=>val && val.toString().toLowerCase().includes(query.toLowerCase())));;
   }
   return stabilizedThis.map((el) => el[0]);
 }
@@ -244,8 +242,12 @@ export default function CustomerData() {
   const filteredClients = userInfo ? applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName, userInfo.status) : [];
   
   useEffect(() => {
-    setShownClients(count)
-  }, [count])
+    if (filteredClients.length < CLIENTLIST.length) {
+      setShownClients(filteredClients.length)
+    } else {
+      setShownClients(count)
+    }
+  }, [count, filteredClients])
 
   return (
     <Page title="User">
