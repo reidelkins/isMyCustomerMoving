@@ -176,7 +176,7 @@ def getAllZipcodes(company):
     zipCodes = zipCode_objects.distinct()
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
     zips = list(zipCodes.order_by('zipCode').values('zipCode'))
-    zips = [{'zipCode': '37922'}]
+    # zips = [{'zipCode': '37922'}]
     for i in range(len(zips) * 2):
     # for i in range(100, 130):
         extra = ""
@@ -441,8 +441,8 @@ def updateStatus(zip, company, status):
         toList.status = status
         toList.save()
         try:
-            listing = HomeListing.objects.get(zipCode=zipCode_object, address=toList.address, status=status)
-            ClientUpdate.objects.get_or_create(client=toList, status=status, listed=listing.listed)
+            listing = HomeListing.objects.filter(zipCode=zipCode_object, address=toList.address, status=status)
+            ClientUpdate.objects.get_or_create(client=toList, status=status, listed=listing[0].listed)
         except Exception as e:
             print("Cant find listing to list")
             print("This should not be the case")

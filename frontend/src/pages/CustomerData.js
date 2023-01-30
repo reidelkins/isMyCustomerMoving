@@ -88,7 +88,9 @@ export function applySortFilter(array, comparator, query, userInfo) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_user) => _.some(_user, val=>val && val.toString().toLowerCase().includes(query.toLowerCase())));
+    const filter = filter(array, (_user) => _.some(_user, val=>val && val.toString().toLowerCase().includes(query.toLowerCase())));
+    setShownClients(filter.length);
+    return filter;
   }
   return stabilizedThis.map((el) => el[0]);
 }
