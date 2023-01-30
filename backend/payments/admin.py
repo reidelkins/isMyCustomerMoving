@@ -3,6 +3,6 @@ from .models import Product
 
 # Register your models here.
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('tier', 'timeFrame', 'pid', 'customerLimit')
+    list_display = ('id', 'tier', 'timeFrame', 'pid', 'customerLimit')
 
 admin.site.register(Product, ProductAdmin)
