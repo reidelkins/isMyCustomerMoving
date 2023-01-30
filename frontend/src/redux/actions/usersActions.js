@@ -33,7 +33,8 @@ export const userSlice = createSlice({
       loading: false,
       error: null,
       RECENTLYSOLDLIST: [],
-      hightestPage: 0
+      highestPage: 0,
+      count: 0,
     }
   },
   reducers: {
@@ -89,9 +90,10 @@ export const userSlice = createSlice({
 
     // -----------------  RECENTLY SOLD  -----------------
     recentlySold: (state, action) => {
-      state.recentlySoldInfo.RECENTLYSOLDLIST = action.payload;
+      state.recentlySoldInfo.RECENTLYSOLDLIST = action.payload.results;
       state.recentlySoldInfo.loading = false;
       state.recentlySoldInfo.error = null;
+      state.recentlySoldInfo.count = action.payload.count;
     },
     recentlySoldError: (state, action) => {
       state.recentlySoldInfo.error = action.payload;
@@ -101,11 +103,13 @@ export const userSlice = createSlice({
     recentlySoldLoading: (state) => {
       state.recentlySoldInfo.loading = true;
       state.recentlySoldInfo.RECENTLYSOLDLIST = [];
+      state.recentlySoldInfo.highestPage = 0;
     },
     moreRecentlySold: (state, action) => {
-      state.recentlySoldInfo.RECENTLYSOLDLIST = [...state.recentlySoldInfo.RECENTLYSOLDLIST, ...action.payload.results.recentlysold];
+      state.recentlySoldInfo.RECENTLYSOLDLIST = [...state.recentlySoldInfo.RECENTLYSOLDLIST, ...action.payload.results];
       state.recentlySoldInfo.loading = false;
       state.recentlySoldInfo.error = null;
+      state.recentlySoldInfo.count = action.payload.count;
     },
 
     newRecentlySoldPage: (state, action) => {
@@ -417,10 +421,14 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
     if (page === 1) {
       dispatch(recentlySoldLoading());
     }
-    if (page > reduxStore.user.clientsInfo.highestPage) {
+    console.log(page)
+    console.log(reduxStore.user.recentlySoldInfo.highestPage)
+    if (page > reduxStore.user.recentlySoldInfo.highestPage) {
       const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/recentlysold/${userInfo.company.id}?page=${page}`, config);
-      if (data.results.clients.length > 0) {
-        dispatch(newRecentlySoldPage(page));      }
+      console.log(data)
+      if (data.results.length > 0) {
+        dispatch(newRecentlySoldPage(page));
+      }
       if (page === 1) {
         dispatch(recentlySold(data));        
       } else {

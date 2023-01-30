@@ -429,10 +429,21 @@ class RecentlySoldView(generics.ListAPIView):
     pagination_class = CustomPagination
     def get_queryset(self):
         company = Company.objects.get(id=self.kwargs['company'])
-        if company.recentlySold:
+        if company.recentlySoldPurchased:
             zipCode_objects = Client.objects.filter(company=company).values('zipCode')            
-            return HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__lt=(datetime.datetime.today()-datetime.timedelta(days=7)).strftime('%Y-%m-%d'))
+            return HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')
+        else:
+            return HomeListing.objects.none()
 
+class AllRecentlySoldView(generics.ListAPIView):
+    serializer_class = HomeListingSerializer
+    def get_queryset(self):
+        company = Company.objects.get(id=self.kwargs['company'])
+        if company.recentlySoldPurchased:
+            zipCode_objects = Client.objects.filter(company=company).values('zipCode')            
+            return HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')
+        else:
+            return HomeListing.objects.none()
 
 class UserListView(generics.ListAPIView):
     serializer_class = UserListSerializer

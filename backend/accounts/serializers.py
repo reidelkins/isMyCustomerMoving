@@ -18,6 +18,7 @@ class CompanySerializer(serializers.ModelSerializer):
     serviceTitanForRentTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanForSaleTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanRecentlySoldTagID = serializers.CharField(max_length=100, required=False)
+    recentlySoldPurchased = serializers.BooleanField(default=False)
 
     def create(self, validated_data):
         if Company.objects.filter(name=validated_data['name']).exists():
@@ -25,7 +26,7 @@ class CompanySerializer(serializers.ModelSerializer):
         return Company.objects.create(**validated_data, accessToken=get_random_string(length=32))
     class Meta:
         model = Company
-        fields=['id', 'name', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID']
+        fields=['id', 'name', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased']
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -125,5 +126,5 @@ class HomeListingSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = HomeListing
-        fields = ('address', 'listed', 'zipCode')
+        fields = ('id', 'address', 'listed', 'zipCode')
 
