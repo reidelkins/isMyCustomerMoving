@@ -12,6 +12,11 @@ const navConfig = [
     icon: getIcon('eva:people-fill'),
   },
   {
+    title: 'Recently Sold Data',
+    path: '/dashboard/recentlysold',
+    icon: getIcon('material-symbols:house'),
+  },
+  {
     title: 'Settings',
     path: '/dashboard/settings',
     icon: getIcon('ri:user-settings-fill'),

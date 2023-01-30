@@ -15,8 +15,8 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import pandas as pd
 from .utils import getAllZipcodes, saveClientList, makeCompany, get_serviceTitan_clients
-from .models import CustomUser, Client, Company, InviteToken, Task, ClientUpdate
-from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, ClientListSerializer, MyTokenObtainPairSerializer
+from .models import CustomUser, Client, Company, InviteToken, Task, ClientUpdate, HomeListing
+from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, ClientListSerializer, MyTokenObtainPairSerializer, HomeListingSerializer
 import datetime
 import jwt
 from config import settings
@@ -267,7 +267,7 @@ def confirmation(request, pk, uid):
     if user.isVerified == False and datetime.datetime.fromtimestamp(token['exp']) > datetime.datetime.now():
         user.isVerified = True
         user.save()
-        return redirect('http://localhost:3006/login')
+        return redirect('http://www.ismycustomermoving.com/login')
 
     elif (datetime.datetime.fromtimestamp(token['exp']) < datetime.datetime.now()):
 
@@ -276,7 +276,7 @@ def confirmation(request, pk, uid):
         
         return HttpResponse('Your activation link has been expired')
     else:
-        return redirect('http://localhost:3000/login')
+        return redirect('http://www.ismycustomermoving.com/login')
     
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
@@ -423,6 +423,27 @@ class ClientListView(generics.ListAPIView):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response({"forSale": forSale, "forSaleAllTime": forSaleAllTime, "recentlySoldAllTime": recentlySoldAllTime, "recentlySold": recentlySold, "clients": clients})
+
+class RecentlySoldView(generics.ListAPIView):
+    serializer_class = HomeListingSerializer
+    pagination_class = CustomPagination
+    def get_queryset(self):
+        company = Company.objects.get(id=self.kwargs['company'])
+        if company.recentlySoldPurchased:
+            zipCode_objects = Client.objects.filter(company=company).values('zipCode')            
+            return HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')
+        else:
+            return HomeListing.objects.none()
+
+class AllRecentlySoldView(generics.ListAPIView):
+    serializer_class = HomeListingSerializer
+    def get_queryset(self):
+        company = Company.objects.get(id=self.kwargs['company'])
+        if company.recentlySoldPurchased:
+            zipCode_objects = Client.objects.filter(company=company).values('zipCode')            
+            return HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')
+        else:
+            return HomeListing.objects.none()
 
 class UserListView(generics.ListAPIView):
     serializer_class = UserListSerializer

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Company, Client, ClientUpdate
+from .models import CustomUser, Company, Client, ClientUpdate, HomeListing
 from payments.models import Product
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -18,6 +18,7 @@ class CompanySerializer(serializers.ModelSerializer):
     serviceTitanForRentTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanForSaleTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanRecentlySoldTagID = serializers.CharField(max_length=100, required=False)
+    recentlySoldPurchased = serializers.BooleanField(default=False)
 
     def create(self, validated_data):
         if Company.objects.filter(name=validated_data['name']).exists():
@@ -25,7 +26,7 @@ class CompanySerializer(serializers.ModelSerializer):
         return Company.objects.create(**validated_data, accessToken=get_random_string(length=32))
     class Meta:
         model = Company
-        fields=['id', 'name', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID']
+        fields=['id', 'name', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased']
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -113,4 +114,17 @@ class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ('id', 'first_name', 'last_name', 'email', 'status')
+
+class HomeListingSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(read_only=True)
+    address = serializers.CharField(max_length=100)
+    zipCode = serializers.SerializerMethodField(read_only=True)
+    listed = serializers.CharField(max_length=30)
+
+    def get_zipCode(self, obj):
+        return obj.zipCode.zipCode
+    
+    class Meta:
+        model = HomeListing
+        fields = ('id', 'address', 'listed', 'zipCode')
 

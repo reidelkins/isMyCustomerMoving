@@ -4,6 +4,7 @@ import DashboardLayout from './layouts/dashboard';
 import LogoOnlyLayout from './layouts/LogoOnlyLayout';
 //
 import CustomerData from './pages/CustomerData';
+import RecentlySoldData from './pages/RecentlySoldData';
 import Login from './pages/Login';
 import Validate2fa from './pages/Validate2fa';
 import ForgotPassword from './pages/ForgotPassword';
@@ -30,6 +31,7 @@ export default function Router() {
         { path: 'settings', element: <ProfileSettings /> },
         // { path: 'customers', element: <PrivateRoute path="/dashboard/customers" component={<CustomerData />} /> },
         { path: 'customers', element: <CustomerData /> },
+        { path: 'recentlysold', element: <RecentlySoldData />},
         // { path: 'adduser', element: <PrivateRoute path="/dashboard/adduser" component={<AddUser />} />}
         { path: 'adduser', element: <AddUser />},
       ],

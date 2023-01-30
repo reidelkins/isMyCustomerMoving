@@ -85,10 +85,9 @@ def publishable_key(request):
                 'data': {'publishable_key': settings.STRIPE_PUBLISHABLE_KEY } }
         )
 
-
+# when customer/subscription created 
 @webhooks.handler('customer.created')
 def create_customer(event: djstripe_models.Event):
-    print("wassup duddddde")
     obj = event.data['object']
     company = obj['name']
     email = obj['email']
@@ -100,12 +99,17 @@ def create_customer(event: djstripe_models.Event):
         makeCompany(company, email, phone, stripeID)
     print("done")
 
+
+# important in the case that company adds back a canceled subscription
 @webhooks.handler('customer.subscription.created')
 def create_subscription(event: djstripe_models.Event):
     try:
         obj = event.data['object']
         customer = djstripe_models.Customer.objects.get(id=obj['customer'])
         company = Company.objects.get(email=customer.email)
+        product = Product.objects.get(pid=obj['items']['data'][0]['price']['id'])
+        company.product = product
+        company.save()
         users = CustomUser.objects.filter(company=company)
         for user in users:
             user.isVerified = True
@@ -142,6 +146,9 @@ def update_subscription(event: djstripe_models.Event):
         product = Product.objects.get(pid=plan.id)
         company = Company.objects.get(email=customer.email)
         company.product = product
+        withAllHomeSalesAddOn = []
+        if product.id in withAllHomeSalesAddOn:
+            company.recentlySoldPurchased = True
         company.save()
     except Exception as e:
         print(e)
