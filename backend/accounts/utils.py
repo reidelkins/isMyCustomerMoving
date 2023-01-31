@@ -177,14 +177,14 @@ def getAllZipcodes(company):
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
     zips = list(zipCodes.order_by('zipCode').values('zipCode'))
     zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
-    # zips = [{'zipCode': '37922'}]
+    zips = [{'zipCode': '37922'}, {'zipCode': '37830'}, {'zipCode': '37934'}, {'zipCode': '37932'}, {'zipCode': '37918'}]
     for i in range(len(zips) * 2):
-    # for i in range(100, 130):
+    # for i in range(len(zips)):
         extra = ""
-        if i % 3 == 0:
+        if i % 2 == 0:
             status = "House For Sale"
             url = "https://www.realtor.com/realestateandhomes-search"
-        elif i % 3 == 1:
+        elif i % 2 == 1:
             status = "House Recently Sold (6)"
             url = "https://www.realtor.com/realestateandhomes-search"
             extra = "show-recently-sold/"
@@ -192,21 +192,6 @@ def getAllZipcodes(company):
         #     status = "For Rent"
         #     url = "https://www.realtor.com/apartments"
         find_data.delay(str(zips[i//2]['zipCode']), i, status, url, extra)
-    # total_zips = zips.count()
-    # for i in range(0, total_zips, BATCH_SIZE):
-    #     batch_zips = zips[i:i+BATCH_SIZE]
-    #     for zip_code in batch_zips:
-    #         for i in range(len(batch_zips) * 2):
-    #             extra = ""
-    #             if i % 3 == 0:
-    #                 status = "House For Sale"
-    #                 url = "https://www.realtor.com/realestateandhomes-search"
-    #             elif i % 3 == 1:
-    #                 status = "House Recently Sold (6)"
-    #                 url = "https://www.realtor.com/realestateandhomes-search"
-    #                 extra = "show-recently-sold/"
-    #             find_data.delay(str(zip_code['zipCode']), company, i, status, url, extra)
-    
     del zipCodes
     del zipCode_objects
     del zips
@@ -316,7 +301,7 @@ def find_data(zip, i, status, url, extra):
             first_result = scrapfly.scrape(ScrapeConfig(first_page, country="US", asp=False, proxy_pool="public_datacenter_pool"))
         content = first_result.scrape_result['content']
         soup = BeautifulSoup(content, features='html.parser')
-        resp = ScrapeResponse.objects.create(response=str(content), zip=zip, status=status)
+        resp = ScrapeResponse.objects.create(response=str(content), zip=zip, status=status, url=first_page)
         if "pg-1" not in first_result.context["url"]:
             url = first_result.context["url"] + "/pg-1"
         else:
@@ -349,7 +334,7 @@ def find_data(zip, i, status, url, extra):
                 scrapfly = scrapflies[i+5 % 20]
                 new_results = scrapfly.scrape(ScrapeConfig(url=page_url, country="US", asp=False, proxy_pool="public_datacenter_pool"))
             content = new_results.scrape_result['content']
-            resp = ScrapeResponse.objects.create(response=str(content), zip=zip, status=status)
+            resp = ScrapeResponse.objects.create(response=str(content), zip=zip, status=status, url=page_url)
             parsed = parse_search(new_results, status)            
             if status == "For Rent":
                 results = parsed["properties"]
@@ -429,13 +414,7 @@ def updateStatus(zip, company, status):
     listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')       
     clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses, zipCode=zipCode_object)
     previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status)
-    newlyListed = clientsToUpdate.difference(previousListed)
-    # TODO There is an issue where clients uploaded with wrong zip code and are being marked to be unlisted when they should not be
-    # unlisted = previousListed.difference(clientsToUpdate)
-    # for toUnlist in unlisted:
-    #     toUnlist.status = "Taken Off Market"
-    #     toUnlist.save()
-    #     ClientUpdate.objects.create(client=toUnlist, status="Taken Off Market")
+    newlyListed = clientsToUpdate.difference(previousListed)    
     for toList in newlyListed:
         toList.status = status
         toList.save()
@@ -445,6 +424,14 @@ def updateStatus(zip, company, status):
         except Exception as e:
             print("Cant find listing to list")
             print("This should not be the case")
+    # TODO There is an issue where clients uploaded with wrong zip code and are being marked to be unlisted when they should not be
+    # unlisted = previousListed.difference(clientsToUpdate)
+    # for toUnlist in unlisted:
+    #     toUnlist.status = "Taken Off Market"
+    #     toUnlist.save()
+    #     ClientUpdate.objects.create(client=toUnlist, status="Taken Off Market")
+
+
     clientsToUpdate = list(clientsToUpdate.values_list('servTitanID', flat=True))
     if clientsToUpdate:
         update_serviceTitan_client_tags.delay(clientsToUpdate, company.id, status)
@@ -493,34 +480,6 @@ def updateStatus(zip, company, status):
         del clientsToUpdate
     except:
         pass
-
-# def updateStatus(zip, company, status):
-#     company = Company.objects.get(id=company)
-#     try:
-#         zipCode_object = ZipCode.objects.get(zipCode=zip)
-#     except Exception as e:
-#         print(f"ERROR during updateStatus: {e} with zipCode {zip}")
-#         return
-
-#     # Use select_related() to reduce number of queries to retrieve related data
-#     listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).select_related('address').values('address')
-#     clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses)
-
-#     # Use update() to update multiple clients at once
-#     unlisted = Client.objects.filter(company=company, zipCode=zipCode_object, status=status).exclude(address__in=listedAddresses)
-#     unlisted.update(status="Taken Off Market")
-#     ClientUpdate.objects.bulk_create([ClientUpdate(client=client, status="Taken Off Market") for client in unlisted])
-
-#     newlyListed = clientsToUpdate.exclude(status=status)
-#     newlyListed.update(status=status)
-#     for toList in newlyListed:
-#         try:
-#             listing = HomeListing.objects.get(zipCode=zipCode_object, address=toList.address, status=status)
-#             ClientUpdate.objects.get_or_create(client=toList, status=status, listed=listing.listed)
-#         except Exception as e:
-#             print("Cant find listing to list")
-#             print("This should not be the case")
-#     clientsToUpdate = list(clientsToUpdate.values_list('servTitanID', flat=True))
 
 @shared_task
 def update_clients_statuses(company_id=None):

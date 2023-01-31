@@ -134,6 +134,7 @@ class ScrapeResponse(models.Model):
     response = models.TextField(default="")
     zip = models.IntegerField(blank=True, null=True)
     status = models.CharField(max_length=25, choices=STATUS, default='No Change', blank=True, null=True)
+    url = models.CharField(max_length=100, blank=True, null=True)
 
 class HomeListing(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,

@@ -66,7 +66,9 @@ export const userSlice = createSlice({
     },
     clientsLoading: (state) => {
       state.clientsInfo.loading = true;
-      state.clientsInfo.CLIENTLIST = [];
+    },
+    clientsNotLoading: (state) => {
+      state.clientsInfo.loading = false;
     },
     clientsNotAdded: (state, action) => {
       state.clientsInfo.deleted = action.payload;
@@ -129,7 +131,7 @@ export const userSlice = createSlice({
   },
 });
 
-export const { clientsNotAdded, clients, moreClients, newPage, clientsUploading, clientsLoading, clientsError,
+export const { clientsNotAdded, clients, moreClients, newPage, clientsUploading, clientsLoading, clientsNotLoading, clientsError,
    users, usersLoading, usersError,
    recentlySold, recentlySoldLoading, recentlySoldError, newRecentlySoldPage, moreRecentlySold } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
@@ -199,6 +201,8 @@ export const clientsAsync = (page) => async (dispatch, getState) => {
       } else {
         dispatch(moreClients(data));
       }
+    } else {
+      dispatch(clientsNotLoading());
     }
   } catch (error) {
     localStorage.removeItem('userInfo');

@@ -85,8 +85,8 @@ class TaskAdmin(admin.ModelAdmin):
     list_display = ('id', 'complete', 'updater', 'deleted')
 
 class ScrapeResponseAdmin(admin.ModelAdmin):
-    list_display = ('id', 'date', 'zip', 'status')
-    search_fields = ['id', 'date', 'zip', 'status']
+    list_display = ('id', 'date', 'zip', 'status', 'url')
+    search_fields = ['id', 'date', 'zip', 'status', 'url']
 
 
 # Register your models here.
