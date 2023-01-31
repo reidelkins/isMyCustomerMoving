@@ -857,7 +857,7 @@ def remove_all_serviceTitan_tags(company):
             data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
             response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
             headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
-            time = datetime.datetime.now()
+            time = datetime.now()
             tagTypes = [[str(company.serviceTitanForSaleTagID)], [str(company.serviceTitanRecentlySoldTagID)]]
             for tag in tagTypes:
                 # get a list of all the servTitanIDs for the clients with one from this company
@@ -865,14 +865,14 @@ def remove_all_serviceTitan_tags(company):
                 clients = list(Client.objects.filter(company=company).exclude(servTitanID=None).values_list('servTitanID', flat=True))
                 iters = (len(clients) // 250) + 1
                 for i in range(iters):
-                    if time < datetime.datetime.now()-datetime.timedelta(minutes=15):
+                    if time < datetime.now()-timedelta(minutes=15):
                         headers = {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         }
                         data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
                         response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
                         headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
-                        time = datetime.datetime.now()
+                        time = datetime.now()
                     print(i)
                     x = clients[i*250:(i+1)*250]
                     payload={'customerIds': x, 'tagTypeIds': tag}
