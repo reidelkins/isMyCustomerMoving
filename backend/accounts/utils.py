@@ -453,8 +453,10 @@ def updateStatus(zip, company, status):
     #     ClientUpdate.objects.create(client=toUnlist, status="Taken Off Market")
 
 
-    clientsToUpdate = list(newlyListed.exclude(servTitanID=None).values_list('servTitanID', flat=True))
-    print(clientsToUpdate)
+    clientsToUpdate = list(newlyListed.values_list('servTitanID', flat=True))
+    for client in clientsToUpdate:
+        if client is None:
+            clientsToUpdate.remove(client)
     if clientsToUpdate:
         update_serviceTitan_client_tags.delay(clientsToUpdate, company.id, status)
     gc.collect()
@@ -755,20 +757,25 @@ def update_serviceTitan_client_tags(forSale, company, status):
     try:
         company = Company.objects.get(id=company)
         if forSale and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):
+            print("inside")
+            print(forSale)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
             data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
             response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
+            print("got token")
             headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
             if status == 'House For Sale':
                 tagType = [str(company.serviceTitanForSaleTagID)]
             elif status == 'House Recently Sold (6)':
+                print("deleting old tags")
                 forSaleToRemove = forSale
                 tagType = [str(company.serviceTitanRecentlySoldTagID)]
                 payload={'customerIds': forSaleToRemove, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
                 response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
                 if response.status_code != 200:
+                    print("error deleting old tags")
                     resp = response.json()
                     error = resp['title']
                     error = error.replace('(', "").replace(')', "").replace(',', " ").replace(".", "").split()
@@ -780,9 +787,14 @@ def update_serviceTitan_client_tags(forSale, company, status):
                                 forSaleToRemove.remove(word)
                     payload={'customerIds': forSaleToRemove, 'tagTypeIds': tagType}
                     response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
+                    print(response.status_code)
+                    if response.status_code != 200:
+                        print(response.json())
+            print("adding new tags")
             payload={'customerIds': forSale, 'tagTypeIds': tagType}
             response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
             if response.status_code != 200:
+                print("error adding new tags")
                 resp = response.json()
                 error = resp['title']
                 error = error.replace('(', "").replace(')', "").replace(',', " ").replace(".", "").split()
