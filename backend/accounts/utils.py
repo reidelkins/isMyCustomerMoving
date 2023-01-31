@@ -174,7 +174,7 @@ def getAllZipcodes(company):
     company_object = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company_object).values('zipCode')
     zipCodes = zipCode_objects.distinct()
-    zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects)#, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
+    zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
     zips = list(zipCodes.order_by('zipCode').values('zipCode'))
     zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
     # zips = [{'zipCode': '37922'}, {'zipCode': '37830'}, {'zipCode': '37934'}, {'zipCode': '37932'}, {'zipCode': '37918'}]
@@ -424,7 +424,8 @@ def updateStatus(zip, company, status):
     listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')       
     clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses, zipCode=zipCode_object)
     previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status)
-    newlyListed = clientsToUpdate.difference(previousListed)    
+    newlyListed = clientsToUpdate.difference(previousListed)
+    #TODO add logic so if date for one listing is older than date of other, it will not update status
     for toList in newlyListed:
         toList.status = status
         toList.save()
@@ -836,11 +837,13 @@ def remove_all_serviceTitan_tags(company):
                 if response.status_code != 200:
                     resp = response.json()
                     print(resp)
-                    error = resp['errors'][''][0]
-                    error = error.replace('(', "").replace(')', "").replace(',', " ").replace(".", "").split()
+                    error = resp['title']
+                    error = error.replace('(', "").replace(')', "").replace(',', " ").replace(".", "")
+                    print(error)
+                    error = error.split()
                     for word in error:
                         if word.isdigit():
-                            Client.objects.filter(servTitanID=word).delete()
+                            # Client.objects.filter(servTitanID=word).delete()
                             if word in clients:
                                 clients.remove(word)
 
