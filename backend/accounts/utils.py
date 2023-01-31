@@ -167,7 +167,8 @@ def updateClientList(numbers):
         del numbers   
     except:
         pass 
-      
+
+
 @shared_task
 def getAllZipcodes(company):
     company_object = Company.objects.get(id=company)
