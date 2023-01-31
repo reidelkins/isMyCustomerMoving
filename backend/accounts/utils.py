@@ -845,8 +845,9 @@ def remove_all_serviceTitan_tags(company):
                         print(word)
                         if word.isdigit():
                             print("is digit")
+                            word = int(word)
                             # Client.objects.filter(servTitanID=word).delete()
-                            if word in clients:
+                            if (word) in clients:
                                 print("in clients")
                                 clients.remove(word)
 
