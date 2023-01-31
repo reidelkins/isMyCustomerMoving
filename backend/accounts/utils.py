@@ -764,11 +764,12 @@ def update_serviceTitan_client_tags(forSale, company, status):
             response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
             if response.status_code != 200:
                 resp = response.json()
-                error = resp['errors'][0]
+                error = resp['title']
                 error = error.replace('(', "").replace(')', "").replace(',', " ").replace(".", "").split()
                 for word in error:
                     if word.isdigit():
                         # Client.objects.filter(servTitanID=word).delete()
+                        word = int(word)
                         if word in forSale:
                             forSale.remove(word)
                 if status == 'House Recently Sold (6)':
