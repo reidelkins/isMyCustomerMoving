@@ -421,14 +421,23 @@ def updateStatus(zip, company, status):
         print(f"ERROR during updateStatus: {e} with zipCode {zip}")
         return
     #addresses from all home listings with the provided zip code and status
-    listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')       
+    listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')
     clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses, zipCode=zipCode_object)
     previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status)
     newlyListed = clientsToUpdate.difference(previousListed)
     #TODO add logic so if date for one listing is older than date of other, it will not update status
     for toList in newlyListed:
-        toList.status = status
-        toList.save()
+        existingUpdates = ClientUpdate.objects.filter(client=toList, status__in=["House For Sale", "House Recently Sold (6)"])
+        update = True
+        try:
+            for listing in existingUpdates:
+                if listing.listed > HomeListing.objects.filter(address=toList.address, status=status)[0].listed:
+                    update = False
+        except Exception as e:
+            print(e)
+        if update:
+            toList.status = status
+            toList.save()
         try:
             listing = HomeListing.objects.filter(zipCode=zipCode_object, address=toList.address, status=status)
             ClientUpdate.objects.get_or_create(client=toList, status=status, listed=listing[0].listed)
@@ -831,24 +840,33 @@ def remove_all_serviceTitan_tags(company):
             for tag in tagTypes:
                 # get a list of all the servTitanIDs for the clients with one from this company
                 # clients = list(Client.objects.filter(company=company).values_list('servTitanID'))
-                clients = list(Client.objects.filter(company=company).exclude(status="No Change").exclude(servTitanID=None).values_list('servTitanID', flat=True))
-                payload={'customerIds': clients, 'tagTypeIds': tag}
-                response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)                
-                if response.status_code != 200:
-                    resp = response.json()
-                    error = resp['title']
-                    error = error.replace('(', "").replace(')', "").replace(',', " ").replace(".", "")
-                    error = error.split()
-                    for word in error:
-                        if word.isdigit():
-                            word = int(word)
-                            # Client.objects.filter(servTitanID=word).delete()
-                            if (word) in clients:
-                                clients.remove(word)
-
-                    payload={'customerIds': clients, 'tagTypeIds': tag}
+                clients = list(Client.objects.filter(company=company).exclude(servTitanID=None).values_list('servTitanID', flat=True))
+                iters = (len(clients) // 100) + 1
+                for i in range(iters):
+                    print(i)
+                    x = clients[i*100:(i+1)*100]
+                    payload={'customerIds': x, 'tagTypeIds': tag}
                     response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
-                    print(response.status_code)
+                    if response.status_code != 200:
+                        resp = response.json()
+                        error = resp['title']
+                        error = error.replace('(', "").replace(')', "").replace(',', " ").replace(".", "")
+                        error = error.split()
+                        for word in error:
+                            if word.isdigit():
+                                word = int(word)
+                                # Client.objects.filter(servTitanID=word).delete()
+                                if word in x:
+                                    x.remove(word)
+                        if x:
+                            payload={'customerIds': x, 'tagTypeIds': tag}
+                            response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
+                            print(x)
+                            print(response.status_code)
+                            if response.status_code != 200:
+                                print(response.json())
+                        else:
+                            print("no clients to remove")
             Client.objects.filter(company=company).update(status="No Change")
                     
                     
