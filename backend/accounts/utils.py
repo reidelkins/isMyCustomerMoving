@@ -177,7 +177,7 @@ def getAllZipcodes(company):
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
     zips = list(zipCodes.order_by('zipCode').values('zipCode'))
     zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
-    # zips = [{'zipCode': '37922'}]
+    zips = [{'zipCode': '37922'}]
     for i in range(len(zips) * 2):
     # for i in range(100, 130):
         extra = ""
@@ -313,10 +313,10 @@ def find_data(zip, i, status, url, extra):
         first_result = scrapfly.scrape(ScrapeConfig(first_page, country="US", asp=False, proxy_pool="public_datacenter_pool"))        
         if first_result.status_code >= 400:
             scrapfly = scrapflies[i+5 % 20]
-            first_result = scrapfly.scrape(ScrapeConfig(first_page, country="US", asp=False, proxy_pool="public_datacenter_pool"))        
+            first_result = scrapfly.scrape(ScrapeConfig(first_page, country="US", asp=False, proxy_pool="public_datacenter_pool"))
         content = first_result.scrape_result['content']
         soup = BeautifulSoup(content, features='html.parser')
-        resp = ScrapeResponse.objects.create(response=soup, zip=zip, status=status)
+        resp = ScrapeResponse.objects.create(response=content, zip=zip, status=status)
         if "pg-1" not in first_result.context["url"]:
             url = first_result.context["url"] + "/pg-1"
         else:
@@ -324,7 +324,6 @@ def find_data(zip, i, status, url, extra):
         first_data = parse_search(first_result, status)
         if not first_data:
             return
-        
         if status == "For Rent":
             results = first_data["properties"]
             total = int(soup.find('div', {'data-testid': 'total-results'}).text)
