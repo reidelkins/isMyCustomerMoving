@@ -512,10 +512,6 @@ def update_clients_statuses(company_id=None):
     else:
         companies = Company.objects.all()
     for company in companies:
-        clients = Client.objects.filter(company=company)
-        clients.update(status="No Change")
-        ClientUpdate.objects.filter(client__in=clients).delete()
-
         zipCode_objects = Client.objects.filter(company=company).values('zipCode')
         zipCodes = zipCode_objects.distinct()
         zips = list(zipCodes.order_by('zipCode').values('zipCode'))
