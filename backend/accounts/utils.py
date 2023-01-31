@@ -177,7 +177,7 @@ def getAllZipcodes(company):
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
     zips = list(zipCodes.order_by('zipCode').values('zipCode'))
     zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
-    zips = [{'zipCode': '37922'}, {'zipCode': '37830'}, {'zipCode': '37934'}, {'zipCode': '37932'}, {'zipCode': '37918'}]
+    # zips = [{'zipCode': '37922'}, {'zipCode': '37830'}, {'zipCode': '37934'}, {'zipCode': '37932'}, {'zipCode': '37918'}]
     for i in range(len(zips) * 2):
     # for i in range(len(zips)):
         extra = ""
@@ -232,7 +232,7 @@ def parse_search(result: ScrapeApiResponse, searchType: str) -> SearchResults:
         print(f"page {result.context['url']} is not a property listing page")
         return False
 
-def create_home_listings(results, status, resp):
+def create_home_listings(results, status, resp=None):
     two_years_ago = datetime.now() - timedelta(days=365*2)
     for listing in results:
         zip_object, created = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
@@ -261,13 +261,21 @@ def create_home_listings(results, status, resp):
             if listType == None:
                 listType = "2022-01-01"
             #if the found date is after 2022, it is valid
-            HomeListing.objects.get_or_create(
-                        zipCode= zip_object,
-                        address= parseStreets((listing['location']['address']['line']).title()),
-                        status= status,
-                        listed= listType[:10],
-                        ScrapeResponse= ScrapeResponse.objects.get(id=resp),
-                        )
+            if resp: 
+                HomeListing.objects.get_or_create(
+                            zipCode= zip_object,
+                            address= parseStreets((listing['location']['address']['line']).title()),
+                            status= status,
+                            listed= listType[:10],
+                            ScrapeResponse= ScrapeResponse.objects.get(id=resp),
+                            )
+            else:
+                HomeListing.objects.get_or_create(
+                            zipCode= zip_object,
+                            address= parseStreets((listing['location']['address']['line']).title()),
+                            status= status,
+                            listed= listType[:10],
+                            )
 
         except Exception as e: 
             print(f"ERROR for Single Listing: {e} with zipCode {zip_object}")
@@ -301,7 +309,7 @@ def find_data(zip, i, status, url, extra):
             first_result = scrapfly.scrape(ScrapeConfig(first_page, country="US", asp=False, proxy_pool="public_datacenter_pool"))
         content = first_result.scrape_result['content']
         soup = BeautifulSoup(content, features='html.parser')
-        resp = ScrapeResponse.objects.create(response=str(content), zip=zip, status=status, url=first_page)
+        # resp = ScrapeResponse.objects.create(response=str(content), zip=zip, status=status, url=first_page)
         if "pg-1" not in first_result.context["url"]:
             url = first_result.context["url"] + "/pg-1"
         else:
@@ -319,7 +327,8 @@ def find_data(zip, i, status, url, extra):
             total = soup.find('span', {'class': 'result-count'}).text
             total = int(total.split(' ')[0])
             count = first_data["count"]
-        create_home_listings(results, status, resp.id)        
+        # create_home_listings(results, status, resp.id)
+        create_home_listings(results, status)
         if count == 0 or total == 0:
             return
         if count < 20: #I believe this can be 10
@@ -334,13 +343,14 @@ def find_data(zip, i, status, url, extra):
                 scrapfly = scrapflies[i+5 % 20]
                 new_results = scrapfly.scrape(ScrapeConfig(url=page_url, country="US", asp=False, proxy_pool="public_datacenter_pool"))
             content = new_results.scrape_result['content']
-            resp = ScrapeResponse.objects.create(response=str(content), zip=zip, status=status, url=page_url)
+            # resp = ScrapeResponse.objects.create(response=str(content), zip=zip, status=status, url=page_url)
             parsed = parse_search(new_results, status)            
             if status == "For Rent":
                 results = parsed["properties"]
             else:
                 results = parsed["results"]
-            create_home_listings(results, status, resp.id)         
+            # create_home_listings(results, status, resp.id)  
+            create_home_listings(results, status)
     except Exception as e:
         print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
         print(f"URL: {url}")
