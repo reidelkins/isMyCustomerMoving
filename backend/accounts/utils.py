@@ -176,6 +176,7 @@ def getAllZipcodes(company):
     zipCodes = zipCode_objects.distinct()
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
     zips = list(zipCodes.order_by('zipCode').values('zipCode'))
+    zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
     # zips = [{'zipCode': '37922'}]
     for i in range(len(zips) * 2):
     # for i in range(100, 130):
@@ -206,8 +207,6 @@ def getAllZipcodes(company):
     #                 extra = "show-recently-sold/"
     #             find_data.delay(str(zip_code['zipCode']), company, i, status, url, extra)
     
-
-    zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
     del zipCodes
     del zipCode_objects
     del zips
@@ -317,7 +316,7 @@ def find_data(zip, i, status, url, extra):
             first_result = scrapfly.scrape(ScrapeConfig(first_page, country="US", asp=False, proxy_pool="public_datacenter_pool"))        
         content = first_result.scrape_result['content']
         soup = BeautifulSoup(content, features='html.parser')
-        resp = ScrapeResponse.objects.create(response=first_result, zip=zip, status=status)
+        resp = ScrapeResponse.objects.create(response=soup, zip=zip, status=status)
         if "pg-1" not in first_result.context["url"]:
             url = first_result.context["url"] + "/pg-1"
         else:
@@ -786,12 +785,13 @@ def update_serviceTitan_client_tags(forSale, company, status):
             response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
             if response.status_code != 200:
                 resp = response.json()
-                error = resp['errors'][''][0]
+                error = resp['errors'][0]
                 error = error.replace('(', "").replace(')', "").replace(',', " ").replace(".", "").split()
                 for word in error:
                     if word.isdigit():
                         # Client.objects.filter(servTitanID=word).delete()
-                        forSale.remove(word)
+                        if word in forSale:
+                            forSale.remove(word)
                 if status == 'House Recently Sold (6)':
                     payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
                     response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
