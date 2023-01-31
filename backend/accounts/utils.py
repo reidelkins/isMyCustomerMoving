@@ -99,7 +99,7 @@ def saveClientList(clients, company_id):
                     name=clients[i]['name']
                     if clients[i]['address']['zip'] == None or not street or not zip or not city or not state or not name or zip == 0:
                         continue
-                    clientsToAdd.append(Client(address=street, zipCode=zipCode, city=city, state=state, name=name, company=company, servTitanID=clients[i]['id']))                   
+                    clientsToAdd.append(Client(address=street, zipCode=zipCode, city=city, state=state, name=name, company=company, servTitanID=clients[i]['customerId']))                   
             #file upload
             else:                
                 street = parseStreets((str(clients[i]['address'])).title())
