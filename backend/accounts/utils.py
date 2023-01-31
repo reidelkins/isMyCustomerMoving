@@ -423,6 +423,7 @@ def updateStatus(zip, company, status):
     #addresses from all home listings with the provided zip code and status
     listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')
     clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses, zipCode=zipCode_object)
+    print(clientsToUpdate.count())
     previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status)
     newlyListed = clientsToUpdate.difference(previousListed)
     #TODO add logic so if date for one listing is older than date of other, it will not update status
@@ -452,7 +453,8 @@ def updateStatus(zip, company, status):
     #     ClientUpdate.objects.create(client=toUnlist, status="Taken Off Market")
 
 
-    clientsToUpdate = list(clientsToUpdate.values_list('servTitanID', flat=True))
+    clientsToUpdate = list(newlyListed.exclude(servTitanID=None).values_list('servTitanID', flat=True))
+    print(clientsToUpdate)
     if clientsToUpdate:
         update_serviceTitan_client_tags.delay(clientsToUpdate, company.id, status)
     gc.collect()
@@ -508,15 +510,21 @@ def update_clients_statuses(company_id=None):
     else:
         companies = Company.objects.all()
     for company in companies:
+        clients = Client.objects.filter(company=company)
+        clients.update(status="No Change")
+        ClientUpdate.objects.filter(client__in=clients).delete()
+
         zipCode_objects = Client.objects.filter(company=company).values('zipCode')
         zipCodes = zipCode_objects.distinct()
         zips = list(zipCodes.order_by('zipCode').values('zipCode'))
         for zip in zips:
             zip = zip['zipCode']
-            updateStatus.delay(zip, company.id, "House For Sale")
+            if zip == "37725":
+                updateStatus.delay(zip, company.id, "House For Sale")
         for zip in zips:
             zip = zip['zipCode']
-            updateStatus.delay(zip, company.id, "House Recently Sold (6)")
+            if zip == "37725":
+                updateStatus.delay(zip, company.id, "House Recently Sold (6)")
                 
     gc.collect()
     try:
@@ -644,7 +652,6 @@ def auto_update(company_id=None):
 
 @shared_task
 def get_serviceTitan_clients(company_id, task_id):
-    
     company = Company.objects.get(id=company_id)
     tenant = company.tenantID
     headers = {
@@ -757,9 +764,22 @@ def update_serviceTitan_client_tags(forSale, company, status):
             if status == 'House For Sale':
                 tagType = [str(company.serviceTitanForSaleTagID)]
             elif status == 'House Recently Sold (6)':
+                forSaleToRemove = forSale
                 tagType = [str(company.serviceTitanRecentlySoldTagID)]
-                payload={'customerIds': forSale, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
+                payload={'customerIds': forSaleToRemove, 'tagTypeIds': [str(company.serviceTitanForSaleTagID)]}
                 response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
+                if response.status_code != 200:
+                    resp = response.json()
+                    error = resp['title']
+                    error = error.replace('(', "").replace(')', "").replace(',', " ").replace(".", "").split()
+                    for word in error:
+                        if word.isdigit():
+                            # Client.objects.filter(servTitanID=word).delete()
+                            word = int(word)
+                            if word in forSaleToRemove:
+                                forSaleToRemove.remove(word)
+                    payload={'customerIds': forSaleToRemove, 'tagTypeIds': tagType}
+                    response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
             payload={'customerIds': forSale, 'tagTypeIds': tagType}
             response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
             if response.status_code != 200:
