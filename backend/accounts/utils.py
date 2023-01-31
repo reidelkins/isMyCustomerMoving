@@ -174,7 +174,7 @@ def getAllZipcodes(company):
     company_object = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company_object).values('zipCode')
     zipCodes = zipCode_objects.distinct()
-    zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
+    zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects)#, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
     zips = list(zipCodes.order_by('zipCode').values('zipCode'))
     zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
     # zips = [{'zipCode': '37922'}, {'zipCode': '37830'}, {'zipCode': '37934'}, {'zipCode': '37932'}, {'zipCode': '37918'}]
