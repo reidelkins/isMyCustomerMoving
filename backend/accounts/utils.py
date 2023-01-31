@@ -423,7 +423,6 @@ def updateStatus(zip, company, status):
     #addresses from all home listings with the provided zip code and status
     listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')
     clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses, zipCode=zipCode_object)
-    print(clientsToUpdate.count())
     previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status)
     newlyListed = clientsToUpdate.difference(previousListed)
     #TODO add logic so if date for one listing is older than date of other, it will not update status
@@ -453,11 +452,15 @@ def updateStatus(zip, company, status):
     #     ClientUpdate.objects.create(client=toUnlist, status="Taken Off Market")
 
 
-    clientsToUpdate = list(newlyListed.values_list('servTitanID', flat=True))
+    clientsToUpdate = list(clientsToUpdate.values_list('servTitanID', flat=True))
+    print(clientsToUpdate)
     for client in clientsToUpdate:
         if client is None:
+            print("Deleting one")
             clientsToUpdate.remove(client)
+    
     if clientsToUpdate:
+        print("updating tags")
         update_serviceTitan_client_tags.delay(clientsToUpdate, company.id, status)
     gc.collect()
     try:
