@@ -955,5 +955,15 @@ def update_serviceTitan_tasks(clients, company, status):
     except:
         pass
 
-
-    
+# send email to every customuser with the html file that has the same name as the template
+def send_update_email(templateName):
+    try:
+        users = list(CustomUser.objects.all().values_list('email', flat=True))        
+        mail_subject = "Is My Customer Moving Product Updates"
+        messagePlain = "Thank you for signing up for Is My Customer Moving. We have some updates for you. Please visit https://app.ismycustomermoving.com/ to see them."        
+        message = get_template(f"{templateName}.html").render()
+        send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=users, html_message=message, fail_silently=False)
+    except Exception as e:
+        print("sending update email failed")
+        print(f"ERROR: {e}")
+        print(traceback.format_exc())
