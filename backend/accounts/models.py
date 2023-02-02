@@ -107,7 +107,7 @@ class Client(models.Model):
     city = models.CharField(max_length=40, blank=True, null=True)
     state = models.CharField(max_length=31, blank=True, null=True)
     contacted = models.BooleanField(default=False)
-    note = models.TextField(default="")
+    note = models.TextField(default="", blank=True, null=True)
     servTitanID = models.IntegerField(blank=True, null=True)
     phoneNumber = models.CharField(max_length=100, blank=True, null=True)
 
@@ -156,8 +156,8 @@ class CustomUser(AbstractUser):
     company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE)
     otp_enabled = models.BooleanField(default=False)
     otp_verified = models.BooleanField(default=False)
-    otp_base32 = models.CharField(max_length=255, null=True)
-    otp_auth_url = models.CharField(max_length=255, null=True)
+    otp_base32 = models.CharField(max_length=255, null=True, blank=True)
+    otp_auth_url = models.CharField(max_length=255, null=True, blank=True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', "last_name"]
 
