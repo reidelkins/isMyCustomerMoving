@@ -192,7 +192,7 @@ export const clientsAsync = (page) => async (dispatch, getState) => {
     if (page === 1) {
       dispatch(clientsLoading());
     }
-    if (page > reduxStore.user.clientsInfo.highestPage) {
+    if (page > reduxStore.user.clientsInfo.highestPage || page === 1) {
       const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.id}?page=${page}`, config);
       if (data.results.clients.length > 0) {
         dispatch(newPage(page));      }
@@ -231,7 +231,7 @@ export const deleteClientAsync = (ids) => async (dispatch, getState) => {
     }
     const chunk = ids.slice(i, i + chunkSize);
     await axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/`, { data: {'clients': chunk}}, config);
-    dispatch(clientsAsync());
+    dispatch(clientsAsync(1));
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
@@ -250,7 +250,7 @@ export const updateClientAsync = (id, contacted, note) => async (dispatch, getSt
     };
     dispatch(clientsLoading());
     await axios.put(`${DOMAIN}/api/v1/accounts/updateclient/`, { 'clients': id, contacted, note }, config);
-    dispatch(clientsAsync());
+    dispatch(clientsAsync(1));
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
@@ -389,7 +389,7 @@ export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
     dispatch(clientsLoading());
     await axios.put(`${DOMAIN}/api/v1/accounts/upload/${company}/`, customers, config);
     setTimeout(() => {
-      dispatch(clientsAsync());
+      dispatch(clientsAsync(1));
     }, 2000);
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));

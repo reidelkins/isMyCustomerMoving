@@ -410,8 +410,8 @@ class ClientListView(generics.ListAPIView):
         queryset = self.filter_queryset(self.get_queryset())
         user = CustomUser.objects.get(id=self.kwargs['user'])
 
-        forSale = Client.objects.filter(company=user.company, status="House For Sale").count()
-        recentlySold = Client.objects.filter(company=user.company, status="House Recently Sold (6)").count()
+        forSale = Client.objects.filter(company=user.company, status="House For Sale", contacted=False).count()
+        recentlySold = Client.objects.filter(company=user.company, status="House Recently Sold (6)", contacted=False).count()
         forSaleAllTime = ClientUpdate.objects.filter(client__company=user.company, status="House For Sale").count()
         recentlySoldAllTime = ClientUpdate.objects.filter(client__company=user.company, status="House Recently Sold (6)").count()
 
