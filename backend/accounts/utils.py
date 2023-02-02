@@ -962,7 +962,8 @@ def send_update_email(templateName):
         mail_subject = "Is My Customer Moving Product Updates"
         messagePlain = "Thank you for signing up for Is My Customer Moving. We have some updates for you. Please visit https://app.ismycustomermoving.com/ to see them."        
         message = get_template(f"{templateName}.html").render()
-        send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=users, html_message=message, fail_silently=False)
+        for user in users:            
+            send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[user], html_message=message, fail_silently=False)
     except Exception as e:
         print("sending update email failed")
         print(f"ERROR: {e}")
