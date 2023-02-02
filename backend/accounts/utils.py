@@ -562,12 +562,8 @@ def sendDailyEmail(company_id=None):
         emails = list(CustomUser.objects.filter(company=company).values_list('email'))
         subject = 'Did Your Customers Move?'
         
-        forSaleCustomers = Client.objects.filter(company=company, status="House For Sale")
-        forSaleCustomers = forSaleCustomers.exclude(contacted=True)
-        forSaleCustomers = forSaleCustomers.count()
-        soldCustomers = Client.objects.filter(company=company, status="House Recently Sold (6)")
-        soldCustomers = soldCustomers.exclude(contacted=True)
-        soldCustomers = soldCustomers.count()
+        forSaleCustomers = Client.objects.filter(company=company, status="House For Sale").exclude(contacted=True).count()
+        soldCustomers = Client.objects.filter(company=company, status="House Recently Sold (6)").exclude(contacted=True).count()
         message = get_template("dailyEmail.html").render({
             'forSale': forSaleCustomers, 'sold': soldCustomers
         })
