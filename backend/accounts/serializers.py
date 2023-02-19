@@ -13,12 +13,15 @@ class CompanySerializer(serializers.ModelSerializer):
     phone = serializers.CharField(max_length=20)
     email = serializers.EmailField(max_length=100)
     stripeID = serializers.CharField(max_length=100, required=False)
+    recentlySoldPurchased = serializers.BooleanField(default=False)
+    crm = serializers.CharField(max_length=100, required=False)
+    # service titan
     tenantID = serializers.CharField(max_length=100, required=False)
     clientID = serializers.CharField(max_length=100, required=False)
     serviceTitanForRentTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanForSaleTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanRecentlySoldTagID = serializers.CharField(max_length=100, required=False)
-    recentlySoldPurchased = serializers.BooleanField(default=False)
+    
 
     def create(self, validated_data):
         if Company.objects.filter(name=validated_data['name']).exists():
@@ -26,7 +29,7 @@ class CompanySerializer(serializers.ModelSerializer):
         return Company.objects.create(**validated_data, accessToken=get_random_string(length=32))
     class Meta:
         model = Company
-        fields=['id', 'name', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased']
+        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased']
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -55,10 +58,13 @@ class UserSerializer(serializers.Serializer):
     role = serializers.CharField(read_only=True)
     company = CompanySerializer(read_only=True)
     accessToken = serializers.CharField(read_only=True)
-    finishedSTIntegration = serializers.SerializerMethodField(read_only=True)
     otp_enabled = serializers.BooleanField(read_only=True)
     otp_base32 = serializers.CharField(read_only=True)
     otp_auth_url = serializers.CharField(read_only=True)
+
+    #service titan
+    finishedSTIntegration = serializers.SerializerMethodField(read_only=True)
+    
 
     def get_finishedSTIntegration(self, obj):
         return obj.company.tenantID != None and obj.company.clientID != None and obj.company.clientSecret != None

@@ -38,6 +38,15 @@ PAY_TIER = [
     ('Enterprise', 'Enterprise')
 ]
 
+CRM = [
+    ('ServiceTitan', 'ServiceTitan'),
+    ('HubSpot', 'HubSpot'),
+    ('Zoho', 'Zoho'),
+    ('Salesforce', 'Salesforce'),
+    ('FieldEdge', 'FieldEdge'),
+    ('None', 'None')
+]
+
 
 class CustomUserManager(BaseUserManager):
     """Define a model manager for User model with no username field."""
@@ -79,14 +88,21 @@ class Company(models.Model):
     product = models.ForeignKey(Product, blank=True, null=True, on_delete=models.SET_NULL)
     phone = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(max_length=100, blank=True, null=True)
+    stripeID = models.CharField(max_length=100, blank=True, null=True)
+    crm = models.CharField(max_length=100, choices=CRM, default='None')
+
+    # Service Titan
     tenantID = models.IntegerField(blank=True, null=True)
     clientID = models.CharField(max_length=100, blank=True, null=True)
     clientSecret = models.CharField(max_length=100, blank=True, null=True)
-    stripeID = models.CharField(max_length=100, blank=True, null=True)
     serviceTitanForSaleTagID = models.IntegerField(blank=True, null=True)
     serviceTitanForRentTagID = models.IntegerField(blank=True, null=True)
     serviceTitanRecentlySoldTagID = models.IntegerField(blank=True, null=True)
     recentlySoldPurchased = models.BooleanField(default=False)
+
+    # Salesforce
+    sfAccessToken = models.CharField(max_length=100, blank=True, null=True)
+    sfRefreshToken = models.CharField(max_length=100, blank=True, null=True)
 
 
 def zipTime():

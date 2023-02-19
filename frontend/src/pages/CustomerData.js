@@ -39,7 +39,7 @@ import ClientEventTable from '../components/ClientEventTable';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
 
 import ClientsListCall from '../redux/calls/ClientsListCall';
-import { selectClients, update, updateClientAsync, serviceTitanSync, clientsAsync } from '../redux/actions/usersActions';
+import { selectClients, update, updateClientAsync, serviceTitanSync, salesForceSync, clientsAsync } from '../redux/actions/usersActions';
 import { logout, showLoginInfo } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
@@ -206,6 +206,9 @@ export default function CustomerData() {
   };
   const stSync = () => {
     dispatch(serviceTitanSync());
+  };
+  const sfSync = () => {
+    dispatch(salesForceSync());
   };
 
   const exportCSV = async () => {
@@ -445,10 +448,18 @@ export default function CustomerData() {
                   </Button>
                 )}        
 
-                {(userInfo.status === 'admin' && userInfo.finishedSTIntegration) && (
-                  <Button onClick={stSync} variant="contained">
-                    Sync With Service Titan
-                  </Button>
+                {userInfo.status === 'admin' && (
+                  (userInfo.company.crm === 'Service Titan' ? (
+                    <Button onClick={stSync} variant="contained">
+                      Sync With Service Titan
+                    </Button>
+                  ):(
+                    userInfo.company.crm === 'Salesforce' && (
+                      <Button onClick={sfSync} variant="contained">
+                        Sync With Salesforce
+                      </Button>
+                    )
+                  ))                  
                 )}
                 {csvLoading ? (
                   (userInfo.status === 'admin') && (

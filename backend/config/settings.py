@@ -32,6 +32,8 @@ if IS_HEROKU:
     EMAIL_HOST_PASSWORD = os.environ['EMAIL_PASSWD']
     SCRAPFLY_KEY = os.environ['SCRAPFLY_KEY']
     ST_APP_KEY = os.environ['ST_APP_KEY']
+    SALESFORCE_CONSUMER_KEY = os.environ['SALESFORCE_CONSUMER_KEY']
+    SALESFORCE_CONSUMER_SECRET = os.environ['SALESFORCE_CONSUMER_SECRET']
     
 else:
     DEBUG = True
@@ -40,6 +42,8 @@ else:
     EMAIL_HOST_PASSWORD = env('EMAIL_PASSWD')
     SCRAPFLY_KEY = env('SCRAPFLY_KEY')
     ST_APP_KEY = env('ST_APP_KEY')
+    SALESFORCE_CONSUMER_KEY = env('SALESFORCE_CONSUMER_KEY')
+    SALESFORCE_CONSUMER_SECRET = env('SALESFORCE_CONSUMER_SECRET')
     # REDIS_URL = 'redis://localhost:6379'
 
 ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "is-my-customer-moving.herokuapp.com"]

@@ -16,6 +16,11 @@ export const authSlice = createSlice({
       loading: false,
       error: null,
     },
+    salesForce: {
+      key: null,
+      loading: false,
+      error: null,
+    },
   },
   reducers: {
     // -----------------  AUTH  -----------------
@@ -72,9 +77,54 @@ export const authSlice = createSlice({
     companyLoading: (state) => {
       state.userInfo.loading = true;
     },
+    salesForce: (state, action) => {
+      state.salesForce.secret = action.payload.consumer_secret;
+      state.salesForce.key = action.payload.consumer_key;
+      state.salesForce.error = null;
+    },
+    salesForceError: (state, action) => {
+      state.salesForce.error = action.payload;
+    }
+  },
 
-  }
+  
 });
+
+export const salesForceAsync = () => async (dispatch) => {
+  const config = {
+      headers: {
+        'Content-type': 'application/json',
+      },
+    };
+  try{      
+      const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/salesforce/a/`, config);      
+      dispatch(salesForce(data));
+    } catch (error) {
+      console.log(error)
+      dispatch(salesForceError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    }
+}
+
+export const salesForceTokenAsync = (code) => async (dispatch, getState) => {
+  const config = {
+      headers: {
+        'Content-type': 'application/json',
+      },
+    };
+  try{
+      const reduxStore = getState();
+      const {userInfo} = reduxStore.auth.userInfo;
+      const { id } = userInfo;
+      const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/salesforce/${userInfo.company.id}/`, {code, id}, config);
+      dispatch(login(data));
+      localStorage.setItem('userInfo', JSON.stringify(data));
+  } catch (error) {
+      console.log(error)
+      dispatch(salesForceError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    }
+}
+      
+      
 
 export const loginAsync = (email, password) => async (dispatch) => {
   try {
@@ -129,7 +179,7 @@ export const registerAsync = (company, accessToken, firstName, lastName, email, 
   }
 };
 
-export const companyAsync = (email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag) => async (dispatch, getState) => {
+export const companyAsync = (email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag, crm) => async (dispatch, getState) => {
   try {
     dispatch(companyLoading());
 
@@ -143,7 +193,7 @@ export const companyAsync = (email, phone, tenantID, clientID, clientSecret, for
     };
     const { data } = await axios.put(
       `${DOMAIN}/api/v1/accounts/company/`,
-      { 'company': userInfo.company.id, email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag, 'user': userInfo.id},
+      { 'company': userInfo.company.id, email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag, 'user': userInfo.id, crm},
       config
     );
     dispatch(company(data));
@@ -300,7 +350,8 @@ export const disableTwoFactorAuth = () => async (dispatch, getState) => {
   }
 };
 
-export const { login, validate, loginError, loginLoading, register, registerError, registerLoading, logoutUser, company, companyError, companyLoading, reset } = authSlice.actions;
+export const { login, validate, loginError, loginLoading, register, registerError, registerLoading, logoutUser, company, companyError, companyLoading, reset, salesForce, salesForceError } = authSlice.actions;
 export const showLoginInfo = (state) => state.auth.userInfo;
 export const showRegisterInfo = (state) => state.auth.registerInfo;
+export const showSTInfo = (state) => state.auth.salesForce;
 export default authSlice.reducer;

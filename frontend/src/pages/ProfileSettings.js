@@ -15,10 +15,9 @@ import Page from '../components/Page';
 import Scrollbar from '../components/Scrollbar';
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 import NewUserModal from '../components/NewUserModal';
-import IntegrateSTModal from '../components/IntegrateSTModal';
-import ServiceTitanTagsModal from '../components/ServiceTitanTagsModal';
-import AddSecretModal from '../components/AddSecretModal';
+
 import TwoFactorAuth from '../components/TwoFactorAuth';
+import CRMIntegrationModal from '../components/CRMIntegrationModal';
 import { applySortFilter, getComparator } from './CustomerData';
 // import ResetPasswordModal from '../components/ResetPasswordModal';
 
@@ -83,7 +82,6 @@ export default function ProfileSettings() {
     firstName: Yup.string().required('Name is required'),
     lastName: Yup.string().required('Name is required'),
     email: Yup.string().email('Email must be a valid email address').required('Email is required'),
-    servTitan: Yup.string(),
   });
 
   const formik = useFormik({
@@ -91,7 +89,6 @@ export default function ProfileSettings() {
       firstName: userInfo ? userInfo.first_name: '',
       lastName: userInfo ? userInfo.last_name: '',
       email: userInfo ? userInfo.email: '',
-      servTitan: userInfo ? userInfo.company.tenantID: '',
     },
     validationSchema: SettingsSchema,
     onSubmit: () => {
@@ -108,11 +105,6 @@ export default function ProfileSettings() {
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
   };
-
-  // const logoutHandler = () => {
-  //   dispatch(logout());
-  //   navigate('/login', { replace: true });
-  // };
 
   const sendReminder = (event, email) => {
     dispatch(manageUser(email));
@@ -183,23 +175,7 @@ export default function ProfileSettings() {
                         error={Boolean(touched.email && errors.email)}
                         helperText={touched.email && errors.email}
                       />
-                      <br />
-                      <h3>Service Titan Tenant ID:</h3>
-                      {adminBool ? (                    
-                        <TextField
-                          fullWidth
-                          type="text"  
-                          {...getFieldProps('servTitan')}
-                          error={Boolean(touched.servTitan && errors.servTitan)}
-                          helperText={touched.servTitan && errors.servTitan}
-                        />
-                      ) : (
-                        <>
-                          userInfo.company.tenantID ? <p>{userInfo.company.tenantID}</p> : <IntegrateSTModal />
-                          (!userInfo.company.clientID && userInfo.company.tenantID) && <AddSecretModal />
-                          userInfo.company.clientID && <ServiceTitanTagsModal userInfo={userInfo}/>
-                        </>
-                      )}
+                      <br />                      
                       <br />
                       <Button
                         fullWidth
@@ -220,12 +196,7 @@ export default function ProfileSettings() {
                   <br />
                   <h3>Email:</h3>
                   <p>{userInfo ? userInfo.email : ''}</p>
-                  <br />
-                  <h3>Service Titan Tenant ID:</h3>                  
-                  {userInfo && userInfo.company.tenantID ? <p>{userInfo.company.tenantID}</p> : <IntegrateSTModal userInfo={userInfo} />}
-                  {userInfo && (!userInfo.company.clientID && userInfo.company.tenantID) && <AddSecretModal userInfo={userInfo}/>}
-                  {userInfo && userInfo.company.clientID && <ServiceTitanTagsModal userInfo={userInfo}/>}
-                  <br />
+                  <br />            
                   <Button 
                     fullWidth
                     size="large"                        
@@ -326,7 +297,7 @@ export default function ProfileSettings() {
           </Scrollbar>
         </Card>
         {/* <ResetPasswordModal /> */}
-        { adminBool ? (
+        { adminBool && (
           <>
             <NewUserModal />
             <br/>
@@ -336,19 +307,30 @@ export default function ProfileSettings() {
                 </Link>
             </Button>
           </>       
-        ) : null}
+        )}
+
         <Box>
-            <Typography variant="h3" sx={{ mt: 5 }}>
-              Mobile App Authentication (2FA)
-            </Typography>
-            <p style={{"marginBottom": 20}}>
-              Secure your account with TOTP two-factor authentication.
-            </p>
-            {userInfo &&
-              <TwoFactorAuth userInfo={userInfo}/>
-            }
-            
-          </Box> 
+          <Typography variant="h3" sx={{ mt: 5 }}>
+            Mobile App Authentication (2FA)
+          </Typography>
+          <p style={{"marginBottom": 20}}>
+            Secure your account with TOTP two-factor authentication.
+          </p>
+          {userInfo &&
+            <TwoFactorAuth userInfo={userInfo}/>
+          }            
+        </Box>
+
+
+        <Box>
+          <Typography variant="h3" sx={{ mt: 5 }}>
+            CRM Integration
+          </Typography>
+          <p style={{"marginBottom": 20}}>
+            Connect IMCM With Your CRM! If you don't see your CRM listed, suggest it to us!
+          </p>
+          <CRMIntegrationModal user={userInfo} />
+        </Box>
 
       </Container>
     </Page>
