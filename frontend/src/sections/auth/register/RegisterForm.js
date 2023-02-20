@@ -24,6 +24,7 @@ export default function RegisterForm() {
 
 
   const [showPassword, setShowPassword] = useState(false);
+  const [showVerifiedPassword, setShowVerifiedPassword] = useState(false);
 
   const RegisterSchema = Yup.object().shape({
     firstName: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('First name required'),
@@ -132,7 +133,17 @@ export default function RegisterForm() {
           <TextField
             fullWidth
             label="Verify Password"
-            {...getFieldProps('verifiedPassword')}            
+            type={showVerifiedPassword ? 'text' : 'password'}
+            {...getFieldProps('verifiedPassword')}        
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton edge="end" onClick={() => setShowVerifiedPassword((prev) => !prev)}>
+                    <Iconify icon={showVerifiedPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}    
             error={Boolean(touched.verifiedPassword && errors.verifiedPassword)}
             helperText={touched.verifiedPassword && errors.verifiedPassword}
           />
