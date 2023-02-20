@@ -58,7 +58,7 @@ class ManageUserView(APIView):
                 users = CustomUser.objects.filter(company=user.company)
                 serializer = UserListSerializer(users, many=True)
                 return Response(serializer.data)
-            # Except Invite and Make User
+            # Accept Invite and Make User
             elif InviteToken.objects.filter(id=self.kwargs['id']).exists():
                 utc = pytz.UTC
                 try:
@@ -80,6 +80,7 @@ class ManageUserView(APIView):
                             user.status = 'active'
                             user.first_name = request.data['firstName']
                             user.last_name = request.data['lastName']
+                            user.phone = request.data['phone']
                             user.isVerified = True
                             user.save()                            
                             token.delete()
@@ -214,6 +215,7 @@ class RegisterView(APIView):
         password = data.get('password')
         company = data.get('company')
         accessToken = data.get('accessToken')
+        phone = data.get('phone')
         messages = {'errors': []}
         if first_name == None:
             messages['errors'].append('first_name can\'t be empty')
@@ -244,17 +246,18 @@ class RegisterView(APIView):
                     password=make_password(password),
                     company=company,
                     status='admin',
-                    isVerified=True
+                    isVerified=True,
+                    phone = phone
                 )
                 user = CustomUser.objects.get(email=email)
-                current_site = get_current_site(request)
-                tokenSerializer = UserSerializerWithToken(user, many=False)
-                mail_subject = "Activation Link for Is My Customer Moving"
-                messagePlain = "Verify your account for Is My Customer Moving by going here {}/api/v1/accounts/confirmation/{}/{}/".format(current_site, tokenSerializer.data['refresh'], user.id)
-                message = get_template("registration.html").render({
-                    'current_site': current_site, 'token': tokenSerializer.data['refresh'], 'user_id': user.id
-                })
-                send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)
+                # current_site = get_current_site(request)
+                # tokenSerializer = UserSerializerWithToken(user, many=False)
+                # mail_subject = "Activation Link for Is My Customer Moving"
+                # messagePlain = "Verify your account for Is My Customer Moving by going here {}/api/v1/accounts/confirmation/{}/{}/".format(current_site, tokenSerializer.data['refresh'], user.id)
+                # message = get_template("registration.html").render({
+                #     'current_site': current_site, 'token': tokenSerializer.data['refresh'], 'user_id': user.id
+                # })
+                # send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)
                 serializer = UserSerializerWithToken(user, many=False)
             else:
                 return Response({'detail': f'Access Token Already Used. Ask an admin to login and create profile for you.'}, status=status.HTTP_400_BAD_REQUEST)

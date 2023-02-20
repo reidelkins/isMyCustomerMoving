@@ -29,25 +29,34 @@ export default function AddUserForm({token}) {
   const { error: registerError, loading: registerLoading } = userRegister;
 
   const [showPassword, setShowPassword] = useState(false);
+  const [showVerifiedPassword, setShowVerifiedPassword] = useState(false);
 
   const AddUserSchema = Yup.object().shape({
     firstName: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('First name required'),
     lastName: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Last name required'),
     email: Yup.string().email('Email must be a valid email address').required('Email is required'),
     password: Yup.string().min(6, 'Password is too short - should be 6 chars minimum.').required('Password is required'),
+    verifiedPassword: Yup.string()
+            .oneOf([Yup.ref('password'), null], 'Passwords must match'),
+    phone: Yup.string().required('Phone number is required').matches(
+          /^(\+?1)?[2-9]\d{2}[2-9](?!11)\d{6}$/,
+          "Must be a valid phone number"
+          ),
   });
 
   const formik = useFormik({
     initialValues: {
       firstName: '',
       lastName: '',
+      phone: '',
       email: '',
       password: '',
+      verifiedPassword: '',
       token
     },
     validationSchema: AddUserSchema,
     onSubmit: () => {
-      dispatch(addUserAsync(values.firstName, values.lastName, values.email, values.password, values.token));
+      dispatch(addUserAsync(values.firstName, values.lastName, values.email, values.password, values.token, values.phone));
       navigate('/login', { replace: true });
     },
   });
@@ -76,6 +85,15 @@ export default function AddUserForm({token}) {
               helperText={touched.lastName && errors.lastName}
             />
           </Stack>
+          <TextField
+            fullWidth
+            autoComplete="phone"
+            type="phone"
+            label="Phone Number"
+            {...getFieldProps('phone')}
+            error={Boolean(touched.phone && errors.phone)}
+            helperText={touched.phone && errors.phone}
+          />
 
           <TextField
             fullWidth
@@ -103,6 +121,23 @@ export default function AddUserForm({token}) {
             }}
             error={Boolean(touched.password && errors.password)}
             helperText={touched.password && errors.password}
+          />
+          <TextField
+            fullWidth
+            label="Verify Password"
+            type={showVerifiedPassword ? 'text' : 'password'}
+            {...getFieldProps('verifiedPassword')}        
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton edge="end" onClick={() => setShowVerifiedPassword((prev) => !prev)}>
+                    <Iconify icon={showVerifiedPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}    
+            error={Boolean(touched.verifiedPassword && errors.verifiedPassword)}
+            helperText={touched.verifiedPassword && errors.verifiedPassword}
           />
 
           {registerError ? (
