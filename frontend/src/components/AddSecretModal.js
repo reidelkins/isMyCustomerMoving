@@ -5,7 +5,9 @@ import {
     IconButton,
     TextField,
     Dialog,
+    DialogContent,
     DialogTitle,
+    Divider,
     Stack,
     Modal,
     Backdrop,
@@ -46,7 +48,7 @@ export default function AddSecretModal() {
         validationSchema: IntegrateSTSchema,
         onSubmit: () => {
             setOpen(false);
-            dispatch(companyAsync("", "", "", values.clientID, values.clientSecret, "", "", ""))
+            dispatch(companyAsync("", "", "", values.clientID, values.clientSecret, "", "", "", ""))
         },
     });
 
@@ -61,32 +63,40 @@ export default function AddSecretModal() {
         </IconButton>
         <Dialog open={open} onClose={handleClose} sx={{padding:"2px"}}>
             <DialogTitle>Service Titan Client ID and Secret</DialogTitle>
-            <FormikProvider value={formik}>
-                <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
-                    <Stack spacing={3}>
-                        <TextField
-                            fullWidth
-                            label="Client ID"
-                            placeholder="1234567890"
-                            {...getFieldProps('clientID')}
-                            error={Boolean(touched.clientID && errors.clientID)}
-                            helperText={touched.clientID && errors.clientID}
-                        />
-                        <TextField
-                            fullWidth
-                            label="Client Secret"
-                            placeholder="qwertyuiop"
-                            {...getFieldProps('clientSecret')}
-                            error={Boolean(touched.clientSecret && errors.clientSecret)}
-                            helperText={touched.clientSecret && errors.clientSecret}
-                        />
+            <Divider />
+            <DialogContent>
+                <FormikProvider value={formik}>
+                    <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
+                        <Stack spacing={3}>
+                            <TextField
+                                fullWidth
+                                label="Client ID"
+                                placeholder="1234567890"
+                                {...getFieldProps('clientID')}
+                                error={Boolean(touched.clientID && errors.clientID)}
+                                helperText={touched.clientID && errors.clientID}
+                            />
+                            <TextField
+                                fullWidth
+                                label="Client Secret"
+                                placeholder="qwertyuiop"
+                                {...getFieldProps('clientSecret')}
+                                error={Boolean(touched.clientSecret && errors.clientSecret)}
+                                helperText={touched.clientSecret && errors.clientSecret}
+                            />
+                        </Stack>
+                    </Form>
+                </FormikProvider>
+                <Stack direction="row" justifyContent="space-between">
+                    <IconButton onClick={()=>setIntegrateInfo(true)}  >
+                        <Iconify icon="bi:question-circle-fill" />
+                    </IconButton>
+                    <Stack direction="row" justifyContent="right">
+                        <Button color="error" onClick={handleClose}>Cancel</Button>
+                        <Button onClick={handleSubmit }>Submit</Button>
                     </Stack>
-                </Form>
-            </FormikProvider>
-            <Stack direction="row" justifyContent="right">
-                <Button color="error" onClick={handleClose}>Cancel</Button>
-                <Button onClick={handleSubmit }>Submit</Button>
-            </Stack>
+                </Stack>
+            </DialogContent>
         </Dialog>
         <Modal
                 open={integrateInfo}
@@ -113,7 +123,7 @@ export default function AddSecretModal() {
                     </Typography>                    
                 </Box>
                 </Fade>
-            </Modal>
+        </Modal>
     </div>
     );
 }

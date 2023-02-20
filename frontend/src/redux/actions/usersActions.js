@@ -302,6 +302,28 @@ export const serviceTitanSync = () => async (dispatch, getState) => {
   }
 };
 
+export const salesForceSync = () => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const {id: company} = userInfo.company;
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+    // dispatch(clientsLoading());
+    const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/salesforce/${company}/`, config);
+    dispatch(clientsAsync(1))
+    
+  } catch (error) {
+    throw new Error(error);
+    // dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+};
+
 export const createCompany = (company, email) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();

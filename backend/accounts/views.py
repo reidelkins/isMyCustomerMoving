@@ -14,10 +14,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import pandas as pd
-from .utils import getAllZipcodes, saveClientList, makeCompany, get_serviceTitan_clients
+from .utils import getAllZipcodes, saveClientList, makeCompany
 from .models import CustomUser, Client, Company, InviteToken, Task, ClientUpdate, HomeListing
 from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, ClientListSerializer, MyTokenObtainPairSerializer, HomeListingSerializer
+from .syncClients import get_fieldEdge_clients, get_hubspot_clients, get_salesforce_clients, get_serviceTitan_clients
 import datetime
+import requests
 import jwt
 from config import settings
 import pytz
@@ -166,6 +168,8 @@ def company(request):
                 company.serviceTitanForRentTagID = request.data['forRentTag']
             if request.data['soldTag'] != "":
                 company.serviceTitanRecentlySoldTagID = request.data['soldTag']
+            if request.data['crm'] != "":
+                company.crm = request.data['crm']
             company.save()
             user = CustomUser.objects.get(id=request.data['user'])
             serializer = UserSerializerWithToken(user, many=False)
@@ -540,6 +544,62 @@ class ServiceTitanView(APIView):
                 task = Task.objects.create() 
                 get_serviceTitan_clients.delay(company_id, task.id)                          
                 return Response({"status": "Success", "task": task.id}, status=status.HTTP_201_CREATED, headers="")
+            except Exception as e:
+                print(e)
+                return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)            
+        except Exception as e:
+            print(e)
+            return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
+
+class SalesforceConsumerView(APIView):
+    # GET request that returns the Salesforce Consumer Key and Consumer Secret from the config file, make this protected
+    # permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        try:
+            return Response({"consumer_key": settings.SALESFORCE_CONSUMER_KEY, "consumer_secret": settings.SALESFORCE_CONSUMER_SECRET}, status=status.HTTP_201_CREATED, headers="")
+        except Exception as e:
+            print(e)
+            return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            company_id = self.kwargs['company']
+            try:
+                company = Company.objects.get(id=company_id)
+                company.crm = "Salesforce"
+                code = request.data['code']
+                headers = {
+                    'Content-type': 'application/x-www-form-urlencoded',
+                }
+
+                # Make the request
+                response = requests.post(f'https://login.salesforce.com/services/oauth2/token?grant_type=authorization_code&client_id={settings.SALESFORCE_CONSUMER_KEY}&client_secret={settings.SALESFORCE_CONSUMER_SECRET}&redirect_uri=http://localhost:3000/dashboard/settings&code={code}', headers=headers)
+
+                # Parse the response
+                response_data = response.json()
+                new_access_token = response_data['access_token']
+                new_refresh_token = response_data['refresh_token']
+                company.sfAccessToken = new_access_token
+                company.sfRefreshToken = new_refresh_token
+                company.save()
+                user = CustomUser.objects.get(id=request.data['id'])
+                serializer = UserSerializerWithToken(user, many=False)
+                return Response(serializer.data)
+            except Exception as e:
+                print(e)
+                return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)            
+        except Exception as e:
+            print(e)
+            return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, *args, **kwargs):
+        try:
+            company_id = self.kwargs['company']
+            
+            try:
+                get_salesforce_clients(company_id)
+                return Response({"status": "Success"}, status=status.HTTP_201_CREATED, headers="")
             except Exception as e:
                 print(e)
                 return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)            

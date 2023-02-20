@@ -6,10 +6,11 @@ import {
     IconButton,
     TextField,
     Dialog,
+    DialogContent,
     DialogTitle,
+    Divider,
     Stack,
     Modal,
-    Backdrop,
     Fade,
     Box,
     Typography
@@ -45,9 +46,9 @@ export default function ServiceTitanTagsModal({userInfo}) {
 
     const formik = useFormik({
         initialValues: {
-        forSale: userInfo.company.serviceTitanForSaleTagID,
+        forSale: userInfo.company.serviceTitanForSaleTagID ? userInfo.company.serviceTitanForSaleTagID : "",
         forRent: "",
-        recentlySold: userInfo.company.serviceTitanRecentlySoldTagID,
+        recentlySold: userInfo.company.serviceTitanRecentlySoldTagID ? userInfo.company.serviceTitanRecentlySoldTagID : "",
         },
         validationSchema: IntegrateSTSchema,
         onSubmit: () => {
@@ -67,49 +68,48 @@ export default function ServiceTitanTagsModal({userInfo}) {
         </IconButton>
         <Dialog open={open} onClose={handleClose} sx={{padding:"2px"}}>
             <DialogTitle>Service Titan Tag IDs</DialogTitle>
-            <FormikProvider value={formik}>
-                <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
-                    <Stack spacing={3}>
-                        <TextField
-                            fullWidth
-                            label="For Sale ID"
-                            placeholder="1234567890"
-                            {...getFieldProps('forSale')}
-                            error={Boolean(touched.forSale && errors.forSale)}
-                            helperText={touched.forSale && errors.forSale}
-                        />
-                        {/* <TextField
-                            fullWidth
-                            label="For Rent ID"
-                            placeholder="1234567890"
-                            {...getFieldProps('forRent')}
-                            error={Boolean(touched.forRent && errors.forRent)}
-                            helperText={touched.forRent && errors.forRent}
-                        /> */}
-                        <TextField
-                            fullWidth
-                            label="Recently Sold ID"
-                            placeholder="1234567890"
-                            {...getFieldProps('recentlySold')}
-                            error={Boolean(touched.recentlySold && errors.recentlySold)}
-                            helperText={touched.recentlySold && errors.recentlySold}
-                        />
-                    </Stack>
-                </Form>
-            </FormikProvider>
-            <Stack direction="row" justifyContent="right">
-                <Button color="error" onClick={handleClose}>Cancel</Button>
-                <Button onClick={handleSubmit}>Submit</Button>
-            </Stack>
+            <Divider />
+            <DialogContent>
+                <FormikProvider value={formik}>
+                    <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
+                        <Stack spacing={3}>
+                            <TextField
+                                fullWidth
+                                label="For Sale ID"
+                                placeholder="1234567890"
+                                {...getFieldProps('forSale')}
+                                error={Boolean(touched.forSale && errors.forSale)}
+                                helperText={touched.forSale && errors.forSale}
+                            />
+                            {/* <TextField
+                                fullWidth
+                                label="For Rent ID"
+                                placeholder="1234567890"
+                                {...getFieldProps('forRent')}
+                                error={Boolean(touched.forRent && errors.forRent)}
+                                helperText={touched.forRent && errors.forRent}
+                            /> */}
+                            <TextField
+                                fullWidth
+                                label="Recently Sold ID"
+                                placeholder="1234567890"
+                                {...getFieldProps('recentlySold')}
+                                error={Boolean(touched.recentlySold && errors.recentlySold)}
+                                helperText={touched.recentlySold && errors.recentlySold}
+                            />
+                        </Stack>
+                    </Form>
+                </FormikProvider>
+                <Stack direction="row" justifyContent="right">
+                    <Button color="error" onClick={handleClose}>Cancel</Button>
+                    <Button onClick={handleSubmit}>Submit</Button>
+                </Stack>
+            </DialogContent>
         </Dialog>
         <Modal
                 open={integrateInfo}
                 onClose={()=>setIntegrateInfo(false)}
                 closeAfterTransition
-                BackdropComponent={Backdrop}
-                BackdropProps={{
-                timeout: 500,
-                }}
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
                 padding='10'

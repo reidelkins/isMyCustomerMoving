@@ -144,12 +144,13 @@ def update_subscription(event: djstripe_models.Event):
         plan = plan[0]['plan']
         plan = djstripe_models.Plan.objects.get(djstripe_id=plan)
         product = Product.objects.get(pid=plan.id)
+        print(f"product id being changed to {product.id}")
         company = Company.objects.get(email=customer.email)
         company.product = product
-        withAllHomeSalesAddOn = []
-        if product.id in withAllHomeSalesAddOn:
+        if product.realEstateAddOn:
+            print("adding recently sold purchased")
             company.recentlySoldPurchased = True
-        company.save()
+        # company.save()
     except Exception as e:
         print(e)
         print("error")
