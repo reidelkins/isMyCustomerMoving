@@ -85,9 +85,10 @@ def publishable_key(request):
                 'data': {'publishable_key': settings.STRIPE_PUBLISHABLE_KEY } }
         )
 
-# # when customer/subscription created 
-# @webhooks.handler('customer.created')
-# def create_customer(event: djstripe_models.Event):
+# when customer/subscription created 
+@webhooks.handler('customer.created')
+def create_customer(event: djstripe_models.Event):
+    print("customer created")
 #     obj = event.data['object']
 #     company = obj['name']
 #     email = obj['email']
@@ -101,8 +102,9 @@ def publishable_key(request):
 
 
 # # important in the case that company adds back a canceled subscription
-# @webhooks.handler('customer.subscription.created')
-# def create_subscription(event: djstripe_models.Event):
+@webhooks.handler('customer.subscription.created')
+def create_subscription(event: djstripe_models.Event):
+    print("subscription created")
 #     try:
 #         obj = event.data['object']
 #         customer = djstripe_models.Customer.objects.get(id=obj['customer'])
@@ -119,7 +121,8 @@ def publishable_key(request):
 #         print("error")
 
 @webhooks.handler('checkout.session.completed')
-def checkout_session_completed(event: djstripe_models.Event):
+def completed_checkout(event: djstripe_models.Event):
+    print("checkout completed")
     obj = event.data['object']
     phone = obj['customer_details']['phone']
     print(phone)
