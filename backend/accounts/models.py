@@ -85,7 +85,7 @@ class Company(models.Model):
                           default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     accessToken = models.CharField(default=create_access_token, max_length=100)
-    product = models.ForeignKey(StripePlan, blank=True, null=True, on_delete=models.SET_NULL)
+    # product = models.ForeignKey(StripePlan, blank=True, null=True, on_delete=models.SET_NULL)
     phone = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(max_length=100, blank=True, null=True)
     stripeID = models.CharField(max_length=100, blank=True, null=True)
