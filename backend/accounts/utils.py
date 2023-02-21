@@ -25,6 +25,7 @@ for i in range(1, 21):
     scrapflies.append(scrapfly)
 
 def makeCompany(companyName, email, phone, stripeId):
+    print("makeCompany")
     try:
         comp = {'name': companyName, 'phone': phone, 'email': email, 'stripeID': stripeId}
         serializer = CompanySerializer(data=comp)
