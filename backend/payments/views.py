@@ -133,7 +133,7 @@ def completed_checkout(event: djstripe_models.Event):
         print(companyName)
         stripeId = obj['customer']
         print(stripeId)
-        subscription = djstripe_models.Subscription.objects.filter(id=obj['subscription'])
+        subscription = djstripe_models.Subscription.objects.get(id=obj['subscription'])
         print(subscription.plan)
         plan = subscription.plan
         try:
