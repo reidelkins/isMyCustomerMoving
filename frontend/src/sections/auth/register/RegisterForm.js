@@ -12,12 +12,13 @@ import Iconify from '../../../components/Iconify';
 
 // ----------------------------------------------------------------------
 
-export default function RegisterForm() {
+export default function RegisterForm({company, accessToken}) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
+
 
   const userRegister = useSelector(showRegisterInfo);
   const { error: registerError, loading: registerLoading } = userRegister;
@@ -42,8 +43,8 @@ export default function RegisterForm() {
 
   const formik = useFormik({
     initialValues: {
-      company: '',
-      accessToken: '',
+      company,
+      accessToken,
       firstName: '',
       lastName: '',
       email: '',

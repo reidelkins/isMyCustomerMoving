@@ -1,4 +1,4 @@
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useParams } from 'react-router-dom';
 // @mui
 import { styled } from '@mui/material/styles';
 import { Card, Link, Container, Typography } from '@mui/material';
@@ -59,6 +59,8 @@ export default function Register() {
   const smUp = useResponsive('up', 'sm');
 
   const mdUp = useResponsive('up', 'md');
+  
+  const { company, accesstoken} = useParams();
 
   return (
     <Page title="Register">
@@ -93,8 +95,12 @@ export default function Register() {
               Register
             </Typography>
 
-
-            <RegisterForm />
+            {company && accesstoken ? (
+              <RegisterForm company={company} accessToken={accesstoken} />
+            ):(
+              <RegisterForm company={""} accessToken={""} />
+            )}
+            
 
             <Typography variant="body2" align="center" sx={{ color: 'text.secondary', mt: 3 }}>
               By registering, I agree to {' '}

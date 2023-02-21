@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from django.utils.crypto import get_random_string
 from django.conf import settings
 from django.template.loader import get_template
-from payments.models import Product
+from djstripe.models import Plan as StripePlan
 
 
 STATUS_CHOICES = (
@@ -85,7 +85,7 @@ class Company(models.Model):
                           default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     accessToken = models.CharField(default=create_access_token, max_length=100)
-    product = models.ForeignKey(Product, blank=True, null=True, on_delete=models.SET_NULL)
+    product = models.ForeignKey(StripePlan, blank=True, null=True, on_delete=models.SET_NULL)
     phone = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(max_length=100, blank=True, null=True)
     stripeID = models.CharField(max_length=100, blank=True, null=True)
