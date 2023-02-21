@@ -41,7 +41,7 @@ class CustomUserAdmin(UserAdmin):
         return obj.company.name
 
 class CompanyAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'accessToken')
+    list_display = ('id', 'name', 'accessToken', 'product')
 
 class ClientAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'status', 'city', 'state', 'contacted', 'note', 'zipCode__zip', 'company__name', 'servTitanID', 'phoneNumber')
