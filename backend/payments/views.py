@@ -129,7 +129,7 @@ def completed_checkout(event: djstripe_models.Event):
         print(phone)
         email = obj['customer_details']['email']
         print(email)
-        companyName = obj['custom_fields']['text']['value']
+        companyName = obj['custom_fields'][0]['text']['value']
         print(companyName)
         stripeId = obj['customer']
         print(stripeId)
