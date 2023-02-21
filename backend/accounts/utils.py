@@ -24,9 +24,9 @@ for i in range(1, 21):
     scrapfly = ScrapflyClient( key=settings.SCRAPFLY_KEY, max_concurrency=1)
     scrapflies.append(scrapfly)
 
-def makeCompany(companyName, email, phone, stripeID,):
+def makeCompany(companyName, email, phone, stripeId):
     try:
-        comp = {'name': companyName, 'phone': phone, 'email': email, 'stripeID': stripeID}
+        comp = {'name': companyName, 'phone': phone, 'email': email, 'stripeID': stripeId}
         serializer = CompanySerializer(data=comp)
         if serializer.is_valid():
             company = serializer.save()

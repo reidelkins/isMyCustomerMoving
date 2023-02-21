@@ -85,38 +85,64 @@ def publishable_key(request):
                 'data': {'publishable_key': settings.STRIPE_PUBLISHABLE_KEY } }
         )
 
-# when customer/subscription created 
-@webhooks.handler('customer.created')
-def create_customer(event: djstripe_models.Event):
+# # when customer/subscription created 
+# @webhooks.handler('customer.created')
+# def create_customer(event: djstripe_models.Event):
+#     obj = event.data['object']
+#     company = obj['name']
+#     email = obj['email']
+#     stripeID = obj['id']
+#     phone = obj['phone']
+#     try:
+#         Company.objects.get(name=company, email=email, stripeID=stripeID)
+#     except:
+#         makeCompany(company, email, phone, stripeID)
+#     print("done")
+
+
+# # important in the case that company adds back a canceled subscription
+# @webhooks.handler('customer.subscription.created')
+# def create_subscription(event: djstripe_models.Event):
+#     try:
+#         obj = event.data['object']
+#         customer = djstripe_models.Customer.objects.get(id=obj['customer'])
+#         company = Company.objects.get(email=customer.email)
+#         product = Product.objects.get(pid=obj['items']['data'][0]['price']['id'])
+#         company.product = product
+#         company.save()
+#         users = CustomUser.objects.filter(company=company)
+#         for user in users:
+#             user.isVerified = True
+#             user.save()
+#     except Exception as e:
+#         print(e)
+#         print("error")
+
+@webhooks.handler('checkout.session.completed')
+def checkout_session_completed(event: djstripe_models.Event):
     obj = event.data['object']
-    company = obj['name']
-    email = obj['email']
-    stripeID = obj['id']
-    phone = obj['phone']
+    phone = obj['customer_details']['phone']
+    email = obj['customer_details']['email']
+    companyName = obj['custom_fields']['text']['value']
+    stripeId = obj['customer']
+    subscription = djstripe_models.Subscription.objects.filter(id=obj['subscription'])
+    plan = subscription.plan
     try:
-        Company.objects.get(name=company, email=email, stripeID=stripeID)
+        company = Company.objects.get(name=companyName, email=email, stripeID=stripeId)
     except:
-        makeCompany(company, email, phone, stripeID)
-    print("done")
+        try:
+            company = makeCompany(companyName, email, phone, stripeId)
+            company.plan = plan
+            company.save()
+        except Exception as e:
+            print(f"error: {e}")
+            
+    users = CustomUser.objects.filter(company=company)
+    for user in users:
+        user.isVerified = True
+        user.save()
+            
 
-
-# important in the case that company adds back a canceled subscription
-@webhooks.handler('customer.subscription.created')
-def create_subscription(event: djstripe_models.Event):
-    try:
-        obj = event.data['object']
-        customer = djstripe_models.Customer.objects.get(id=obj['customer'])
-        company = Company.objects.get(email=customer.email)
-        product = Product.objects.get(pid=obj['items']['data'][0]['price']['id'])
-        company.product = product
-        company.save()
-        users = CustomUser.objects.filter(company=company)
-        for user in users:
-            user.isVerified = True
-            user.save()
-    except Exception as e:
-        print(e)
-        print("error")
 
 #canceled subscription
 @webhooks.handler('customer.subscription.deleted')
