@@ -39,6 +39,10 @@ export default function RegisterForm({company, accessToken}) {
             ),
     verifiedPassword: Yup.string()
             .oneOf([Yup.ref('password'), null], 'Passwords must match'),
+    phone: Yup.string().required('Phone number is required').matches(
+            /^(\+?1)?[2-9]\d{2}[2-9](?!11)\d{6}$/,
+            "Must be a valid phone number"
+            ),
   });
 
   const formik = useFormik({
@@ -47,13 +51,14 @@ export default function RegisterForm({company, accessToken}) {
       accessToken,
       firstName: '',
       lastName: '',
+      phone: '',
       email: '',
       password: '',
       verifiedPassword: '',
     },
     validationSchema: RegisterSchema,
     onSubmit: () => {
-      dispatch(registerAsync(values.company, values.accessToken, values.firstName, values.lastName, values.email, values.password));
+      dispatch(registerAsync(values.company, values.accessToken, values.firstName, values.lastName, values.email, values.password, values.phone));
     },
   });
 
@@ -112,7 +117,6 @@ export default function RegisterForm({company, accessToken}) {
             error={Boolean(touched.email && errors.email)}
             helperText={touched.email && errors.email}
           />
-
           <TextField
             fullWidth
             autoComplete="current-password"
@@ -147,6 +151,15 @@ export default function RegisterForm({company, accessToken}) {
             }}    
             error={Boolean(touched.verifiedPassword && errors.verifiedPassword)}
             helperText={touched.verifiedPassword && errors.verifiedPassword}
+          />
+          <TextField
+            fullWidth
+            autoComplete="phone"
+            type="phone"
+            label="Phone Number"
+            {...getFieldProps('phone')}
+            error={Boolean(touched.phone && errors.phone)}
+            helperText={touched.phone && errors.phone}
           />
 
           {registerError ? (

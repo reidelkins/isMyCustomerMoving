@@ -163,7 +163,7 @@ export const editUserAsync = (email, firstName, lastName, serviceTitan) => async
   }
 };
 
-export const registerAsync = (company, accessToken, firstName, lastName, email, password) => async (dispatch) => {
+export const registerAsync = (company, accessToken, firstName, lastName, email, password, phone) => async (dispatch) => {
   try {
     dispatch(registerLoading());
     const config = {
@@ -171,7 +171,7 @@ export const registerAsync = (company, accessToken, firstName, lastName, email, 
         'Content-type': 'application/json',
       },
     };
-    const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/register/`, { company, accessToken, firstName, lastName, email, password }, config);    
+    const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/register/`, { company, accessToken, firstName, lastName, email, password, phone }, config);    
     dispatch(register(data));
     localStorage.setItem('userInfo', JSON.stringify(data));
   } catch (err) {
@@ -207,7 +207,7 @@ export const companyAsync = (email, phone, tenantID, clientID, clientSecret, for
 // export const resetPasswordAsync = (oldPassword, password) => async (dispatch) => {
 // };
 
-export const addUserAsync = (firstName, lastName, email, password, token) => async (dispatch) => {
+export const addUserAsync = (firstName, lastName, email, password, token, phone) => async (dispatch) => {
   try {
     dispatch(registerLoading());
     const config = {
@@ -218,7 +218,7 @@ export const addUserAsync = (firstName, lastName, email, password, token) => asy
 
     const { data } = await axios.post(
       `${DOMAIN}/api/v1/accounts/manageuser/${token}/`,
-      { firstName, lastName, email, password },
+      { firstName, lastName, email, password, phone },
       config
     );
     dispatch(register(data));

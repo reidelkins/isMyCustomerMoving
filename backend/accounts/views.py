@@ -58,7 +58,7 @@ class ManageUserView(APIView):
                 users = CustomUser.objects.filter(company=user.company)
                 serializer = UserListSerializer(users, many=True)
                 return Response(serializer.data)
-            # Except Invite and Make User
+            # Accept Invite and Make User
             elif InviteToken.objects.filter(id=self.kwargs['id']).exists():
                 utc = pytz.UTC
                 try:
@@ -80,6 +80,7 @@ class ManageUserView(APIView):
                             user.status = 'active'
                             user.first_name = request.data['firstName']
                             user.last_name = request.data['lastName']
+                            user.phone = request.data['phone']
                             user.isVerified = True
                             user.save()                            
                             token.delete()
@@ -214,6 +215,7 @@ class RegisterView(APIView):
         password = data.get('password')
         company = data.get('company')
         accessToken = data.get('accessToken')
+        phone = data.get('phone')
         messages = {'errors': []}
         if first_name == None:
             messages['errors'].append('first_name can\'t be empty')
@@ -244,7 +246,8 @@ class RegisterView(APIView):
                     password=make_password(password),
                     company=company,
                     status='admin',
-                    isVerified=True
+                    isVerified=True,
+                    phone = phone
                 )
                 # user = CustomUser.objects.get(email=email)
                 # current_site = get_current_site(request)
