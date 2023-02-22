@@ -169,6 +169,7 @@ class CustomUser(AbstractUser):
     isVerified = models.BooleanField(default=False)
     status = models.CharField(
         max_length=100, choices=STATUS_CHOICES, default='active')
+    phone = models.CharField(max_length=100, blank=True, null=True)
     company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE)
     otp_enabled = models.BooleanField(default=False)
     otp_verified = models.BooleanField(default=False)
