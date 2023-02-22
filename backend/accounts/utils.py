@@ -32,13 +32,13 @@ def makeCompany(companyName, email, phone, stripeId):
         if serializer.is_valid():
             company = serializer.save()
             if company:
-                # mail_subject = "Access Token for Is My Customer Moving"
-                # messagePlain = "Your access token is: " + company.accessToken
-                # messagePlain = "Thank you for signing up for Is My Customer Moving. Your company name is: " + company.name +  "and your access token is: " + company.accessToken + ". Please use this info at https://app.ismycustomermoving.com/register to create your account."
-                # message = get_template("registration.html").render({
-                #     'company': company.name, 'accessToken': company.accessToken
-                # })
-                # send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)
+                mail_subject = "Access Token for Is My Customer Moving"
+                messagePlain = "Your access token is: " + company.accessToken
+                messagePlain = "Thank you for signing up for Is My Customer Moving. Your company name is: " + company.name +  "and your access token is: " + company.accessToken + ". Please use this info at https://app.ismycustomermoving.com/register to create your account."
+                message = get_template("registration.html").render({
+                    'company': company.name, 'accessToken': company.accessToken
+                })
+                send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)
                 return company
             else:
                 return {'Error': "Company with that name already exists"}

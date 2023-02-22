@@ -123,32 +123,20 @@ def create_subscription(event: djstripe_models.Event):
 @webhooks.handler('checkout.session.completed')
 def completed_checkout(event: djstripe_models.Event):
     try:
-        print("checkout completed")
         obj = event.data['object']
         phone = obj['customer_details']['phone']
-        print(phone)
         email = obj['customer_details']['email']
-        print(email)
         companyName = obj['custom_fields'][0]['text']['value']
-        print(companyName)
         stripeId = obj['customer']
-        print(stripeId)
         subscription = djstripe_models.Subscription.objects.get(id=obj['subscription'])
-        print(subscription.plan)
         plan = subscription.plan
         try:
-            print("try")
             company = Company.objects.get(name=companyName, email=email, stripeID=stripeId)
-            print("no luck")
         except:
             try:
-                print(1)
                 company = makeCompany(companyName, email, phone, stripeId)
-                print(2)
                 company.plan = plan
-                print(3)
                 company.save()
-                print(4)
             except Exception as e:
                 print(f"error: {e}")
                 
