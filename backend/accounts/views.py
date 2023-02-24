@@ -1,9 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from django.contrib.auth.hashers import make_password
-from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.template.loader import get_template
 from django.http import HttpResponse
+from django.db.models import Q
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import permissions, status, generics
 from rest_framework.decorators import api_view
@@ -13,11 +13,10 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
-import pandas as pd
 from .utils import getAllZipcodes, saveClientList, makeCompany
-from .models import CustomUser, Client, Company, InviteToken, Task, ClientUpdate, HomeListing
-from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, ClientListSerializer, MyTokenObtainPairSerializer, HomeListingSerializer
-from .syncClients import get_fieldEdge_clients, get_hubspot_clients, get_salesforce_clients, get_serviceTitan_clients
+from .models import CustomUser, Client, Company, InviteToken, Task, ClientUpdate, HomeListing, Referral
+from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, ClientListSerializer, MyTokenObtainPairSerializer, HomeListingSerializer, ReferralSerializer
+from .syncClients import get_salesforce_clients, get_serviceTitan_clients
 import datetime
 import requests
 import jwt
@@ -518,6 +517,42 @@ def update_client(request):
     except Exception as e:
         print(e)
         return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+
+# class view to return all referrals for a company where the company is either the referred from or referred to
+class ReferralView(generics.ListAPIView):
+    print("REFERRAL VIEW")
+    serializer_class = ReferralSerializer
+    pagination_class = CustomPagination
+    def get_queryset(self):
+        company = Company.objects.get(id=self.kwargs['company'])
+        print(company)
+        return Referral.objects.filter(Q(referredFrom=company) | Q(referredTo=company)).order_by('franchise')
+
+    # method for creating a new referral
+    def post(self, request, *args, **kwargs):
+        try:            
+            referredTo = Company.objects.get(id=request.data['referredTo'])
+            referredFrom = Company.objects.get(id=request.data['company'])
+            client = Client.objects.get(id=request.data['client'])
+            referral = Referral.objects.create(franchise=referredFrom.franchise, referredTo=referredTo, referredFrom=referredFrom, client=client)
+            return Response({"status": "SUCCESS", "referral": ReferralSerializer(referral).data}, status=status.HTTP_201_CREATED, headers="")
+        except Exception as e:
+            print(e)
+            return Response({"status": "ERROR"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # method for updating a referral
+    def put(self, request, *args, **kwargs):
+        try:
+            referral = Referral.objects.get(id=request.data['referral'])
+            if request.data['status']:
+                referral.status = request.data['status']
+            if request.data['note']:
+                referral.note = request.data['note']
+            referral.save()
+            return Response({"status": "SUCCESS", "referral": ReferralSerializer(referral).data}, status=status.HTTP_201_CREATED, headers="")
+        except Exception as e:
+            print(e)
+            return Response({"status": "ERROR"}, status=status.HTTP_400_BAD_REQUEST)
 
 class ServiceTitanView(APIView):
     def get(self, request, *args, **kwargs):

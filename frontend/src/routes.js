@@ -12,6 +12,7 @@ import ResetPassword from './pages/NewPassword';
 import NotFound from './pages/Page404';
 import Register from './pages/Register';
 import AddUser from './pages/AddUser';
+import Referrals from './pages/Referrals';
 
 import ProfileSettings from './pages/ProfileSettings';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -32,6 +33,7 @@ export default function Router() {
         // { path: 'customers', element: <PrivateRoute path="/dashboard/customers" component={<CustomerData />} /> },
         { path: 'customers', element: <CustomerData /> },
         { path: 'recentlysold', element: <RecentlySoldData />},
+        { path: 'referrals', element: <Referrals />},
         // { path: 'adduser', element: <PrivateRoute path="/dashboard/adduser" component={<AddUser />} />}
         { path: 'adduser', element: <AddUser />},
       ],

@@ -27,6 +27,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { DOMAIN } from '../redux/constants';
 
 // components
+import ReferralModal from '../components/ReferralModal';
 import NoteModal from '../components/NoteModal';
 import Page from '../components/Page';
 import Label from '../components/Label';
@@ -54,6 +55,7 @@ const TABLE_HEAD = [
   { id: 'contacted', label: 'Contacted', alignRight: false },
   { id: 'note', label: 'Note', alignRight: false },
   { id: 'phone', label: 'Phone Number', alignRight: false },
+  { id: 'refer', label: 'Refer', alignRight: false },
 ];
 
 // ----------------------------------------------------------------------
@@ -376,6 +378,16 @@ export default function CustomerData() {
                               </TableCell>
                               <TableCell>
                                 {phoneNumber}
+                              </TableCell>
+                              <TableCell>
+                                {(() => {
+                                  if (status !== 'No Change') {
+                                    return(
+                                      <ReferralModal id={id} alreadyReferred={false}/>
+                                    )
+                                  }
+                                  return null;                                
+                                })()}                          
                               </TableCell>
                             </TableRow>                                                                            
                             {expandedRow === id && (

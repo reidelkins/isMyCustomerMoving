@@ -19,6 +19,7 @@ urlpatterns = [
     path('recentlysold/<str:company>/', views.RecentlySoldView.as_view(), name='recently-sold'),
     path('allrecentlysold/<str:company>/', views.AllRecentlySoldView.as_view(), name='all-recently-sold'),
     
+    path('referrals/<str:company>/', views.ReferralView.as_view(), name='referrals'),
     path('salesforce/<str:company>/', views.SalesforceConsumerView.as_view(), name='salesforce-consumer'),
     path('otp/disable/', views.OTPDisableView.as_view(), name='otp-disable'),
     path('otp/validate/', views.OTPValidateView.as_view(), name='otp-validate'),

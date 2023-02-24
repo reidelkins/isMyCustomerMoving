@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext as _
-from .models import CustomUser, Company, Client, ZipCode, HomeListing, InviteToken, ClientUpdate, ScrapeResponse
+from .models import CustomUser, Company, Client, ZipCode, HomeListing, InviteToken, ClientUpdate, ScrapeResponse, Franchise, Referral
 
 
 class CustomUserAdmin(UserAdmin):
@@ -43,7 +43,7 @@ class CustomUserAdmin(UserAdmin):
         return obj.company.name
 
 class CompanyAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'accessToken', 'product')
+    list_display = ('name', 'accessToken', 'product', 'franchise')
 
 class ClientAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'status', 'city', 'state', 'contacted', 'note', 'zipCode__zip', 'company__name', 'servTitanID', 'phoneNumber')
@@ -93,6 +93,14 @@ class ScrapeResponseAdmin(admin.ModelAdmin):
     list_display = ('id', 'date', 'zip', 'status', 'url')
     search_fields = ['id', 'date', 'zip', 'status', 'url']
 
+class FranchiseAdmin(admin.ModelAdmin):
+    list_display = ('name', 'mainCompany')
+    search_fields = ['name', 'mainCompany']
+
+class ReferralAdmin(admin.ModelAdmin):
+    # all fields
+    list_display = ('id', 'franchise', 'referredFrom', 'referredTo', 'client')
+    search_fields = ['id', 'franchise', 'referredFrom', 'referredTo', 'client']
 
 # Register your models here.
 admin.site.register(HomeListing, HomeListingAdmin)
@@ -103,3 +111,5 @@ admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(InviteToken, InviteTokenAdmin)
 admin.site.register(ClientUpdate, ClientUpdateAdmin)
 admin.site.register(ScrapeResponse, ScrapeResponseAdmin)
+admin.site.register(Franchise, FranchiseAdmin)
+admin.site.register(Referral, ReferralAdmin)

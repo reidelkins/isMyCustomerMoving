@@ -35,6 +35,12 @@ export const userSlice = createSlice({
       RECENTLYSOLDLIST: [],
       highestPage: 0,
       count: 0,
+    },
+    referralInfo: {
+      loading: false,
+      error: null,
+      REFERRALLIST: [],
+      highestPage: 0,
     }
   },
   reducers: {
@@ -118,6 +124,29 @@ export const userSlice = createSlice({
       state.recentlySoldInfo.highestPage = action.payload;
     },
 
+    // -----------------  REFERRALS  -----------------
+    referrals: (state, action) => {
+      state.referralInfo.REFERRALLIST = action.payload;
+      state.referralInfo.loading = false;
+      state.referralInfo.error = null;
+    },
+    referralsError: (state, action) => {
+      state.referralInfo.error = action.payload;
+      state.referralInfo.loading = false;
+      state.referralInfo.REFERRALLIST = [];
+    },
+    referralsLoading: (state) => {
+      state.referralInfo.loading = true;
+    },
+    moreReferrals: (state, action) => {
+      state.referralInfo.REFERRALLIST = [...state.referralInfo.REFERRALLIST, ...action.payload];
+      state.referralInfo.loading = false;
+      state.referralInfo.error = null;
+    },
+    newReferralsPage: (state, action) => {
+      state.referralInfo.highestPage = action.payload;
+    },
+
     // TODO
     sendNewUserEmail: (state) => {
       state.clientsInfo.loading = false;
@@ -133,10 +162,13 @@ export const userSlice = createSlice({
 
 export const { clientsNotAdded, clients, moreClients, newPage, clientsUploading, clientsLoading, clientsNotLoading, clientsError,
    users, usersLoading, usersError,
-   recentlySold, recentlySoldLoading, recentlySoldError, newRecentlySoldPage, moreRecentlySold } = userSlice.actions;
+   recentlySold, recentlySoldLoading, recentlySoldError, newRecentlySoldPage, moreRecentlySold,
+   referrals, referralsLoading, referralsError, moreReferrals, newReferralsPage
+  } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
 export const selectRecentlySold = (state) => state.user.recentlySoldInfo;
 export const selectUsers = (state) => state.user.usersInfo;
+export const selectReferrals = (state) => state.user.referralInfo;
 export default userSlice.reducer;
 
 export const usersAsync = () => async (dispatch, getState) => {
@@ -463,5 +495,51 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
     }
   } catch (error) {
     dispatch(recentlySoldError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+}
+
+export const makeReferralAsync = (id, area) => async (getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+    await axios.post(`${DOMAIN}/api/v1/accounts/makereferral/`, {id, area}, config);
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
+export const referralsAsync = (page) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+    if (page === 1) {
+      dispatch(referralsLoading());
+    }
+    if (page > reduxStore.user.referralInfo.highestPage) {
+      const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/referrals/${userInfo.company.id}?page=${page}`, config);
+      if (data.results.length > 0) {
+        dispatch(newReferralsPage(page));
+      }
+      if (page === 1) {
+        dispatch(referrals(data));        
+      } else {
+        dispatch(moreReferrals(data));
+      }
+    }
+  } catch (error) {
+    console.log("error", error)
+    dispatch(referralsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 }

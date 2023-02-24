@@ -1,10 +1,24 @@
 from rest_framework import serializers
-from .models import CustomUser, Company, Client, ClientUpdate, HomeListing
+from .models import CustomUser, Company, Client, ClientUpdate, HomeListing, Franchise, Referral
 from payments.models import Product
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.utils.crypto import get_random_string
 from django.contrib.auth.models import update_last_login
+
+class FranchiseSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(max_length=100)
+
+    class Meta:
+        model = Franchise
+        fields = ['name']
+
+class BasicCompanySerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(read_only=True)
+    name = serializers.CharField(max_length=100)
+    class Meta:
+        model = Company
+        fields = ['id', 'name']
 
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -15,12 +29,16 @@ class CompanySerializer(serializers.ModelSerializer):
     stripeID = serializers.CharField(max_length=100, required=False)
     recentlySoldPurchased = serializers.BooleanField(default=False)
     crm = serializers.CharField(max_length=100, required=False)
+    franchise = FranchiseSerializer(required=False)
+
+
     # service titan
     tenantID = serializers.CharField(max_length=100, required=False)
     clientID = serializers.CharField(max_length=100, required=False)
     serviceTitanForRentTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanForSaleTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanRecentlySoldTagID = serializers.CharField(max_length=100, required=False)
+
     
 
     def create(self, validated_data):
@@ -29,7 +47,8 @@ class CompanySerializer(serializers.ModelSerializer):
         return Company.objects.create(**validated_data, accessToken=get_random_string(length=32))
     class Meta:
         model = Company
-        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased']
+        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'franchise']
+
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -133,4 +152,16 @@ class HomeListingSerializer(serializers.ModelSerializer):
     class Meta:
         model = HomeListing
         fields = ('id', 'address', 'listed', 'zipCode')
+
+class ReferralSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(read_only=True)
+    franchise = FranchiseSerializer(required=False)
+    referredFrom = BasicCompanySerializer(required=True)
+    referredTo = BasicCompanySerializer(required=True)
+    client = ClientListSerializer(read_only=True)
+    contacted = serializers.BooleanField()
+
+    class Meta:
+        model = Referral
+        fields = ['id', 'franchise', 'referredFrom', 'referredTo', 'client', 'contacted']
 

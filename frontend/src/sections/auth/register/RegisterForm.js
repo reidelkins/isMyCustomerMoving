@@ -34,7 +34,7 @@ export default function RegisterForm({company, accessToken}) {
     accessToken: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Access token required'),
     email: Yup.string().email('Email must be a valid email address').required('Email is required'),
     password: Yup.string().required('Password is required').matches(
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{12,})/,
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*-])(?=.{12,})/,
             "Must Contain 12 Characters, One Uppercase, One Lowercase, One Number and One Special Case Character"
             ),
     verifiedPassword: Yup.string()

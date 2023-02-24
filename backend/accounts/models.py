@@ -1,11 +1,10 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-from django.core.validators import MinValueValidator, MaxValueValidator
 from django.dispatch import receiver
-from django.urls import reverse
 from django_rest_passwordreset.signals import reset_password_token_created
 from django.core.mail import EmailMessage
 from django.db import models
 from django.utils.translation import gettext as _
+from django.core.exceptions import ValidationError
 import uuid
 from datetime import datetime, timedelta
 from django.utils.crypto import get_random_string
@@ -77,6 +76,15 @@ class CustomUserManager(BaseUserManager):
 
         return self._create_user(email, password, **extra_fields)
 
+class Franchise(models.Model):
+    id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100)
+    mainCompany = models.OneToOneField('Company', on_delete=models.CASCADE, blank=True, null=True, related_name='mainCompany')
+
+    def __str__(self):
+        return self.name
+
+
 def create_access_token():
     return get_random_string(length=32)
 
@@ -90,6 +98,7 @@ class Company(models.Model):
     email = models.EmailField(max_length=100, blank=True, null=True)
     stripeID = models.CharField(max_length=100, blank=True, null=True)
     crm = models.CharField(max_length=100, choices=CRM, default='None')
+    franchise = models.ForeignKey(Franchise, on_delete=models.SET_NULL, blank=True, null=True)
 
     # Service Titan
     tenantID = models.IntegerField(blank=True, null=True)
@@ -103,6 +112,9 @@ class Company(models.Model):
     # Salesforce
     sfAccessToken = models.CharField(max_length=100, blank=True, null=True)
     sfRefreshToken = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
 
 
 def zipTime():
@@ -220,3 +232,25 @@ class Task(models.Model):
                           default=uuid.uuid4, editable=False)
     completed = models.BooleanField(default=False)
     deletedClients = models.IntegerField(default=0)
+
+class Referral(models.Model):
+    id = models.UUIDField(primary_key=True, unique=True,
+                          default=uuid.uuid4, editable=False)
+    franchise = models.ForeignKey(Franchise, on_delete=models.CASCADE)
+    referredFrom = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='referredFrom')
+    referredTo = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='referredTo')
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='referralClient', blank=True, null=True)
+    contacted = models.BooleanField(default=False)
+
+    # on save, make sure both the referredFrom and referredTo are not the same and they are part of the franchise
+    def save(self, *args, **kwargs):
+        if self.referredFrom == self.referredTo:
+            raise ValidationError("Referred From and Referred To cannot be the same")
+        if self.referredFrom.franchise != self.franchise or self.referredTo.franchise != self.franchise:
+            raise ValidationError("Both Referred From and Referred To must be part of the franchise")
+        if self.client.company.franchise != self.franchise:
+            raise ValidationError("Client must be part of the franchise")
+        if self.client.company != self.referredFrom:
+            raise ValidationError("Client must have the same company as Referred From")
+            
+        super(Referral, self).save(*args, **kwargs)
