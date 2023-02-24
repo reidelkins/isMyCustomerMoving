@@ -1,5 +1,5 @@
 from datetime import timedelta
-import os, ssl
+import os, ssl, re
 from pathlib import Path
 import dj_database_url
 
@@ -241,6 +241,7 @@ MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS_REGEX = r'^https?://is-my-customer-moving-[a-zA-Z0-9-]+-reidmhac\.vercel\.app$'
 CORS_ALLOWED_ORIGINS = [
     "https://example.com",
     "https://sub.example.com",
@@ -249,7 +250,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3006",
     "http://localhost:3007",  # React App will be on this port
     "http://127.0.0.1:9000",
-    "https://is-my-customer-moving-*-reidmhac.vercel.app",
+    re.compile(CORS_ALLOWED_ORIGINS_REGEX)
     "https://is-my-customer-moving.vercel.app",
     "https://ismycustomermoving.com",
     "https://www.ismycustomermoving.com",
