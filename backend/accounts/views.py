@@ -520,7 +520,6 @@ def update_client(request):
 
 # class view to return all referrals for a company where the company is either the referred from or referred to
 class ReferralView(generics.ListAPIView):
-    print("REFERRAL VIEW")
     serializer_class = ReferralSerializer
     pagination_class = CustomPagination
     def get_queryset(self):
