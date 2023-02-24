@@ -243,14 +243,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS_REGEX = r'^https?://is-my-customer-moving-[a-zA-Z0-9-]+-reidmhac\.vercel\.app$'
 CORS_ALLOWED_ORIGINS = [
-    "https://example.com",
-    "https://sub.example.com",
-    "http://localhost:8080",
     "http://localhost:3000",
     "http://localhost:3006",
     "http://localhost:3007",  # React App will be on this port
-    "http://127.0.0.1:9000",
-    re.compile(CORS_ALLOWED_ORIGINS_REGEX)
+    re.compile(CORS_ALLOWED_ORIGINS_REGEX),
     "https://is-my-customer-moving.vercel.app",
     "https://ismycustomermoving.com",
     "https://www.ismycustomermoving.com",
