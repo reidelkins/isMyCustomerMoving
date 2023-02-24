@@ -45,18 +45,6 @@ import { logout, showLoginInfo } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
 
-const TABLE_HEAD = [
-  { id: 'name', label: 'Name', alignRight: false },
-  { id: 'address', label: 'Address', alignRight: false },
-  { id: 'city', label: 'City', alignRight: false },
-  { id: 'state', label: 'State', alignRight: false },
-  { id: 'zipCode', label: 'Zip Code', alignRight: false },
-  { id: 'status', label: 'Status', alignRight: false },
-  { id: 'contacted', label: 'Contacted', alignRight: false },
-  { id: 'note', label: 'Note', alignRight: false },
-  { id: 'phone', label: 'Phone Number', alignRight: false },
-  { id: 'refer', label: 'Refer', alignRight: false },
-];
 
 // ----------------------------------------------------------------------
 // change this to sort by status
@@ -110,6 +98,32 @@ export default function CustomerData() {
     }
 
   }, [userInfo, dispatch, navigate]);
+  
+  const [TABLE_HEAD, setTABLE_HEAD] = useState([{ id: 'name', label: 'Name', alignRight: false },
+        { id: 'address', label: 'Address', alignRight: false },
+        { id: 'city', label: 'City', alignRight: false },
+        { id: 'state', label: 'State', alignRight: false },
+        { id: 'zipCode', label: 'Zip Code', alignRight: false },
+        { id: 'status', label: 'Status', alignRight: false },
+        { id: 'contacted', label: 'Contacted', alignRight: false },
+        { id: 'note', label: 'Note', alignRight: false },
+        { id: 'phone', label: 'Phone Number', alignRight: false }]);
+  useEffect(() => {
+    if (userInfo.company.franchise) {
+      setTABLE_HEAD([
+        { id: 'name', label: 'Name', alignRight: false },
+        { id: 'address', label: 'Address', alignRight: false },
+        { id: 'city', label: 'City', alignRight: false },
+        { id: 'state', label: 'State', alignRight: false },
+        { id: 'zipCode', label: 'Zip Code', alignRight: false },
+        { id: 'status', label: 'Status', alignRight: false },
+        { id: 'contacted', label: 'Contacted', alignRight: false },
+        { id: 'note', label: 'Note', alignRight: false },
+        { id: 'phone', label: 'Phone Number', alignRight: false },
+        { id: 'referral', label: 'Refer', alignRight: false }
+      ]);
+    }
+  }, [userInfo]);
 
   const listClient = useSelector(selectClients);
   const {loading, CLIENTLIST, forSale, recentlySold, count } = listClient;
@@ -379,16 +393,19 @@ export default function CustomerData() {
                               <TableCell>
                                 {phoneNumber}
                               </TableCell>
-                              <TableCell>
-                                {(() => {
-                                  if (status !== 'No Change') {
-                                    return(
-                                      <ReferralModal id={id} alreadyReferred={false}/>
-                                    )
-                                  }
-                                  return null;                                
-                                })()}                          
-                              </TableCell>
+                              {userInfo.company.franchise && (
+                                <TableCell>
+                                  {(() => {
+                                    if (status !== 'No Change') {
+                                      return(
+                                        <ReferralModal id={id} alreadyReferred={false}/>
+                                      )
+                                    }
+                                    return null;                                
+                                  })()}                          
+                                </TableCell>
+                              )}
+                              
                             </TableRow>                                                                            
                             {expandedRow === id && (
                               <TableRow style={{position:'relative', left:'10%'}}>

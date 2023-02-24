@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
-from .utils import getAllZipcodes, saveClientList, makeCompany
+from .utils import getAllZipcodes, saveClientList, makeCompany, find_franchise
 from .models import CustomUser, Client, Company, InviteToken, Task, ClientUpdate, HomeListing, Referral
 from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, ClientListSerializer, MyTokenObtainPairSerializer, HomeListingSerializer, ReferralSerializer
 from .syncClients import get_salesforce_clients, get_serviceTitan_clients
@@ -530,10 +530,13 @@ class ReferralView(generics.ListAPIView):
 
     # method for creating a new referral
     def post(self, request, *args, **kwargs):
-        try:            
-            referredTo = Company.objects.get(id=request.data['referredTo'])
-            referredFrom = Company.objects.get(id=request.data['company'])
-            client = Client.objects.get(id=request.data['client'])
+        
+        try:
+            referredFrom = Company.objects.get(id=self.kwargs['company'])
+            # find closest franchise to area provided
+            referredToId = find_franchise(request.data['area'], referredFrom.franchise.id, referredFrom.id)
+            referredTo = Company.objects.get(id=referredToId)
+            client = Client.objects.get(id=request.data['id'])
             referral = Referral.objects.create(franchise=referredFrom.franchise, referredTo=referredTo, referredFrom=referredFrom, client=client)
             return Response({"status": "SUCCESS", "referral": ReferralSerializer(referral).data}, status=status.HTTP_201_CREATED, headers="")
         except Exception as e:

@@ -9,7 +9,8 @@ from scrapfly import ScrapeApiResponse, ScrapeConfig, ScrapflyClient
 from typing import List, Optional
 from typing_extensions import TypedDict
 
-from .models import Client, Company, ZipCode, HomeListing, CustomUser, ClientUpdate, Task, ScrapeResponse
+from .models import Client, Company, ZipCode, HomeListing, CustomUser, ClientUpdate, Task, ScrapeResponse, Franchise
+from djstripe import models as djstripe_models
 from .serializers import CompanySerializer
 
 from django.conf import settings
@@ -513,16 +514,18 @@ def update_clients_statuses(company_id=None):
     else:
         companies = Company.objects.all()
     for company in companies:
-        zipCode_objects = Client.objects.filter(company=company).values('zipCode')
-        zipCodes = zipCode_objects.distinct()
-        zips = list(zipCodes.order_by('zipCode').values('zipCode'))
-        for zip in zips:
-            zip = zip['zipCode']
-            updateStatus.delay(zip, company.id, "House For Sale")
-        for zip in zips:
-            zip = zip['zipCode']
-            updateStatus.delay(zip, company.id, "House Recently Sold (6)")
-                
+        customer = djstripe_models.Customer.objects.get(id=company[0].stripeID)
+        if customer.subscription.status == "active" or customer.subscription.status == "trialing":
+            if not customer.subscription.pause_collection:
+                zipCode_objects = Client.objects.filter(company=company).values('zipCode')
+                zipCodes = zipCode_objects.distinct()
+                zips = list(zipCodes.order_by('zipCode').values('zipCode'))
+                for zip in zips:
+                    zip = zip['zipCode']
+                    updateStatus.delay(zip, company.id, "House For Sale")
+                for zip in zips:
+                    zip = zip['zipCode']
+                    updateStatus.delay(zip, company.id, "House Recently Sold (6)")                
     gc.collect()
     try:
         del companies
@@ -560,26 +563,29 @@ def sendDailyEmail(company_id=None):
     else:
         companies = Company.objects.all()
     for company in companies:
-        emails = list(CustomUser.objects.filter(company=company).values_list('email'))
-        subject = 'Did Your Customers Move?'
-        
-        forSaleCustomers = Client.objects.filter(company=company, status="House For Sale").exclude(contacted=True).count()
-        soldCustomers = Client.objects.filter(company=company, status="House Recently Sold (6)").exclude(contacted=True).count()
-        message = get_template("dailyEmail.html").render({
-            'forSale': forSaleCustomers, 'sold': soldCustomers
-        })
-        
-        if soldCustomers > 0 or forSaleCustomers > 0:
-            for email in emails:
-                email = email[0]
-                msg = EmailMessage(
-                    subject,
-                    message,
-                    settings.EMAIL_HOST_USER,
-                    [email]
-                )
-                msg.content_subtype ="html"
-                msg.send()
+        customer = djstripe_models.Customer.objects.get(id=company[0].stripeID)
+        if customer.subscription.status == "active" or customer.subscription.status == "trialing":
+            if not customer.subscription.pause_collection:
+                emails = list(CustomUser.objects.filter(company=company).values_list('email'))
+                subject = 'Did Your Customers Move?'
+                
+                forSaleCustomers = Client.objects.filter(company=company, status="House For Sale").exclude(contacted=True).count()
+                soldCustomers = Client.objects.filter(company=company, status="House Recently Sold (6)").exclude(contacted=True).count()
+                message = get_template("dailyEmail.html").render({
+                    'forSale': forSaleCustomers, 'sold': soldCustomers
+                })
+                
+                if soldCustomers > 0 or forSaleCustomers > 0:
+                    for email in emails:
+                        email = email[0]
+                        msg = EmailMessage(
+                            subject,
+                            message,
+                            settings.EMAIL_HOST_USER,
+                            [email]
+                        )
+                        msg.content_subtype ="html"
+                        msg.send()
     # if not company_id:
     #     HomeListing.objects.all().delete()
     ZipCode.objects.filter(lastUpdated__lt = datetime.today() - timedelta(days=3)).delete()
@@ -629,7 +635,10 @@ def auto_update(company_id=None):
     else:
         companies = Company.objects.all().values_list('id')
         for company in companies:
-            getAllZipcodes(company[0])
+            customer = djstripe_models.Customer.objects.get(id=company[0].stripeID)
+            if customer.subscription.status == "active" or customer.subscription.status == "trialing":
+                if not customer.subscription.pause_collection:
+                    getAllZipcodes(company[0])
     try:
         del company
     except:
@@ -904,7 +913,6 @@ def remove_all_serviceTitan_tags(company):
         print(traceback.format_exc())
 
 
-
 def update_serviceTitan_tasks(clients, company, status):
     if clients and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):
         try:
@@ -963,5 +971,20 @@ def send_update_email(templateName):
             send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[user], html_message=message, fail_silently=False)
     except Exception as e:
         print("sending update email failed")
+        print(f"ERROR: {e}")
+        print(traceback.format_exc())
+
+# find franchise that is the closest to the area provided for the referral
+def find_franchise(area, franchise, referredFrom):
+    try:
+        franchise = Franchise.objects.get(id=franchise)
+        
+        if area:
+            companies = list(Company.objects.filter(franchise=franchise).exclude(id=referredFrom).values_list('id', flat=True))
+            return companies[0]
+        else:
+            return None
+    except Exception as e:
+        print("finding franchise failed")
         print(f"ERROR: {e}")
         print(traceback.format_exc())

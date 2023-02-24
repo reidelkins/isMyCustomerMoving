@@ -1,6 +1,6 @@
-import React, {useState, useEffect} from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { Button, Stack, Container } from '@mui/material';
+import React, {useState} from 'react';
+import { useSelector } from 'react-redux';
+import { Button, Stack, Container, Box, Typography } from '@mui/material';
 import { grey, orange } from '@mui/material/colors';
 
 import { referralsAsync, selectReferrals } from '../redux/actions/usersActions';
@@ -27,7 +27,7 @@ const notSelectedButton = {
 
 
 export default function Referrals() {
-    const [incoming, setIncoming] = useState(false);
+    const [incoming, setIncoming] = useState(true);
 
     const userLogin = useSelector(showLoginInfo);
     const { userInfo } = userLogin;
@@ -46,12 +46,35 @@ export default function Referrals() {
     return(
         <Page title="Referrals">
             <Container maxWidth="xl">
-                {userInfo ? <ReferralListCall /> : null}
-                <ReferralsData refs={REFERRALLIST} company={userInfo.company.id} incoming={incoming} />
-                <Stack direction="row" spacing={2}>
-                    <Button sx={ incoming ? selectedButton : notSelectedButton } variant="contained" onClick={handleIncoming}>Incoming</Button>
-                    <Button sx={ !incoming ? selectedButton : notSelectedButton } variant="contained" onClick={handleOutgoing}>Outgoing</Button>
-                </Stack>
+                {userInfo.company.franchise ? (
+                    <>
+                        {userInfo ? <ReferralListCall /> : null}
+                        <ReferralsData refs={REFERRALLIST} company={userInfo.company.id} incoming={incoming} />
+                        <Stack direction="row" spacing={2}>
+                            <Button sx={ incoming ? selectedButton : notSelectedButton } variant="contained" onClick={handleIncoming}>Incoming</Button>
+                            <Button sx={ !incoming ? selectedButton : notSelectedButton } variant="contained" onClick={handleOutgoing}>Outgoing</Button>
+                        </Stack>
+                    </>
+                )
+                : (
+                   // message that tells user they do not belong to a franchise and therefore cannot access this page
+                   <Box
+                    className="bg-gray-100 p-8 rounded-md shadow-md"
+                    sx={{ maxWidth: 500, margin: '0 auto' }}
+                    >
+                    <Typography variant="h4" component="h1" gutterBottom>
+                        Access Restricted
+                    </Typography>
+                    <Typography variant="body1" gutterBottom>
+                        We're sorry, but it appears that you do not have access to this page.
+                        This page is reserved for companies who belong to a franchise that have an account.
+                    </Typography>
+                    <Typography variant="body1" gutterBottom>
+                        If you are interested in the benefits of being part of a franchise within Is My Customer Moving, contact us!
+                    </Typography>
+                    </Box>
+                )}
+                
             </Container>
         </Page>
     )

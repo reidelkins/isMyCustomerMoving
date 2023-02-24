@@ -40,8 +40,9 @@ export default function ReferralModal({
 
     const ReferralSchema = Yup.object().shape({
         area: Yup.string("").required('Please input a city name or valid zip code').matches(
-            /^\d{5}$/,
-            "Must be a valid zip code"
+            // regex for zip code or city name, zip code should be 5 digits and city name should be all letters with no numbers
+            /^(?:\d{5}|[a-zA-Z]+(?:[\s-][a-zA-Z]+)*)$/,
+            "Must be a valid zip code or city name"
             ),
         
     });

@@ -498,7 +498,7 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
   }
 }
 
-export const makeReferralAsync = (id, area) => async (getState) => {
+export const makeReferralAsync = (id, area) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -508,7 +508,7 @@ export const makeReferralAsync = (id, area) => async (getState) => {
         Authorization: `Bearer ${userInfo.access}`,
       },
     };
-    await axios.post(`${DOMAIN}/api/v1/accounts/makereferral/`, {id, area}, config);
+    await axios.post(`${DOMAIN}/api/v1/accounts/referrals/${userInfo.company.id}/`, {id, area}, config);
   } catch (error) {
     throw new Error(error);
   }
