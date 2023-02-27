@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 IS_HEROKU = "DYNO" in os.environ
 # REDIS_URL = os.environ.get('REDIS_URL')
 if IS_HEROKU:
-    DEBUG = False
+    DEBUG = True
     SECRET_KEY = os.environ['SECRET_KEY']
     RAPID_API = os.environ['RAPID_API']
     EMAIL_HOST_PASSWORD = os.environ['EMAIL_PASSWD']
