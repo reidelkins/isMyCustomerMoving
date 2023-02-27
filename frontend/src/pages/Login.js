@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import GoogleButton from 'react-google-button';
+// import GoogleButton from 'react-google-button';
 
 // @mui
 import { styled } from '@mui/material/styles';
@@ -129,13 +129,13 @@ export default function Login() {
 
             <LoginForm />
             {/* create a div that centers the google button and has margin top */}
-            <div style={{display: "flex", justifyContent: "center", marginTop: "20px"}}>
+            {/* <div style={{display: "flex", justifyContent: "center", marginTop: "20px"}}>
               <GoogleButton
                 onClick={openGoogleLoginPage}
                 label="Login with Google"
                 disabled={!REACT_APP_GOOGLE_CLIENT_ID}
               />
-            </div>
+            </div> */}
 
             {!smUp && (
               <Typography variant="body2" align="center" sx={{ mt: 3 }}>
