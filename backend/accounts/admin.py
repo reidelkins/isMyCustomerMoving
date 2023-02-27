@@ -73,11 +73,11 @@ class ZipcodeAdmin(admin.ModelAdmin):
         return Client.objects.filter(zipCode=obj.zipCode).count()
 
 class HomeListingAdmin(admin.ModelAdmin):
-    list_display = ('address', 'zipCode__zip', 'status', 'listed', 'ScrapeResponse')
+    list_display = ('address', 'zipCode', 'status', 'listed', 'ScrapeResponse')
     search_fields = ['address', 'status', 'zipCode__zipCode',]
 
-    def zipCode__zip(self, obj):
-        return obj.zipCode.zipCode
+    # def zipCode__zip(self, obj):
+    #     return obj.zipCode.zipCode
 
 class InviteTokenAdmin(admin.ModelAdmin):
     list_display = ('id', 'email', 'company')
