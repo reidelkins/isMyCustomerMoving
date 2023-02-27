@@ -193,7 +193,7 @@ export const clientsAsync = (page) => async (dispatch, getState) => {
       dispatch(clientsLoading());
     }
     if (page > reduxStore.user.clientsInfo.highestPage || page === 1) {
-      const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.id}?page=${page}`, config);
+      const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/${userInfo.id}?page=${page}`, config);
       if (data.results.clients.length > 0) {
         dispatch(newPage(page));      }
       if (page === 1) {
@@ -227,10 +227,10 @@ export const deleteClientAsync = (ids) => async (dispatch, getState) => {
     let i = 0;
     for (i; i < ids.length; i += chunkSize) {
       const chunk = ids.slice(i, i + chunkSize);
-      await axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/`, { data: {'clients': chunk}}, config);
+      await axios.delete(`${DOMAIN}/api/v1/data/updateclient/`, { data: {'clients': chunk}}, config);
     }
     const chunk = ids.slice(i, i + chunkSize);
-    await axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/`, { data: {'clients': chunk}}, config);
+    await axios.delete(`${DOMAIN}/api/v1/data/updateclient/`, { data: {'clients': chunk}}, config);
     dispatch(clientsAsync(1));
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
@@ -249,7 +249,7 @@ export const updateClientAsync = (id, contacted, note) => async (dispatch, getSt
       },
     };
     dispatch(clientsLoading());
-    await axios.put(`${DOMAIN}/api/v1/accounts/updateclient/`, { 'clients': id, contacted, note }, config);
+    await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, { 'clients': id, contacted, note }, config);
     dispatch(clientsAsync(1));
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
@@ -264,7 +264,7 @@ export const serviceTitanUpdateAsync = (id, access) => async (dispatch) => {
         'Authorization': `Bearer ${access}`,
       },
     };
-    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/servicetitan/${id}/`, config);
+    const { data } = await axios.get(`${DOMAIN}/api/v1/data/servicetitan/${id}/`, config);
     if (data.status === 'SUCCESS') {
       dispatch(clientsNotAdded(data.deleted))
       dispatch(clientsAsync(1));
@@ -293,7 +293,7 @@ export const serviceTitanSync = () => async (dispatch, getState) => {
       },
     };
     dispatch(clientsLoading());
-    const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/servicetitan/${company}/`, config);
+    const { data } = await axios.put(`${DOMAIN}/api/v1/data/servicetitan/${company}/`, config);
     dispatch(serviceTitanUpdateAsync(data.task, userInfo.access))
     
   } catch (error) {
@@ -315,7 +315,7 @@ export const salesForceSync = () => async (dispatch, getState) => {
       },
     };
     // dispatch(clientsLoading());
-    const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/salesforce/${company}/`, config);
+    const { data } = await axios.put(`${DOMAIN}/api/v1/data/salesforce/${company}/`, config);
     dispatch(clientsAsync(1))
     
   } catch (error) {
@@ -409,7 +409,7 @@ export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
       },
     };
     dispatch(clientsLoading());
-    await axios.put(`${DOMAIN}/api/v1/accounts/upload/${company}/`, customers, config);
+    await axios.put(`${DOMAIN}/api/v1/data/upload/${company}/`, customers, config);
     setTimeout(() => {
       dispatch(clientsAsync(1));
     }, 2000);
@@ -428,7 +428,7 @@ export const update = () => async (dispatch, getState) => {
         Authorization: `Bearer ${userInfo.access}`,
       },
     };
-    await axios.get(`${DOMAIN}/api/v1/accounts/update/${userInfo.company.id}`, config);
+    await axios.get(`${DOMAIN}/api/v1/data/update/${userInfo.company.id}`, config);
   } catch (error) {
     throw new Error(error);
   }
@@ -450,7 +450,7 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
     console.log(page)
     console.log(reduxStore.user.recentlySoldInfo.highestPage)
     if (page > reduxStore.user.recentlySoldInfo.highestPage) {
-      const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/recentlysold/${userInfo.company.id}?page=${page}`, config);
+      const { data } = await axios.get(`${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}?page=${page}`, config);
       console.log(data)
       if (data.results.length > 0) {
         dispatch(newRecentlySoldPage(page));

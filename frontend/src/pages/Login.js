@@ -1,4 +1,6 @@
+import React, { useCallback } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
+import GoogleButton from 'react-google-button';
 
 // @mui
 import { styled } from '@mui/material/styles';
@@ -61,6 +63,32 @@ export default function Login() {
 
   const mdUp = useResponsive('up', 'md');
 
+  const { REACT_APP_GOOGLE_CLIENT_ID, REACT_APP_BASE_BACKEND_URL } = process.env;
+  console.log(process.env.REACT_APP_GOOGLE_CLIENT_ID)
+
+  const openGoogleLoginPage = useCallback(() => {
+    const googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
+    const redirectUri = 'api/v1/auth/login/google/';
+
+    const scope = [
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile'
+    ].join(' ');
+
+    const params = {
+      response_type: 'code',
+      client_id: REACT_APP_GOOGLE_CLIENT_ID,
+      redirect_uri: `${REACT_APP_BASE_BACKEND_URL}/${redirectUri}`,
+      prompt: 'select_account',
+      access_type: 'offline',
+      scope
+    };
+
+    const urlParams = new URLSearchParams(params).toString();
+
+    window.location = `${googleAuthUrl}?${urlParams}`;
+  }, []);
+
   return (
     <Page title="Login">
       <RootStyle>
@@ -100,6 +128,14 @@ export default function Login() {
             <Typography sx={{ color: 'text.secondary', mb: 5 }}>Enter your details below.</Typography>
 
             <LoginForm />
+            {/* create a div that centers the google button and has margin top */}
+            <div style={{display: "flex", justifyContent: "center", marginTop: "20px"}}>
+              <GoogleButton
+                onClick={openGoogleLoginPage}
+                label="Login with Google"
+                disabled={!REACT_APP_GOOGLE_CLIENT_ID}
+              />
+            </div>
 
             {!smUp && (
               <Typography variant="body2" align="center" sx={{ mt: 3 }}>
