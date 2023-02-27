@@ -85,9 +85,10 @@ def publishable_key(request):
                 'data': {'publishable_key': settings.STRIPE_PUBLISHABLE_KEY } }
         )
 
-# # when customer/subscription created 
-# @webhooks.handler('customer.created')
-# def create_customer(event: djstripe_models.Event):
+# when customer/subscription created 
+@webhooks.handler('customer.created')
+def create_customer(event: djstripe_models.Event):
+    print("customer created")
 #     obj = event.data['object']
 #     company = obj['name']
 #     email = obj['email']
@@ -101,8 +102,9 @@ def publishable_key(request):
 
 
 # # important in the case that company adds back a canceled subscription
-# @webhooks.handler('customer.subscription.created')
-# def create_subscription(event: djstripe_models.Event):
+@webhooks.handler('customer.subscription.created')
+def create_subscription(event: djstripe_models.Event):
+    print("subscription created")
 #     try:
 #         obj = event.data['object']
 #         customer = djstripe_models.Customer.objects.get(id=obj['customer'])
@@ -119,28 +121,31 @@ def publishable_key(request):
 #         print("error")
 
 @webhooks.handler('checkout.session.completed')
-def checkout_session_completed(event: djstripe_models.Event):
-    obj = event.data['object']
-    phone = obj['customer_details']['phone']
-    email = obj['customer_details']['email']
-    companyName = obj['custom_fields']['text']['value']
-    stripeId = obj['customer']
-    subscription = djstripe_models.Subscription.objects.filter(id=obj['subscription'])
-    plan = subscription.plan
+def completed_checkout(event: djstripe_models.Event):
     try:
-        company = Company.objects.get(name=companyName, email=email, stripeID=stripeId)
-    except:
+        obj = event.data['object']
+        phone = obj['customer_details']['phone']
+        email = obj['customer_details']['email']
+        companyName = obj['custom_fields'][0]['text']['value']
+        stripeId = obj['customer']
+        subscription = djstripe_models.Subscription.objects.get(id=obj['subscription'])
+        plan = subscription.plan
         try:
-            company = makeCompany(companyName, email, phone, stripeId)
-            company.plan = plan
-            company.save()
-        except Exception as e:
-            print(f"error: {e}")
-            
-    users = CustomUser.objects.filter(company=company)
-    for user in users:
-        user.isVerified = True
-        user.save()
+            company = Company.objects.get(name=companyName, email=email, stripeID=stripeId)
+        except:
+            try:
+                company = makeCompany(companyName, email, phone, stripeId)
+                company.plan = plan
+                company.save()
+            except Exception as e:
+                print(f"error: {e}")
+                
+        users = CustomUser.objects.filter(company=company)
+        for user in users:
+            user.isVerified = True
+            user.save()
+    except Exception as e:
+                print(f"error: {e}")
             
 
 

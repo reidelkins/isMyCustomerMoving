@@ -34,7 +34,13 @@ if IS_HEROKU:
     ST_APP_KEY = os.environ['ST_APP_KEY']
     SALESFORCE_CONSUMER_KEY = os.environ['SALESFORCE_CONSUMER_KEY']
     SALESFORCE_CONSUMER_SECRET = os.environ['SALESFORCE_CONSUMER_SECRET']
-    
+    BASE_FRONTEND_URL = os.environ['BASE_FRONTEND_URL']
+    GOOGLE_ID_TOKEN_INFO_URL = os.environ['GOOGLE_ID_TOKEN_INFO_URL']
+    GOOGLE_ACCESS_TOKEN_OBTAIN_URL = os.environ['GOOGLE_ACCESS_TOKEN_OBTAIN_URL']
+    GOOGLE_USER_INFO_URL = os.environ['GOOGLE_USER_INFO_URL']
+    GOOGLE_OAUTH2_CLIENT_ID = os.environ['GOOGLE_OAUTH2_CLIENT_ID']
+    GOOGLE_OAUTH2_CLIENT_SECRET = os.environ['GOOGLE_OAUTH2_CLIENT_SECRET']
+
 else:
     DEBUG = True
     SECRET_KEY = env('SECRET_KEY')
@@ -44,6 +50,13 @@ else:
     ST_APP_KEY = env('ST_APP_KEY')
     SALESFORCE_CONSUMER_KEY = env('SALESFORCE_CONSUMER_KEY')
     SALESFORCE_CONSUMER_SECRET = env('SALESFORCE_CONSUMER_SECRET')
+    BASE_FRONTEND_URL = env('BASE_FRONTEND_URL')
+    GOOGLE_ID_TOKEN_INFO_URL = env('GOOGLE_ID_TOKEN_INFO_URL')
+    GOOGLE_ACCESS_TOKEN_OBTAIN_URL = env('GOOGLE_ACCESS_TOKEN_OBTAIN_URL')
+    GOOGLE_USER_INFO_URL = env('GOOGLE_USER_INFO_URL')
+    GOOGLE_OAUTH2_CLIENT_ID = env('GOOGLE_OAUTH2_CLIENT_ID')
+    GOOGLE_OAUTH2_CLIENT_SECRET = env('GOOGLE_OAUTH2_CLIENT_SECRET')
+
     # REDIS_URL = 'redis://localhost:6379'
 
 ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "is-my-customer-moving.herokuapp.com"]
@@ -65,6 +78,7 @@ INSTALLED_APPS = [
     # Native Apps
     'accounts.apps.AccountsConfig',
     'payments.apps.PaymentsConfig',
+    'data.apps.DataConfig',
 
     # 3rd Party
     'rest_framework',  # https://www.django-rest-framework.org/

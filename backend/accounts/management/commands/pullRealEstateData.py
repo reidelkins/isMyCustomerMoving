@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from datetime import datetime
 
 
-from accounts.utils import auto_update
+from data.utils import auto_update
 
 
 class Command(BaseCommand):
