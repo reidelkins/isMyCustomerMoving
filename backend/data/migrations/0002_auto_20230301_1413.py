@@ -30,8 +30,7 @@ class Migration(migrations.Migration):
                 name,
                 address,
                 status,                
-                company_id,
-                zipCode_id,
+                company_id,                
                 city,
                 state,
                 contacted,
@@ -44,8 +43,7 @@ class Migration(migrations.Migration):
                 name,
                 address,
                 status,            
-                company_id,
-                zipCode_id,
+                company_id,                
                 city,
                 state,
                 contacted,
@@ -60,8 +58,7 @@ class Migration(migrations.Migration):
                 name,
                 address,
                 status,                
-                company_id,
-                zipCode_id,
+                company_id,                
                 city,
                 state,
                 contacted,
@@ -74,8 +71,7 @@ class Migration(migrations.Migration):
                 name,
                 address,
                 status,                
-                company_id,
-                zipCode_id,
+                company_id,                
                 city,
                 state,
                 contacted,
@@ -190,16 +186,14 @@ class Migration(migrations.Migration):
         """),
         migrations.RunSQL("""
             INSERT INTO data_homelisting (
-                id,
-                zipCode_id,
+                id,                
                 address,
                 status,
                 listed,
                 scraperesponse_id
             )
             SELECT
-                id,
-                zipCode_id,
+                id,                
                 address,
                 status,
                 listed,
@@ -208,16 +202,14 @@ class Migration(migrations.Migration):
                 accounts_homelisting;
         """, reverse_sql="""
             INSERT INTO accounts_homelisting (
-                id,
-                zipCode_id,
+                id,                
                 address,
                 status,
                 listed,
                 scraperesponse_id
             )
             SELECT
-                id,
-                zipCode_id,
+                id,                
                 address,
                 status,
                 listed,
