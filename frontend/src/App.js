@@ -1,6 +1,6 @@
 // routes
 import Router from './routes';
-// theme
+// theme 
 import ThemeProvider from './theme';
 // components
 import ScrollToTop from './components/ScrollToTop';
