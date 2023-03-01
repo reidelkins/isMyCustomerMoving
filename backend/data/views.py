@@ -33,9 +33,9 @@ class ClientListView(generics.ListAPIView):
     def get_queryset(self):
         user = CustomUser.objects.get(id=self.kwargs['user'])
         if user.status == 'admin':
-            return Client.objects.prefetch_related('clientUpdates').filter(company=user.company).order_by('status')
+            return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).order_by('status')
         else:
-            return Client.objects.prefetch_related('clientUpdates').filter(company=user.company).exclude(status='No Change').order_by('status')
+            return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).exclude(status='No Change').order_by('status')
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
