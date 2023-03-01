@@ -7,7 +7,6 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0003_alter_client_unique_together_remove_client_company'),
         ('accounts', '0003_alter_client_company_alter_client_zipcode_and_more'),
     ]
 

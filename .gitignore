@@ -3,6 +3,11 @@ backend/accounts/__pycache__/
 backend/config/__pycache__/
 backend/payments/__pycache__/
 backend/accounts/management/commands/__pycache__/
+backend/accounts/migrations/__pycache__/
+backend/accounts/tests/__pycache__/
+backend/data/__pycache__/
+backend/data/migrations/__pycache__/
+backend/data/tests/__pycache__/
 backend/*.py[cod]
 backend/*$py.class
 

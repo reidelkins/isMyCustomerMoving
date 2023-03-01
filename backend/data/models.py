@@ -34,8 +34,8 @@ class Client(models.Model):
     servTitanID = models.IntegerField(blank=True, null=True)
     phoneNumber = models.CharField(max_length=100, blank=True, null=True)
 
-    # class Meta:
-    #     unique_together = ('company', 'name', 'address')
+    class Meta:
+        unique_together = ('company', 'name', 'address')
 
 def formatToday():
     return datetime.today().strftime('%Y-%m-%d')
