@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     # Native Apps
     'accounts.apps.AccountsConfig',
     'payments.apps.PaymentsConfig',
+    'data.apps.DataConfig',
 
     # 3rd Party
     'rest_framework',  # https://www.django-rest-framework.org/
