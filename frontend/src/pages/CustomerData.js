@@ -324,7 +324,7 @@ export default function CustomerData() {
                     />
                     <TableBody>
                       {filteredClients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                        const { id, name, address, city, state, zipCode, status, contacted, note, phoneNumber, clientUpdates} = row;
+                        const { id, name, address, city, state, zipCode, status, contacted, note, phoneNumber, clientUpdates_client: clientUpdates} = row;
                         const isItemSelected = selected.indexOf(address) !== -1;                        
                         
                         return (
@@ -391,7 +391,8 @@ export default function CustomerData() {
                                 />
                               </TableCell>
                               <TableCell>
-                                {phoneNumber}
+                                {/* make phone number look like (123) 456-7890 */}
+                                {`(${phoneNumber.slice(0,3)}) ${phoneNumber.slice(3,6)}-${phoneNumber.slice(6,10)}`}
                               </TableCell>
                               {userInfo.company.franchise && (
                                 <TableCell>
@@ -478,7 +479,7 @@ export default function CustomerData() {
                 )}        
 
                 {userInfo.status === 'admin' && (
-                  (userInfo.company.crm === 'Service Titan' ? (
+                  (userInfo.company.crm === 'ServiceTitan' ? (
                     <Button onClick={stSync} variant="contained">
                       Sync With Service Titan
                     </Button>

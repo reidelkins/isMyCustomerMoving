@@ -54,11 +54,6 @@ class Migration(migrations.Migration):
         migrations.DeleteModel(
             name='Task',
         ),
-        migrations.AddField(
-            model_name='company',
-            name='franchise',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='accounts.franchise'),
-        ),
         migrations.DeleteModel(
             name='Client',
         ),
