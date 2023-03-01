@@ -25,6 +25,7 @@ if IS_HEROKU:
         path('supersecretadminpagexyz/', admin.site.urls),
         path('api/v1/accounts/', include('accounts.urls')),
         path('api/v1/payments/', include('payments.urls')),
+        path('api/v1/data/', include('data.urls')),
     ]
 else:
     urlpatterns = [
@@ -47,6 +48,7 @@ else:
 
         path('api/v1/accounts/', include('accounts.urls')),
         path('api/v1/payments/', include('payments.urls')),
+        path('api/v1/data/', include('data.urls')),
     ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

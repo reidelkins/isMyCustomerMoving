@@ -7,10 +7,10 @@ from rest_framework.views import APIView
 import datetime
 import requests
 
-from accounts.models import CustomUser
+from accounts.models import CustomUser, Company
 from accounts.serializers import UserSerializerWithToken
 from config import settings
-from .models import Client, ClientUpdate, Company, HomeListing, Task
+from .models import Client, ClientUpdate, HomeListing, Task
 from .serializers import ClientListSerializer, HomeListingSerializer
 from .syncClients import get_fieldEdge_clients, get_hubspot_clients, get_salesforce_clients, get_serviceTitan_clients
 from .utils import getAllZipcodes, saveClientList
