@@ -1,7 +1,5 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-from django.core.validators import MinValueValidator, MaxValueValidator
 from django.dispatch import receiver
-from django.urls import reverse
 from django_rest_passwordreset.signals import reset_password_token_created
 from django.core.mail import EmailMessage
 from django.db import models
@@ -21,15 +19,6 @@ STATUS_CHOICES = (
     ('admin', 'ADMIN'),
     ('pending', 'PENDING'),
 )
-
-STATUS = [
-    ('House For Sale','House For Sale'),
-    ('House For Rent','House For Rent'),
-    ('House Recently Sold (6)','House Recently Sold (6)'),
-    ('Recently Sold (12)','Recently Sold (12)'),
-    ('Taken Off Market', 'Taken Off Market'),
-    ('No Change', 'No Change')
-]
 
 PAY_TIER = [
     ('Free', 'Free'),
@@ -85,7 +74,7 @@ class Company(models.Model):
                           default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     accessToken = models.CharField(default=create_access_token, max_length=100)
-    product = models.ForeignKey(StripePlan, blank=True, null=True, on_delete=models.SET_NULL)
+    # product = models.ForeignKey(StripePlan, blank=True, null=True, on_delete=models.SET_NULL)
     phone = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(max_length=100, blank=True, null=True)
     stripeID = models.CharField(max_length=100, blank=True, null=True)
@@ -103,63 +92,6 @@ class Company(models.Model):
     # Salesforce
     sfAccessToken = models.CharField(max_length=100, blank=True, null=True)
     sfRefreshToken = models.CharField(max_length=100, blank=True, null=True)
-
-
-def zipTime():
-    return (datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d')
-
-class ZipCode(models.Model):
-    zipCode = models.CharField(max_length=5, primary_key=True, unique=True)
-    lastUpdated = models.DateField(default=zipTime)
-
-class Client(models.Model):
-    id = models.UUIDField(primary_key=True, unique=True,
-                          default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100)
-    address = models.CharField(max_length=100)
-    zipCode = models.ForeignKey(ZipCode, on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE, db_index=True)
-    status = models.CharField(max_length=25, choices=STATUS, default='No Change', db_index=True)
-    city = models.CharField(max_length=40, blank=True, null=True)
-    state = models.CharField(max_length=31, blank=True, null=True)
-    contacted = models.BooleanField(default=False)
-    note = models.TextField(default="", blank=True, null=True)
-    servTitanID = models.IntegerField(blank=True, null=True)
-    phoneNumber = models.CharField(max_length=100, blank=True, null=True)
-
-    class Meta:
-        unique_together = ('company', 'name', 'address')
-
-def formatToday():
-    return datetime.today().strftime('%Y-%m-%d')
-
-class ClientUpdate(models.Model):
-    id = models.UUIDField(primary_key=True, unique=True,
-                          default=uuid.uuid4, editable=False)
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='clientUpdates')
-    date = models.DateField(default=formatToday)
-    status = models.CharField(max_length=25, choices=STATUS, default='No Change', blank=True, null=True)
-    listed = models.CharField(max_length=30, blank=True, null=True)
-    note = models.TextField(default="", blank=True, null=True)
-    contacted = models.BooleanField(blank=True, null=True)
-
-class ScrapeResponse(models.Model):
-    id = models.UUIDField(primary_key=True, unique=True,
-                          default=uuid.uuid4, editable=False)
-    date = models.DateField(default=formatToday)
-    response = models.TextField(default="")
-    zip = models.IntegerField(blank=True, null=True)
-    status = models.CharField(max_length=25, choices=STATUS, default='No Change', blank=True, null=True)
-    url = models.CharField(max_length=100, blank=True, null=True)
-
-class HomeListing(models.Model):
-    id = models.UUIDField(primary_key=True, unique=True,
-                          default=uuid.uuid4, editable=False)
-    zipCode = models.ForeignKey(ZipCode, blank=True, null=True, on_delete=models.SET_NULL)
-    address = models.CharField(max_length=100)
-    status = models.CharField(max_length=25, choices=STATUS, default='Off Market')
-    listed = models.CharField(max_length=30, default=" ")
-    ScrapeResponse = models.ForeignKey(ScrapeResponse, blank=True, null=True, on_delete=models.SET_NULL)
 
 class CustomUser(AbstractUser):
     username = None
@@ -215,8 +147,3 @@ def password_reset_token_created(sender, instance, reset_password_token, *args, 
         msg.content_subtype ="html"# Main content is now text/html
         msg.send()
 
-class Task(models.Model):
-    id = models.UUIDField(primary_key=True, unique=True,
-                          default=uuid.uuid4, editable=False)
-    completed = models.BooleanField(default=False)
-    deletedClients = models.IntegerField(default=0)
