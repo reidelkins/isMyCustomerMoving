@@ -26,7 +26,6 @@ if IS_HEROKU:
         path('api/v1/accounts/', include('accounts.urls')),
         path('api/v1/payments/', include('payments.urls')),
         path('api/v1/data/', include('data.urls')),
-
     ]
 else:
     urlpatterns = [

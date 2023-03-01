@@ -50,4 +50,3 @@ admin.site.register(Client, ClientAdmin)
 admin.site.register(Task, TaskAdmin)
 admin.site.register(ScrapeResponse, ScrapeResponseAdmin)
 admin.site.register(ClientUpdate, ClientUpdateAdmin)
-

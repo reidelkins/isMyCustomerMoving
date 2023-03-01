@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 
 
-from data.utils import send_update_email
+from accounts.utils import send_update_email
 
 
 class Command(BaseCommand):

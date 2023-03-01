@@ -2,8 +2,7 @@ from django.db import models
 import uuid
 from datetime import datetime, timedelta
 
-from accounts.models import Company
-
+# from accounts.models import Company
 STATUS = [
     ('House For Sale','House For Sale'),
     ('House For Rent','House For Rent'),
@@ -25,9 +24,9 @@ class Client(models.Model):
                           default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=100)
-    zipCode = models.ForeignKey(ZipCode, on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE, db_index=True)
-    status = models.CharField(max_length=25, choices=STATUS, default='No Change', db_index=True)
+    zipCode = models.ForeignKey(ZipCode, on_delete=models.SET_NULL, blank=True, null=True,  related_name='client_zipCode')
+    company = models.ForeignKey("accounts.Company", blank=True, null=True, on_delete=models.SET_NULL, related_name='client_company')
+    status = models.CharField(max_length=25, choices=STATUS, default='No Change')
     city = models.CharField(max_length=40, blank=True, null=True)
     state = models.CharField(max_length=31, blank=True, null=True)
     contacted = models.BooleanField(default=False)
@@ -44,7 +43,7 @@ def formatToday():
 class ClientUpdate(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='clientUpdates')
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='clientUpdates_client')
     date = models.DateField(default=formatToday)
     status = models.CharField(max_length=25, choices=STATUS, default='No Change', blank=True, null=True)
     listed = models.CharField(max_length=30, blank=True, null=True)
@@ -63,11 +62,11 @@ class ScrapeResponse(models.Model):
 class HomeListing(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
-    zipCode = models.ForeignKey(ZipCode, blank=True, null=True, on_delete=models.SET_NULL)
+    zipCode = models.ForeignKey(ZipCode, blank=True, null=True, on_delete=models.SET_NULL, related_name='homeListing_zipCode')
     address = models.CharField(max_length=100)
     status = models.CharField(max_length=25, choices=STATUS, default='Off Market')
     listed = models.CharField(max_length=30, default=" ")
-    ScrapeResponse = models.ForeignKey(ScrapeResponse, blank=True, null=True, on_delete=models.SET_NULL)
+    ScrapeResponse = models.ForeignKey(ScrapeResponse, blank=True, null=True, on_delete=models.SET_NULL, related_name='homeListing_ScrapeResponse')
 
 class Task(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,

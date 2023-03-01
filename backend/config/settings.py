@@ -1,5 +1,5 @@
 from datetime import timedelta
-import os, ssl
+import os, ssl, re
 from pathlib import Path
 import dj_database_url
 
@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 IS_HEROKU = "DYNO" in os.environ
 # REDIS_URL = os.environ.get('REDIS_URL')
 if IS_HEROKU:
-    DEBUG = False
+    DEBUG = True
     SECRET_KEY = os.environ['SECRET_KEY']
     RAPID_API = os.environ['RAPID_API']
     EMAIL_HOST_PASSWORD = os.environ['EMAIL_PASSWD']
@@ -34,13 +34,7 @@ if IS_HEROKU:
     ST_APP_KEY = os.environ['ST_APP_KEY']
     SALESFORCE_CONSUMER_KEY = os.environ['SALESFORCE_CONSUMER_KEY']
     SALESFORCE_CONSUMER_SECRET = os.environ['SALESFORCE_CONSUMER_SECRET']
-    BASE_FRONTEND_URL = os.environ['BASE_FRONTEND_URL']
-    GOOGLE_ID_TOKEN_INFO_URL = os.environ['GOOGLE_ID_TOKEN_INFO_URL']
-    GOOGLE_ACCESS_TOKEN_OBTAIN_URL = os.environ['GOOGLE_ACCESS_TOKEN_OBTAIN_URL']
-    GOOGLE_USER_INFO_URL = os.environ['GOOGLE_USER_INFO_URL']
-    GOOGLE_OAUTH2_CLIENT_ID = os.environ['GOOGLE_OAUTH2_CLIENT_ID']
-    GOOGLE_OAUTH2_CLIENT_SECRET = os.environ['GOOGLE_OAUTH2_CLIENT_SECRET']
-
+    
 else:
     DEBUG = True
     SECRET_KEY = env('SECRET_KEY')
@@ -50,13 +44,6 @@ else:
     ST_APP_KEY = env('ST_APP_KEY')
     SALESFORCE_CONSUMER_KEY = env('SALESFORCE_CONSUMER_KEY')
     SALESFORCE_CONSUMER_SECRET = env('SALESFORCE_CONSUMER_SECRET')
-    BASE_FRONTEND_URL = env('BASE_FRONTEND_URL')
-    GOOGLE_ID_TOKEN_INFO_URL = env('GOOGLE_ID_TOKEN_INFO_URL')
-    GOOGLE_ACCESS_TOKEN_OBTAIN_URL = env('GOOGLE_ACCESS_TOKEN_OBTAIN_URL')
-    GOOGLE_USER_INFO_URL = env('GOOGLE_USER_INFO_URL')
-    GOOGLE_OAUTH2_CLIENT_ID = env('GOOGLE_OAUTH2_CLIENT_ID')
-    GOOGLE_OAUTH2_CLIENT_SECRET = env('GOOGLE_OAUTH2_CLIENT_SECRET')
-
     # REDIS_URL = 'redis://localhost:6379'
 
 ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "is-my-customer-moving.herokuapp.com"]
@@ -256,14 +243,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
-    "https://example.com",
-    "https://sub.example.com",
-    "http://localhost:8080",
     "http://localhost:3000",
     "http://localhost:3006",
     "http://localhost:3007",  # React App will be on this port
-    "http://127.0.0.1:9000",
-    "https://is-my-customer-moving-czy5diwo1-reidmhac.vercel.app",
     "https://is-my-customer-moving.vercel.app",
     "https://ismycustomermoving.com",
     "https://www.ismycustomermoving.com",

@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from datetime import datetime
 
-from data.utils import sendDailyEmail
+from accounts.utils import sendDailyEmail
 
 class Command(BaseCommand):
     help = 'Sends the email to each user with their data'

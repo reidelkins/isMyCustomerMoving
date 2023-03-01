@@ -35,6 +35,12 @@ export const userSlice = createSlice({
       RECENTLYSOLDLIST: [],
       highestPage: 0,
       count: 0,
+    },
+    referralInfo: {
+      loading: false,
+      error: null,
+      REFERRALLIST: [],
+      highestPage: 0,
     }
   },
   reducers: {
@@ -118,6 +124,29 @@ export const userSlice = createSlice({
       state.recentlySoldInfo.highestPage = action.payload;
     },
 
+    // -----------------  REFERRALS  -----------------
+    referrals: (state, action) => {
+      state.referralInfo.REFERRALLIST = action.payload;
+      state.referralInfo.loading = false;
+      state.referralInfo.error = null;
+    },
+    referralsError: (state, action) => {
+      state.referralInfo.error = action.payload;
+      state.referralInfo.loading = false;
+      state.referralInfo.REFERRALLIST = [];
+    },
+    referralsLoading: (state) => {
+      state.referralInfo.loading = true;
+    },
+    moreReferrals: (state, action) => {
+      state.referralInfo.REFERRALLIST = [...state.referralInfo.REFERRALLIST, ...action.payload];
+      state.referralInfo.loading = false;
+      state.referralInfo.error = null;
+    },
+    newReferralsPage: (state, action) => {
+      state.referralInfo.highestPage = action.payload;
+    },
+
     // TODO
     sendNewUserEmail: (state) => {
       state.clientsInfo.loading = false;
@@ -133,10 +162,13 @@ export const userSlice = createSlice({
 
 export const { clientsNotAdded, clients, moreClients, newPage, clientsUploading, clientsLoading, clientsNotLoading, clientsError,
    users, usersLoading, usersError,
-   recentlySold, recentlySoldLoading, recentlySoldError, newRecentlySoldPage, moreRecentlySold } = userSlice.actions;
+   recentlySold, recentlySoldLoading, recentlySoldError, newRecentlySoldPage, moreRecentlySold,
+   referrals, referralsLoading, referralsError, moreReferrals, newReferralsPage
+  } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
 export const selectRecentlySold = (state) => state.user.recentlySoldInfo;
 export const selectUsers = (state) => state.user.usersInfo;
+export const selectReferrals = (state) => state.user.referralInfo;
 export default userSlice.reducer;
 
 export const usersAsync = () => async (dispatch, getState) => {
@@ -193,7 +225,7 @@ export const clientsAsync = (page) => async (dispatch, getState) => {
       dispatch(clientsLoading());
     }
     if (page > reduxStore.user.clientsInfo.highestPage || page === 1) {
-      const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/${userInfo.id}?page=${page}`, config);
+      const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/clients/${userInfo.id}?page=${page}`, config);
       if (data.results.clients.length > 0) {
         dispatch(newPage(page));      }
       if (page === 1) {
@@ -227,10 +259,10 @@ export const deleteClientAsync = (ids) => async (dispatch, getState) => {
     let i = 0;
     for (i; i < ids.length; i += chunkSize) {
       const chunk = ids.slice(i, i + chunkSize);
-      await axios.delete(`${DOMAIN}/api/v1/data/updateclient/`, { data: {'clients': chunk}}, config);
+      await axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/`, { data: {'clients': chunk}}, config);
     }
     const chunk = ids.slice(i, i + chunkSize);
-    await axios.delete(`${DOMAIN}/api/v1/data/updateclient/`, { data: {'clients': chunk}}, config);
+    await axios.delete(`${DOMAIN}/api/v1/accounts/updateclient/`, { data: {'clients': chunk}}, config);
     dispatch(clientsAsync(1));
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
@@ -249,7 +281,7 @@ export const updateClientAsync = (id, contacted, note) => async (dispatch, getSt
       },
     };
     dispatch(clientsLoading());
-    await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, { 'clients': id, contacted, note }, config);
+    await axios.put(`${DOMAIN}/api/v1/accounts/updateclient/`, { 'clients': id, contacted, note }, config);
     dispatch(clientsAsync(1));
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
@@ -264,7 +296,7 @@ export const serviceTitanUpdateAsync = (id, access) => async (dispatch) => {
         'Authorization': `Bearer ${access}`,
       },
     };
-    const { data } = await axios.get(`${DOMAIN}/api/v1/data/servicetitan/${id}/`, config);
+    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/servicetitan/${id}/`, config);
     if (data.status === 'SUCCESS') {
       dispatch(clientsNotAdded(data.deleted))
       dispatch(clientsAsync(1));
@@ -315,7 +347,7 @@ export const salesForceSync = () => async (dispatch, getState) => {
       },
     };
     // dispatch(clientsLoading());
-    const { data } = await axios.put(`${DOMAIN}/api/v1/data/salesforce/${company}/`, config);
+    const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/salesforce/${company}/`, config);
     dispatch(clientsAsync(1))
     
   } catch (error) {
@@ -409,7 +441,7 @@ export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
       },
     };
     dispatch(clientsLoading());
-    await axios.put(`${DOMAIN}/api/v1/data/upload/${company}/`, customers, config);
+    await axios.put(`${DOMAIN}/api/v1/accounts/upload/${company}/`, customers, config);
     setTimeout(() => {
       dispatch(clientsAsync(1));
     }, 2000);
@@ -428,7 +460,7 @@ export const update = () => async (dispatch, getState) => {
         Authorization: `Bearer ${userInfo.access}`,
       },
     };
-    await axios.get(`${DOMAIN}/api/v1/data/update/${userInfo.company.id}`, config);
+    await axios.get(`${DOMAIN}/api/v1/accounts/update/${userInfo.company.id}`, config);
   } catch (error) {
     throw new Error(error);
   }
@@ -450,7 +482,7 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
     console.log(page)
     console.log(reduxStore.user.recentlySoldInfo.highestPage)
     if (page > reduxStore.user.recentlySoldInfo.highestPage) {
-      const { data } = await axios.get(`${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}?page=${page}`, config);
+      const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/recentlysold/${userInfo.company.id}?page=${page}`, config);
       console.log(data)
       if (data.results.length > 0) {
         dispatch(newRecentlySoldPage(page));
@@ -463,5 +495,51 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
     }
   } catch (error) {
     dispatch(recentlySoldError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+}
+
+export const makeReferralAsync = (id, area) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+    await axios.post(`${DOMAIN}/api/v1/accounts/referrals/${userInfo.company.id}/`, {id, area}, config);
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
+export const referralsAsync = (page) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+    if (page === 1) {
+      dispatch(referralsLoading());
+    }
+    if (page > reduxStore.user.referralInfo.highestPage) {
+      const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/referrals/${userInfo.company.id}?page=${page}`, config);
+      if (data.results.length > 0) {
+        dispatch(newReferralsPage(page));
+      }
+      if (page === 1) {
+        dispatch(referrals(data));        
+      } else {
+        dispatch(moreReferrals(data));
+      }
+    }
+  } catch (error) {
+    console.log("error", error)
+    dispatch(referralsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 }

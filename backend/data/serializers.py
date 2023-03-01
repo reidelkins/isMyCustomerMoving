@@ -49,4 +49,3 @@ class HomeListingSerializer(serializers.ModelSerializer):
         model = HomeListing
         fields = ('id', 'address', 'listed', 'zipCode')
 
-
