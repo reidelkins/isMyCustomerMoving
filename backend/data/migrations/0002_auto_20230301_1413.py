@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL("""
-            INSERT INTO data_zipcode (
+            INSERT INTO data_zipCode (
                 zipCode,
                 lastUpdated
             )
@@ -20,9 +20,9 @@ class Migration(migrations.Migration):
                 lastUpdated
                 
             FROM
-                accounts_zipcode;
+                accounts_zipCode;
         """, reverse_sql="""
-            INSERT INTO accounts_zipcode (
+            INSERT INTO accounts_zipCode (
                 zipCode,
                 lastUpdated
             )
@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 zipCode,
                 lastUpdated
             FROM
-                data_zipcode;
+                data_zipCode;
         """),
         migrations.RunSQL("""
             INSERT INTO data_client (
