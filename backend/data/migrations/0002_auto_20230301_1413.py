@@ -12,22 +12,22 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL("""
             INSERT INTO data_zipcode (
-                zipcode,
+                zipCode,
                 lastUpdated
             )
             SELECT
-                zipcode,
+                zipCode,
                 lastUpdated
                 
             FROM
                 accounts_zipcode;
         """, reverse_sql="""
             INSERT INTO accounts_zipcode (
-                zipcode,
+                zipCode,
                 lastUpdated
             )
             SELECT
-                zipcode,
+                zipCode,
                 lastUpdated
             FROM
                 data_zipcode;
@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
                 name,
                 address,
                 status,
-                zipcode_id,
+                zipCode_id,
                 company_id,
                 city,
                 state,
@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
                 name,
                 address,
                 status,
-                zipcode_id,
+                zipCode_id,
                 company_id,
                 city,
                 state,
@@ -68,7 +68,7 @@ class Migration(migrations.Migration):
                 name,
                 address,
                 status,
-                zipcode_id,
+                zipCode_id,
                 company_id,
                 city,
                 state,
@@ -82,7 +82,7 @@ class Migration(migrations.Migration):
                 name,
                 address,
                 status,
-                zipcode_id,
+                zipCode_id,
                 company_id,
                 city,
                 state,
@@ -199,7 +199,7 @@ class Migration(migrations.Migration):
         migrations.RunSQL("""
             INSERT INTO data_homelisting (
                 id,
-                zipcode_id,
+                zipCode_id,
                 address,
                 status,
                 listed,
@@ -207,7 +207,7 @@ class Migration(migrations.Migration):
             )
             SELECT
                 id,
-                zipcode_id,
+                zipCode_id,
                 address,
                 status,
                 listed,
@@ -217,7 +217,7 @@ class Migration(migrations.Migration):
         """, reverse_sql="""
             INSERT INTO accounts_homelisting (
                 id,
-                zipcode_id,
+                zipCode_id,
                 address,
                 status,
                 listed,
@@ -225,7 +225,7 @@ class Migration(migrations.Migration):
             )
             SELECT
                 id,
-                zipcode_id,
+                zipCode_id,
                 address,
                 status,
                 listed,
