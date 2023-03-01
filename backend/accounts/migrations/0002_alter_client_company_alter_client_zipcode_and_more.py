@@ -20,15 +20,5 @@ class Migration(migrations.Migration):
             model_name='client',
             name='zipCode',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='accounts.zipcode'),
-        ),
-        migrations.AlterField(
-            model_name='referral',
-            name='referredFrom',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='referredFrom', to='accounts.company'),
-        ),
-        migrations.AlterField(
-            model_name='referral',
-            name='referredTo',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='referredTo', to='accounts.company'),
-        ),
+        ),        
     ]

@@ -85,18 +85,7 @@ class Migration(migrations.Migration):
                 ('zipCode', models.CharField(max_length=5, primary_key=True, serialize=False, unique=True)),
                 ('lastUpdated', models.DateField(default=accounts.models.zipTime)),
             ],
-        ),
-        migrations.CreateModel(
-            name='Referral',
-            fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
-                ('contacted', models.BooleanField(default=False)),
-                ('client', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='referralClient', to='accounts.client')),
-                ('franchise', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='accounts.franchise')),
-                ('referredFrom', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='referredFrom', to='accounts.company')),
-                ('referredTo', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='referredTo', to='accounts.company')),
-            ],
-        ),
+        ),        
         migrations.CreateModel(
             name='InviteToken',
             fields=[
