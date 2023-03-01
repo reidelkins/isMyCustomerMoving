@@ -129,8 +129,8 @@ class Client(models.Model):
                           default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=100)
-    zipCode = models.ForeignKey(ZipCode, on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE, db_index=True)
+    zipCode = models.ForeignKey(ZipCode, on_delete=models.SET_NULL, blank=True, null=True, db_index=True)
+    company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.SET_NULL, db_index=True)
     status = models.CharField(max_length=25, choices=STATUS, default='No Change', db_index=True)
     city = models.CharField(max_length=40, blank=True, null=True)
     state = models.CharField(max_length=31, blank=True, null=True)
@@ -237,8 +237,8 @@ class Referral(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
     franchise = models.ForeignKey(Franchise, on_delete=models.CASCADE)
-    referredFrom = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='referredFrom')
-    referredTo = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='referredTo')
+    referredFrom = models.ForeignKey(Company, on_delete=models.SET_NULL, related_name='referredFrom', blank=True, null=True)
+    referredTo = models.ForeignKey(Company, on_delete=models.SET_NULL, related_name='referredTo', blank=True, null=True)
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='referralClient', blank=True, null=True)
     contacted = models.BooleanField(default=False)
 
