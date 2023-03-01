@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('accounts', '0005_alter_client_unique_together_remove_client_company_and_more'),
-        ('data', '0002_alter_client_unique_together_referral'),
+        ('data', '0001_initial'),
     ]
 
     operations = [
