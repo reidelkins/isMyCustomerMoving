@@ -4,14 +4,11 @@ from django_rest_passwordreset.signals import reset_password_token_created
 from django.core.mail import EmailMessage
 from django.db import models
 from django.utils.translation import gettext as _
-from django.core.exceptions import ValidationError
 import uuid
 from datetime import datetime, timedelta
 from django.utils.crypto import get_random_string
 from django.conf import settings
 from django.template.loader import get_template
-
-from data.models import Client as ClientModel
 
 
 STATUS_CHOICES = (
@@ -99,7 +96,7 @@ class Company(models.Model):
     email = models.EmailField(max_length=100, blank=True, null=True)
     stripeID = models.CharField(max_length=100, blank=True, null=True)
     crm = models.CharField(max_length=100, choices=CRM, default='None')
-    # franchise = models.ForeignKey(Franchise, on_delete=models.SET_NULL, blank=True, null=True)
+    franchise = models.ForeignKey(Franchise, on_delete=models.SET_NULL, blank=True, null=True)
 
     # Service Titan
     tenantID = models.IntegerField(blank=True, null=True)
@@ -121,58 +118,58 @@ class Company(models.Model):
 def zipTime():
     return (datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d')
 
-class ZipCode(models.Model):
-    zipCode = models.CharField(max_length=5, primary_key=True, unique=True)
-    lastUpdated = models.DateField(default=zipTime)
+# class ZipCode(models.Model):
+#     zipCode = models.CharField(max_length=5, primary_key=True, unique=True)
+#     lastUpdated = models.DateField(default=zipTime)
 
-class Client(models.Model):
-    id = models.UUIDField(primary_key=True, unique=True,
-                          default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100)
-    address = models.CharField(max_length=100)
-    zipCode = models.ForeignKey(ZipCode, on_delete=models.SET_NULL, blank=True, null=True, db_index=True, related_name='+')
-    company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.SET_NULL, db_index=True, related_name='+')
-    status = models.CharField(max_length=25, choices=STATUS, default='No Change', db_index=True)
-    city = models.CharField(max_length=40, blank=True, null=True)
-    state = models.CharField(max_length=31, blank=True, null=True)
-    contacted = models.BooleanField(default=False)
-    note = models.TextField(default="", blank=True, null=True)
-    servTitanID = models.IntegerField(blank=True, null=True)
-    phoneNumber = models.CharField(max_length=100, blank=True, null=True)
+# class Client(models.Model):
+#     id = models.UUIDField(primary_key=True, unique=True,
+#                           default=uuid.uuid4, editable=False)
+#     name = models.CharField(max_length=100)
+#     address = models.CharField(max_length=100)
+#     zipCode = models.ForeignKey(ZipCode, on_delete=models.SET_NULL, blank=True, null=True, db_index=True, related_name='+')
+#     company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.SET_NULL, db_index=True, related_name='+')
+#     status = models.CharField(max_length=25, choices=STATUS, default='No Change', db_index=True)
+#     city = models.CharField(max_length=40, blank=True, null=True)
+#     state = models.CharField(max_length=31, blank=True, null=True)
+#     contacted = models.BooleanField(default=False)
+#     note = models.TextField(default="", blank=True, null=True)
+#     servTitanID = models.IntegerField(blank=True, null=True)
+#     phoneNumber = models.CharField(max_length=100, blank=True, null=True)
 
-    class Meta:
-        unique_together = ('company', 'name', 'address')
+#     class Meta:
+#         unique_together = ('company', 'name', 'address')
 
 def formatToday():
     return datetime.today().strftime('%Y-%m-%d')
 
-class ClientUpdate(models.Model):
-    id = models.UUIDField(primary_key=True, unique=True,
-                          default=uuid.uuid4, editable=False)
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='+')
-    date = models.DateField(default=formatToday)
-    status = models.CharField(max_length=25, choices=STATUS, default='No Change', blank=True, null=True)
-    listed = models.CharField(max_length=30, blank=True, null=True)
-    note = models.TextField(default="", blank=True, null=True)
-    contacted = models.BooleanField(blank=True, null=True)
+# class ClientUpdate(models.Model):
+#     id = models.UUIDField(primary_key=True, unique=True,
+#                           default=uuid.uuid4, editable=False)
+#     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='+')
+#     date = models.DateField(default=formatToday)
+#     status = models.CharField(max_length=25, choices=STATUS, default='No Change', blank=True, null=True)
+#     listed = models.CharField(max_length=30, blank=True, null=True)
+#     note = models.TextField(default="", blank=True, null=True)
+#     contacted = models.BooleanField(blank=True, null=True)
 
-class ScrapeResponse(models.Model):
-    id = models.UUIDField(primary_key=True, unique=True,
-                          default=uuid.uuid4, editable=False)
-    date = models.DateField(default=formatToday)
-    response = models.TextField(default="")
-    zip = models.IntegerField(blank=True, null=True)
-    status = models.CharField(max_length=25, choices=STATUS, default='No Change', blank=True, null=True)
-    url = models.CharField(max_length=100, blank=True, null=True)
+# class ScrapeResponse(models.Model):
+#     id = models.UUIDField(primary_key=True, unique=True,
+#                           default=uuid.uuid4, editable=False)
+#     date = models.DateField(default=formatToday)
+#     response = models.TextField(default="")
+#     zip = models.IntegerField(blank=True, null=True)
+#     status = models.CharField(max_length=25, choices=STATUS, default='No Change', blank=True, null=True)
+#     url = models.CharField(max_length=100, blank=True, null=True)
 
-class HomeListing(models.Model):
-    id = models.UUIDField(primary_key=True, unique=True,
-                          default=uuid.uuid4, editable=False)
-    zipCode = models.ForeignKey(ZipCode, blank=True, null=True, on_delete=models.SET_NULL, related_name='+')
-    address = models.CharField(max_length=100)
-    status = models.CharField(max_length=25, choices=STATUS, default='Off Market')
-    listed = models.CharField(max_length=30, default=" ")
-    ScrapeResponse = models.ForeignKey(ScrapeResponse, blank=True, null=True, on_delete=models.SET_NULL, related_name='+')
+# class HomeListing(models.Model):
+#     id = models.UUIDField(primary_key=True, unique=True,
+#                           default=uuid.uuid4, editable=False)
+#     zipCode = models.ForeignKey(ZipCode, blank=True, null=True, on_delete=models.SET_NULL, related_name='+')
+#     address = models.CharField(max_length=100)
+#     status = models.CharField(max_length=25, choices=STATUS, default='Off Market')
+#     listed = models.CharField(max_length=30, default=" ")
+#     ScrapeResponse = models.ForeignKey(ScrapeResponse, blank=True, null=True, on_delete=models.SET_NULL, related_name='+')
 
 class CustomUser(AbstractUser):
     username = None
@@ -228,30 +225,30 @@ def password_reset_token_created(sender, instance, reset_password_token, *args, 
         msg.content_subtype ="html"# Main content is now text/html
         msg.send()
 
-class Task(models.Model):
-    id = models.UUIDField(primary_key=True, unique=True,
-                          default=uuid.uuid4, editable=False)
-    completed = models.BooleanField(default=False)
-    deletedClients = models.IntegerField(default=0)
+# class Task(models.Model):
+#     id = models.UUIDField(primary_key=True, unique=True,
+#                           default=uuid.uuid4, editable=False)
+#     completed = models.BooleanField(default=False)
+#     deletedClients = models.IntegerField(default=0)
 
-class Referral(models.Model):
-    id = models.UUIDField(primary_key=True, unique=True,
-                          default=uuid.uuid4, editable=False)
-    franchise = models.ForeignKey(Franchise, on_delete=models.CASCADE)
-    referredFrom = models.ForeignKey(Company, on_delete=models.SET_NULL, related_name='referredFrom', blank=True, null=True)
-    referredTo = models.ForeignKey(Company, on_delete=models.SET_NULL, related_name='referredTo', blank=True, null=True)
-    client = models.ForeignKey(ClientModel, on_delete=models.CASCADE, related_name='referralClient', blank=True, null=True)
-    contacted = models.BooleanField(default=False)
+# class Referral(models.Model):
+#     id = models.UUIDField(primary_key=True, unique=True,
+#                           default=uuid.uuid4, editable=False)
+#     franchise = models.ForeignKey(Franchise, on_delete=models.CASCADE)
+#     referredFrom = models.ForeignKey(Company, on_delete=models.SET_NULL, related_name='referredFrom', blank=True, null=True)
+#     referredTo = models.ForeignKey(Company, on_delete=models.SET_NULL, related_name='referredTo', blank=True, null=True)
+#     client = models.ForeignKey(ClientModel, on_delete=models.CASCADE, related_name='referralClient', blank=True, null=True)
+#     contacted = models.BooleanField(default=False)
 
-    # on save, make sure both the referredFrom and referredTo are not the same and they are part of the franchise
-    def save(self, *args, **kwargs):
-        if self.referredFrom == self.referredTo:
-            raise ValidationError("Referred From and Referred To cannot be the same")
-        if self.referredFrom.franchise != self.franchise or self.referredTo.franchise != self.franchise:
-            raise ValidationError("Both Referred From and Referred To must be part of the franchise")
-        if self.client.company.franchise != self.franchise:
-            raise ValidationError("Client must be part of the franchise")
-        if self.client.company != self.referredFrom:
-            raise ValidationError("Client must have the same company as Referred From")
+#     # on save, make sure both the referredFrom and referredTo are not the same and they are part of the franchise
+#     def save(self, *args, **kwargs):
+#         if self.referredFrom == self.referredTo:
+#             raise ValidationError("Referred From and Referred To cannot be the same")
+#         if self.referredFrom.franchise != self.franchise or self.referredTo.franchise != self.franchise:
+#             raise ValidationError("Both Referred From and Referred To must be part of the franchise")
+#         if self.client.company.franchise != self.franchise:
+#             raise ValidationError("Client must be part of the franchise")
+#         if self.client.company != self.referredFrom:
+#             raise ValidationError("Client must have the same company as Referred From")
             
-        super(Referral, self).save(*args, **kwargs)
+#         super(Referral, self).save(*args, **kwargs)

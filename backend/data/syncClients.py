@@ -81,7 +81,7 @@ def get_serviceTitan_clients(company_id, task_id):
         'Content-Type': 'application/x-www-form-urlencoded',
     }
     data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
-    response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
+    response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)    
 
     headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
     clients = []
@@ -105,18 +105,18 @@ def get_serviceTitan_clients(company_id, task_id):
         except:
             pass
     clients = Client.objects.filter(company=company)
-    diff = clients.count() - company.product.customerLimit
+    # diff = clients.count() - company.product.customerLimit
     task = Task.objects.get(id=task_id)
-    if diff > 0:
-        deleteClients = clients[:diff].values_list('id')
-        # Client.objects.filter(id__in=deleteClients).delete()
-        task.deletedClients = diff
+    # if diff > 0:
+    #     deleteClients = clients[:diff].values_list('id')
+    #     # Client.objects.filter(id__in=deleteClients).delete()
+    #     task.deletedClients = diff
     task.completed = True
     task.save()
 
     # clearing out old data    
     try:
-        deleteClients
+        del deleteClients
     except:
         pass
     try:

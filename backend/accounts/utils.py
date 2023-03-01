@@ -9,7 +9,7 @@ from scrapfly import ScrapeApiResponse, ScrapeConfig, ScrapflyClient
 from typing import List, Optional
 from typing_extensions import TypedDict
 
-from .models import Client, Company, ZipCode, HomeListing, CustomUser, ClientUpdate, Task, ScrapeResponse, Franchise
+from .models import Company, CustomUser, Franchise
 from djstripe import models as djstripe_models
 from .serializers import CompanySerializer
 

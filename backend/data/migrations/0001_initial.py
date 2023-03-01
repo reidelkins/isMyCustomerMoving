@@ -85,8 +85,8 @@ class Migration(migrations.Migration):
             name='zipCode',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='client_zipCode', to='data.zipcode'),
         ),
-        migrations.AlterUniqueTogether(
-            name='client',
-            unique_together={('company', 'name', 'address')},
-        ),
+        # migrations.AlterUniqueTogether(
+        #     name='client',
+        #     unique_together={('company', 'name', 'address')},
+        # ),
     ]
