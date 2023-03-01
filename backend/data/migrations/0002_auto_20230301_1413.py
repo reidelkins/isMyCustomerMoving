@@ -25,195 +25,67 @@ class Migration(migrations.Migration):
         """),
         
         migrations.RunSQL("""
-            INSERT INTO data_client (
-                id,
-                name,
-                address,
-                status,                
-                company_id,                
-                city,
-                state,
-                contacted,
-                note,
-                servTitanID,
-                phoneNumber
-            )
+            INSERT INTO data_client
             SELECT
-                id,
-                name,
-                address,
-                status,            
-                company_id,                
-                city,
-                state,
-                contacted,
-                note,
-                servTitanID,
-                phoneNumber
+                *
             FROM
                 accounts_client;
         """, reverse_sql="""
-            INSERT INTO accounts_client (
-                id,
-                name,
-                address,
-                status,                
-                company_id,                
-                city,
-                state,
-                contacted,
-                note,
-                servTitanID,
-                phoneNumber
-            )
+            INSERT INTO accounts_client 
             SELECT
-                id,
-                name,
-                address,
-                status,                
-                company_id,                
-                city,
-                state,
-                contacted,
-                note,
-                servTitanID,
-                phoneNumber
+                *
             FROM
                 data_client;
         """),
         migrations.RunSQL("""
-            INSERT INTO data_scraperesponse (
-                id,
-                date,
-                response,
-                zip,
-                status,
-                url
-            )
+            INSERT INTO data_scraperesponse
             SELECT
-                id,
-                date,
-                response,
-                zip,
-                status,
-                url
+                *
             FROM
                 accounts_scraperesponse;
         """, reverse_sql="""
-            INSERT INTO accounts_scraperesponse (
-                id,
-                date,
-                response,
-                zip,
-                status,
-                url
-            )
+            INSERT INTO accounts_scraperesponse 
             SELECT
-                id,
-                date,
-                response,
-                zip,
-                status,
-                url
+                *
             FROM
                 data_scraperesponse;
         """),
         migrations.RunSQL("""
-            INSERT INTO data_clientupdate (
-                id,
-                client_id,
-                date,
-                status,
-                listed,
-                note,
-                contacted
-            )
+            INSERT INTO data_clientupdate 
             SELECT
-                id,
-                client_id,
-                date,
-                status,
-                listed,
-                note,
-                contacted
+                *
             FROM
                 accounts_clientupdate;
         """, reverse_sql="""
-            INSERT INTO accounts_clientupdate (
-                id,
-                client_id,
-                date,
-                status,
-                listed,
-                note,
-                contacted
-            )
+            INSERT INTO accounts_clientupdate             
             SELECT
-                id,
-                client_id,
-                date,
-                status,
-                listed,
-                note,
-                contacted
+                *
             FROM
                 data_clientupdate;
         """),
         migrations.RunSQL("""
-            INSERT INTO data_task (
-                id,
-                completed,
-                deletedclients
-            )
+            INSERT INTO data_task 
             SELECT
-                id,
-                completed,
-                deletedclients
+                *
             FROM
                 accounts_task;
         """, reverse_sql="""
-            INSERT INTO accounts_task (
-                id,
-                completed,
-                deletedclients
-            )
+            INSERT INTO accounts_task 
             SELECT
-                id,
-                completed,
-                deletedclients
+                *
             FROM
                 data_task;
         """),
         migrations.RunSQL("""
-            INSERT INTO data_homelisting (
-                id,                
-                address,
-                status,
-                listed,
-                scraperesponse_id
-            )
+            INSERT INTO data_homelisting 
             SELECT
-                id,                
-                address,
-                status,
-                listed,
-                scraperesponse_id
+                *
             FROM
                 accounts_homelisting;
         """, reverse_sql="""
-            INSERT INTO accounts_homelisting (
-                id,                
-                address,
-                status,
-                listed,
-                scraperesponse_id
-            )
+            INSERT INTO accounts_homelisting
             SELECT
-                id,                
-                address,
-                status,
-                listed,
-                scraperesponse_id
+                *
             FROM
                 data_homelisting;
         """)
