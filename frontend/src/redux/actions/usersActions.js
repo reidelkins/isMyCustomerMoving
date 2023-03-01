@@ -325,7 +325,7 @@ export const serviceTitanSync = () => async (dispatch, getState) => {
       },
     };
     dispatch(clientsLoading());
-    const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/servicetitan/${company}/`, config);
+    const { data } = await axios.put(`${DOMAIN}/api/v1/data/servicetitan/${company}/`, config);
     dispatch(serviceTitanUpdateAsync(data.task, userInfo.access))
     
   } catch (error) {
