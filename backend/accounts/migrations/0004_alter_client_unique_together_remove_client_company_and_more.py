@@ -11,39 +11,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [                
-        migrations.RemoveField(
-            model_name='clientupdate',
-            name='client',
-        ),
-        migrations.RemoveField(
-            model_name='homelisting',
-            name='ScrapeResponse',
-        ),
-        migrations.RemoveField(
-            model_name='homelisting',
-            name='zipCode',
-        ),
-        migrations.DeleteModel(
-            name='Task',
-        ),
         migrations.AddField(
             model_name='company',
             name='franchise',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='accounts.franchise'),
-        ),
-        migrations.DeleteModel(
-            name='Client',
-        ),
-        migrations.DeleteModel(
-            name='ClientUpdate',
-        ),
-        migrations.DeleteModel(
-            name='HomeListing',
-        ),
-        migrations.DeleteModel(
-            name='ScrapeResponse',
-        ),
-        migrations.DeleteModel(
-            name='ZipCode',
-        ),
+        )
     ]
