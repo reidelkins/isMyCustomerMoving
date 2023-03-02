@@ -96,8 +96,6 @@ export default function CustomerData() {
     } else if (userInfo.otp_enabled && twoFA === false) {
       navigate('/login', { replace: true });
     }
-    console.log(userInfo.status)
-    console.log(userInfo.company.crm)
 
   }, [userInfo, dispatch, navigate]);
   
@@ -394,7 +392,7 @@ export default function CustomerData() {
                               </TableCell>
                               <TableCell>
                                 {/* make phone number look like (123) 456-7890 */}
-                                {phoneNumber ? `(${phoneNumber.slice(0,3)}) ${phoneNumber.slice(3,6)}-${phoneNumber.slice(6,10)}`: ""}
+                                {phoneNumber ? `(${phoneNumber.slice(0,3)}) ${phoneNumber.slice(3,6)}-${phoneNumber.slice(6,10)}`: "N/A"}
                               </TableCell>
                               {userInfo.company.franchise && (
                                 <TableCell>
