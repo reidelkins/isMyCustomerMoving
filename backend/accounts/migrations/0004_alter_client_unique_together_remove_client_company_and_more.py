@@ -10,15 +10,7 @@ class Migration(migrations.Migration):
         ('accounts', '0003_alter_client_company_alter_client_zipcode_and_more'),
     ]
 
-    operations = [        
-        migrations.RemoveField(
-            model_name='client',
-            name='company',
-        ),
-        migrations.RemoveField(
-            model_name='client',
-            name='zipCode',
-        ),
+    operations = [                
         migrations.RemoveField(
             model_name='clientupdate',
             name='client',
