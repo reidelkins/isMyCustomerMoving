@@ -1,6 +1,6 @@
 from accounts.models import Company, CustomUser
 from config import settings
-from .models import Client, ZipCode, HomeListing, ScrapeResponse, ClientUpdate, Task
+from .models import Client, ZipCode, HomeListing, ScrapeResponse, ClientUpdate, Task, HomeListingTags
 
 from bs4 import BeautifulSoup
 from celery import shared_task
@@ -349,20 +349,30 @@ def create_home_listings(results, status, resp=None):
                 listType = "2022-01-01"
             #if the found date is after 2022, it is valid
             if resp: 
-                HomeListing.objects.get_or_create(
+                homeListing = HomeListing.objects.get_or_create(
                             zipCode= zip_object,
                             address= parseStreets((listing['location']['address']['line']).title()),
                             status= status,
                             listed= listType[:10],
                             ScrapeResponse= ScrapeResponse.objects.get(id=resp),
+                            price = listing['list_price'],
+                            housingType = listing['description']['type'],
+                            year_built = listing['description']['year_built'],                            
                             )
             else:
-                HomeListing.objects.get_or_create(
+                homeListing = HomeListing.objects.get_or_create(
                             zipCode= zip_object,
                             address= parseStreets((listing['location']['address']['line']).title()),
                             status= status,
                             listed= listType[:10],
+                            price = listing['list_price'],
+                            housingType = listing['description']['type'],
+                            year_built = listing['description']['year_built'],
                             )
+            for tag in listing["tags"]:
+                currTag = HomeListingTags.objects.get_or_create(tag=tag)
+                homeListing[0].tag.add(currTag[0])
+
 
         except Exception as e: 
             print(f"ERROR for Single Listing: {e} with zipCode {zip_object}")
@@ -408,8 +418,14 @@ def updateStatus(zip, company, status):
         except Exception as e:
             print(e)
         if update:
+            homeListing = HomeListing.objects.get(address=toList.address, status=status)
             toList.status = status
+            toList.price = homeListing.price
+            toList.year_built = homeListing.year_built
+            toList.housingType = homeListing.housingType
             toList.save()
+            for tag in homeListing.tag.all():
+                toList.tag.add(tag)
         try:
             listing = HomeListing.objects.filter(zipCode=zipCode_object, address=toList.address, status=status)
             ClientUpdate.objects.get_or_create(client=toList, status=status, listed=listing[0].listed)

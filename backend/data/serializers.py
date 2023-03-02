@@ -26,15 +26,21 @@ class ClientListSerializer(serializers.ModelSerializer):
     contacted = serializers.BooleanField()
     note = serializers.CharField(max_length=100)
     phoneNumber = serializers.CharField(max_length=100)
+    price = serializers.IntegerField()
+    housingType = serializers.CharField(max_length=100)
+    year_built = serializers.IntegerField()
+    tags = serializers.SerializerMethodField(read_only=True)
     clientUpdates_client = ClientUpdateSerializer(many=True, read_only=True)
-
 
     def get_zipCode(self, obj):
         return obj.zipCode.zipCode
+    
+    def get_tags(self, obj):
+        return obj.tags.all().values_list('name', flat=True)
 
     class Meta:
         model = Client
-        fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status', 'contacted', 'note', 'phoneNumber', 'clientUpdates_client')
+        fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status', 'contacted', 'note', 'phoneNumber', 'clientUpdates_client', 'price', 'housingType', 'year_built', 'tags')
         read_only_fields = fields
 
 class HomeListingSerializer(serializers.ModelSerializer):
@@ -42,13 +48,20 @@ class HomeListingSerializer(serializers.ModelSerializer):
     address = serializers.CharField(max_length=100)
     zipCode = serializers.SerializerMethodField(read_only=True)
     listed = serializers.CharField(max_length=30)
+    price = serializers.IntegerField()
+    housingType = serializers.CharField(max_length=100)
+    year_built = serializers.IntegerField()
+    tags = serializers.SerializerMethodField(read_only=True)
 
     def get_zipCode(self, obj):
         return obj.zipCode.zipCode
     
+    def get_tags(self, obj):
+        return obj.tags.all().values_list('name', flat=True)
+    
     class Meta:
         model = HomeListing
-        fields = ('id', 'address', 'listed', 'zipCode')
+        fields = ('id', 'address', 'listed', 'zipCode', 'price', 'housingType', 'year_built', 'tags')
 
 class ReferralSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
