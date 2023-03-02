@@ -352,7 +352,7 @@ class OTPValidateView(generics.GenericAPIView):
         messages = {'errors': []}
         user = CustomUser.objects.get(id=request.data['id'])
         if not user.otp_verified:
-            messages['errors'].append('OTP not verified')
+            messages['errors'].append('One Time Password incorrect')
         if user.otp_base32 == None:
             return Response({'detail': f'OTP not generated for this user'}, status=status.HTTP_400_BAD_REQUEST)
         if len(messages['errors']) > 0:
