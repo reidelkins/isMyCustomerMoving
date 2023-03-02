@@ -10,11 +10,7 @@ class Migration(migrations.Migration):
         ('accounts', '0003_alter_client_company_alter_client_zipcode_and_more'),
     ]
 
-    operations = [
-        migrations.AlterUniqueTogether(
-            name='client',
-            unique_together=None,
-        ),
+    operations = [        
         migrations.RemoveField(
             model_name='client',
             name='company',
