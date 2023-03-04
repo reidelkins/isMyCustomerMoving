@@ -135,7 +135,7 @@ def completed_checkout(event: djstripe_models.Event):
         except:
             try:
                 company = makeCompany(companyName, email, phone, stripeId)
-                company.plan = plan
+                company.product = plan
                 company.save()
             except Exception as e:
                 print(f"error: {e}")
@@ -174,14 +174,9 @@ def update_subscription(event: djstripe_models.Event):
         plan = djstripe_models.Subscription.objects.filter(customer=obj['customer']).values('plan')
         plan = plan[0]['plan']
         plan = djstripe_models.Plan.objects.get(djstripe_id=plan)
-        product = Product.objects.get(pid=plan.id)
-        print(f"product id being changed to {product.id}")
         company = Company.objects.get(email=customer.email)
-        company.product = product
-        if product.realEstateAddOn:
-            print("adding recently sold purchased")
-            company.recentlySoldPurchased = True
-        # company.save()
+        company.product = plan
+        company.save()
     except Exception as e:
         print(e)
         print("error")
