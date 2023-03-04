@@ -11,12 +11,7 @@ class Migration(migrations.Migration):
         ('accounts', '0001_initial'),
     ]
 
-    operations = [
-        migrations.AddField(
-            model_name='company',
-            name='franchise',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='accounts.franchise'),
-        ),
+    operations = [        
         migrations.AddField(
             model_name='company',
             name='product',
