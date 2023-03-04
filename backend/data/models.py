@@ -35,6 +35,10 @@ class Client(models.Model):
     note = models.TextField(default="", blank=True, null=True)
     servTitanID = models.IntegerField(blank=True, null=True)
     phoneNumber = models.CharField(max_length=100, blank=True, null=True)
+    price = models.IntegerField(default=0)
+    housingType = models.CharField(max_length=100, default=" ")
+    year_built = models.IntegerField(default=0)
+    tag = models.ManyToManyField("HomeListingTags", blank=True, related_name='client_tags')
 
     class Meta:
         unique_together = ('company', 'name', 'address')
@@ -69,6 +73,16 @@ class HomeListing(models.Model):
     status = models.CharField(max_length=25, choices=STATUS, default='Off Market')
     listed = models.CharField(max_length=30, default=" ")
     ScrapeResponse = models.ForeignKey(ScrapeResponse, blank=True, null=True, on_delete=models.SET_NULL, related_name='homeListing_ScrapeResponse')
+    price = models.IntegerField(default=0)
+    housingType = models.CharField(max_length=100, default=" ")
+    year_built = models.IntegerField(default=0)
+    tag = models.ManyToManyField("HomeListingTags", blank=True, related_name='homeListing_tag')
+    
+class HomeListingTags(models.Model):
+    id = models.UUIDField(primary_key=True, unique=True,
+                          default=uuid.uuid4, editable=False)
+    tag = models.CharField(max_length=100)
+
 
 class Task(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
