@@ -353,20 +353,20 @@ export default function CustomerData() {
                               <TableCell align="left">{state}</TableCell>
                               <TableCell align="left">{zipCode}</TableCell>
                               <TableCell align="left">
-                                {userInfo.email !== 'demo@demo.com' ? (
+                                {userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy' ? (
                                   <Label variant="ghost" color={(status === 'No Change' && 'warning') || (contacted === 'False' && 'error'  || 'success')}>
                                     {sentenceCase(status)}
                                   </Label>
                                 ) : (
                                   <Label variant="ghost" color='warning'>
-                                    Demo
+                                    Free Tier
                                   </Label>
                                 )}
                                 
                               </TableCell>
                               <TableCell>
                                 {(() => {
-                                  if (status !== 'No Change') {
+                                  if (status !== 'No Change' && userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy') {
                                     if (contacted) {
                                       return(
                                         <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, false)}>
@@ -501,7 +501,7 @@ export default function CustomerData() {
                     </Button>
                   )
                 ):(
-                  (userInfo.status === 'admin') && (
+                  (userInfo.status === 'admin' && userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy') && (
                     <Button onClick={exportCSV} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
                       Download To CSV
                     </Button>

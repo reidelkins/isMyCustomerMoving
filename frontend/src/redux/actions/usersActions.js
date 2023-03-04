@@ -479,11 +479,8 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
     if (page === 1) {
       dispatch(recentlySoldLoading());
     }
-    console.log(page)
-    console.log(reduxStore.user.recentlySoldInfo.highestPage)
     if (page > reduxStore.user.recentlySoldInfo.highestPage) {
       const { data } = await axios.get(`${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}?page=${page}`, config);
-      console.log(data)
       if (data.results.length > 0) {
         dispatch(newRecentlySoldPage(page));
       }

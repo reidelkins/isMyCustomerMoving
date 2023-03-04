@@ -30,6 +30,7 @@ class CompanySerializer(serializers.ModelSerializer):
     recentlySoldPurchased = serializers.BooleanField(default=False)
     crm = serializers.CharField(max_length=100, required=False)
     franchise = FranchiseSerializer(required=False)
+    product = serializers.SerializerMethodField('get_product', read_only=True)
 
 
     # service titan
@@ -45,9 +46,15 @@ class CompanySerializer(serializers.ModelSerializer):
         if Company.objects.filter(name=validated_data['name']).exists():
             return False
         return Company.objects.create(**validated_data, accessToken=get_random_string(length=32))
+    
+    def get_product(self, obj):
+        if obj.product:
+            return obj.product.id
+        else:
+            return "No product"
     class Meta:
         model = Company
-        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'franchise']
+        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'franchise', 'product']
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):

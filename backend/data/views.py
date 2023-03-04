@@ -32,7 +32,9 @@ class ClientListView(generics.ListAPIView):
     
     def get_queryset(self):
         user = CustomUser.objects.get(id=self.kwargs['user'])
-        if user.status == 'admin':
+        if user.company.product.id == "price_1MhxfPAkLES5P4qQbu8O45xy":
+            return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).order_by('name')
+        elif user.status == 'admin':
             return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).order_by('status')
         else:
             return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).exclude(status='No Change').order_by('status')
@@ -40,11 +42,12 @@ class ClientListView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         user = CustomUser.objects.get(id=self.kwargs['user'])
-
-        forSale = Client.objects.filter(company=user.company, status="House For Sale", contacted=False).count()
-        recentlySold = Client.objects.filter(company=user.company, status="House Recently Sold (6)", contacted=False).count()
-        forSaleAllTime = ClientUpdate.objects.filter(client__company=user.company, status="House For Sale").count()
-        recentlySoldAllTime = ClientUpdate.objects.filter(client__company=user.company, status="House Recently Sold (6)").count()
+        allClients = Client.objects.filter(company=user.company)
+        forSale = allClients.filter(status="House For Sale", contacted=False).count()
+        recentlySold = allClients.filter(status="House Recently Sold (6)", contacted=False).count()
+        allClientUpdates = ClientUpdate.objects.filter(client__company=user.company)
+        forSaleAllTime = allClientUpdates.filter(status="House For Sale").count()
+        recentlySoldAllTime = allClientUpdates.filter(status="House Recently Sold (6)").count()
 
         page = self.paginate_queryset(queryset)
         if page is not None:
