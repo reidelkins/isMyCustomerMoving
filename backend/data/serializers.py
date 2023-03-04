@@ -36,7 +36,7 @@ class ClientListSerializer(serializers.ModelSerializer):
         return obj.zipCode.zipCode
     
     def get_tags(self, obj):
-        return obj.tags.all().values_list('name', flat=True)
+        return obj.tag.all().values_list('tag', flat=True)
 
     class Meta:
         model = Client
@@ -57,7 +57,7 @@ class HomeListingSerializer(serializers.ModelSerializer):
         return obj.zipCode.zipCode
     
     def get_tags(self, obj):
-        return obj.tags.all().values_list('name', flat=True)
+        return obj.tag.all().values_list('tag', flat=True)
     
     class Meta:
         model = HomeListing

@@ -5,6 +5,7 @@ import { styled } from '@mui/material/styles';
 import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment } from '@mui/material';
 // component
 import Iconify from '../../../components/Iconify';
+import CustomerDataFilter from './CustomerDataFilter';
 // redux
 import { deleteClientAsync } from '../../../redux/actions/usersActions';
 
@@ -32,14 +33,14 @@ const SearchStyle = styled(OutlinedInput)(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 
-UserListToolbar.propTypes = {
+ClientListToolbar.propTypes = {
   numSelected: PropTypes.number,
   filterName: PropTypes.string,
   onFilterName: PropTypes.func,
   selectedClients: PropTypes.array,
 };
 
-export default function UserListToolbar({ numSelected, filterName, onFilterName, selectedClients }) {
+export default function ClientListToolbar({ numSelected, filterName, onFilterName, selectedClients }) {
   const dispatch = useDispatch();
 
   const clickDelete = (event, clients) => {
@@ -84,11 +85,7 @@ export default function UserListToolbar({ numSelected, filterName, onFilterName,
           </IconButton>
         </Tooltip>
       ) : (
-        <Tooltip title="Filter list">
-          <IconButton>
-            <Iconify icon="ic:round-filter-list" />
-          </IconButton>
-        </Tooltip>
+        <CustomerDataFilter />
       )}
     </RootStyle>
   );
