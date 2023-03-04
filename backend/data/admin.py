@@ -31,7 +31,7 @@ class ZipcodeAdmin(admin.ModelAdmin):
         return Client.objects.filter(zipCode=obj.zipCode).count()
 
 class HomeListingAdmin(admin.ModelAdmin):
-    list_display = ('address', 'zipCode__zip', 'status', 'listed', 'ScrapeResponse')
+    list_display = ('address', 'zipCode__zip', 'status', 'listed', 'price', 'year_built')
     search_fields = ['address', 'status', 'zipCode__zipCode',]
 
     def zipCode__zip(self, obj):

@@ -35,9 +35,9 @@ class Client(models.Model):
     note = models.TextField(default="", blank=True, null=True)
     servTitanID = models.IntegerField(blank=True, null=True)
     phoneNumber = models.CharField(max_length=100, blank=True, null=True)
-    price = models.IntegerField(default=0)
-    housingType = models.CharField(max_length=100, default=" ")
-    year_built = models.IntegerField(default=0)
+    price = models.IntegerField(default=0, blank=True, null=True)
+    housingType = models.CharField(max_length=100, default=" ", blank=True, null=True)
+    year_built = models.IntegerField(default=0, blank=True, null=True)
     tag = models.ManyToManyField("HomeListingTags", blank=True, related_name='client_tags')
 
     class Meta:

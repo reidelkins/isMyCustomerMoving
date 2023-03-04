@@ -1,3 +1,4 @@
+from time import sleep
 from accounts.models import Company, CustomUser
 from config import settings
 from .models import Client, ZipCode, HomeListing, ScrapeResponse, ClientUpdate, Task, HomeListingTags
@@ -151,7 +152,7 @@ def getAllZipcodes(company):
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
     zips = list(zipCodes.order_by('zipCode').values('zipCode'))
     zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
-    # zips = [{'zipCode': '37922'}, {'zipCode': '37830'}, {'zipCode': '37934'}, {'zipCode': '37932'}, {'zipCode': '37918'}]
+    # zips = [{'zipCode': '37922'}]
     for i in range(len(zips) * 2):
     # for i in range(len(zips)):
         extra = ""
@@ -347,36 +348,37 @@ def create_home_listings(results, status, resp=None):
                 listType = listing["list_date"]
             if listType == None:
                 listType = "2022-01-01"
-            #if the found date is after 2022, it is valid
-            if resp: 
-                homeListing = HomeListing.objects.get_or_create(
-                            zipCode= zip_object,
-                            address= parseStreets((listing['location']['address']['line']).title()),
-                            status= status,
-                            listed= listType[:10],
-                            ScrapeResponse= ScrapeResponse.objects.get(id=resp),
-                            price = listing['list_price'],
-                            housingType = listing['description']['type'],
-                            year_built = listing['description']['year_built'],                            
-                            )
+            if listing['list_price']:
+                price = listing['list_price']
+            elif listing['description']['sold_price']:
+                price = listing['description']['sold_price']
             else:
-                homeListing = HomeListing.objects.get_or_create(
-                            zipCode= zip_object,
-                            address= parseStreets((listing['location']['address']['line']).title()),
-                            status= status,
-                            listed= listType[:10],
-                            price = listing['list_price'],
-                            housingType = listing['description']['type'],
-                            year_built = listing['description']['year_built'],
-                            )
-            for tag in listing["tags"]:
-                currTag = HomeListingTags.objects.get_or_create(tag=tag)
-                homeListing[0].tag.add(currTag[0])
+                price = 0
+            if listing['description']['year_built']:
+                year_built = listing['description']['year_built']
+            else:
+                year_built = 0
+            homeListing = HomeListing.objects.get_or_create(
+                        zipCode= zip_object,
+                        address= parseStreets((listing['location']['address']['line']).title()),
+                        status= status,
+                        listed= listType[:10],
+                        price = price,
+                        housingType = listing['description']['type'],
+                        year_built = year_built,
+                        )
+            if resp:
+                homeListing[0].ScrapeResponse = ScrapeResponse.objects.get(id=resp)
+                homeListing[0].save()
+            if listing["tags"]:
+                for tag in listing["tags"]:
+                    currTag = HomeListingTags.objects.get_or_create(tag=tag)
+                    homeListing[0].tag.add(currTag[0])
 
 
         except Exception as e: 
-            print(f"ERROR for Single Listing: {e} with zipCode {zip_object}")
-            print((listing['location']['address']['line']).title())
+            print(f"ERROR for Single Listing: {e} with zipCode {zip_object}.")
+            print(traceback.format_exc())
     try:
         del results
     except:
@@ -952,15 +954,15 @@ def send_update_email(templateName):
         print(f"ERROR: {e}")
         print(traceback.format_exc())
 
-@shared_task(rate_limit='1/m')
+@shared_task(rate_limit='1/s')
 def doItAll(company):
     try:
         company = Company.objects.get(id=company)
         result = auto_update.delay(company.id)  # Schedule auto_update task
-        eta = datetime.now() + timedelta(seconds=3600)  # Calculate ETA for update_clients_statuses task
-        result.then(update_clients_statuses.apply_async, eta=eta, args=[company.id])  # Schedule update_clients_statuses task
-        eta = datetime.now() + timedelta(seconds=3960)
-        result.then(sendDailyEmail.apply_async, eta=eta, args=[company.id])
+        sleep(3600)  # Calculate ETA for update_clients_statuses task
+        result = update_clients_statuses(company.id)  # Schedule update_clients_statuses task
+        sleep(360)
+        result.then(sendDailyEmail.apply_async, args=[company.id])
     except Exception as e:
         print("doItAll failed")
         print(f"ERROR: {e}")

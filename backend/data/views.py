@@ -13,7 +13,7 @@ from config import settings
 from .models import Client, ClientUpdate, HomeListing, Task
 from .serializers import ClientListSerializer, HomeListingSerializer
 from .syncClients import get_fieldEdge_clients, get_hubspot_clients, get_salesforce_clients, get_serviceTitan_clients
-from .utils import getAllZipcodes, saveClientList
+from .utils import getAllZipcodes, saveClientList, doItAll
 
 # Create your views here.
 class AllClientListView(generics.ListAPIView):
@@ -108,6 +108,7 @@ class UploadFileView(generics.ListAPIView):
         except Exception as e:
             print(e)
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
+        doItAll.delay(company_id)
         return Response({"data": "Clients Uploaded! Come back in about an hour to see your results"}, status=status.HTTP_201_CREATED, headers="")
 
 # create a class for update client that will be used for the put and delete requests
