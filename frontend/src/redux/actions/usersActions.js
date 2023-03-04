@@ -21,7 +21,8 @@ export const userSlice = createSlice({
         total: 0,
       },
       highestPage: 0,
-      deleted: 0
+      deleted: 0,
+      message: null,
       
     },
     usersInfo: {
@@ -78,6 +79,9 @@ export const userSlice = createSlice({
     },
     clientsNotAdded: (state, action) => {
       state.clientsInfo.deleted = action.payload;
+    },
+    clientsUpload: (state, action) => {
+      state.clientsInfo.message = action.payload;
     },
 
     // -----------------  USERS  -----------------
@@ -146,6 +150,33 @@ export const userSlice = createSlice({
     newReferralsPage: (state, action) => {
       state.referralInfo.highestPage = action.payload;
     },
+    logoutClients: (state) => {
+      state.clientsInfo.CLIENTLIST = [];
+      state.clientsInfo.count = 0;
+      state.clientsInfo.forSale.current = 0;
+      state.clientsInfo.forSale.total = 0;
+      state.clientsInfo.recentlySold.current = 0;
+      state.clientsInfo.recentlySold.total = 0;
+      state.clientsInfo.loading = false;
+      state.clientsInfo.error = null;
+      state.clientsInfo.done = false;
+      state.clientsInfo.highestPage = 0;
+      state.clientsInfo.deleted = 0;
+      state.clientsInfo.message = null;
+      state.usersInfo.USERLIST = [];
+      state.usersInfo.loading = false;
+      state.usersInfo.error = null;
+      state.recentlySoldInfo.RECENTLYSOLDLIST = [];
+      state.recentlySoldInfo.loading = false;
+      state.recentlySoldInfo.error = null;
+      state.recentlySoldInfo.count = 0;
+      state.recentlySoldInfo.highestPage = 0;
+      state.referralInfo.REFERRALLIST = [];
+      state.referralInfo.loading = false;
+      state.referralInfo.error = null;
+      state.referralInfo.highestPage = 0;
+    },
+
 
     // TODO
     sendNewUserEmail: (state) => {
@@ -160,10 +191,11 @@ export const userSlice = createSlice({
   },
 });
 
-export const { clientsNotAdded, clients, moreClients, newPage, clientsUploading, clientsLoading, clientsNotLoading, clientsError,
+export const { clientsNotAdded, clients, moreClients, newPage, clientsUpload, clientsLoading, clientsNotLoading, clientsError,
    users, usersLoading, usersError,
    recentlySold, recentlySoldLoading, recentlySoldError, newRecentlySoldPage, moreRecentlySold,
-   referrals, referralsLoading, referralsError, moreReferrals, newReferralsPage
+   referrals, referralsLoading, referralsError, moreReferrals, newReferralsPage,
+   logoutClients
   } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
 export const selectRecentlySold = (state) => state.user.recentlySoldInfo;
@@ -299,6 +331,7 @@ export const serviceTitanUpdateAsync = (id, access) => async (dispatch) => {
     const { data } = await axios.get(`${DOMAIN}/api/v1/data/servicetitan/${id}/`, config);
     if (data.status === 'SUCCESS') {
       dispatch(clientsNotAdded(data.deleted))
+      dispatch(clientsUpload(data.data))
       dispatch(clientsAsync(1));
     } else {     
       setTimeout(() => {
@@ -441,7 +474,8 @@ export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
       },
     };
     dispatch(clientsLoading());
-    await axios.put(`${DOMAIN}/api/v1/data/upload/${company}/`, customers, config);
+    const {data} = await axios.put(`${DOMAIN}/api/v1/data/upload/${company}/`, customers, config);
+    dispatch(clientsUpload(data.data));
     setTimeout(() => {
       dispatch(clientsAsync(1));
     }, 2000);

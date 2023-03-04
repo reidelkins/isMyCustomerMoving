@@ -139,7 +139,7 @@ export default function ProfileSettings() {
 
   };
   return (
-    <Page title="Profile Settings">
+    <Page title="Profile Settings" userInfo={userInfo}>
       <Container maxWidth="xl">
         {userInfo ? <UsersListCall /> : null}
         <Typography variant="h2" sx={{ mb: 5 }}>

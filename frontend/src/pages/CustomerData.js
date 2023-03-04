@@ -6,9 +6,11 @@ import React, { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // material
 import {
+  Alert,
   IconButton,
   Box,
   Card,
+  Collapse,
   Table,
   Stack,
   Button,
@@ -28,6 +30,7 @@ import { DOMAIN } from '../redux/constants';
 
 // components
 import ReferralModal from '../components/ReferralModal';
+import UpgradeFromFree from '../components/UpgradeFromFree';
 import NoteModal from '../components/NoteModal';
 import Page from '../components/Page';
 import Label from '../components/Label';
@@ -126,7 +129,13 @@ export default function CustomerData() {
   }, [userInfo]);
 
   const listClient = useSelector(selectClients);
-  const {loading, CLIENTLIST, forSale, recentlySold, count } = listClient;
+  const {loading, CLIENTLIST, forSale, recentlySold, count, message } = listClient;
+
+  useEffect(() => {
+    if (message) {
+      setAlertOpen(true);
+    }
+  }, [message]);
 
   const [page, setPage] = useState(0);
   
@@ -147,6 +156,8 @@ export default function CustomerData() {
   const [expandedRow, setExpandedRow] = useState(null);
 
   const [csvLoading, setCsvLoading] = useState(false);
+
+  const [alertOpen, setAlertOpen] = useState(false);
 
   const handleRowClick = (rowIndex) => {
     if (expandedRow === rowIndex) {
@@ -268,7 +279,7 @@ export default function CustomerData() {
   }, [count, filteredClients])
 
   return (
-    <Page title="User">
+    <Page title="User" userInfo={userInfo}>
       <Container>
         {userInfo ? <ClientsListCall /> : null}
         {userInfo && (
@@ -507,6 +518,9 @@ export default function CustomerData() {
                     </Button>
                   )
                 )}
+                {userInfo.company.product === 'price_1MhxfPAkLES5P4qQbu8O45xy' && (
+                  <UpgradeFromFree />
+                )}
                 
               </Stack>
             )}
@@ -514,6 +528,29 @@ export default function CustomerData() {
             { userInfo.status === 'admin' && (
                 <FileUploader />
             )}
+            
+            <Collapse in={alertOpen}>
+              <Alert
+                action={
+                  <IconButton
+                    aria-label="close"
+                    color="inherit"
+                    size="small"
+                    onClick={() => {
+                      setAlertOpen(false);
+                    }}
+                  >
+                    X
+                  </IconButton>
+                }
+                sx={{ mb: 2, mx: 'auto', width: '50%' }}
+                variant="filled"
+                severity="success"
+              >
+                {message}
+              </Alert>
+            </Collapse>
+            
           </>
         )}
       </Container>

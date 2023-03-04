@@ -44,7 +44,7 @@ export default function Referrals() {
     }
 
     return(
-        <Page title="Referrals">
+        <Page title="Referrals" userInfo={userInfo}>
             <Container maxWidth="xl">
                 {userInfo.company.franchise ? (
                     <>

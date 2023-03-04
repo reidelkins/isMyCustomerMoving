@@ -2,6 +2,7 @@ import axios from 'axios';
 import { createSlice } from '@reduxjs/toolkit';
 
 import { DOMAIN } from '../constants';
+import { logoutClients } from './usersActions'
 
 export const authSlice = createSlice({
   name: "auth",
@@ -266,10 +267,10 @@ export const submitNewPassAsync = (password, token) => async (dispatch) => {
 };
 
 export const logout = () => (dispatch) => {
-  console.log("logging out")
   localStorage.removeItem('userInfo');
   localStorage.removeItem('twoFA');
   dispatch(logoutUser());
+  dispatch(logoutClients());
 };
 
 export const generateQrCodeAsync = () => async (dispatch, getState) => {

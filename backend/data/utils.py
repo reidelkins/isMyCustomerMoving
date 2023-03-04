@@ -935,3 +935,17 @@ def send_update_email(templateName):
         print("sending update email failed")
         print(f"ERROR: {e}")
         print(traceback.format_exc())
+
+@shared_task(rate_limit='1/m')
+def doItAll(company):
+    try:
+        company = Company.objects.get(id=company)
+        result = auto_update.delay(company.id)  # Schedule auto_update task
+        eta = datetime.now() + timedelta(seconds=3600)  # Calculate ETA for update_clients_statuses task
+        result.then(update_clients_statuses.apply_async, eta=eta, args=[company.id])  # Schedule update_clients_statuses task
+        eta = datetime.now() + timedelta(seconds=3960)
+        result.then(sendDailyEmail.apply_async, eta=eta, args=[company.id])
+    except Exception as e:
+        print("doItAll failed")
+        print(f"ERROR: {e}")
+        print(traceback.format_exc())
