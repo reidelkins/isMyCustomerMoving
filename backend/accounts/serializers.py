@@ -64,6 +64,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         update_last_login(None, self.user)
         for k, v in serializer.items():
             data[k] = v
+        if not self.user.isVerified:
+            raise serializers.ValidationError("User is not verified")
         return data
     @classmethod
     def get_token(cls, user):
@@ -71,7 +73,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         if user.isVerified:
             return token
         else:
-            raise serializers.ValidationError("User is not verified")
+            raise serializers.ValidationError("User is not verified. Either you have not verified your email or your account has been disabled. Accounts are disabled if you have not paid for the service. Please contact us reid@ismycustomermoving.com if you have any questions.")
 
 class UserSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)

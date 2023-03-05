@@ -136,11 +136,13 @@ export const loginAsync = (email, password) => async (dispatch) => {
       },
     };
     const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/login/`, { email, password }, config);
+    console.log(data)
     dispatch(login(data));
     localStorage.setItem('userInfo', JSON.stringify(data));
     
   } catch (error) {
-    dispatch(loginError(error.response && error.response.data.detail ? error.response.data.detail : error.message,));
+    console.log("error", error.response.data.non_field_errors[0])
+    dispatch(loginError(error.response && error.response.data.non_field_errors[0] ? error.response.data.non_field_errors[0] : error.message,));
   }
 };
 
