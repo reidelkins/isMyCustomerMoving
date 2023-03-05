@@ -6,7 +6,7 @@ from django.conf import settings
 
 from accounts.models import Company
 from .models import Client, Task
-from .utils import saveClientList, updateClientList
+from .utils import saveClientList, updateClientList, doItAll
 from simple_salesforce import Salesforce
 
 
@@ -113,6 +113,8 @@ def get_serviceTitan_clients(company_id, task_id):
     #     task.deletedClients = diff
     task.completed = True
     task.save()
+    doItAll.delay(company_id)
+
 
     # clearing out old data    
     try:

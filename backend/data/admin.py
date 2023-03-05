@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Client, ClientUpdate, ZipCode, HomeListing, Task, ScrapeResponse
+from .models import Client, ClientUpdate, ZipCode, HomeListing, Task, ScrapeResponse, HomeListingTags
 
 # Register your models here.
 class ClientAdmin(admin.ModelAdmin):
@@ -31,7 +31,7 @@ class ZipcodeAdmin(admin.ModelAdmin):
         return Client.objects.filter(zipCode=obj.zipCode).count()
 
 class HomeListingAdmin(admin.ModelAdmin):
-    list_display = ('address', 'zipCode__zip', 'status', 'listed', 'ScrapeResponse')
+    list_display = ('address', 'zipCode__zip', 'status', 'listed', 'price', 'year_built')
     search_fields = ['address', 'status', 'zipCode__zipCode',]
 
     def zipCode__zip(self, obj):
@@ -44,9 +44,15 @@ class ScrapeResponseAdmin(admin.ModelAdmin):
     list_display = ('id', 'date', 'zip', 'status', 'url')
     search_fields = ['id', 'date', 'zip', 'status', 'url']
 
+class HomeListingTagsAdmin(admin.ModelAdmin):
+    list_display = ('id',  'tag')
+    search_fields = ['id', 'tag']
+
+
 admin.site.register(HomeListing, HomeListingAdmin)
 admin.site.register(ZipCode, ZipcodeAdmin)
 admin.site.register(Client, ClientAdmin)
 admin.site.register(Task, TaskAdmin)
 admin.site.register(ScrapeResponse, ScrapeResponseAdmin)
 admin.site.register(ClientUpdate, ClientUpdateAdmin)
+admin.site.register(HomeListingTags, HomeListingTagsAdmin)

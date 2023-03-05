@@ -30,6 +30,7 @@ class CompanySerializer(serializers.ModelSerializer):
     recentlySoldPurchased = serializers.BooleanField(default=False)
     crm = serializers.CharField(max_length=100, required=False)
     franchise = FranchiseSerializer(required=False)
+    product = serializers.SerializerMethodField('get_product', read_only=True)
 
 
     # service titan
@@ -45,9 +46,15 @@ class CompanySerializer(serializers.ModelSerializer):
         if Company.objects.filter(name=validated_data['name']).exists():
             return False
         return Company.objects.create(**validated_data, accessToken=get_random_string(length=32))
+    
+    def get_product(self, obj):
+        if obj.product:
+            return obj.product.id
+        else:
+            return "No product"
     class Meta:
         model = Company
-        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'franchise']
+        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'franchise', 'product']
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -57,6 +64,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         update_last_login(None, self.user)
         for k, v in serializer.items():
             data[k] = v
+        if not self.user.isVerified:
+            raise serializers.ValidationError("User is not verified")
         return data
     @classmethod
     def get_token(cls, user):
@@ -64,7 +73,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         if user.isVerified:
             return token
         else:
-            raise serializers.ValidationError("User is not verified")
+            raise serializers.ValidationError("User is not verified. Either you have not verified your email or your account has been disabled. Accounts are disabled if you have not paid for the service. Please contact us reid@ismycustomermoving.com if you have any questions.")
 
 class UserSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)

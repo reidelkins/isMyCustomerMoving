@@ -1,5 +1,4 @@
 /* eslint-disable camelcase */
-import _, { filter} from 'lodash';
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
@@ -161,7 +160,7 @@ export default function RecentlySoldData() {
   }, [count])
 
   return (
-    <Page title="User">
+    <Page title="User" userInfo={userInfo}>
       <Container>
         {userInfo ? <RecentlySoldListCall /> : null}
         {userInfo && (

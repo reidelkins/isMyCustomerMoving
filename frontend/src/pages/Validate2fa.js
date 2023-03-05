@@ -1,7 +1,7 @@
 import * as Yup from 'yup';
 import { useEffect } from "react";
 import { styled } from '@mui/material/styles';
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useFormik, Form, FormikProvider } from 'formik';
 
@@ -57,7 +57,6 @@ export default function Validate2fa(){
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const smUp = useResponsive('up', 'sm');
   const mdUp = useResponsive('up', 'md');
 
   const userLogin = useSelector(showLoginInfo);
@@ -81,7 +80,7 @@ export default function Validate2fa(){
     },
     });
 
-    const { errors, register, handleSubmit, getFieldProps } = formik;
+    const { errors, handleSubmit, getFieldProps } = formik;
 
     useEffect(() => {
       if (userInfo) {

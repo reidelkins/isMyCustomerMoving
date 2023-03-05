@@ -20,7 +20,7 @@ import { makeStyles } from '@mui/styles';
 import Iconify from './Iconify';
 import { uploadClientsAsync, selectClients } from '../redux/actions/usersActions';
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   uploaderDiv: {
     backgroundColor: '#f1f0ef',
     height: '80px',

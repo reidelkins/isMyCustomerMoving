@@ -13,7 +13,7 @@ from config import settings
 from .models import Client, ClientUpdate, HomeListing, Task
 from .serializers import ClientListSerializer, HomeListingSerializer
 from .syncClients import get_fieldEdge_clients, get_hubspot_clients, get_salesforce_clients, get_serviceTitan_clients
-from .utils import getAllZipcodes, saveClientList
+from .utils import getAllZipcodes, saveClientList, doItAll
 
 # Create your views here.
 class AllClientListView(generics.ListAPIView):
@@ -32,7 +32,9 @@ class ClientListView(generics.ListAPIView):
     
     def get_queryset(self):
         user = CustomUser.objects.get(id=self.kwargs['user'])
-        if user.status == 'admin':
+        if user.company.product.id == "price_1MhxfPAkLES5P4qQbu8O45xy":
+            return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).order_by('name')
+        elif user.status == 'admin':
             return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).order_by('status')
         else:
             return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).exclude(status='No Change').order_by('status')
@@ -40,11 +42,12 @@ class ClientListView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         user = CustomUser.objects.get(id=self.kwargs['user'])
-
-        forSale = Client.objects.filter(company=user.company, status="House For Sale", contacted=False).count()
-        recentlySold = Client.objects.filter(company=user.company, status="House Recently Sold (6)", contacted=False).count()
-        forSaleAllTime = ClientUpdate.objects.filter(client__company=user.company, status="House For Sale").count()
-        recentlySoldAllTime = ClientUpdate.objects.filter(client__company=user.company, status="House Recently Sold (6)").count()
+        allClients = Client.objects.filter(company=user.company)
+        forSale = allClients.filter(status="House For Sale", contacted=False).count()
+        recentlySold = allClients.filter(status="House Recently Sold (6)", contacted=False).count()
+        allClientUpdates = ClientUpdate.objects.filter(client__company=user.company)
+        forSaleAllTime = allClientUpdates.filter(status="House For Sale").count()
+        recentlySoldAllTime = allClientUpdates.filter(status="House Recently Sold (6)").count()
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -105,7 +108,8 @@ class UploadFileView(generics.ListAPIView):
         except Exception as e:
             print(e)
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({"status": "File Uploaded"}, status=status.HTTP_201_CREATED, headers="")
+        doItAll.delay(company_id)
+        return Response({"data": "Clients Uploaded! Come back in about an hour to see your results"}, status=status.HTTP_201_CREATED, headers="")
 
 # create a class for update client that will be used for the put and delete requests
 class UpdateClientView(APIView):
@@ -175,8 +179,8 @@ class ServiceTitanView(APIView):
                 task = Task.objects.get(id=self.kwargs['company'])
                 if task.completed:
                     deleted = task.deletedClients
-                    task.delete()
-                    return Response({"status": "SUCCESS", "deleted": deleted}, status=status.HTTP_201_CREATED, headers="")
+                    # task.delete()
+                    return Response({"status": "SUCCESS", "data": "Clients Synced! Come back in about an hour to see your results.", "deleted": deleted}, status=status.HTTP_201_CREATED, headers="")
                 else:
                     # clients = Company.objects.get(id="faee8ca7-e5de-4c60-8578-0ac6bc576930").client_set.all()
                     # if clients.count() > 0:

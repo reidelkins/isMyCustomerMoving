@@ -1,13 +1,16 @@
 /* eslint-disable camelcase */
-import { FC, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import QRCode from "qrcode";
-import { toast } from "react-toastify";
 import * as Yup from 'yup';
 import { useDispatch } from "react-redux";
 import { useFormik, Form, FormikProvider } from 'formik';
 import { Box, Button, TextField, Dialog, DialogTitle, Stack, Divider, Typography } from '@mui/material';
+import PropTypes from 'prop-types';
 import { generateQrCodeAsync, verifyOtp, disableTwoFactorAuth } from "../redux/actions/authActions";
 
+TwoFactorAuth.propTypes = {
+    userInfo: PropTypes.object.isRequired,
+};
 
 const TwoFactorAuth = ({
   userInfo

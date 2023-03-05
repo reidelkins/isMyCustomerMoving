@@ -43,7 +43,7 @@ class CustomUserAdmin(UserAdmin):
         return obj.company.name
 
 class CompanyAdmin(admin.ModelAdmin):
-    list_display = ('name', 'accessToken', 'franchise')
+    list_display = ('name', 'accessToken', 'franchise', 'product')
 
 class InviteTokenAdmin(admin.ModelAdmin):
     list_display = ('id', 'email', 'company')

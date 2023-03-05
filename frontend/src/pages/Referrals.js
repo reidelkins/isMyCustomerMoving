@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { Button, Stack, Container, Box, Typography } from '@mui/material';
 import { grey, orange } from '@mui/material/colors';
 
-import { referralsAsync, selectReferrals } from '../redux/actions/usersActions';
+import { selectReferrals } from '../redux/actions/usersActions';
 import { showLoginInfo } from '../redux/actions/authActions';
 import ReferralsData from '../components/ReferralsData';
 import Page from '../components/Page';
@@ -44,7 +44,7 @@ export default function Referrals() {
     }
 
     return(
-        <Page title="Referrals">
+        <Page title="Referrals" userInfo={userInfo}>
             <Container maxWidth="xl">
                 {userInfo.company.franchise ? (
                     <>
