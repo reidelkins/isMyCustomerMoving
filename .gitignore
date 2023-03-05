@@ -9,7 +9,6 @@ backend/data/__pycache__/
 backend/data/migrations/__pycache__/
 backend/data/management/commands/__pycache__/
 backend/data/tests/__pycache__/
-backend/data/management/commands/__pycache__/
 backend/*.py[cod]
 backend/*$py.class
 

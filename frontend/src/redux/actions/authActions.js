@@ -136,7 +136,6 @@ export const loginAsync = (email, password) => async (dispatch) => {
       },
     };
     const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/login/`, { email, password }, config);
-    console.log(data)
     dispatch(login(data));
     localStorage.setItem('userInfo', JSON.stringify(data));
     
