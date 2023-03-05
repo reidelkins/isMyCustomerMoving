@@ -98,7 +98,7 @@ export const salesForceAsync = () => async (dispatch) => {
       },
     };
   try{      
-      const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/salesforce/a/`, config);      
+      const { data } = await axios.get(`${DOMAIN}/api/v1/data/salesforce/a/`, config);      
       dispatch(salesForce(data));
     } catch (error) {
       console.log(error)

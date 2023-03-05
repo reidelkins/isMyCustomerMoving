@@ -12,12 +12,7 @@ import Iconify from './Iconify';
 
 import { companyAsync, showSTInfo, salesForceAsync, salesForceTokenAsync } from '../redux/actions/authActions';
 
-// prop validation
-ServiceTitan.propTypes = {
-    open: PropTypes.bool.isRequired,
-    setOpen: PropTypes.func.isRequired,
-    dispatch: PropTypes.func.isRequired,
-}
+
 
 // create a modal that shows different CRM options/buttons in a grid and has an input field for suggestions they don't see
 // this modal will be shown when the user clicks on the CRM button in the header
@@ -104,10 +99,13 @@ const ServiceTitan = ({open, setOpen, dispatch}) => {
     )
 }
 
-Salesforce.propTypes = {
+// prop validation
+ServiceTitan.propTypes = {
     open: PropTypes.bool.isRequired,
     setOpen: PropTypes.func.isRequired,
+    dispatch: PropTypes.func.isRequired,
 }
+
 
 // Dialog for Salesforce Integration
 const Salesforce = ({open, setOpen}) => {
@@ -121,6 +119,11 @@ const Salesforce = ({open, setOpen}) => {
             </Dialog>
         </div>
     )
+}
+
+Salesforce.propTypes = {
+    open: PropTypes.bool.isRequired,
+    setOpen: PropTypes.func.isRequired,
 }
 
 const ComingSoon = () =>  (

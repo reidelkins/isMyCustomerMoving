@@ -8,9 +8,6 @@ import { Box, Button, TextField, Dialog, DialogTitle, Stack, Divider, Typography
 import PropTypes from 'prop-types';
 import { generateQrCodeAsync, verifyOtp, disableTwoFactorAuth } from "../redux/actions/authActions";
 
-TwoFactorAuth.propTypes = {
-    userInfo: PropTypes.object.isRequired,
-};
 
 const TwoFactorAuth = ({
   userInfo
@@ -136,6 +133,10 @@ const TwoFactorAuth = ({
         </Dialog>
     </div>
   );
+};
+
+TwoFactorAuth.propTypes = {
+    userInfo: PropTypes.object.isRequired,
 };
 
 export default TwoFactorAuth;
