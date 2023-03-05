@@ -141,8 +141,9 @@ export const loginAsync = (email, password) => async (dispatch) => {
     localStorage.setItem('userInfo', JSON.stringify(data));
     
   } catch (error) {
-    console.log("error", error.response.data.non_field_errors[0])
-    dispatch(loginError(error.response && error.response.data.non_field_errors[0] ? error.response.data.non_field_errors[0] : error.message,));
+    // eslint-disable-next-line no-nested-ternary
+    dispatch(loginError(error.response && error.response.data.non_field_errors ? error.response.data.non_field_errors[0] : 
+      (error.response && error.response.data.detail ? error.response.data.detail : error.message)));
   }
 };
 
