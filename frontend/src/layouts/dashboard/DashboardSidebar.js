@@ -1,14 +1,12 @@
 import PropTypes from 'prop-types';
 import { useEffect } from 'react';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 // material
 import { styled } from '@mui/material/styles';
 import { Box, Drawer } from '@mui/material';
 
-import { useSelector } from 'react-redux';
 
 // hooks
-import { showLoginInfo } from '../../redux/actions/authActions';
 import useResponsive from '../../hooks/useResponsive';
 // components
 import Logo from '../../components/Logo';

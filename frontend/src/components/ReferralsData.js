@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {Card, Table, TableBody, TableCell, TableContainer, TableRow, Typography, Stack, IconButton} from '@mui/material';
+import PropTypes from 'prop-types';
 
 import Scrollbar from './Scrollbar';
 import Iconify from './Iconify';
@@ -103,5 +104,11 @@ const ReferralsData = ({refs, company, incoming}) => {
         </div>
     );
 }
+
+ReferralsData.propTypes = {
+  refs: PropTypes.object.isRequired,
+  company: PropTypes.number.isRequired,
+  incoming: PropTypes.bool.isRequired,
+};
 
 export default ReferralsData;

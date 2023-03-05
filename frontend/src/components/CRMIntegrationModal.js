@@ -1,16 +1,23 @@
 import React, {useEffect, useState} from "react";
-import axios from 'axios';
 
 import { Box, Grid, Dialog, DialogContent, DialogTitle, Divider, Button, Fade, Modal, Stack, TextField, Typography, IconButton } from "@mui/material";
 import { useFormik, Form, FormikProvider } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
+import PropTypes from 'prop-types';
 
 import ServiceTitanTagsModal from './ServiceTitanTagsModal';
 import AddSecretModal from './AddSecretModal';
 import Iconify from './Iconify';
 
 import { companyAsync, showSTInfo, salesForceAsync, salesForceTokenAsync } from '../redux/actions/authActions';
+
+// prop validation
+ServiceTitan.propTypes = {
+    open: PropTypes.bool.isRequired,
+    setOpen: PropTypes.func.isRequired,
+    dispatch: PropTypes.func.isRequired,
+}
 
 // create a modal that shows different CRM options/buttons in a grid and has an input field for suggestions they don't see
 // this modal will be shown when the user clicks on the CRM button in the header
@@ -97,6 +104,11 @@ const ServiceTitan = ({open, setOpen, dispatch}) => {
     )
 }
 
+Salesforce.propTypes = {
+    open: PropTypes.bool.isRequired,
+    setOpen: PropTypes.func.isRequired,
+}
+
 // Dialog for Salesforce Integration
 const Salesforce = ({open, setOpen}) => {
     const handleClose = () => {
@@ -111,49 +123,47 @@ const Salesforce = ({open, setOpen}) => {
     )
 }
 
-const ComingSoon = () => {
-    return (
-        <div
-            style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                backgroundColor: "rgba(255, 255, 255, 0.5)",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-            }}
-            >
-            <Typography variant="h6" color="textSecondary">
-                Coming Soon
-            </Typography>
-        </div>
-    )
-}
+const ComingSoon = () =>  (
+    <div
+        style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(255, 255, 255, 0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+        }}
+        >
+        <Typography variant="h6" color="textSecondary">
+            Coming Soon
+        </Typography>
+    </div>
+)
 
-const Selected = () => {
-    return (
-        <div
-            style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                backgroundColor: "rgba(255, 255, 255, 0.6)",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-            }}
-            >
-            <Typography variant="h6" color="black">
-                Selected
-            </Typography>
-        </div>
-    )
-}
+
+const Selected = () => (
+    <div
+        style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(255, 255, 255, 0.6)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+        }}
+        >
+        <Typography variant="h6" color="black">
+            Selected
+        </Typography>
+    </div>
+)
+
 
 // // Dialog for Salesforce Integration
 // const Hubspot = ({open, setOpen}) => {
@@ -182,7 +192,6 @@ const Selected = () => {
 //         </div>
 //     )
 // }
-
 
 
 const CRMIntegrationModal = ({user}) => {
@@ -222,7 +231,7 @@ const CRMIntegrationModal = ({user}) => {
     },
     });
 
-  const { errors, register, handleSubmit, getFieldProps } = formik;
+  const { errors, handleSubmit, getFieldProps } = formik;
 
   const CRMs = [
     { name: "ServiceTitan", icon: "/static/icons/servicetitan.svg" },
@@ -340,5 +349,9 @@ const CRMIntegrationModal = ({user}) => {
     </div>
   );
 }
+
+CRMIntegrationModal.propTypes = {
+    user: PropTypes.object,
+};
 
 export default CRMIntegrationModal;

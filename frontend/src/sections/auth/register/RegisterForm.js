@@ -6,11 +6,18 @@ import { useNavigate } from 'react-router-dom';
 import { Stack, TextField, IconButton, InputAdornment, Alert, AlertTitle } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { useDispatch, useSelector } from 'react-redux';
+import PropTypes from 'prop-types';
 import { registerAsync, showLoginInfo, showRegisterInfo } from '../../../redux/actions/authActions';
 // component
 import Iconify from '../../../components/Iconify';
 
 // ----------------------------------------------------------------------
+
+RegisterForm.propTypes = {
+  company: PropTypes.string.isRequired,
+  accessToken: PropTypes.string.isRequired,
+};
+
 
 export default function RegisterForm({company, accessToken}) {
   const dispatch = useDispatch();

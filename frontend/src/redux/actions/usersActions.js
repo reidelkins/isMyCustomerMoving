@@ -380,7 +380,7 @@ export const salesForceSync = () => async (dispatch, getState) => {
       },
     };
     // dispatch(clientsLoading());
-    const { data } = await axios.put(`${DOMAIN}/api/v1/data/salesforce/${company}/`, config);
+    await axios.put(`${DOMAIN}/api/v1/data/salesforce/${company}/`, config);
     dispatch(clientsAsync(1))
     
   } catch (error) {
