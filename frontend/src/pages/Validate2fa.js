@@ -60,7 +60,7 @@ export default function Validate2fa(){
   const mdUp = useResponsive('up', 'md');
 
   const userLogin = useSelector(showLoginInfo);
-  const {userInfo, twoFA } = userLogin;
+  const {userInfo, twoFA, error } = userLogin;
 
   const twoFactorAuthSchema = Yup.object().shape({
     token: Yup.string()
@@ -134,6 +134,7 @@ export default function Validate2fa(){
             <Stack direction="row" justifyContent="center">
                 <Button onClick={handleSubmit}>Verify</Button>
             </Stack>
+            {error && <Typography color="error">{error}</Typography>}
             
 
             

@@ -59,11 +59,11 @@ export const authSlice = createSlice({
       state.registerInfo.error = null;
       state.registerInfo.loading = false;
     },
-    logoutUser: (state) => {
+    logoutUser: (state, action) => {
       state.userInfo = {
         userInfo: null,
         loading: false,
-        error: null,
+        error: action ? action.payload : null,
       };
     },
     company: (state, action) => {
@@ -268,11 +268,13 @@ export const submitNewPassAsync = (password, token) => async (dispatch) => {
   }
 };
 
-export const logout = () => (dispatch) => {
+
+export const logout = (error=null) => (dispatch) => {
   localStorage.removeItem('userInfo');
   localStorage.removeItem('twoFA');
-  dispatch(logoutUser());
+  dispatch(logoutUser(error));
   dispatch(logoutClients());
+
 };
 
 export const generateQrCodeAsync = () => async (dispatch, getState) => {
@@ -331,6 +333,7 @@ export const validateOtp = (otp) => async (dispatch, getState) => {
     localStorage.setItem('twoFA', JSON.stringify(true));
   } catch (error) {
     dispatch(loginError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    dispatch(logout(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 };
 
