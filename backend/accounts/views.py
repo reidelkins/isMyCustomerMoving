@@ -205,8 +205,6 @@ class RegisterView(APIView):
 
     def post(self, request):
         data = request.data
-        print(data)
-        return
         first_name = data.get('firstName')
         last_name = data.get('lastName')
         email = data.get('email')

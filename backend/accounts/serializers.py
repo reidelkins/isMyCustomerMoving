@@ -59,7 +59,6 @@ class CompanySerializer(serializers.ModelSerializer):
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
-        print(attrs)
         data = super().validate(attrs)
         serializer = UserSerializerWithToken(self.user).data
         update_last_login(None, self.user)
