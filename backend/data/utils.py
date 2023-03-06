@@ -30,6 +30,8 @@ def findClientsToDelete(clientCount, subscriptionType):
         ceiling = 10000
     elif subscriptionType == "Large Business":
         ceiling = 20000
+    # elif subscriptionType == "Free Tier":
+    #     ceiling = 100
     else:
         ceiling = 100000
     if clientCount > ceiling:
@@ -90,7 +92,7 @@ def saveClientList(clients, company_id, task=None):
                         continue
                     clientsToAdd.append(Client(address=street, zipCode=zipCode, city=city, state=state, name=name, company=company, servTitanID=clients[i]['customerId']))                   
             #file upload
-            else:                
+            else:
                 street = parseStreets((str(clients[i]['address'])).title())
                 if street.lower() in badStreets:
                         continue
@@ -110,13 +112,13 @@ def saveClientList(clients, company_id, task=None):
             print("create error")
             print(e)
     Client.objects.bulk_create(clientsToAdd, ignore_conflicts=True)
+
     if task:
         clients = Client.objects.filter(company=company)
         deletedClients = findClientsToDelete(clients.count(), company.product.product.name)
         task = Task.objects.get(id=task)
         if deletedClients > 0:
-            clientsToDelete = clients.order_by('dateAdded')[:deletedClients]
-            clientsToDelete.delete()
+            Client.objects.filter(id__in=list(clients.values_list('id', flat=True)[:deletedClients])).delete()           
             task.deletedClients = deletedClients
         task.completed = True
         task.save()

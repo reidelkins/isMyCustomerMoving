@@ -6,7 +6,7 @@ from django.conf import settings
 
 from accounts.models import Company
 from .models import Client, Task
-from .utils import saveClientList, updateClientList, doItAll
+from .utils import saveClientList, updateClientList, doItAll, findClientsToDelete
 from simple_salesforce import Salesforce
 
 
@@ -107,10 +107,10 @@ def get_serviceTitan_clients(company_id, task_id):
     clients = Client.objects.filter(company=company)
     # diff = clients.count() - company.product.customerLimit
     task = Task.objects.get(id=task_id)
-    # if diff > 0:
-    #     deleteClients = clients[:diff].values_list('id')
-    #     # Client.objects.filter(id__in=deleteClients).delete()
-    #     task.deletedClients = diff
+    deletedClients = findClientsToDelete(clients.count(), company.product.product.name)
+    if deletedClients > 0:
+        Client.objects.filter(id__in=list(clients.values_list('id', flat=True)[:deletedClients])).delete()           
+        task.deletedClients = deletedClients
     task.completed = True
     task.save()
     doItAll.delay(company_id)
