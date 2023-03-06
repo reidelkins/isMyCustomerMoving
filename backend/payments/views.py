@@ -158,6 +158,9 @@ def cancel_subscription(event: djstripe_models.Event):
         obj = event.data['object']
         customer = djstripe_models.Customer.objects.get(id=obj['customer'])
         company = Company.objects.get(email=customer.email)
+        product = djstripe_models.Plan.objects.get(id="price_1MhxfPAkLES5P4qQbu8O45xy")
+        company.product = product
+        company.save()
         users = CustomUser.objects.filter(company=company)
         for user in users:
             user.isVerified = False

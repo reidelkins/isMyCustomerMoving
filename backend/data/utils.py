@@ -502,15 +502,20 @@ def update_clients_statuses(company_id=None):
     else:
         companies = Company.objects.all()
     for company in companies:
-        zipCode_objects = Client.objects.filter(company=company).values('zipCode')
-        zipCodes = zipCode_objects.distinct()
-        zips = list(zipCodes.order_by('zipCode').values('zipCode'))
-        for zip in zips:
-            zip = zip['zipCode']
-            updateStatus.delay(zip, company.id, "House For Sale")
-        for zip in zips:
-            zip = zip['zipCode']
-            updateStatus.delay(zip, company.id, "House Recently Sold (6)")
+        try:
+            if company.product.id != "price_1MhxfPAkLES5P4qQbu8O45xy":
+                zipCode_objects = Client.objects.filter(company=company).values('zipCode')
+                zipCodes = zipCode_objects.distinct()
+                zips = list(zipCodes.order_by('zipCode').values('zipCode'))
+                for zip in zips:
+                    zip = zip['zipCode']
+                    updateStatus.delay(zip, company.id, "House For Sale")
+                for zip in zips:
+                    zip = zip['zipCode']
+                    updateStatus.delay(zip, company.id, "House Recently Sold (6)")
+        except Exception as e:
+            print(f"ERROR during update_clients_statuses: {e} with company {company}")
+            print(traceback.format_exc())
                 
     gc.collect()
     try:
@@ -549,26 +554,31 @@ def sendDailyEmail(company_id=None):
     else:
         companies = Company.objects.all()
     for company in companies:
-        emails = list(CustomUser.objects.filter(company=company).values_list('email'))
-        subject = 'Did Your Customers Move?'
-        
-        forSaleCustomers = Client.objects.filter(company=company, status="House For Sale").exclude(contacted=True).count()
-        soldCustomers = Client.objects.filter(company=company, status="House Recently Sold (6)").exclude(contacted=True).count()
-        message = get_template("dailyEmail.html").render({
-            'forSale': forSaleCustomers, 'sold': soldCustomers
-        })
-        
-        if soldCustomers > 0 or forSaleCustomers > 0:
-            for email in emails:
-                email = email[0]
-                msg = EmailMessage(
-                    subject,
-                    message,
-                    settings.EMAIL_HOST_USER,
-                    [email]
-                )
-                msg.content_subtype ="html"
-                msg.send()
+        try:
+            if company.product.id != "price_1MhxfPAkLES5P4qQbu8O45xy":
+                emails = list(CustomUser.objects.filter(company=company).values_list('email'))
+                subject = 'Did Your Customers Move?'
+                
+                forSaleCustomers = Client.objects.filter(company=company, status="House For Sale").exclude(contacted=True).count()
+                soldCustomers = Client.objects.filter(company=company, status="House Recently Sold (6)").exclude(contacted=True).count()
+                message = get_template("dailyEmail.html").render({
+                    'forSale': forSaleCustomers, 'sold': soldCustomers
+                })
+                
+                if soldCustomers > 0 or forSaleCustomers > 0:
+                    for email in emails:
+                        email = email[0]
+                        msg = EmailMessage(
+                            subject,
+                            message,
+                            settings.EMAIL_HOST_USER,
+                            [email]
+                        )
+                        msg.content_subtype ="html"
+                        msg.send()
+        except Exception as e:
+            print(f"ERROR during sendDailyEmail: {e} with company {company}")
+            print(traceback.format_exc())
     # if not company_id:
     #     HomeListing.objects.all().delete()
     ZipCode.objects.filter(lastUpdated__lt = datetime.today() - timedelta(days=3)).delete()
@@ -616,9 +626,15 @@ def auto_update(company_id=None):
             print("Company does not exist")
             return
     else:
-        companies = Company.objects.all().values_list('id')
+        companies = Company.objects.all()
         for company in companies:
-            getAllZipcodes(company[0])
+            try:
+                if company.product.id != "price_1MhxfPAkLES5P4qQbu8O45xy":
+                    getAllZipcodes(company.id)
+                else:
+                    print("free tier")
+            except Exception as e:
+                print(e)
     try:
         del company
     except:
