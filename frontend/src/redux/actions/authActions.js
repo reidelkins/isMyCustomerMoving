@@ -125,8 +125,6 @@ export const salesForceTokenAsync = (code) => async (dispatch, getState) => {
     }
 }
       
-      
-
 export const loginAsync = (email, password) => async (dispatch) => {
   try {
     dispatch(loginLoading()); 
@@ -140,7 +138,7 @@ export const loginAsync = (email, password) => async (dispatch) => {
     localStorage.setItem('userInfo', JSON.stringify(data));
     
   } catch (error) {
-    // eslint-disable-next-line no-nested-ternary
+    // eslint-disable-next-line no-nested-ternary    
     dispatch(loginError(error.response && error.response.data.non_field_errors ? error.response.data.non_field_errors[0] : 
       (error.response && error.response.data.detail ? error.response.data.detail : error.message)));
   }
@@ -248,13 +246,12 @@ export const resetAsync = (email) => async (dispatch) => {
 
 export const submitNewPassAsync = (password, token) => async (dispatch) => {
   try {
+    dispatch(registerLoading());
     const config = {
       headers: {
         'Content-type': 'application/json',
       },
     };
-
-    dispatch(registerLoading());
     await axios.post(
       `${DOMAIN}/api/v1/accounts/password_reset/confirm/`,
       { 
