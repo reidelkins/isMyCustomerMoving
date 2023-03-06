@@ -20,6 +20,7 @@ import jwt
 from config import settings
 import pytz
 import pyotp
+import uuid
 
 class ManageUserView(APIView):
     def post(self, request, *args, **kwargs):
@@ -239,7 +240,7 @@ class RegisterView(APIView):
                     first_name=first_name,
                     last_name=last_name,
                     email=email,
-                    password=make_password(password),
+                    password=make_password(password, salt=uuid.uuid4().hex),
                     company=company,
                     status='admin',
                     isVerified=True,
