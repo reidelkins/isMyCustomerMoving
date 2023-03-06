@@ -2,6 +2,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view
 from django.conf import settings
+from django.template.loader import get_template
+from django.core.mail import send_mail
 from .models import Product
 from accounts.models import Company, CustomUser
 from payments.models import Product
@@ -160,7 +162,11 @@ def cancel_subscription(event: djstripe_models.Event):
         for user in users:
             user.isVerified = False
             user.save()
-        #TODO: send email to customer
+            mail_subject = "Subscription Ended: Is My Customer Moving"
+            # send the endedSubscrition email to each user
+            messagePlain = f"Your subscription to Is My Customer Moving has ended. Please contact us at reid@ismycustomermoving.com to reactivate your subscription."
+            message = get_template("endedSubscription.html").render({'email': user.email})
+            send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[user.email], html_message=message, fail_silently=False)    
     except Exception as e:
         print(e)
         print("error")
