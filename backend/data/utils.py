@@ -23,6 +23,20 @@ for i in range(1, 21):
     scrapfly = ScrapflyClient( key=settings.SCRAPFLY_KEY, max_concurrency=1)
     scrapflies.append(scrapfly)
 
+def findClientsToDelete(clientCount, subscriptionType):
+    if subscriptionType == "Small Business":
+        ceiling = 5000
+    elif subscriptionType == "Franchise":
+        ceiling = 10000
+    elif subscriptionType == "Large Business":
+        ceiling = 20000
+    else:
+        ceiling = 100000
+    if clientCount > ceiling:
+        return clientCount - ceiling
+    else:
+        return 0
+
 def parseStreets(street):
     conversions = {"Alley": "Aly", "Avenue": "Ave", "Boulevard": "Blvd", "Circle": "Cir", "Court": "Crt", "Cove": "Cv", "Canyon": "Cnyn", "Drive": "Dr", "Expressway": "Expy", "Highway": "Hwy", 
         "Lane": "Ln", "Parkway": "Pkwy", "Place": "Pl", "Pike": "Pk", "Point": "Pt", "Road": "Rd", "Square": "Sq", "Street": "St", "Terrace": "Ter", "Trail": "Trl", "South": "S", "North": "N",
@@ -51,7 +65,7 @@ def formatZip(zip):
         return False
 
 @shared_task
-def saveClientList(clients, company_id):
+def saveClientList(clients, company_id, task=None):
     #create
     clientsToAdd = []
     company = Company.objects.get(id=company_id)        
@@ -96,6 +110,17 @@ def saveClientList(clients, company_id):
             print("create error")
             print(e)
     Client.objects.bulk_create(clientsToAdd, ignore_conflicts=True)
+    if task:
+        clients = Client.objects.filter(company=company)
+        deletedClients = findClientsToDelete(clients.count(), company.product.product.name)
+        task = Task.objects.get(id=task)
+        if deletedClients > 0:
+            clientsToDelete = clients.order_by('dateAdded')[:deletedClients]
+            clientsToDelete.delete()
+            task.deletedClients = deletedClients
+        task.completed = True
+        task.save()
+
     try:
         del clientsToAdd
     except:
@@ -680,20 +705,21 @@ def get_serviceTitan_clients(company_id, task_id):
         except:
             pass
     clients = Client.objects.filter(company=company)
-    diff = clients.count() - company.product.customerLimit
+    deletedClients = findClientsToDelete(clients.count(), company.product.product.name)
+    # diff = clients.count() - company.product.customerLimit
     task = Task.objects.get(id=task_id)
-    if diff > 0:
-        deleteClients = clients[:diff].values_list('id')
-        # Client.objects.filter(id__in=deleteClients).delete()
-        task.deletedClients = diff
+    if deletedClients > 0:
+        deleteClients = clients[:deleteClients].values_list('id')
+        Client.objects.filter(id__in=deleteClients).delete()
+        task.deletedClients = deletedClients
     task.completed = True
     task.save()
 
     # clearing out old data    
-    try:
-        deleteClients
-    except:
-        pass
+    # try:
+    #     deleteClients
+    # except:
+    #     pass
     try:
         del diff
     except:

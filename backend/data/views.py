@@ -96,6 +96,23 @@ class ClientListAndUpdatesView(generics.ListAPIView):
         return Client.objects.prefetch_related('clientUpdates').filter(company=company).order_by('status')
 
 class UploadFileView(generics.ListAPIView):
+    def get(self, request, *args, **kwargs):
+        try:
+            try:
+                task = Task.objects.get(id=self.kwargs['company'])
+                if task.completed:
+                    deleted = task.deletedClients
+                    # task.delete()
+                    return Response({"status": "SUCCESS", "data": "Clients Uploaded! Come back in about an hour to see your results.", "deleted": deleted}, status=status.HTTP_201_CREATED, headers="")
+                else:
+                    return Response({"status": "UNFINISHED", "clients": []}, status=status.HTTP_201_CREATED)
+            except Exception as e:
+                print(e)
+                return Response({"status": "Task Error"}, status=status.HTTP_400_BAD_REQUEST)          
+        except Exception as e:
+            print(e)
+            return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
+        
     def put(self, request, *args, **kwargs):
         company_id = self.kwargs['company']
         try:
@@ -104,12 +121,13 @@ class UploadFileView(generics.ListAPIView):
             print(e)
             return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            saveClientList.delay(request.data, company_id)
+            task = Task.objects.create()            
+            saveClientList.delay(request.data, company_id, task=task.id)
         except Exception as e:
             print(e)
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
         doItAll.delay(company_id)
-        return Response({"data": "Clients Uploaded! Come back in about an hour to see your results"}, status=status.HTTP_201_CREATED, headers="")
+        return Response({"data": "Clients Uploaded! Come back in about an hour to see your results", "task": task.id}, status=status.HTTP_201_CREATED, headers="")
 
 # create a class for update client that will be used for the put and delete requests
 class UpdateClientView(APIView):
@@ -141,36 +159,6 @@ class UpdateClientView(APIView):
             print(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"status": "Client Deleted"}, status=status.HTTP_201_CREATED, headers="")
-# @api_view(['PUT', 'DELETE'])
-# def update_client(request):
-#     try:
-#         if request.method == 'PUT':
-#             try:
-#                 client = Client.objects.get(id=request.data['clients'])
-#                 if request.data['note']:
-#                     client.note = request.data['note']
-#                     ClientUpdate.objects.create(client=client, note=request.data['note'])
-#                 if request.data['contacted'] != "":
-#                     client.contacted = request.data['contacted']
-#                     ClientUpdate.objects.create(client=client, contacted=request.data['contacted'])
-#                 client.save()
-#             except Exception as e:
-#                 print(e)
-#                 return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-#         elif request.method == 'DELETE':
-#             try:
-#                 if len(request.data['clients']) == 1:
-#                     client = Client.objects.get(id=request.data['clients'][0])
-#                     client.delete()
-#                 else:
-#                     Client.objects.filter(id__in=request.data['clients']).delete()
-#             except Exception as e:
-#                 print(e)
-#                 return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-#         return Response({"status": "Success"}, status=status.HTTP_201_CREATED, headers="")
-#     except Exception as e:
-#         print(e)
-#         return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
 
 class ServiceTitanView(APIView):
     def get(self, request, *args, **kwargs):
@@ -262,3 +250,34 @@ class SalesforceConsumerView(APIView):
         except Exception as e:
             print(e)
             return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
+        
+# @api_view(['PUT', 'DELETE'])
+# def update_client(request):
+#     try:
+#         if request.method == 'PUT':
+#             try:
+#                 client = Client.objects.get(id=request.data['clients'])
+#                 if request.data['note']:
+#                     client.note = request.data['note']
+#                     ClientUpdate.objects.create(client=client, note=request.data['note'])
+#                 if request.data['contacted'] != "":
+#                     client.contacted = request.data['contacted']
+#                     ClientUpdate.objects.create(client=client, contacted=request.data['contacted'])
+#                 client.save()
+#             except Exception as e:
+#                 print(e)
+#                 return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+#         elif request.method == 'DELETE':
+#             try:
+#                 if len(request.data['clients']) == 1:
+#                     client = Client.objects.get(id=request.data['clients'][0])
+#                     client.delete()
+#                 else:
+#                     Client.objects.filter(id__in=request.data['clients']).delete()
+#             except Exception as e:
+#                 print(e)
+#                 return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+#         return Response({"status": "Success"}, status=status.HTTP_201_CREATED, headers="")
+#     except Exception as e:
+#         print(e)
+#         return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)

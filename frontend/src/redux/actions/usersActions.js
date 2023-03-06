@@ -320,6 +320,51 @@ export const updateClientAsync = (id, contacted, note) => async (dispatch, getSt
   }
 };
 
+export const uploadClientsUpdateAsync = (id, access) => async (dispatch) => {
+  try {
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        'Authorization': `Bearer ${access}`,
+      },
+    };
+    const { data } = await axios.get(`${DOMAIN}/api/v1/data/upload/${id}/`, config);
+    if (data.status === 'SUCCESS') {
+      dispatch(clientsUpload(data.data))
+      dispatch(clientsNotAdded(data.deleted))
+      dispatch(clientsAsync(1));
+    } else {
+      setTimeout(() => {
+        dispatch(uploadClientsUpdateAsync(id, access));
+      }, 1000);
+    }
+  } catch (error) {
+    dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+};
+
+export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const {id: company} = userInfo.company;
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+    dispatch(clientsLoading());
+    const {data} = await axios.put(`${DOMAIN}/api/v1/data/upload/${company}/`, customers, config);
+    dispatch(clientsUpload(data.data));
+    dispatch(uploadClientsUpdateAsync(data.task, userInfo.access))
+  } catch (error) {
+    dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+};
+
+
 export const serviceTitanUpdateAsync = (id, access) => async (dispatch) => {
   try {
     const config = {
@@ -458,29 +503,6 @@ export const makeAdminAsync = (userId) => async (dispatch, getState) => {
 
     } catch (error) {
       dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-  }
-};
-
-export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
-  try {
-    const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
-    const {id: company} = userInfo.company;
-
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
-      },
-    };
-    dispatch(clientsLoading());
-    const {data} = await axios.put(`${DOMAIN}/api/v1/data/upload/${company}/`, customers, config);
-    dispatch(clientsUpload(data.data));
-    setTimeout(() => {
-      dispatch(clientsAsync(1));
-    }, 2000);
-  } catch (error) {
-    dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 };
 
