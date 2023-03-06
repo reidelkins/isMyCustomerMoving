@@ -86,7 +86,10 @@ export default function CustomerDataFilter() {
     return (
         <div className={classes.root}>
             <Tooltip title="Filter list">
-                <IconButton onClick={() => setShowFilters(!showFilters)}>
+                {/* <IconButton onClick={() => setShowFilters(!showFilters)}>
+                    <Iconify icon="ic:round-filter-list" />
+                </IconButton> */}
+                <IconButton>
                     <Iconify icon="ic:round-filter-list" />
                 </IconButton>
             </Tooltip>
