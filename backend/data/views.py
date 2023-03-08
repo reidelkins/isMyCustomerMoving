@@ -58,6 +58,28 @@ class ClientListView(generics.ListAPIView):
         serializer = self.get_serializer(queryset, many=True)
         return Response({"forSale": forSale, "forSaleAllTime": forSaleAllTime, "recentlySoldAllTime": recentlySoldAllTime, "recentlySold": recentlySold, "clients": clients})
 
+class FilteredClientListView(generics.ListAPIView):
+    serializer_class = ClientListSerializer
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = CustomUser.objects.get(id=self.kwargs['user'])
+        if user.company.product.id == "price_1MhxfPAkLES5P4qQbu8O45xy":
+            return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).order_by('name')
+        elif user.status == 'admin':
+            return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).order_by('status')
+        else:
+            return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).exclude(status='No Change').order_by('status')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        user = CustomUser.objects.get(id=self.kwargs['user'])
+        allClients = Client.objects.filter(company=user.company)
+        if user.company.product.id == "price_1MhxfPAkLES5P4qQbu8O45xy":
+            page = self.paginate_queryset(queryset)
+        else:
+
+
 class RecentlySoldView(generics.ListAPIView):
     serializer_class = HomeListingSerializer
     pagination_class = CustomPagination

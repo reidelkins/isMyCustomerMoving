@@ -428,7 +428,6 @@ export default function CustomerData() {
                             </TableRow>                                                                            
                             {expandedRow === id && (
                               <TableRow style={{position:'relative', left:'10%'}}>
-                                <TableCell/>
                                 <TableCell colSpan={6}>
                                   <ClientEventTable clientUpdates={clientUpdates}/>
                                 </TableCell>

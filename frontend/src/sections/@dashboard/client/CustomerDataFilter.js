@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-
+import PropTypes from 'prop-types';
 import { makeStyles } from '@mui/styles';
 import {
   Box,
@@ -47,7 +47,9 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-
+// CustomerDataFilter.PropTypes = {
+//     tags: 
+// }
 
 export default function CustomerDataFilter() {
     const classes = useStyles();
@@ -74,24 +76,24 @@ export default function CustomerDataFilter() {
         event.preventDefault();
         // Filter data based on selected filters
         console.log({
-        status: statusFilter,
-        minPrice,
-        maxPrice,
-        minYear,
-        maxYear,
-        tags: tagFilters,
+            status: statusFilter,
+            minPrice,
+            maxPrice,
+            minYear,
+            maxYear,
+            tags: tagFilters,
         });
         setShowFilters(false);
     };
     return (
         <div className={classes.root}>
             <Tooltip title="Filter list">
-                {/* <IconButton onClick={() => setShowFilters(!showFilters)}>
-                    <Iconify icon="ic:round-filter-list" />
-                </IconButton> */}
-                <IconButton>
+                <IconButton onClick={() => setShowFilters(!showFilters)}>
                     <Iconify icon="ic:round-filter-list" />
                 </IconButton>
+                {/* <IconButton>
+                    <Iconify icon="ic:round-filter-list" />
+                </IconButton> */}
             </Tooltip>
             {showFilters && (
             <Dialog sx={{padding:"200px"}} className={classes.filterBox} open={showFilters} onClose={()=>(setShowFilters(false))} >
@@ -161,11 +163,11 @@ export default function CustomerDataFilter() {
                         />
                         </FormControl>
                     </Grid>
-                    <Grid item xs={12}>
+                    {/* <Grid item xs={12}>
                         <FormControl component="fieldset">
                         <FormLabel component="legend">Tags</FormLabel>
                         <Grid container spacing={1}>
-                            <Grid item xs={4}>
+                            <Grid item xs={6}>
                             <FormControlLabel
                                 control={
                                 <Checkbox
@@ -177,7 +179,7 @@ export default function CustomerDataFilter() {
                                 label="Tag 1"
                             />
                             </Grid>
-                            <Grid item xs={4}>
+                            <Grid item xs={6}>
                             <FormControlLabel
                                 control={
                                 <Checkbox
@@ -189,7 +191,7 @@ export default function CustomerDataFilter() {
                                 label="Tag 2"
                             />
                             </Grid>
-                            <Grid item xs={4}>
+                            <Grid item xs={6}>
                             <FormControlLabel
                                 control={
                                 <Checkbox
@@ -203,7 +205,7 @@ export default function CustomerDataFilter() {
                             </Grid>
                         </Grid>
                         </FormControl>
-                    </Grid>
+                    </Grid> */}
                 </Grid>
                 <Box mt={2}>
                     <Button type="submit" variant="contained" color="primary">
