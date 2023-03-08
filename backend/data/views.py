@@ -77,7 +77,7 @@ class FilteredClientListView(generics.ListAPIView):
         allClients = Client.objects.filter(company=user.company)
         if user.company.product.id == "price_1MhxfPAkLES5P4qQbu8O45xy":
             page = self.paginate_queryset(queryset)
-        else:
+        
 
 
 class RecentlySoldView(generics.ListAPIView):
