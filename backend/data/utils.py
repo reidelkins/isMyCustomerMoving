@@ -127,14 +127,7 @@ def saveClientList(clients, company_id, task=None):
     Client.objects.bulk_create(clientsToAdd, ignore_conflicts=True)
 
     if task:
-        clients = Client.objects.filter(company=company)
-        deletedClients = findClientsToDelete(clients.count(), company.product.product.name)
-        task = Task.objects.get(id=task)
-        if deletedClients > 0:
-            Client.objects.filter(id__in=list(clients.values_list('id', flat=True)[:deletedClients])).delete()           
-            task.deletedClients = deletedClients
-        task.completed = True
-        task.save()
+        deleteExtraClients.delay(company_id, task)
 
     try:
         del clientsToAdd
