@@ -38,6 +38,19 @@ def findClientsToDelete(clientCount, subscriptionType):
         return clientCount - ceiling
     else:
         return 0
+    
+@shared_task
+def deleteExtraClients(companyID, taskID):
+    task = Task.objects.get(id=taskID)
+    company = Company.objects.get(id=companyID)
+    clients = Client.objects.filter(company=company)
+    deletedClients = findClientsToDelete(clients.count(), company.product.product.name)
+    if deletedClients > 0:
+        Client.objects.filter(id__in=list(clients.values_list('id', flat=True)[:deletedClients])).delete()           
+        task.deletedClients = deletedClients
+    task.completed = True
+    task.save()
+
 
 def parseStreets(street):
     conversions = {"Alley": "Aly", "Avenue": "Ave", "Boulevard": "Blvd", "Circle": "Cir", "Court": "Crt", "Cove": "Cv", "Canyon": "Cnyn", "Drive": "Dr", "Expressway": "Expy", "Highway": "Hwy", 

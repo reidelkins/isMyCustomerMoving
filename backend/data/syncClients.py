@@ -1,12 +1,13 @@
 from celery import shared_task
 import requests
 import gc
+from time import sleep
 
 from django.conf import settings
 
 from accounts.models import Company
 from .models import Client, Task
-from .utils import saveClientList, updateClientList, doItAll, findClientsToDelete
+from .utils import saveClientList, updateClientList, doItAll, deleteExtraClients
 from simple_salesforce import Salesforce
 
 
@@ -95,7 +96,8 @@ def get_serviceTitan_clients(company_id, task_id):
         clients = response.json()['data']
         if response.json()['hasMore'] == False:
             moreClients = False
-        saveClientList.delay(clients, company_id)
+        result = saveClientList.delay(clients, company_id)
+
         try:
             del clients
         except:
@@ -104,15 +106,14 @@ def get_serviceTitan_clients(company_id, task_id):
             del response
         except:
             pass
-    clients = Client.objects.filter(company=company)
-    # diff = clients.count() - company.product.customerLimit
-    task = Task.objects.get(id=task_id)
-    deletedClients = findClientsToDelete(clients.count(), company.product.product.name)
-    if deletedClients > 0:
-        Client.objects.filter(id__in=list(clients.values_list('id', flat=True)[:deletedClients])).delete()           
-        task.deletedClients = deletedClients
-    task.completed = True
-    task.save()
+    
+    count = 0
+    while(result.status != 'SUCCESS' and count < 30):
+        sleep(1)
+        count += 1
+
+    deleteExtraClients.delay(company_id, task_id)
+    
     doItAll.delay(company_id)
 
 
