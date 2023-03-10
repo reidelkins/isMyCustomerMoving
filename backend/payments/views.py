@@ -7,7 +7,8 @@ from django.core.mail import send_mail
 from .models import Product
 from accounts.models import Company, CustomUser
 from payments.models import Product
-from accounts.utils import makeCompany, deleteExtraClients
+from accounts.utils import makeCompany
+from data.utils import deleteExtraClients
 from datetime import datetime, timedelta
 
 from django.utils import timezone
