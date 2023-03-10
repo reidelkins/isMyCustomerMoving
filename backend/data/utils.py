@@ -40,16 +40,17 @@ def findClientsToDelete(clientCount, subscriptionType):
         return 0
     
 @shared_task
-def deleteExtraClients(companyID, taskID):
-    task = Task.objects.get(id=taskID)
+def deleteExtraClients(companyID, taskID=None):
     company = Company.objects.get(id=companyID)
     clients = Client.objects.filter(company=company)
     deletedClients = findClientsToDelete(clients.count(), company.product.product.name)
     if deletedClients > 0:
-        Client.objects.filter(id__in=list(clients.values_list('id', flat=True)[:deletedClients])).delete()           
+        Client.objects.filter(id__in=list(clients.values_list('id', flat=True)[:deletedClients])).delete()
+    if taskID:
+        task = Task.objects.get(id=taskID)
         task.deletedClients = deletedClients
-    task.completed = True
-    task.save()
+        task.completed = True
+        task.save()
 
 
 def parseStreets(street):

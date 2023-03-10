@@ -7,7 +7,7 @@ from django.core.mail import send_mail
 from .models import Product
 from accounts.models import Company, CustomUser
 from payments.models import Product
-from accounts.utils import makeCompany
+from accounts.utils import makeCompany, deleteExtraClients
 from datetime import datetime, timedelta
 
 from django.utils import timezone
@@ -182,8 +182,11 @@ def update_subscription(event: djstripe_models.Event):
 
         plan = djstripe_models.Subscription.objects.filter(customer=obj['customer']).values('plan')
         plan = plan[0]['plan']
-        plan = djstripe_models.Plan.objects.get(djstripe_id=plan)
         company = Company.objects.get(email=customer.email)
+        if plan != "price_1MhxfPAkLES5P4qQbu8O45xy":
+            deleteExtraClients(company.id)
+        plan = djstripe_models.Plan.objects.get(djstripe_id=plan)
+        
         company.product = plan
         company.save()
     except Exception as e:
