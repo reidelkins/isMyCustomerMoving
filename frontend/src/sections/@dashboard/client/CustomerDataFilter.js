@@ -52,7 +52,7 @@ const useStyles = makeStyles((theme) => ({
 export default function CustomerDataFilter() {
     const classes = useStyles();
     const [showFilters, setShowFilters] = useState(false);
-    const [statusFilter, setStatusFilter] = useState('');
+    const [statusFilters, setStatusFilters] = useState([]);
     const [minPrice, setMinPrice] = useState('');
     const [maxPrice, setMaxPrice] = useState('');
     const [minYear, setMinYear] = useState('');
@@ -70,11 +70,38 @@ export default function CustomerDataFilter() {
         });
     };
 
+    const tagOptions = [
+        { value: 'Solar', label: 'Solar' },
+        { value: 'Well Water', label: 'Well Water' },
+        { value: 'Residential', label: 'Residential' },
+        { value: 'Pool', label: 'Pool' },
+        { value: 'Commercial', label: 'Commercial' },
+        { value: 'Fixer Upper', label: 'Fixer Upper' },
+    ];
+
+    const handleStatusFilterChange = (event) => {
+        const { value } = event.target;
+        setStatusFilters((prevFilters) => {
+        if (prevFilters.includes(value)) {
+            return prevFilters.filter((filter) => filter !== value);
+        } 
+        return [...prevFilters, value];
+        
+        });
+    };
+
+    const statusOptions = [
+        { value: 'For Sale', label: 'For Sale' },
+        { value: 'Recently Sold', label: 'Recently Sold' },
+        { value: 'Off Market', label: 'Off Market' },
+        { value: 'No Status', label: 'No Status' },
+    ];
+
     const handleFilterSubmit = (event) => {
         event.preventDefault();
         // Filter data based on selected filters
         console.log({
-        status: statusFilter,
+        status: statusFilters,
         minPrice,
         maxPrice,
         minYear,
@@ -86,12 +113,12 @@ export default function CustomerDataFilter() {
     return (
         <div className={classes.root}>
             <Tooltip title="Filter list">
-                {/* <IconButton onClick={() => setShowFilters(!showFilters)}>
-                    <Iconify icon="ic:round-filter-list" />
-                </IconButton> */}
-                <IconButton>
+                <IconButton onClick={() => setShowFilters(!showFilters)}>
                     <Iconify icon="ic:round-filter-list" />
                 </IconButton>
+                {/* <IconButton>
+                    <Iconify icon="ic:round-filter-list" />
+                </IconButton> */}
             </Tooltip>
             {showFilters && (
             <Dialog sx={{padding:"200px"}} className={classes.filterBox} open={showFilters} onClose={()=>(setShowFilters(false))} >
@@ -108,18 +135,31 @@ export default function CustomerDataFilter() {
                     </Box>
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
-                            <FormControl fullWidth>
+                            {/* <FormControl fullWidth>
                             <InputLabel>Status</InputLabel>
                             <Select
                                 value={statusFilter}
                                 onChange={(event) => setStatusFilter(event.target.value)}
                             >
-                                <MenuItem value="">All</MenuItem>
                                 <MenuItem value="For Sale">For Sale</MenuItem>
                                 <MenuItem value="Recently Sold">Recently Sold</MenuItem>
                                 <MenuItem value="Off Market">Off Market</MenuItem>
+                                <MenuItem value="Off Market">No Status</MenuItem>
                             </Select>
-                            </FormControl>
+                            </FormControl> */}
+                            {statusOptions.map((option) => (
+                                <FormControlLabel
+                                key={option.value}
+                                control={
+                                    <Checkbox
+                                    checked={statusFilters.includes(option.value)}
+                                    onChange={handleStatusFilterChange}
+                                    value={option.value}
+                                    />
+                                }
+                                label={option.label}
+                                />
+                            ))}
                         </Grid>
                         <Grid item xs={6}>
                             <FormControl fullWidth>
@@ -165,7 +205,20 @@ export default function CustomerDataFilter() {
                         <FormControl component="fieldset">
                         <FormLabel component="legend">Tags</FormLabel>
                         <Grid container spacing={1}>
-                            <Grid item xs={4}>
+                            {tagOptions.map((option) => (
+                                <FormControlLabel
+                                key={option.value}
+                                control={
+                                    <Checkbox
+                                    checked={tagFilters.includes(option.value)}
+                                    onChange={handleTagFilterChange}
+                                    value={option.value}
+                                    />
+                                }
+                                label={option.label}
+                                />
+                            ))}
+                            {/* <Grid item xs={4}>
                             <FormControlLabel
                                 control={
                                 <Checkbox
@@ -200,7 +253,7 @@ export default function CustomerDataFilter() {
                                 }
                                 label="Tag 3"
                             />
-                            </Grid>
+                            </Grid> */}
                         </Grid>
                         </FormControl>
                     </Grid>
