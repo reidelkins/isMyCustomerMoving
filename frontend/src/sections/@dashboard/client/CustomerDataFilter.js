@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
 
 import { makeStyles } from '@mui/styles';
 import {
@@ -23,6 +24,7 @@ import {
 } from '@mui/material';
 
 import Iconify from '../../../components/Iconify';
+import { filterClientsAsync } from '../../../redux/actions/usersActions'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -49,7 +51,7 @@ const useStyles = makeStyles((theme) => ({
 
 
 
-export default function CustomerDataFilter() {
+export default function CustomerDataFilter(product) {
     const classes = useStyles();
     const [showFilters, setShowFilters] = useState(false);
     const [statusFilters, setStatusFilters] = useState([]);
@@ -58,6 +60,7 @@ export default function CustomerDataFilter() {
     const [minYear, setMinYear] = useState('');
     const [maxYear, setMaxYear] = useState('');
     const [tagFilters, setTagFilters] = useState([]);
+    const dispatch = useDispatch();
 
     const handleTagFilterChange = (event) => {
         const { value } = event.target;
@@ -100,20 +103,27 @@ export default function CustomerDataFilter() {
     const handleFilterSubmit = (event) => {
         event.preventDefault();
         // Filter data based on selected filters
-        console.log({
-        status: statusFilters,
-        minPrice,
-        maxPrice,
-        minYear,
-        maxYear,
-        tags: tagFilters,
-        });
+        dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters))
+        setStatusFilters([]);
+        setMinPrice('');
+        setMaxPrice('');
+        setMinYear('');
+        setMaxYear('');
+        setTagFilters([]);
         setShowFilters(false);
     };
+    const handleShowFilters = () => {
+        if (product.product === 'price_1MhxfPAkLES5P4qQbu8O45xy') {
+            alert('Please upgrade your plan to access this feature')
+        } else {
+            setShowFilters(true)
+        }
+    }
+
     return (
         <div className={classes.root}>
             <Tooltip title="Filter list">
-                <IconButton onClick={() => setShowFilters(!showFilters)}>
+                <IconButton onClick={handleShowFilters}>
                     <Iconify icon="ic:round-filter-list" />
                 </IconButton>
                 {/* <IconButton>
@@ -201,7 +211,7 @@ export default function CustomerDataFilter() {
                         />
                         </FormControl>
                     </Grid>
-                    <Grid item xs={12}>
+                    {/* <Grid item xs={12}>
                         <FormControl component="fieldset">
                         <FormLabel component="legend">Tags</FormLabel>
                         <Grid container spacing={1}>
@@ -218,45 +228,10 @@ export default function CustomerDataFilter() {
                                 label={option.label}
                                 />
                             ))}
-                            {/* <Grid item xs={4}>
-                            <FormControlLabel
-                                control={
-                                <Checkbox
-                                    value="Tag 1"
-                                    checked={tagFilters.includes('Tag 1')}
-                                    onChange={handleTagFilterChange}
-                                />
-                                }
-                                label="Tag 1"
-                            />
-                            </Grid>
-                            <Grid item xs={4}>
-                            <FormControlLabel
-                                control={
-                                <Checkbox
-                                    value="Tag 2"
-                                    checked={tagFilters.includes('Tag 2')}
-                                    onChange={handleTagFilterChange}
-                                />
-                                }
-                                label="Tag 2"
-                            />
-                            </Grid>
-                            <Grid item xs={4}>
-                            <FormControlLabel
-                                control={
-                                <Checkbox
-                                    value="Tag 3"
-                                    checked={tagFilters.includes('Tag 3')}
-                                    onChange={handleTagFilterChange}
-                                />
-                                }
-                                label="Tag 3"
-                            />
-                            </Grid> */}
+                           
                         </Grid>
                         </FormControl>
-                    </Grid>
+                    </Grid> */}
                 </Grid>
                 <Box mt={2}>
                     <Button type="submit" variant="contained" color="primary">

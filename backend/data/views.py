@@ -10,7 +10,7 @@ import requests
 from accounts.models import CustomUser, Company
 from accounts.serializers import UserSerializerWithToken
 from config import settings
-from .models import Client, ClientUpdate, HomeListing, Task
+from .models import Client, ClientUpdate, HomeListing, Task, HomeListingTags
 from .serializers import ClientListSerializer, HomeListingSerializer
 from .syncClients import get_fieldEdge_clients, get_hubspot_clients, get_salesforce_clients, get_serviceTitan_clients
 from .utils import getAllZipcodes, saveClientList, doItAll
@@ -32,12 +32,38 @@ class ClientListView(generics.ListAPIView):
     
     def get_queryset(self):
         user = CustomUser.objects.get(id=self.kwargs['user'])
+        query_params = self.request.query_params
+        print(query_params)
+
+        # Initialize the queryset with the base filters
+        queryset = Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company)
+
+        if 'min_price' in query_params:
+            queryset = queryset.filter(price__gte=query_params['min_price'])
+        if 'max_price' in query_params:
+            queryset = queryset.filter(price__lte=query_params['max_price'], price__gt=0)
+        if 'min_year' in query_params:
+            queryset = queryset.filter(year_built__gte=query_params['min_year'])
+        if 'max_year' in query_params:
+            queryset = queryset.filter(year_built__lte=query_params['max_year'], year_built__gt=0)
+        if 'status' in query_params:
+            statuses = []
+            if "For Sale" in query_params['status']:
+                statuses.append("House For Sale")
+            if "Recently Sold" in query_params['status']:
+                statuses.append("House Recently Sold (6)")
+            queryset = queryset.filter(status__in=statuses)
+        #TODO
+        # if 'tags' in query_params:
+        #     tags = [tag.replace('[', '').replace(']', '').replace(' ', '_') for tag in query_params.get('tags', '').split(',')]
+        #     queryset = queryset.filter(tag__tag__in=tags)
         if user.company.product.id == "price_1MhxfPAkLES5P4qQbu8O45xy":
-            return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).order_by('name')
+            queryset = queryset.order_by('name')
         elif user.status == 'admin':
-            return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).order_by('status')
+            queryset = queryset.order_by('status')
         else:
-            return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).exclude(status='No Change').order_by('status')
+            queryset = queryset.exclude(status='No Change').order_by('status')
+        return queryset
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
