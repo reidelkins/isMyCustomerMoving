@@ -567,7 +567,7 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
   }
 }
 
-export const filterRecentlySoldAsync = (minPrice, maxPrice, minYear, maxYear) => async (dispatch, getState) => {
+export const filterRecentlySoldAsync = (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -590,6 +590,12 @@ export const filterRecentlySoldAsync = (minPrice, maxPrice, minYear, maxYear) =>
     }
     if (maxYear) {
       filters += `&max_year=${maxYear}`
+    }
+    if (minDaysAgo) {
+      filters += `&min_days_ago=${minDaysAgo}`
+    }
+    if (maxDaysAgo) {
+      filters += `&max_days_ago=${maxDaysAgo}`
     }
     const { data } = await axios.get(`${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}/?page=1${filters}`, config);
     dispatch(recentlySold(data));   
