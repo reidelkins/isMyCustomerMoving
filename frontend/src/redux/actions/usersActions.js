@@ -351,9 +351,7 @@ export const filterClientsAsync = (statusFilters, minPrice, maxPrice, minYear, m
     if (tagFilters.length > 0) {
       filters += `&tags=${tagFilters.join('&tags=')}`
     }
-    console.log(filters)
-    const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/${userInfo.id}/?page=1${filters}`, { statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters }, config);
-    console.log(data)
+    const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/${userInfo.id}/?page=1${filters}`, config);
     dispatch(clients(data));
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
@@ -568,6 +566,37 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
     dispatch(recentlySoldError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 }
+
+export const filterRecentlySoldAsync = (minPrice, maxPrice, minYear, maxYear) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+    dispatch(recentlySoldLoading());
+    let filters = ""
+    if (minPrice) {
+      filters += `&min_price=${minPrice}`
+    }
+    if (maxPrice) {
+      filters += `&max_price=${maxPrice}`
+    }
+    if (minYear) {
+      filters += `&min_year=${minYear}`
+    }
+    if (maxYear) {
+      filters += `&max_year=${maxYear}`
+    }
+    const { data } = await axios.get(`${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}/?page=1${filters}`, config);
+    dispatch(recentlySold(data));   
+  } catch (error) {
+    dispatch(recentlySoldError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+};
 
 export const makeReferralAsync = (id, area) => async (dispatch, getState) => {
   try {

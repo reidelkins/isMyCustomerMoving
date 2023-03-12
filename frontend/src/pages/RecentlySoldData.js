@@ -30,6 +30,8 @@ import SearchNotFound from '../components/SearchNotFound';
 import { ClientListHead } from '../sections/@dashboard/client';
 import Iconify from '../components/Iconify';
 
+import {RecentlySoldListToolbar} from '../sections/@dashboard/recentlySold';
+
 import RecentlySoldListCall from '../redux/calls/RecentlySoldListCall';
 import { selectRecentlySold, recentlySoldAsync } from '../redux/actions/usersActions';
 import { logout, showLoginInfo } from '../redux/actions/authActions';
@@ -178,6 +180,7 @@ export default function RecentlySoldData() {
               ) : null}
               {userInfo.company.recentlySoldPurchased ? (
                 <Scrollbar>
+                  <RecentlySoldListToolbar product={userInfo.company.product} />
                   <TableContainer sx={{ minWidth: 800 }}>
                     <Table>
                       <ClientListHead
