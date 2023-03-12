@@ -1,8 +1,9 @@
 from celery import shared_task
 import requests
 import gc
-
+from datetime import datetime
 from django.conf import settings
+from django.db.models.functions import Coalesce
 
 from accounts.models import Company
 from .models import Client, Task
@@ -113,6 +114,7 @@ def get_serviceTitan_clients(company_id, task_id):
     #     task.deletedClients = diff
     task.completed = True
     task.save()
+    get_servicetitan_equipment.delay(company_id)
     doItAll.delay(company_id)
 
 
@@ -174,3 +176,73 @@ def get_serviceTitan_clients(company_id, task_id):
         del tenant
     except:
         pass
+
+@shared_task
+def update_clients_with_last_service_date(equipment, company_id):
+    company = Company.objects.get(id=company_id)
+    client_dict = {}
+    for equip in equipment:
+        if equip['installedOn'] != None:
+            try:
+                client_dict[equip['customerId']] = datetime.strptime(equip['installedOn'], '%Y-%m-%dT%H:%M:%SZ').date() 
+            except Exception as e:
+                pass
+
+    client_ids = client_dict.keys()
+
+    # Use select_related to fetch related objects in a single query
+    clients = Client.objects.filter(servTitanID__in=client_ids, company=company).select_related('company')
+
+    # Use bulk_update to update multiple objects at once
+    for client in clients:
+        client.equipmentInstalledDate = Coalesce(client_dict.get(client.servTitanID), client.equipmentInstalledDate)
+        client.save(update_fields=['equipmentInstalledDate'])
+
+    # Return the number of clients updated
+    return len(clients)
+
+@shared_task
+def get_servicetitan_equipment(company_id):
+    company = Company.objects.get(id=company_id)
+    tenant = company.tenantID
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+    }
+    data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
+    response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)    
+
+    headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
+    moreEquipment = True
+    #get client data
+    page = 1
+    while(moreEquipment):
+        print(f'getting page {page} of equipment')
+        response = requests.get(f'https://api.servicetitan.io/equipmentsystems/v2/tenant/{tenant}/installed-equipment?page={page}&pageSize=2500', headers=headers)
+        # additional option &modifiedOnOrAfter=2000-1-1T00:00:14-05:00
+        page += 1
+        print(response.json()['totalCount'])
+        equipment = response.json()['data']
+        if response.json()['hasMore'] == False:
+            moreEquipment = False
+        # with open('equipment.json', 'a') as f:
+        #     json.dump(equipment, f, indent=4)
+        update_clients_with_last_service_date.delay(equipment, company_id)
+        try:
+            del equipment
+        except:
+            pass
+        try:
+            del response
+        except:
+            pass
+    
+    # clearing out old data    
+    try:
+        del deleteClients
+    except:
+        pass
+    try:
+        del diff
+    except:
+        pass
+    gc.collect()
