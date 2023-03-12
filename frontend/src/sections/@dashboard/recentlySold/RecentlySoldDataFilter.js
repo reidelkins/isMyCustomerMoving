@@ -59,6 +59,9 @@ export default function RecentlySoldDataFilter() {
     const [minYear, setMinYear] = useState('');
     const [maxYear, setMaxYear] = useState('');
     const [tagFilters, setTagFilters] = useState([]);
+    const [minDaysAgo, setMinDaysAgo] = useState(0);
+    const [maxDaysAgo, setMaxDaysAgo] = useState(30);
+    const [error, setError] = useState('');
     const dispatch = useDispatch();
 
     const handleTagFilterChange = (event) => {
@@ -81,17 +84,47 @@ export default function RecentlySoldDataFilter() {
         { value: 'Fixer Upper', label: 'Fixer Upper' },
     ];
 
+    const handleDaysAgoChange = (event, type) => {
+        const value = event.target.value;
+        if (value < 0) {
+            if (type === 'min') {
+                setMinDaysAgo(0);
+            } else {
+                setMaxDaysAgo(0);
+            }
+        } else if (value > 30) {
+            if (type === 'min') {
+                setMinDaysAgo(30);
+            } else {
+                setMaxDaysAgo(30);
+            }
+        } else {
+            /* eslint-disable no-lonely-if */
+            if (type === 'min') {
+                setMinDaysAgo(value);
+            } else {
+                setMaxDaysAgo(value);
+            }
+        }        
+    };
+
     const handleFilterSubmit = (event) => {
         event.preventDefault();
         // Filter data based on selected filters
-        dispatch(filterRecentlySoldAsync(minPrice, maxPrice, minYear, maxYear, tagFilters))
-        setMinPrice('');
-        setMaxPrice('');
-        setMinYear('');
-        setMaxYear('');
-        setTagFilters([]);
-        setShowFilters(false);
-        console.log("sup sup sup")
+        if( minDaysAgo > maxDaysAgo || maxDaysAgo < minDaysAgo) {
+            setError('Min days ago sold must be less than max days ago sold')
+        } else {
+            dispatch(filterRecentlySoldAsync(minPrice, maxPrice, minYear, maxYear, tagFilters))
+            setMinPrice('');
+            setMaxPrice('');
+            setMinYear('');
+            setMaxYear('');
+            setMinDaysAgo(0);
+            setMaxDaysAgo(30);
+            setTagFilters([]);
+            setError('');
+            setShowFilters(false);
+        }
     };
 
     return (
@@ -121,36 +154,61 @@ export default function RecentlySoldDataFilter() {
                             />
                             </FormControl>
                         </Grid>
-                    <Grid item xs={6}>
-                        <FormControl fullWidth>
-                        <InputLabel>Max Price</InputLabel>
-                        <Input
-                            type="number"
-                            value={maxPrice}
-                            onChange={(event) => setMaxPrice(event.target.value)}
-                        />
-                        </FormControl>
-                    </Grid>
-                    <Grid item xs={6}>
-                        <FormControl fullWidth>
-                        <InputLabel>Min Year Built</InputLabel>
-                        <Input
-                            type="number"
-                            value={minYear}
-                            onChange={(event) => setMinYear(event.target.value)}
-                        />
-                        </FormControl>
-                    </Grid>
-                    <Grid item xs={6}>
-                        <FormControl fullWidth>
-                        <InputLabel>Max Year Built</InputLabel>
-                        <Input
-                            type="number"
-                            value={maxYear}
-                            onChange={(event) => setMaxYear(event.target.value)}
-                        />
-                        </FormControl>
-                    </Grid>
+                        <Grid item xs={6}>
+                            <FormControl fullWidth>
+                            <InputLabel>Max Price</InputLabel>
+                            <Input
+                                type="number"
+                                value={maxPrice}
+                                onChange={(event) => setMaxPrice(event.target.value)}
+                            />
+                            </FormControl>
+                        </Grid>
+                        {error && (
+                            <Grid item xs={12}>
+                                <Typography color="error">{error}</Typography>
+                            </Grid>
+                        )}
+                        <Grid item xs={6}>
+                            <FormControl fullWidth>
+                            <InputLabel>Min Days Ago Sold</InputLabel>
+                            <Input
+                                type="number"
+                                value={minDaysAgo}
+                                onChange={(event) => handleDaysAgoChange(event, 'min')}
+                            />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <FormControl fullWidth>
+                            <InputLabel>Max Days Ago Sold</InputLabel>
+                            <Input
+                                type="number"
+                                value={maxDaysAgo}
+                                onChange={(event) => handleDaysAgoChange(event, 'max')}
+                            />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <FormControl fullWidth>
+                            <InputLabel>Min Year Built</InputLabel>
+                            <Input
+                                type="number"
+                                value={minYear}
+                                onChange={(event) => setMinYear(event.target.value)}
+                            />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <FormControl fullWidth>
+                            <InputLabel>Max Year Built</InputLabel>
+                            <Input
+                                type="number"
+                                value={maxYear}
+                                onChange={(event) => setMaxYear(event.target.value)}
+                            />
+                            </FormControl>
+                        </Grid>
                     {/* <Grid item xs={12}>
                         <FormControl component="fieldset">
                         <FormLabel component="legend">Tags</FormLabel>
