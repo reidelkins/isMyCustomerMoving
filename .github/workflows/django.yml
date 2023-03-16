@@ -27,17 +27,17 @@ jobs:
         pip install -r backend/requirements.txt
     - name: Run Tests
       env:
-        SECRET_KEY: ${{secret.SECRET_KEY}}
-        RAPID_API: ${{secret.RAPID_API}}
-        EMAIL_HOST_PASSWORD: ${{secret.EMAIL_PASSWD}}
-        SCRAPFLY_KEY: ${{secret.SCRAPFLY_KEY}}
-        ST_APP_KEY: ${{secret.ST_APP_KEY}}
-        SALESFORCE_CONSUMER_KEY: ${{secret.SALESFORCE_CONSUMER_KEY}}
-        SALESFORCE_CONSUMER_SECRET: ${{secret.SALESFORCE_CONSUMER_SECRET}}
-        STRIPE_PUBLISHABLE_KEY: ${{secret.STRIPE_PUBLIC_KEY}}
-        STRIPE_LIVE_SECRET_KEY: ${{secret.STRIPE_SECRET_KEY}}
-        REDIS_URL: ${{secret.REDIS_URL}}
-        EMAIL: ${{secret.EMAIL}}
+        SECRET_KEY: ${{secrets.SECRET_KEY}}
+        RAPID_API: ${{secrets.RAPID_API}}
+        EMAIL_HOST_PASSWORD: ${{secrets.EMAIL_PASSWD}}
+        SCRAPFLY_KEY: ${{secrets.SCRAPFLY_KEY}}
+        ST_APP_KEY: ${{secrets.ST_APP_KEY}}
+        SALESFORCE_CONSUMER_KEY: ${{secrets.SALESFORCE_CONSUMER_KEY}}
+        SALESFORCE_CONSUMER_SECRET: ${{secrets.SALESFORCE_CONSUMER_SECRET}}
+        STRIPE_PUBLISHABLE_KEY: ${{secrets.STRIPE_PUBLIC_KEY}}
+        STRIPE_LIVE_SECRET_KEY: ${{secrets.STRIPE_SECRET_KEY}}
+        REDIS_URL: ${{secrets.REDIS_URL}}
+        EMAIL: ${{secrets.EMAIL}}
       run: |
         cd backend
         pytest
