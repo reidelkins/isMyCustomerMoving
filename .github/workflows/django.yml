@@ -40,4 +40,5 @@ jobs:
         EMAIL: ${{secrets.EMAIL}}
       run: |
         cd backend
+        python manage.py makemigrations
         pytest
