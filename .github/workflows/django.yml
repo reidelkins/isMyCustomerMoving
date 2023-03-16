@@ -29,7 +29,7 @@ jobs:
       env:
         SECRET_KEY: ${{secrets.SECRET_KEY}}
         RAPID_API: ${{secrets.RAPID_API}}
-        EMAIL_HOST_PASSWORD: ${{secrets.EMAIL_PASSWD}}
+        EMAIL_PASSWD: ${{secrets.EMAIL_PASSWD}}
         SCRAPFLY_KEY: ${{secrets.SCRAPFLY_KEY}}
         ST_APP_KEY: ${{secrets.ST_APP_KEY}}
         SALESFORCE_CONSUMER_KEY: ${{secrets.SALESFORCE_CONSUMER_KEY}}
