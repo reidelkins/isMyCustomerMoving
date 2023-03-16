@@ -140,8 +140,9 @@ def completed_checkout(event: djstripe_models.Event):
         for user in users:
             user.isVerified = True
             user.save()
+        # I want to return values for my pytest
     except Exception as e:
-                print(f"error: {e}")
+        print(f"error: {e}")
             
 
 
