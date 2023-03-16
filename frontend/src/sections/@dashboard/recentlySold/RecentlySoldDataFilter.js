@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
 import { makeStyles } from '@mui/styles';
@@ -21,6 +21,7 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
+  Stack
 } from '@mui/material';
 
 import Iconify from '../../../components/Iconify';
@@ -54,6 +55,7 @@ const useStyles = makeStyles((theme) => ({
 export default function RecentlySoldDataFilter() {
     const classes = useStyles();
     const [showFilters, setShowFilters] = useState(false);
+    const [showClearFilters, setShowClearFilters] = useState(false);
     const [minPrice, setMinPrice] = useState('');
     const [maxPrice, setMaxPrice] = useState('');
     const [minYear, setMinYear] = useState('');
@@ -73,6 +75,26 @@ export default function RecentlySoldDataFilter() {
         return [...prevFilters, value];
         
         });
+    };
+
+    useEffect(() => {
+        if (minPrice || maxPrice || minYear || maxYear || minDaysAgo !== 0 || maxDaysAgo !== 30 || tagFilters.length > 0) {
+            setShowClearFilters(true);
+        } else {
+            setShowClearFilters(false);
+        }
+    }, [minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters]);
+
+
+    const handleClearFilters = () => {
+        setMinPrice('');
+        setMaxPrice('');
+        setMinYear('');
+        setMaxYear('');
+        setMinDaysAgo(0);
+        setMaxDaysAgo(30);
+        setTagFilters([]);
+        setError('');
     };
 
     const tagOptions = [
@@ -115,25 +137,26 @@ export default function RecentlySoldDataFilter() {
             setError('Min days ago sold must be less than max days ago sold')
         } else {
             dispatch(filterRecentlySoldAsync(minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters))
-            setMinPrice('');
-            setMaxPrice('');
-            setMinYear('');
-            setMaxYear('');
-            setMinDaysAgo(0);
-            setMaxDaysAgo(30);
-            setTagFilters([]);
-            setError('');
             setShowFilters(false);
         }
     };
 
     return (
         <div className={classes.root}>
-            <Tooltip title="Filter list">
-                <IconButton onClick={()=>setShowFilters(true)}>
-                    <Iconify icon="ic:round-filter-list" />
-                </IconButton>
-            </Tooltip>
+            <Stack direction="row" spacing={2} alignItems="space-between">
+                <Tooltip title="Filter list">
+                    <IconButton onClick={()=>setShowFilters(true)}>
+                        <Iconify icon="ic:round-filter-list" />
+                    </IconButton>
+                </Tooltip>
+                {showClearFilters && (
+                    <Tooltip title="Clear filters">
+                        <IconButton onClick={handleClearFilters}>
+                            <Iconify icon="ic:baseline-clear" />
+                        </IconButton>
+                    </Tooltip>
+                )}
+            </Stack>
             {showFilters && (
             <Dialog sx={{padding:"200px"}} className={classes.filterBox} open={showFilters} onClose={()=>(setShowFilters(false))} >
                 <DialogTitle>Filter List</DialogTitle>

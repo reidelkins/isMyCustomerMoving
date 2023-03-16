@@ -266,7 +266,8 @@ export default function RecentlySoldData() {
                 onRowsPerPageChange={handleChangeRowsPerPage}
               />
             </Card>
-            {csvLoading ? (
+            {/* TODO */}
+            {/* {csvLoading ? (
               (userInfo.status === 'admin') && (
                 <Button variant="contained">
                   <CircularProgress color="secondary"/>
@@ -278,7 +279,7 @@ export default function RecentlySoldData() {
                   Download To CSV
                 </Button>
               )
-            )}       
+            )}        */}
           </>
         )}
       </Container>
