@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import CustomUser, Company, Franchise
-from payments.models import Product
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.utils.crypto import get_random_string
