@@ -14,7 +14,6 @@ from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 from .utils import makeCompany
 from .models import CustomUser, Company, InviteToken
 from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, MyTokenObtainPairSerializer
-# from .syncClients import get_salesforce_clients, get_serviceTitan_clients
 import datetime
 import jwt
 from config import settings
@@ -23,6 +22,7 @@ import pyotp
 import uuid
 
 class ManageUserView(APIView):
+    #TODO: Currently not checking if user email is already in use
     def post(self, request, *args, **kwargs):
         try:
             # Invite User
@@ -84,8 +84,7 @@ class ManageUserView(APIView):
                     else:
                         return Response({"status": "Token Expired"}, status=status.HTTP_400_BAD_REQUEST)
                 except Exception as e:
-                    print(e)
-                    return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"status": "Data Error on Invite Token"}, status=status.HTTP_400_BAD_REQUEST)
                 serializer = UserSerializerWithToken(user, many=False)
                 return Response(serializer.data)
             # Make User an Admin
@@ -96,13 +95,13 @@ class ManageUserView(APIView):
                         user.status = 'admin'
                         user.save()
                 except Exception as e:
-                    print(e)
                     return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
                 users = CustomUser.objects.filter(company=user.company)
                 serializer = UserListSerializer(users, many=True)
                 return Response(serializer.data)
+            else:
+                return Response({"status": "User Not Found"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
     def put(self, request, *args, **kwargs):
         try:
@@ -321,7 +320,6 @@ class OTPVerifyView(generics.GenericAPIView):
     authentication_classes = []
 
     def post(self, request):
-        print(request.data['otp'])
         try:
             user = CustomUser.objects.get(id=request.data['id'])
             if user == None:
