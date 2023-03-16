@@ -92,7 +92,6 @@ class RecentlySoldView(generics.ListAPIView):
             zipCode_objects = Client.objects.filter(company=company).values('zipCode')            
             queryset = HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')
             query_params = self.request.query_params
-
             if 'min_price' in query_params:
                 queryset = queryset.filter(price__gte=query_params['min_price'])
             if 'max_price' in query_params:
@@ -102,10 +101,9 @@ class RecentlySoldView(generics.ListAPIView):
             if 'max_year' in query_params:
                 queryset = queryset.filter(year_built__lte=query_params['max_year'], year_built__gt=0)
             if 'min_days_ago' in query_params:
-                queryset = queryset.filter(listed__gt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['min_days_ago']))).strftime('%Y-%m-%d'))
+                queryset = queryset.filter(listed__lt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['min_days_ago']))).strftime('%Y-%m-%d'))
             if 'max_days_ago' in query_params:
-                queryset = queryset.filter(listed__lt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['max_days_ago']))).strftime('%Y-%m-%d'))
-           
+                queryset = queryset.filter(listed__gt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['max_days_ago']))).strftime('%Y-%m-%d'))
             return queryset
         else:
             return HomeListing.objects.none()
