@@ -27,7 +27,6 @@ IS_HEROKU = "DYNO" in os.environ
 IS_GITHUB = "GITHUB_WORKFLOW" in os.environ
 # REDIS_URL = os.environ.get('REDIS_URL')
 if IS_HEROKU or IS_GITHUB:
-    print(os.environ)
     DEBUG = False
     SECRET_KEY = os.environ['SECRET_KEY']
     RAPID_API = os.environ['RAPID_API']
