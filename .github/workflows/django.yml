@@ -38,6 +38,11 @@ jobs:
         STRIPE_LIVE_SECRET_KEY: ${{secrets.STRIPE_SECRET_KEY}}
         REDIS_URL: ${{secrets.REDIS_URL}}
         EMAIL: ${{secrets.EMAIL}}
+        STRIPE_SECRET_KEY: ${{secrets.STRIPE_SECRET_KEY_TEST}}
+        STRIPE_SECRET_KEY_TEST: ${{secrets.STRIPE_SECRET_KEY_TEST }}
+        STRIPE_PUBLIC_KEY: ${{secrets.STRIPE_PUBLIC_KEY }}
+        STRIPE_PUBLIC_KEY_TEST: ${{secrets.STRIPE_PUBLIC_KEY_TEST }}
+        
       run: |
         cd backend
         python manage.py makemigrations
