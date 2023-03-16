@@ -30,6 +30,8 @@ import SearchNotFound from '../components/SearchNotFound';
 import { ClientListHead } from '../sections/@dashboard/client';
 import Iconify from '../components/Iconify';
 
+import {RecentlySoldListToolbar} from '../sections/@dashboard/recentlySold';
+
 import RecentlySoldListCall from '../redux/calls/RecentlySoldListCall';
 import { selectRecentlySold, recentlySoldAsync } from '../redux/actions/usersActions';
 import { logout, showLoginInfo } from '../redux/actions/authActions';
@@ -40,6 +42,8 @@ const TABLE_HEAD = [
   { id: 'listed', label: 'Date Sold', alignRight: false },
   { id: 'address', label: 'Address', alignRight: false },
   { id: 'zipCode', label: 'Zip Code', alignRight: false },
+  { id: 'price', label: 'Price', alignRight: false },
+  { id: 'year_built', label: 'Year Built', alignRight: false },
 
 ];
 
@@ -178,6 +182,7 @@ export default function RecentlySoldData() {
               ) : null}
               {userInfo.company.recentlySoldPurchased ? (
                 <Scrollbar>
+                  <RecentlySoldListToolbar product={userInfo.company.product} />
                   <TableContainer sx={{ minWidth: 800 }}>
                     <Table>
                       <ClientListHead
@@ -192,7 +197,7 @@ export default function RecentlySoldData() {
                       />
                       <TableBody>
                         {filteredRecentlySold.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                          const { id, address, zipCode, listed} = row;
+                          const { id, address, zipCode, listed, price, year_built: yearBuilt} = row;
                           
                           return (
                             <React.Fragment key={row.id}>
@@ -210,7 +215,9 @@ export default function RecentlySoldData() {
                                   </Stack>
                                 </TableCell>
                                 <TableCell align="left">{address}</TableCell>
-                                <TableCell align="left">{zipCode}</TableCell>                                                    
+                                <TableCell align="left">{zipCode}</TableCell>     
+                                  <TableCell align="left">{price.toLocaleString()}</TableCell>
+                                  <TableCell align="left">{yearBuilt}</TableCell>                                               
                               </TableRow>                                                                            
                             </React.Fragment>
                           );
@@ -259,7 +266,8 @@ export default function RecentlySoldData() {
                 onRowsPerPageChange={handleChangeRowsPerPage}
               />
             </Card>
-            {csvLoading ? (
+            {/* TODO */}
+            {/* {csvLoading ? (
               (userInfo.status === 'admin') && (
                 <Button variant="contained">
                   <CircularProgress color="secondary"/>
@@ -271,7 +279,7 @@ export default function RecentlySoldData() {
                   Download To CSV
                 </Button>
               )
-            )}       
+            )}        */}
           </>
         )}
       </Container>
