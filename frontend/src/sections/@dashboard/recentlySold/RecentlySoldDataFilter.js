@@ -25,7 +25,7 @@ import {
 } from '@mui/material';
 
 import Iconify from '../../../components/Iconify';
-import { filterRecentlySoldAsync } from '../../../redux/actions/usersActions'
+import { filterRecentlySoldAsync, recentlySoldAsync } from '../../../redux/actions/usersActions'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -95,6 +95,7 @@ export default function RecentlySoldDataFilter() {
         setMaxDaysAgo(30);
         setTagFilters([]);
         setError('');
+        dispatch(recentlySoldAsync(1));
     };
 
     const tagOptions = [

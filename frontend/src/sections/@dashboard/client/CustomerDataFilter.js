@@ -25,7 +25,7 @@ import {
 } from '@mui/material';
 
 import Iconify from '../../../components/Iconify';
-import { filterClientsAsync } from '../../../redux/actions/usersActions'
+import { filterClientsAsync, clientsAsync } from '../../../redux/actions/usersActions'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -132,6 +132,7 @@ export default function CustomerDataFilter(product) {
         setMinYear('');
         setMaxYear('');
         setTagFilters([]);
+        dispatch(clientsAsync(1));
     };
 
     return (

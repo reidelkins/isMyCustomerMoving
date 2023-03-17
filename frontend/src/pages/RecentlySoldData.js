@@ -108,6 +108,16 @@ export default function RecentlySoldData() {
 
   const [csvLoading, setCsvLoading] = useState(false);
 
+  const [recentlySoldLength, setRecentlySoldLength] = useState(0);
+
+  useEffect(() => {
+    if (RECENTLYSOLDLIST.length < recentlySoldLength) {
+      setPage(0);
+      setShownClients(0);
+    }
+    setRecentlySoldLength(RECENTLYSOLDLIST.length);
+  }, [RECENTLYSOLDLIST]);
+
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
