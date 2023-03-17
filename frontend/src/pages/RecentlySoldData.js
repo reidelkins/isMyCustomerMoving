@@ -35,6 +35,7 @@ import {RecentlySoldListToolbar} from '../sections/@dashboard/recentlySold';
 import RecentlySoldListCall from '../redux/calls/RecentlySoldListCall';
 import { selectRecentlySold, recentlySoldAsync } from '../redux/actions/usersActions';
 import { logout, showLoginInfo } from '../redux/actions/authActions';
+import { makeDate } from '../utils/makeDate';
 
 // ----------------------------------------------------------------------
 
@@ -220,7 +221,7 @@ export default function RecentlySoldData() {
                                 <TableCell component="th" scope="row" padding="normal">
                                   <Stack direction="row" alignItems="center" spacing={2}>
                                     <Typography variant="subtitle2" noWrap>
-                                      {listed.slice(0, 10)}
+                                      {makeDate(listed.slice(0, 10))}
                                     </Typography>
                                   </Stack>
                                 </TableCell>

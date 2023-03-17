@@ -320,7 +320,7 @@ export const updateClientAsync = (id, contacted, note) => async (dispatch, getSt
   }
 };
 
-export const filterClientsAsync = (statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters) => async (dispatch, getState) => {
+export const filterClientsAsync = (statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -350,6 +350,12 @@ export const filterClientsAsync = (statusFilters, minPrice, maxPrice, minYear, m
     }
     if (tagFilters.length > 0) {
       filters += `&tags=${tagFilters.join('&tags=')}`
+    }
+    if (equipInstallDateMin) {
+      filters += `&equip_install_date_min=${equipInstallDateMin}`
+    }
+    if (equipInstallDateMax) {
+      filters += `&equip_install_date_max=${equipInstallDateMax}`
     }
     const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/${userInfo.id}/?page=1${filters}`, config);
     dispatch(clients(data));
