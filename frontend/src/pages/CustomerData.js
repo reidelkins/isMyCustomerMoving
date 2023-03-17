@@ -19,6 +19,7 @@ import {
   TableRow,
   TableBody,
   TableCell,
+  Tooltip,
   Container,
   Typography,
   TableContainer,
@@ -40,6 +41,7 @@ import Iconify from '../components/Iconify';
 import SearchNotFound from '../components/SearchNotFound';
 import CounterCard from '../components/CounterCard';
 import ClientEventTable from '../components/ClientEventTable';
+import ClientDetailsTable from '../components/ClientDetailsTable';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
 
 import ClientsListCall from '../redux/calls/ClientsListCall';
@@ -158,6 +160,16 @@ export default function CustomerData() {
   const [csvLoading, setCsvLoading] = useState(false);
 
   const [alertOpen, setAlertOpen] = useState(false);
+
+  const [clientListLength, setClientListLength] = useState(0);
+
+  useEffect(() => {
+    if (CLIENTLIST.length < clientListLength) {
+      setPage(0);
+      setShownClients(0);
+    }
+    setClientListLength(CLIENTLIST.length);
+  }, [CLIENTLIST]);
 
   const handleRowClick = (rowIndex) => {
     if (expandedRow === rowIndex) {
@@ -313,7 +325,7 @@ export default function CustomerData() {
               </Stack>
             </Stack>
             <Card sx={{marginBottom:"3%"}}>
-              <ClientListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedClients={selectedClients} setSelected setSelectedClients />
+              <ClientListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedClients={selectedClients} setSelected setSelectedClients product={userInfo.company.product} />
               {loading ? (
                 <Box sx={{ width: '100%' }}>
                   <LinearProgress />
@@ -335,95 +347,101 @@ export default function CustomerData() {
                     />
                     <TableBody>
                       {filteredClients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                        const { id, name, address, city, state, zipCode, status, contacted, note, phoneNumber, clientUpdates_client: clientUpdates} = row;
+                        const { id, name, address, city, state, zipCode, status, contacted, note, phoneNumber, clientUpdates_client: clientUpdates, price, year_built: yearBuilt, housingType} = row;
                         const isItemSelected = selected.indexOf(address) !== -1;                        
                         
                         return (
                           <React.Fragment key={row.id}>
-                            <TableRow
-                              hover
-                              key={id}
-                              tabIndex={-1}
-                              role="checkbox"
-                              selected={isItemSelected}
-                              aria-checked={isItemSelected}
-                              onClick={() => handleRowClick(id)}
-                            >
-                              <TableCell padding="checkbox">
-                                <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, address, id)} />
-                              </TableCell>
-                              <TableCell component="th" scope="row" padding="none">
-                                <Stack direction="row" alignItems="center" spacing={2}>
-                                  <Typography variant="subtitle2" noWrap>
-                                    {name}
-                                  </Typography>
-                                </Stack>
-                              </TableCell>
-                              <TableCell align="left">{address}</TableCell>
-                              <TableCell align="left">{city}</TableCell>
-                              <TableCell align="left">{state}</TableCell>
-                              <TableCell align="left">{zipCode}</TableCell>
-                              <TableCell align="left">
-                                {userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy' ? (
-                                  <Label variant="ghost" color={(status === 'No Change' && 'warning') || (contacted === 'False' && 'error'  || 'success')}>
-                                    {sentenceCase(status)}
-                                  </Label>
-                                ) : (
-                                  <Label variant="ghost" color='warning'>
-                                    Free Tier
-                                  </Label>
-                                )}
-                                
-                              </TableCell>
-                              <TableCell>
-                                {(() => {
-                                  if (status !== 'No Change' && userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy') {
-                                    if (contacted) {
-                                      return(
-                                        <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, false)}>
-                                          <Iconify icon="bi:check-lg" />
-                                        </IconButton>
-                                      )
-                                    }
-                                    return(
-                                      <IconButton color="error" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, true)}>
-                                        <Iconify icon="ps:check-box-empty" />
-                                      </IconButton>
-                                    )
-                                  }
-                                  return null;                                
-                                })()}                          
-                              </TableCell>
-                              <TableCell>
-                                <NoteModal 
-                                  passedNote={note}
-                                  id={id}
-                                  name={name}
-                                />
-                              </TableCell>
-                              <TableCell>
-                                {/* make phone number look like (123) 456-7890 */}
-                                {phoneNumber ? `(${phoneNumber.slice(0,3)}) ${phoneNumber.slice(3,6)}-${phoneNumber.slice(6,10)}`: "N/A"}
-                              </TableCell>
-                              {userInfo.company.franchise && (
+                            <Tooltip title="Click For Expanded Details">
+                              <TableRow
+                                hover
+                                key={id}
+                                tabIndex={-1}
+                                role="checkbox"
+                                selected={isItemSelected}
+                                aria-checked={isItemSelected}
+                                onClick={() => handleRowClick(id)}
+                              >
+                                <TableCell padding="checkbox">
+                                  <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, address, id)} />
+                                </TableCell>
+                                <TableCell component="th" scope="row" padding="none">
+                                  <Stack direction="row" alignItems="center" spacing={2}>
+                                    <Typography variant="subtitle2" noWrap>
+                                      {name}
+                                    </Typography>
+                                  </Stack>
+                                </TableCell>
+                                <TableCell align="left">{address}</TableCell>
+                                <TableCell align="left">{city}</TableCell>
+                                <TableCell align="left">{state}</TableCell>
+                                <TableCell align="left">{zipCode}</TableCell>
+                                <TableCell align="left">
+                                  {userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy' ? (
+                                    <Label variant="ghost" color={(status === 'No Change' && 'warning') || (contacted === 'False' && 'error'  || 'success')}>
+                                      {sentenceCase(status)}
+                                    </Label>
+                                  ) : (
+                                    <Label variant="ghost" color='warning'>
+                                      Free Tier
+                                    </Label>
+                                  )}
+                                  
+                                </TableCell>
                                 <TableCell>
                                   {(() => {
-                                    if (status !== 'No Change') {
+                                    if (status !== 'No Change' && userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy') {
+                                      if (contacted) {
+                                        return(
+                                          <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, false)}>
+                                            <Iconify icon="bi:check-lg" />
+                                          </IconButton>
+                                        )
+                                      }
                                       return(
-                                        <ReferralModal id={id} alreadyReferred={false}/>
+                                        <IconButton color="error" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, true)}>
+                                          <Iconify icon="ps:check-box-empty" />
+                                        </IconButton>
                                       )
                                     }
                                     return null;                                
                                   })()}                          
                                 </TableCell>
-                              )}
-                              
-                            </TableRow>                                                                            
-                            {expandedRow === id && (
+                                <TableCell>
+                                  <NoteModal 
+                                    passedNote={note}
+                                    id={id}
+                                    name={name}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  {/* make phone number look like (123) 456-7890 */}
+                                  {phoneNumber ? `(${phoneNumber.slice(0,3)}) ${phoneNumber.slice(3,6)}-${phoneNumber.slice(6,10)}`: "N/A"}
+                                </TableCell>
+                                {userInfo.company.franchise && (
+                                  <TableCell>
+                                    {(() => {
+                                      if (status !== 'No Change') {
+                                        return(
+                                          <ReferralModal id={id} alreadyReferred={false}/>
+                                        )
+                                      }
+                                      return null;                                
+                                    })()}                          
+                                  </TableCell>
+                                )}
+                                
+                              </TableRow>
+                            </Tooltip>                                                                         
+                            {expandedRow === id && userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy' && (
                               <TableRow style={{position:'relative', left:'10%'}}>
                                 <TableCell/>
                                 <TableCell colSpan={6}>
-                                  <ClientEventTable clientUpdates={clientUpdates}/>
+                                  <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+                                    <ClientEventTable clientUpdates={clientUpdates}/>                                     
+                                    <ClientDetailsTable price={price} yearBuilt={yearBuilt} housingType={housingType} />                                    
+                                  </Stack>
+                                  
                                 </TableCell>
                               </TableRow>
                             )}

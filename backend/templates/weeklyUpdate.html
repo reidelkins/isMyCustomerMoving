@@ -1,46 +1,85 @@
 {% extends "base.html" %} {% block content %}
-<h1>Weekly Product Updates</h1>
-<p>Good Afternoon,</p>
-<p>
-  Our team has been working tirelessly to provide you with the best product
-  possible. This week, we have made several updates to enhance your experience.
-</p>
-<p>Here is a list of the updates we've made:</p>
-<ol>
-  <li>
-    We have added two-factor authentication as an option to increase the
-    security of our product. You can enable this feature on the settings page in
-    the IMCM app.
-  </li>
-  <li>
-    We have created an option to view and download all homes sold in your area
-    over the past week. This feature will cost an additional $100 per month or
-    $1000 per year. However, for the next two weeks, we are offering it for
-    free. If you would like to upgrade, simply click the "manage subscription"
-    button on your settings page.
-  </li>
-  <li>
-    For our Service Titan users, we have switched from pulling customer data to
-    location data. This should result in an increased customer count on our
-    application and a higher number of leads.
-  </li>
-  <p>
-    Note: Service Titan does not allow location-based tags, only customer-based
-    tags. This means that if a customer has multiple locations for sale or has
-    recently sold a home, only one tag will be created in Service Titan.
-  </p>
-</ol>
-<a
-  href="https://app.ismycustomermoving.com/login"
-  class="btn"
-  style="color: black"
->
-  <i class="fa fa-sign-in" aria-hidden="true" />Check Out The Updates!</a
->
-<p>
-  We are thrilled to continue improving our product with your help. If you have
-  any feedback, please don't hesitate to reach out to
-  reid@ismycustomermoving.com or jb@ismycustomermoving.com.
-</p>
 
-{%endblock%}
+<h1 class="text-center mb-4">Exciting Product Updates!</h1>
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <p class="lead">Good Afternoon and Happy Monday!</p>
+    <p class="mb-4">
+      We are thrilled to announce that we are starting a bi-weekly Zoom call to
+      showcase our latest product updates and bring our users together for
+      insightful discussions and Q&A sessions. The first call will take place
+      this Thursday at 3:00 PM EST. Please find the Zoom link details below.
+    </p>
+
+    <div class="mb-4">
+      <p class="font-weight-bold">Join Zoom Meeting</p>
+      <p class="mt-neg">
+        <a
+          href="https://us05web.zoom.us/j/85113187971?pwd=bnRkK25VeHRIb3ozRFluVHNOSmUrUT09"
+        >
+          https://us05web.zoom.us/j/85113187971?pwd=bnRkK25VeHRIb3ozRFluVHNOSmUrUT09
+        </a>
+      </p>
+
+      <p class="font-weight-bold">Meeting ID</p>
+      <p class="mt-neg">851 1318 7971</p>
+
+      <p class="font-weight-bold">Passcode</p>
+      <p class="mt-neg">R1Pu0N</p>
+    </div>
+
+    <p class="mb-4">
+      For those unable to attend, a recording of the call will be posted on our
+      website and our brand new Facebook group. We encourage you to join our
+      Facebook group to stay up-to-date on our latest product news and engage
+      with our community.
+    </p>
+
+    <p class="mb-4">
+      We value your feedback and questions, please don't hesitate to reach out
+      to us at
+      <a href="mailto:reid@ismycustomermoving.com"
+        >reid@ismycustomermoving.com</a
+      >
+      or
+      <a href="mailto:jb@ismycustomermoving.com">jb@ismycustomermoving.com</a>.
+    </p>
+
+    <p class="text-center">Thank you for your continued support!</p>
+  </div>
+</div>
+
+{% endblock %}
+<style>
+  .lead {
+    font-size: 1.3rem;
+  }
+
+  .mb-1 {
+    margin-bottom: 0.25rem !important;
+  }
+
+  .mb-4 {
+    margin-bottom: 1.5rem !important;
+  }
+
+  .mt-neg {
+    margin-top: -1.5rem !important;
+  }
+
+  p {
+    font-size: 1.1rem;
+  }
+
+  a {
+    color: #0095da;
+  }
+
+  a:hover {
+    color: #006381;
+  }
+
+  .font-weight-bold {
+    font-weight: bold;
+  }
+</style>
