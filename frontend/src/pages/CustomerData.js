@@ -161,6 +161,16 @@ export default function CustomerData() {
 
   const [alertOpen, setAlertOpen] = useState(false);
 
+  const [clientListLength, setClientListLength] = useState(0);
+
+  useEffect(() => {
+    if (CLIENTLIST.length < clientListLength) {
+      setPage(0);
+      setShownClients(0);
+    }
+    setClientListLength(CLIENTLIST.length);
+  }, [CLIENTLIST]);
+
   const handleRowClick = (rowIndex) => {
     if (expandedRow === rowIndex) {
       setExpandedRow(null);
