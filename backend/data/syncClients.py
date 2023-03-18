@@ -32,7 +32,6 @@ def get_salesforce_clients(company_id, task_id=None):
     
     contacts = sf.query("SELECT FirstName, LastName, Phone, MailingStreet FROM Contact")
     clients=[]
-    print(len(contacts['records']))
     count = 0
     for contact in contacts['records']:
     
@@ -40,12 +39,10 @@ def get_salesforce_clients(company_id, task_id=None):
         count += 1
         if x != None:
             x = x.split('\n')
-            print(x)
             if len(x) > 1:
                 street = x[0]
                 x = x[1].replace(',', '')
                 x = x.split(' ')
-                # print(x)
                 if len(x) == 3 and street != None:
                     client = {
                         "name": f"{contact['FirstName']} {contact['LastName']}",                
@@ -90,7 +87,6 @@ def get_serviceTitan_clients(company_id, task_id):
     #get client data
     page = 1
     while(moreClients):
-        print(f'getting page {page} of clients')
         response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/locations?page={page}&pageSize=2500', headers=headers)
         page += 1
         clients = response.json()['data']
@@ -133,7 +129,6 @@ def get_serviceTitan_clients(company_id, task_id):
     page = 0
     while(moreClients):
         page += 1
-        print(f'getting phone page {page} of clients')
         response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/export/customers/contacts?from={frm}', headers=headers)
         # for number in response.json()['data']:
         #     numbers.append(number)
@@ -216,11 +211,9 @@ def get_servicetitan_equipment(company_id):
     #get client data
     page = 1
     while(moreEquipment):
-        print(f'getting page {page} of equipment')
         response = requests.get(f'https://api.servicetitan.io/equipmentsystems/v2/tenant/{tenant}/installed-equipment?page={page}&pageSize=2500', headers=headers)
         # additional option &modifiedOnOrAfter=2000-1-1T00:00:14-05:00
         page += 1
-        print(response.json()['totalCount'])
         equipment = response.json()['data']
         if response.json()['hasMore'] == False:
             moreEquipment = False
