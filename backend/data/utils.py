@@ -23,6 +23,14 @@ for i in range(1, 21):
     scrapfly = ScrapflyClient( key=settings.SCRAPFLY_KEY, max_concurrency=1)
     scrapflies.append(scrapfly)
 
+def delVariables(vars):
+    for var in vars:
+        try:
+            del var
+        except:
+            pass
+    gc.collect()
+
 def findClientsToDelete(clientCount, subscriptionType):
     if subscriptionType == "Small Business":
         ceiling = 5000
@@ -129,27 +137,8 @@ def saveClientList(clients, company_id, task=None):
 
     if task:
         deleteExtraClients.delay(company_id, task)
-
-    try:
-        del clientsToAdd
-    except:
-        pass
-    try:
-        del clients
-    except:
-        pass
-    try:
-        del company
-    except:
-        pass
-    try:
-        del company_id
-    except:
-        pass
-    try:
-        del badStreets
-    except:
-        pass
+        doItAll.delay(company_id)
+    delVariables([clientsToAdd, clients, company, company_id, badStreets])
 
 
 @shared_task
@@ -164,18 +153,7 @@ def updateClientList(numbers):
     for client in clients:
         client.phoneNumber = phoneNumbers[client.servTitanID]
         client.save()
-    try:
-        del phoneNumbers
-    except:
-        pass
-    try:
-        del clients
-    except:
-        pass
-    try:
-        del numbers   
-    except:
-        pass 
+    delVariables([phoneNumbers, clients, numbers])
 
 
 @shared_task
@@ -201,10 +179,7 @@ def getAllZipcodes(company):
         #     status = "For Rent"
         #     url = "https://www.realtor.com/apartments"
         find_data.delay(str(zips[i//2]['zipCode']), i, status, url, extra)
-    del zipCodes
-    del zipCode_objects
-    del zips
-    del company_object
+    delVariables([company_object, zipCode_objects, zipCodes, zips, company])
 
 @shared_task
 def find_data(zip, i, status, url, extra):
@@ -262,62 +237,8 @@ def find_data(zip, i, status, url, extra):
     except Exception as e:
         print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
         print(f"URL: {url}")
-    try:
-        del scrapfly
-    except:
-        pass
-    try:
-        del first_page
-    except:
-        pass
-    try:
-        del first_result
-    except:
-        pass
-    try:
-        del content
-    except:
-        pass
-    try:
-        del soup
-    except:
-        pass
-    try:
-        del first_data
-    except:
-        pass
-    try:
-        del results
-    except:
-        pass
-    try:
-        del total
-    except:
-        pass
-    try:
-        del count
-    except:
-        pass
-    try:
-        del url
-    except:
-        pass
-    try:
-        del extra
-    except:
-        pass
-    try:
-        del page_url
-    except:
-        pass
-    try:
-        del new_results
-    except:
-        pass
-    try:
-        del parsed
-    except:
-        pass
+    delVariables([scrapfly, first_page, first_result, content, soup, first_data, results, total, count, url, extra, page_url, new_results, parsed])
+
 
 class PropertyPreviewResult(TypedDict):
     property_id: str
@@ -413,22 +334,7 @@ def create_home_listings(results, status, resp=None):
         except Exception as e: 
             print(f"ERROR for Single Listing: {e} with zipCode {zip_object}.")
             print(traceback.format_exc())
-    try:
-        del results
-    except:
-        pass
-    try:
-        del zip_object
-    except:
-        pass
-    try:
-        del created
-    except:
-        pass
-    try:
-        del listType
-    except:
-        pass
+    delVariables([zip_object, created, listType, homeListing, currTag, results])
 
 @shared_task
 def updateStatus(zip, company, status):
@@ -483,51 +389,8 @@ def updateStatus(zip, company, status):
     
     if clientsToUpdate:
         update_serviceTitan_client_tags.delay(clientsToUpdate, company.id, status)
-    gc.collect()
-    try:
-        del company
-    except:
-        pass
-    try:
-        del zipCode_object
-    except:
-        pass
-    try:
-        del listedAddresses
-    except:
-        pass
-    try:
-        del clientsToUpdate
-    except:
-        pass
-    try:
-        del previousListed
-    except:
-        pass
-    try:
-        del newlyListed
-    except:
-        pass
-    try:
-        del unlisted
-    except:
-        pass
-    try:
-        del toUnlist
-    except:
-        pass
-    try:
-        del toList
-    except:
-        pass
-    try:
-        del listing
-    except:
-        pass
-    try:
-        del clientsToUpdate
-    except:
-        pass
+    delVariables([zipCode_object, listedAddresses, clientsToUpdate, previousListed, newlyListed, toList, listing, clientsToUpdate])
+
 
 @shared_task
 def update_clients_statuses(company_id=None):
@@ -551,35 +414,8 @@ def update_clients_statuses(company_id=None):
             print(f"ERROR during update_clients_statuses: {e} with company {company}")
             print(traceback.format_exc())
                 
-    gc.collect()
-    try:
-        del companies
-    except:
-        pass
-    try:
-        del companies
-    except:
-        pass
-    try:
-        del zipCode_objects
-    except:
-        pass
-    try:
-        del zipCodes
-    except:
-        pass
-    try:
-        del zips
-    except:
-        pass
-    try:
-        del zip
-    except:
-        pass
-    try:
-        del company
-    except:
-        pass                  
+    delVariables([companies, company, zipCode_objects, zipCodes, zips, zip])
+                 
 
 @shared_task
 def sendDailyEmail(company_id=None):
@@ -616,38 +452,8 @@ def sendDailyEmail(company_id=None):
     # if not company_id:
     #     HomeListing.objects.all().delete()
     ZipCode.objects.filter(lastUpdated__lt = datetime.today() - timedelta(days=3)).delete()
-    try:
-        del companies
-    except:
-        pass
-    try:
-        del emails
-    except:
-        pass
-    try:
-        del subject
-    except:
-        pass
-    try:
-        del forSaleCustomers
-    except:
-        pass
-    try:
-        del soldCustomers
-    except:
-        pass
-    try:
-        del message
-    except:
-        pass
-    try:
-        del email
-    except:
-        pass
-    try:
-        del msg
-    except:
-        pass
+    delVariables([companies, company, emails, subject, forSaleCustomers, soldCustomers, message, email, msg])
+
 
 @shared_task
 def auto_update(company_id=None):
@@ -669,119 +475,8 @@ def auto_update(company_id=None):
                     print("free tier")
             except Exception as e:
                 print(e)
-    try:
-        del company
-    except:
-        pass
-    try:
-        del companies
-    except:
-        pass
-    try:
-        del company_id
-    except:
-        pass
-
-@shared_task
-def get_serviceTitan_clients(company_id, task_id):
-    company = Company.objects.get(id=company_id)
-    tenant = company.tenantID
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-    }
-    data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
-    response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
-
-    headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
-    clients = []
-    moreClients = True
-    #get client data
-    page = 1
-    while(moreClients):
-        print(f'getting page {page} of clients')
-        response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/locations?page={page}&pageSize=2500', headers=headers)
-        page += 1
-        clients = response.json()['data']
-        if response.json()['hasMore'] == False:
-            moreClients = False
-        saveClientList.delay(clients, company_id)
-        try:
-            del clients
-        except:
-            pass
-        try:
-            del response
-        except:
-            pass
-    clients = Client.objects.filter(company=company)
-    deletedClients = findClientsToDelete(clients.count(), company.product.product.name)
-    # diff = clients.count() - company.product.customerLimit
-    task = Task.objects.get(id=task_id)
-    if deletedClients > 0:
-        deleteClients = clients[:deleteClients].values_list('id')
-        Client.objects.filter(id__in=deleteClients).delete()
-        task.deletedClients = deletedClients
-    task.completed = True
-    task.save()
-
-    # clearing out old data    
-    # try:
-    #     deleteClients
-    # except:
-    #     pass
-    try:
-        del diff
-    except:
-        pass
-    gc.collect()
-    frm = ""
-    moreClients = True
-    page = 0
-    while(moreClients):
-        page += 1
-        print(f'getting phone page {page} of clients')
-        response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/export/customers/contacts?from={frm}', headers=headers)
-        # for number in response.json()['data']:
-        #     numbers.append(number)
-        numbers = response.json()['data']
-        if response.json()['hasMore'] == True:
-            frm = response.json()['continueFrom']
-        else:
-            moreClients = False        
-        updateClientList.delay(numbers)
-        try:
-            del numbers
-        except:
-            pass
-        try:
-            del response
-        except:
-            pass
-    gc.collect()        
-    try:
-        del frm
-    except:
-        pass
-    try:
-        del moreClients
-    except:
-        pass
-    try:
-        del headers
-    except:
-        pass
-    try:
-        del data
-    except:
-        pass
-    try:
-        del company
-    except:
-        pass
-    try:
-        del tenant
-    except:
-        pass    
+    delVariables([company, companies])
+    
 
 @shared_task
 def update_serviceTitan_client_tags(forSale, company, status):
@@ -838,50 +533,8 @@ def update_serviceTitan_client_tags(forSale, company, status):
         print("updating service titan clients failed")
         print(f"ERROR: {e}")
         print(traceback.format_exc())
-    try:
-        del headers
-    except:
-        pass
-    try:
-        del data
-    except:
-        pass
-    try:
-        del response
-    except:
-        pass
-    try:
-        del payload
-    except:
-        pass
-    try:
-        del company
-    except:
-        pass
-    try:
-        del status
-    except:
-        pass
-    try:
-        del tagType
-    except:
-        pass
-    try:
-        del forSale
-    except:
-        pass
-    try:
-        del resp
-    except:
-        pass
-    try:
-        del error
-    except:
-        pass
-    try:
-        del word
-    except:
-        pass
+    delVariables([headers, data, response, payload, company, status, tagType, forSale, resp, error, word])
+
 
 @shared_task
 def remove_all_serviceTitan_tags(company):
@@ -970,26 +623,8 @@ def update_serviceTitan_tasks(clients, company, status):
             print("updating service titan tasks failed")
             print(f"ERROR: {e}")
             print(traceback.format_exc())
-    try:
-        del headers
-    except:
-        pass
-    try:
-        del data
-    except:
-        pass
-    try:
-        del response
-    except:
-        pass
-    try:
-        del company
-    except:
-        pass
-    try:
-        del status
-    except:
-        pass
+    delVariables([headers, data, response, company, status])
+
 
 # send email to every customuser with the html file that has the same name as the template
 def send_update_email(templateName):
@@ -1010,7 +645,7 @@ def doItAll(company):
     try:
         company = Company.objects.get(id=company)
         result = auto_update.delay(company.id)  # Schedule auto_update task
-        sleep(3600)  # Calculate ETA for update_clients_statuses task
+        sleep(3600)  # TODO Calculate ETA for update_clients_statuses task
         result = update_clients_statuses(company.id)  # Schedule update_clients_statuses task
         sleep(360)
         result.then(sendDailyEmail.apply_async, args=[company.id])

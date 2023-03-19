@@ -191,7 +191,6 @@ class UploadFileView(generics.ListAPIView):
         except Exception as e:
             print(e)
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
-        doItAll.delay(company_id)
         return Response({"data": "Clients Uploaded! Come back in about an hour to see your results", "task": task.id}, status=status.HTTP_201_CREATED, headers="")
 
 # create a class for update client that will be used for the put and delete requests
