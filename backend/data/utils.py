@@ -54,6 +54,12 @@ def deleteExtraClients(companyID, taskID=None):
     deletedClients = findClientsToDelete(clients.count(), company.product.product.name)
     if deletedClients > 0:
         Client.objects.filter(id__in=list(clients.values_list('id', flat=True)[:deletedClients])).delete()
+        admins = CustomUser.objects.filter(company=company, status="admin")
+        mail_subject = "IMCM Clients Deleted"
+        messagePlain = "Your company has exceeded the number of clients allowed for your subscription. The oldest clients have been deleted. You can upgrade your subscription at any time to increase the number of clients you can have."
+        message = get_template("clientsDeleted.html").render({"deletedClients": deletedClients})
+        for admin in admins:
+            send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[admin.email], html_message=message, fail_silently=False)
     if taskID:
         task = Task.objects.get(id=taskID)
         task.deletedClients = deletedClients

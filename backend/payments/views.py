@@ -142,6 +142,7 @@ def completed_checkout(event: djstripe_models.Event):
         for user in users:
             user.isVerified = True
             user.save()
+        deleteExtraClients(company.id)
     except Exception as e:
                 print(f"error: {e}")
             
@@ -179,12 +180,12 @@ def update_subscription(event: djstripe_models.Event):
         plan = djstripe_models.Subscription.objects.filter(customer=obj['customer']).values('plan')
         plan = plan[0]['plan']
         company = Company.objects.get(email=customer.email)
-        if plan != "price_1MhxfPAkLES5P4qQbu8O45xy":
-            deleteExtraClients(company.id)
         plan = djstripe_models.Plan.objects.get(djstripe_id=plan)
         
         company.product = plan
         company.save()
+        if plan != "price_1MhxfPAkLES5P4qQbu8O45xy":
+            deleteExtraClients(company.id)
     except Exception as e:
         print(e)
         print("error")
