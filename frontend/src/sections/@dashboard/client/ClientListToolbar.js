@@ -38,9 +38,10 @@ ClientListToolbar.propTypes = {
   filterName: PropTypes.string,
   onFilterName: PropTypes.func,
   selectedClients: PropTypes.array,
+  product: PropTypes.string
 };
 
-export default function ClientListToolbar({ numSelected, filterName, onFilterName, selectedClients }) {
+export default function ClientListToolbar({ numSelected, filterName, onFilterName, selectedClients, product }) {
   const dispatch = useDispatch();
 
   const clickDelete = (event, clients) => {
@@ -85,7 +86,7 @@ export default function ClientListToolbar({ numSelected, filterName, onFilterNam
           </IconButton>
         </Tooltip>
       ) : (
-        <CustomerDataFilter />
+        <CustomerDataFilter product={product}/>
       )}
     </RootStyle>
   );

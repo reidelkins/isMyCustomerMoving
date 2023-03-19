@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 
 import SearchNotFound from './SearchNotFound';
+import { makeDate } from '../utils/makeDate';
 
 const RowInformation = (info) => {
     if (!info) return null;
@@ -23,13 +24,13 @@ const RowInformation = (info) => {
         if (update.status === 'House For Sale') {
             return (
                 <Typography>
-                    Home listed for sale on {update.listed}
+                    Home listed for sale on {makeDate(update.listed)}
                 </Typography>
             )
         } else if (update.status === 'Taken Off Market') {
             return (
                 <Typography>
-                    Home taken off market on {update.date}
+                    Home taken off market on {makeDate(update.date)}
                 </Typography>
             )
         } else {
@@ -77,7 +78,7 @@ function ClientEventTable ({clientUpdates}) {
                 <TableBody>
                     {clientUpdates.length > 0 ? clientUpdates.map((update, index) => (                      
                     <TableRow key={index}>
-                        <TableCell>{update.date}</TableCell>
+                        <TableCell>{makeDate(update.date)}</TableCell>
                         <TableCell>
                             <RowInformation info={update}/>                        
                         </TableCell>
