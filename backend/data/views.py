@@ -52,6 +52,10 @@ class ClientListView(generics.ListAPIView):
             if "Recently Sold" in query_params['status']:
                 statuses.append("House Recently Sold (6)")
             queryset = queryset.filter(status__in=statuses)
+        if 'equip_install_date_min' in query_params:
+            queryset = queryset.filter(equipmentInstalledDate__gte=query_params['equip_install_date_min'])
+        if 'equip_install_date_max' in query_params:
+            queryset = queryset.filter(equipmentInstalledDate__lte=query_params['equip_install_date_max'])
         #TODO
         # if 'tags' in query_params:
         #     tags = [tag.replace('[', '').replace(']', '').replace(' ', '_') for tag in query_params.get('tags', '').split(',')]

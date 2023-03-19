@@ -347,7 +347,7 @@ export default function CustomerData() {
                     />
                     <TableBody>
                       {filteredClients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                        const { id, name, address, city, state, zipCode, status, contacted, note, phoneNumber, clientUpdates_client: clientUpdates, price, year_built: yearBuilt, housingType} = row;
+                        const { id, name, address, city, state, zipCode, status, contacted, note, phoneNumber, clientUpdates_client: clientUpdates, price, year_built: yearBuilt, housingType, equipmentInstalledDate} = row;
                         const isItemSelected = selected.indexOf(address) !== -1;                        
                         
                         return (
@@ -439,7 +439,7 @@ export default function CustomerData() {
                                 <TableCell colSpan={6}>
                                   <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
                                     <ClientEventTable clientUpdates={clientUpdates}/>                                     
-                                    <ClientDetailsTable price={price} yearBuilt={yearBuilt} housingType={housingType} />                                    
+                                    <ClientDetailsTable price={price} yearBuilt={yearBuilt} housingType={housingType} equipmentInstalledDate={equipmentInstalledDate} />                                    
                                   </Stack>
                                   
                                 </TableCell>

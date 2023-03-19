@@ -61,6 +61,9 @@ export default function CustomerDataFilter(product) {
     const [minYear, setMinYear] = useState('');
     const [maxYear, setMaxYear] = useState('');
     const [tagFilters, setTagFilters] = useState([]);
+    const [equipInstallDateMin, setEquipInstallDateMin] = useState('1900-01-01');
+    const today = new Date();
+    const [equipInstallDateMax, setEquipInstallDateMax] = useState(today.toISOString().slice(0, 10));    
     const [showClearFilters, setShowClearFilters] = useState(false);
     const dispatch = useDispatch();
 
@@ -76,12 +79,12 @@ export default function CustomerDataFilter(product) {
     };
 
     useEffect(() => {
-        if (statusFilters.length > 0 || minPrice || maxPrice || minYear || maxYear || tagFilters.length > 0) {
+        if (statusFilters.length > 0 || minPrice || maxPrice || minYear || maxYear || tagFilters.length > 0 || equipInstallDateMin || equipInstallDateMax) {
             setShowClearFilters(true);
         } else {
             setShowClearFilters(false);
         }
-    }, [statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters]);
+    }, [statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax]);
 
     const tagOptions = [
         { value: 'Solar', label: 'Solar' },
@@ -113,7 +116,7 @@ export default function CustomerDataFilter(product) {
     const handleFilterSubmit = (event) => {
         event.preventDefault();
         // Filter data based on selected filters
-        dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters))
+        dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax))
         setShowFilters(false);
     };
 
@@ -132,6 +135,8 @@ export default function CustomerDataFilter(product) {
         setMinYear('');
         setMaxYear('');
         setTagFilters([]);
+        setEquipInstallDateMax(today.toISOString().slice(0, 10));
+        setEquipInstallDateMin('1900-01-01');
         dispatch(clientsAsync(1));
     };
 
@@ -165,73 +170,114 @@ export default function CustomerDataFilter(product) {
                         </Typography>
                     </Box>
                     <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            {/* <FormControl fullWidth>
-                            <InputLabel>Status</InputLabel>
-                            <Select
-                                value={statusFilter}
-                                onChange={(event) => setStatusFilter(event.target.value)}
-                            >
-                                <MenuItem value="For Sale">For Sale</MenuItem>
-                                <MenuItem value="Recently Sold">Recently Sold</MenuItem>
-                                <MenuItem value="Off Market">Off Market</MenuItem>
-                                <MenuItem value="Off Market">No Status</MenuItem>
-                            </Select>
-                            </FormControl> */}
-                            {statusOptions.map((option) => (
-                                <FormControlLabel
-                                key={option.value}
-                                control={
-                                    <Checkbox
-                                    checked={statusFilters.includes(option.value)}
-                                    onChange={handleStatusFilterChange}
-                                    value={option.value}
+                        <Tooltip title="Client Status">
+                            <Grid item xs={12}>
+                                {/* <FormControl fullWidth>
+                                <InputLabel>Status</InputLabel>
+                                <Select
+                                    value={statusFilter}
+                                    onChange={(event) => setStatusFilter(event.target.value)}
+                                >
+                                    <MenuItem value="For Sale">For Sale</MenuItem>
+                                    <MenuItem value="Recently Sold">Recently Sold</MenuItem>
+                                    <MenuItem value="Off Market">Off Market</MenuItem>
+                                    <MenuItem value="Off Market">No Status</MenuItem>
+                                </Select>
+                                </FormControl> */}
+                                {statusOptions.map((option) => (
+                                    <FormControlLabel
+                                    key={option.value}
+                                    control={
+                                        <Checkbox
+                                        checked={statusFilters.includes(option.value)}
+                                        onChange={handleStatusFilterChange}
+                                        value={option.value}
+                                        />
+                                    }
+                                    label={option.label}
                                     />
-                                }
-                                label={option.label}
-                                />
-                            ))}
+                                ))}
+                            </Grid>
+                        </Tooltip>
+                        <Grid item xs={12}>
+                            <Tooltip title="This will filter for the price that the house was either sold or listed for">
+                                <Box mt={2}>
+                                    <Typography variant="h6" mb={2}>Housing Price</Typography>
+                                    <Stack direction="row" spacing={2} alignItems="space-between">
+                                        <FormControl fullWidth>
+                                            <InputLabel>Min Price</InputLabel>
+                                            <Input
+                                                type="number"
+                                                value={minPrice}
+                                                onChange={(event) => setMinPrice(event.target.value)}
+                                            />
+                                        </FormControl>
+                                        <FormControl fullWidth>
+                                        <InputLabel>Max Price</InputLabel>
+                                        <Input
+                                            type="number"
+                                            value={maxPrice}
+                                            onChange={(event) => setMaxPrice(event.target.value)}
+                                        />
+                                        </FormControl>
+                                    </Stack>
+                                </Box>
+                            </Tooltip>
                         </Grid>
-                        <Grid item xs={6}>
-                            <FormControl fullWidth>
-                            <InputLabel>Min Price</InputLabel>
-                            <Input
-                                type="number"
-                                value={minPrice}
-                                onChange={(event) => setMinPrice(event.target.value)}
-                            />
-                            </FormControl>
+                        <Grid item xs={12}>
+                            <Tooltip title="Time range that the equipment was installed at the location for the client">
+                                <Box mt={2}>
+                                    <Typography variant="h6" mb={2}>Equipment Installation Date</Typography>
+                                    <Stack direction="row" spacing={2} alignItems="space-between">
+                                        <FormControl fullWidth>
+                                            <InputLabel>Earliest</InputLabel>
+                                            <Input
+                                                type="date"
+                                                defaultValue={equipInstallDateMin}
+                                                value={equipInstallDateMin}
+                                                onChange={(event) => setEquipInstallDateMin(event.target.value)}
+                                            />
+                                        </FormControl>
+                                    
+                                        <FormControl fullWidth>
+                                            <InputLabel>Latest</InputLabel>
+                                            <Input
+                                                type="date"
+                                                defaultValue={equipInstallDateMax}
+                                                value={equipInstallDateMax}
+                                                onChange={(event) => setEquipInstallDateMax(event.target.value)}
+                                            />
+                                        </FormControl>
+                                    </Stack>
+                                </Box>
+                            </Tooltip>
                         </Grid>
-                    <Grid item xs={6}>
-                        <FormControl fullWidth>
-                        <InputLabel>Max Price</InputLabel>
-                        <Input
-                            type="number"
-                            value={maxPrice}
-                            onChange={(event) => setMaxPrice(event.target.value)}
-                        />
-                        </FormControl>
-                    </Grid>
-                    <Grid item xs={6}>
-                        <FormControl fullWidth>
-                        <InputLabel>Min Year Built</InputLabel>
-                        <Input
-                            type="number"
-                            value={minYear}
-                            onChange={(event) => setMinYear(event.target.value)}
-                        />
-                        </FormControl>
-                    </Grid>
-                    <Grid item xs={6}>
-                        <FormControl fullWidth>
-                        <InputLabel>Max Year Built</InputLabel>
-                        <Input
-                            type="number"
-                            value={maxYear}
-                            onChange={(event) => setMaxYear(event.target.value)}
-                        />
-                        </FormControl>
-                    </Grid>
+                        
+                        <Grid item xs={12}>
+                            <Tooltip title="Year the house was built">
+                                <Box mt={2}>
+                                    <Typography variant="h6" mb={2}>Year Built</Typography>
+                                    <Stack direction="row" spacing={2} alignItems="space-between">
+                                        <FormControl fullWidth>
+                                            <InputLabel>Min Year Built</InputLabel>
+                                            <Input
+                                                type="number"
+                                                value={minYear}
+                                                onChange={(event) => setMinYear(event.target.value)}
+                                            />
+                                        </FormControl>
+                                        <FormControl fullWidth>
+                                            <InputLabel>Max Year Built</InputLabel>
+                                            <Input
+                                                type="number"
+                                                value={maxYear}
+                                                onChange={(event) => setMaxYear(event.target.value)}
+                                            />
+                                        </FormControl>
+                                    </Stack>
+                                </Box>
+                            </Tooltip>
+                        </Grid>                        
                     {/* <Grid item xs={12}>
                         <FormControl component="fieldset">
                         <FormLabel component="legend">Tags</FormLabel>
@@ -253,12 +299,12 @@ export default function CustomerDataFilter(product) {
                         </Grid>
                         </FormControl>
                     </Grid> */}
-                </Grid>
-                <Box mt={2}>
-                    <Button type="submit" variant="contained" color="primary">
-                        Apply Filters
-                    </Button>
-                </Box>
+                    </Grid>
+                    <Box mt={2}>
+                        <Button type="submit" variant="contained" color="primary">
+                            Apply Filters
+                        </Button>
+                    </Box>
                 </form>
                 </DialogContent>
             </Dialog>

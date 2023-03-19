@@ -165,74 +165,89 @@ export default function RecentlySoldDataFilter() {
                 <DialogContent>
                 <form onSubmit={handleFilterSubmit}>
                     <Box mb={2}>
-                        <Typography variant="h6">Select Filters</Typography>                        
+                        <Typography variant="h5">Select Filters</Typography>                        
                     </Box>
-                    <Grid container spacing={2}>                        
-                        <Grid item xs={6}>
-                            <FormControl fullWidth>
-                            <InputLabel>Min Price</InputLabel>
-                            <Input
-                                type="number"
-                                value={minPrice}
-                                onChange={(event) => setMinPrice(event.target.value)}
-                            />
-                            </FormControl>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                            <Tooltip title="This will filter for the price that the house was either sold or listed for">
+                                <Box mt={2}>
+                                    <Typography variant="h6" mb={2}>Housing Price</Typography>
+                                    <Stack direction="row" spacing={2} alignItems="center">
+                                        <FormControl fullWidth>
+                                            <InputLabel>Min Price</InputLabel>
+                                            <Input
+                                                type="number"
+                                                value={minPrice}
+                                                onChange={(event) => setMinPrice(event.target.value)}
+                                            />
+                                        </FormControl>
+                                        <FormControl fullWidth>
+                                            <InputLabel>Max Price</InputLabel>
+                                            <Input
+                                                type="number"
+                                                value={maxPrice}
+                                                onChange={(event) => setMaxPrice(event.target.value)}
+                                            />
+                                        </FormControl>
+                                    </Stack>
+                                </Box>
+                            </Tooltip>
+                        </Grid>                        
+                        <Grid item xs={12}>
+                            <Tooltip title="How long ago was the house sold, this data only goes back 30 days">
+                                <Box mt={2}>
+                                    <Typography variant="h6" mb={2}>Days Ago Sold</Typography>
+                                    {error && (
+                                        <Grid item xs={12}>
+                                            <Typography color="error">{error}</Typography>
+                                        </Grid>
+                                    )}
+                                    <Stack direction="row" spacing={2} alignItems="center">
+                                        <FormControl fullWidth>
+                                            <InputLabel>Minimum</InputLabel>
+                                            <Input
+                                                type="number"
+                                                value={minDaysAgo}
+                                                onChange={(event) => handleDaysAgoChange(event, 'min')}
+                                            />
+                                        </FormControl>
+                                        <FormControl fullWidth>
+                                            <InputLabel>Maximum</InputLabel>
+                                            <Input
+                                                type="number"
+                                                value={maxDaysAgo}
+                                                onChange={(event) => handleDaysAgoChange(event, 'max')}
+                                            />
+                                        </FormControl>
+                                    </Stack>
+                                </Box>
+                            </Tooltip>
                         </Grid>
-                        <Grid item xs={6}>
-                            <FormControl fullWidth>
-                            <InputLabel>Max Price</InputLabel>
-                            <Input
-                                type="number"
-                                value={maxPrice}
-                                onChange={(event) => setMaxPrice(event.target.value)}
-                            />
-                            </FormControl>
-                        </Grid>
-                        {error && (
-                            <Grid item xs={12}>
-                                <Typography color="error">{error}</Typography>
-                            </Grid>
-                        )}
-                        <Grid item xs={6}>
-                            <FormControl fullWidth>
-                            <InputLabel>Min Days Ago Sold</InputLabel>
-                            <Input
-                                type="number"
-                                value={minDaysAgo}
-                                onChange={(event) => handleDaysAgoChange(event, 'min')}
-                            />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <FormControl fullWidth>
-                            <InputLabel>Max Days Ago Sold</InputLabel>
-                            <Input
-                                type="number"
-                                value={maxDaysAgo}
-                                onChange={(event) => handleDaysAgoChange(event, 'max')}
-                            />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <FormControl fullWidth>
-                            <InputLabel>Min Year Built</InputLabel>
-                            <Input
-                                type="number"
-                                value={minYear}
-                                onChange={(event) => setMinYear(event.target.value)}
-                            />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <FormControl fullWidth>
-                            <InputLabel>Max Year Built</InputLabel>
-                            <Input
-                                type="number"
-                                value={maxYear}
-                                onChange={(event) => setMaxYear(event.target.value)}
-                            />
-                            </FormControl>
-                        </Grid>
+                        <Grid item xs={12}>
+                            <Tooltip title="Year the house was built">
+                                <Box mt={2}>
+                                    <Typography variant="h6" mb={2}>Year Built</Typography>                                    
+                                    <Stack direction="row" spacing={2} alignItems="center">
+                                        <FormControl fullWidth>
+                                            <InputLabel>Min Year Built</InputLabel>
+                                            <Input
+                                                type="number"
+                                                value={minYear}
+                                                onChange={(event) => setMinYear(event.target.value)}
+                                            />
+                                        </FormControl>
+                                        <FormControl fullWidth>
+                                            <InputLabel>Max Year Built</InputLabel>
+                                            <Input
+                                                type="number"
+                                                value={maxYear}
+                                                onChange={(event) => setMaxYear(event.target.value)}
+                                            />
+                                        </FormControl>
+                                    </Stack>
+                                </Box>
+                            </Tooltip>
+                        </Grid>                                                
                     {/* <Grid item xs={12}>
                         <FormControl component="fieldset">
                         <FormLabel component="legend">Tags</FormLabel>

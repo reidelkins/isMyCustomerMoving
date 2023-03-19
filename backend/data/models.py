@@ -39,6 +39,7 @@ class Client(models.Model):
     housingType = models.CharField(max_length=100, default=" ", blank=True, null=True)
     year_built = models.IntegerField(default=0, blank=True, null=True)
     tag = models.ManyToManyField("HomeListingTags", blank=True, related_name='client_tags')
+    equipmentInstalledDate = models.DateField(blank=True, null=True)
 
     class Meta:
         unique_together = ('company', 'name', 'address')
