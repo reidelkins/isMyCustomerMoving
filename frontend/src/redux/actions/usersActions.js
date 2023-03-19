@@ -348,6 +348,12 @@ export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
     const {id: company} = userInfo.company;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
 
     dispatch(clientsLoading());
     const {data} = await axios.put(`${DOMAIN}/api/v1/data/upload/${company}/`, customers, config);

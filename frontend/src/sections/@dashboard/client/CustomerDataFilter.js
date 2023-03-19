@@ -51,8 +51,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-CustomerDataFilter.PropTypes = {
-    product: PropTypes.object.isRequired,
+CustomerDataFilter.propTypes = {
+  product: PropTypes.object.isRequired,
 }
 
 export default function CustomerDataFilter(product) {
