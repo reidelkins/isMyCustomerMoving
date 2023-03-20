@@ -10,7 +10,7 @@ const UpgradeFromFree = () => {
     const { count } = listClient;
     const [link, setLink] = useState("#");
     const [planName, setPlanName] = useState("Small Business");
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(true);
     const [monthlyPrice, setMonthlyPrice] = useState("10");
     const [annualPrice, setAnnualPrice] = useState("100");
 
