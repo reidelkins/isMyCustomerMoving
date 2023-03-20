@@ -124,7 +124,7 @@ export default function CustomerDataFilter(product) {
     };
 
     const handleShowFilters = () => {
-        if (product.product === 'price_1MhxfPAkLES5P4qQbu8O45xy') {
+        if (product.product === 'price_1Mi1KuAkLES5P4qQ2MEEwV9l') {
             alert('Please upgrade your plan to access this feature')
         } else {
             setShowFilters(true)

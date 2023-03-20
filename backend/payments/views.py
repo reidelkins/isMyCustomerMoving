@@ -155,7 +155,7 @@ def cancel_subscription(event: djstripe_models.Event):
         obj = event.data['object']
         customer = djstripe_models.Customer.objects.get(id=obj['customer'])
         company = Company.objects.get(email=customer.email)
-        product = djstripe_models.Plan.objects.get(id="price_1MhxfPAkLES5P4qQbu8O45xy")
+        product = djstripe_models.Plan.objects.get(id="price_1Mi1KuAkLES5P4qQ2MEEwV9l")
         company.product = product
         company.save()
         users = CustomUser.objects.filter(company=company)
@@ -184,7 +184,7 @@ def update_subscription(event: djstripe_models.Event):
         
         company.product = plan
         company.save()
-        if plan != "price_1MhxfPAkLES5P4qQbu8O45xy":
+        if plan != "price_1Mi1KuAkLES5P4qQ2MEEwV9l":
             deleteExtraClients(company.id)
     except Exception as e:
         print(e)

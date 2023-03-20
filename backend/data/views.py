@@ -60,7 +60,7 @@ class ClientListView(generics.ListAPIView):
         # if 'tags' in query_params:
         #     tags = [tag.replace('[', '').replace(']', '').replace(' ', '_') for tag in query_params.get('tags', '').split(',')]
         #     queryset = queryset.filter(tag__tag__in=tags)
-        if user.company.product.id == "price_1MhxfPAkLES5P4qQbu8O45xy":
+        if user.company.product.id == "price_1Mi1KuAkLES5P4qQ2MEEwV9l":
             queryset = queryset.order_by('name')
         elif user.status == 'admin':
             queryset = queryset.order_by('status')
@@ -93,7 +93,7 @@ class FilteredClientListView(generics.ListAPIView):
 
     def get_queryset(self):
         user = CustomUser.objects.get(id=self.kwargs['user'])
-        if user.company.product.id == "price_1MhxfPAkLES5P4qQbu8O45xy":
+        if user.company.product.id == "price_1Mi1KuAkLES5P4qQ2MEEwV9l":
             return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).order_by('name')
         elif user.status == 'admin':
             return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).order_by('status')
@@ -104,7 +104,7 @@ class FilteredClientListView(generics.ListAPIView):
         queryset = self.filter_queryset(self.get_queryset())
         user = CustomUser.objects.get(id=self.kwargs['user'])
         allClients = Client.objects.filter(company=user.company)
-        if user.company.product.id == "price_1MhxfPAkLES5P4qQbu8O45xy":
+        if user.company.product.id == "price_1Mi1KuAkLES5P4qQ2MEEwV9l":
             page = self.paginate_queryset(queryset)
         
 

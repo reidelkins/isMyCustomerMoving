@@ -411,7 +411,7 @@ def update_clients_statuses(company_id=None):
         companies = Company.objects.all()
     for company in companies:
         try:
-            if company.product.id != "price_1MhxfPAkLES5P4qQbu8O45xy":
+            if company.product.id != "price_1Mi1KuAkLES5P4qQ2MEEwV9l":
                 zipCode_objects = Client.objects.filter(company=company).values('zipCode')
                 zipCodes = zipCode_objects.distinct()
                 zips = list(zipCodes.order_by('zipCode').values('zipCode'))
@@ -436,7 +436,7 @@ def sendDailyEmail(company_id=None):
         companies = Company.objects.all()
     for company in companies:
         try:
-            if company.product.id != "price_1MhxfPAkLES5P4qQbu8O45xy":
+            if company.product.id != "price_1Mi1KuAkLES5P4qQ2MEEwV9l":
                 emails = list(CustomUser.objects.filter(company=company).values_list('email'))
                 subject = 'Did Your Customers Move?'
                 
@@ -480,7 +480,7 @@ def auto_update(company_id=None):
         companies = Company.objects.all()
         for company in companies:
             try:
-                if company.product.id != "price_1MhxfPAkLES5P4qQbu8O45xy":
+                if company.product.id != "price_1Mi1KuAkLES5P4qQ2MEEwV9l":
                     getAllZipcodes(company.id)
                 else:
                     print("free tier")

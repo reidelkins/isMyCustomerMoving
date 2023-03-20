@@ -14,7 +14,7 @@ const Page = forwardRef(({ children, userInfo = null, title = '', meta, ...other
     </Helmet>
 
     <Box ref={ref} {...other}>
-      {userInfo && userInfo.company.product === "price_1MhxfPAkLES5P4qQbu8O45xy" && (        
+      {userInfo && userInfo.company.product === "price_1Mi1KuAkLES5P4qQ2MEEwV9l" && (        
           <Alert            
             sx={{ mb: 2, mx: 'auto', width: '100%' }}
             variant="filled"

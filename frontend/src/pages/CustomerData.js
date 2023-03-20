@@ -384,7 +384,7 @@ export default function CustomerData() {
                                 <TableCell align="left">{state}</TableCell>
                                 <TableCell align="left">{zipCode}</TableCell>
                                 <TableCell align="left">
-                                  {userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy' ? (
+                                  {userInfo.company.product !== 'price_1Mi1KuAkLES5P4qQ2MEEwV9l' ? (
                                     <Label variant="ghost" color={(status === 'No Change' && 'warning') || (contacted === 'False' && 'error'  || 'success')}>
                                       {sentenceCase(status)}
                                     </Label>
@@ -397,7 +397,7 @@ export default function CustomerData() {
                                 </TableCell>
                                 <TableCell>
                                   {(() => {
-                                    if (status !== 'No Change' && userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy') {
+                                    if (status !== 'No Change' && userInfo.company.product !== 'price_1Mi1KuAkLES5P4qQ2MEEwV9l') {
                                       if (contacted) {
                                         return(
                                           <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, false)}>
@@ -440,7 +440,7 @@ export default function CustomerData() {
                                 
                               </TableRow>
                             </Tooltip>                                                                         
-                            {expandedRow === id && userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy' && (
+                            {expandedRow === id && userInfo.company.product !== 'price_1Mi1KuAkLES5P4qQ2MEEwV9l' && (
                               <TableRow style={{position:'relative', left:'10%'}}>
                                 <TableCell colSpan={6}>
                                   <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
@@ -557,13 +557,13 @@ export default function CustomerData() {
                     </Button>
                   )
                 ):(
-                  (userInfo.status === 'admin' && userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy') && (
+                  (userInfo.status === 'admin' && userInfo.company.product !== 'price_1Mi1KuAkLES5P4qQ2MEEwV9l') && (
                     <Button onClick={exportCSV} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
                       Download To CSV
                     </Button>
                   )
                 )}
-                {userInfo.company.product === 'price_1MhxfPAkLES5P4qQbu8O45xy' && (
+                {userInfo.company.product === 'price_1Mi1KuAkLES5P4qQ2MEEwV9l' && (
                   <UpgradeFromFree />
                 )}
                 
