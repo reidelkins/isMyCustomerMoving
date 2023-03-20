@@ -118,6 +118,40 @@ def create_subscription(event: djstripe_models.Event):
 #         print(e)
 #         print("error")
 
+# a view that will create a new subscription using the card on file for the customer
+def upgrade_plan(request):
+    if request.method == 'POST':
+        data = request.data
+        company = data['company']
+        try:
+            company = Company.objects.get(name=company)
+        except Company.DoesNotExist:
+            return Response("Company does not exist", status=status.HTTP_400_BAD_REQUEST)
+        try:
+            product = Product.objects.get(tier=data['tier'], timeFrame=data['timeFrame'])
+        except Product.DoesNotExist:
+            return Response("Product does not exist", status=status.HTTP_400_BAD_REQUEST)
+        customer = stripe.Customer.retrieve(company.stripeID)
+        subscription = stripe.Subscription.create(
+            customer=customer,
+            items=[
+                {
+                'price': product.pid
+                }
+            ],
+        )
+        company.product = product
+        company.save()
+        if type(company) == dict:
+            return Response(company, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_200_OK, 
+            data={
+                'message': 'Success', 
+                'data': {'customer_id': customer.id,
+                'sub_id':  subscription,
+                } }  
+        )
+
 @webhooks.handler('checkout.session.completed')
 def completed_checkout(event: djstripe_models.Event):
     try:

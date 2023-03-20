@@ -353,6 +353,27 @@ export const disableTwoFactorAuth = () => async (dispatch, getState) => {
   }
 };
 
+export const upgradePlan = (plan) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.token}`,
+      },
+    };
+
+    dispatch(loginLoading());
+    const { data } = await axios.post(`${DOMAIN}/api/v1/payments/upgrade/${userInfo.company.id}`, { plan }, config);
+    dispatch(login(data));
+    localStorage.setItem('userInfo', JSON.stringify(data));
+  } catch (error) {
+    dispatch(loginError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+};
+    
 export const { login, validate, loginError, loginLoading, register, registerError, registerLoading, logoutUser, company, companyError, companyLoading, reset, salesForce, salesForceError } = authSlice.actions;
 export const showLoginInfo = (state) => state.auth.userInfo;
 export const showRegisterInfo = (state) => state.auth.registerInfo;

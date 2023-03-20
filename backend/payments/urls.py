@@ -8,6 +8,7 @@ urlpatterns = [
     # path('save-stripe-info/', views.save_stripe_info, name='save-stripe-info'),
     # path('setup-intent/', views.setup_intent, name='setup_intent'),
     # path('publishable-key/', views.publishable_key, name='publishable-key'),
+    path("upgradePlan/<str:company_id>/", views.upgradePlan, name="upgradePlan"),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),
     path("", include(router.urls)),
 ]
