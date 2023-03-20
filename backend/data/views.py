@@ -21,7 +21,7 @@ class AllClientListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     def get_queryset(self):
         user = CustomUser.objects.get(id=self.request.user.id)
-        return Client.objects.filter(company=user.company).order_by('status')
+        return Client.objects.filter(company=user.company, active=True).order_by('status')
 
 class CustomPagination(PageNumberPagination):
     page_size = 1000
@@ -35,7 +35,7 @@ class ClientListView(generics.ListAPIView):
         query_params = self.request.query_params
 
         # Initialize the queryset with the base filters
-        queryset = Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company)
+        queryset = Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company, active=True)
 
         if 'min_price' in query_params:
             queryset = queryset.filter(price__gte=query_params['min_price'])
@@ -87,28 +87,6 @@ class ClientListView(generics.ListAPIView):
         serializer = self.get_serializer(queryset, many=True)
         return Response({"forSale": forSale, "forSaleAllTime": forSaleAllTime, "recentlySoldAllTime": recentlySoldAllTime, "recentlySold": recentlySold, "clients": clients})
 
-class FilteredClientListView(generics.ListAPIView):
-    serializer_class = ClientListSerializer
-    pagination_class = CustomPagination
-
-    def get_queryset(self):
-        user = CustomUser.objects.get(id=self.kwargs['user'])
-        if user.company.product.id == "price_1MhxfPAkLES5P4qQbu8O45xy":
-            return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).order_by('name')
-        elif user.status == 'admin':
-            return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).order_by('status')
-        else:
-            return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).exclude(status='No Change').order_by('status')
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        user = CustomUser.objects.get(id=self.kwargs['user'])
-        allClients = Client.objects.filter(company=user.company)
-        if user.company.product.id == "price_1MhxfPAkLES5P4qQbu8O45xy":
-            page = self.paginate_queryset(queryset)
-        
-
-
 class RecentlySoldView(generics.ListAPIView):
     serializer_class = HomeListingSerializer
     pagination_class = CustomPagination
@@ -151,14 +129,6 @@ class UpdateStatusView(APIView):
         except Exception as e:
             print(f"ERROR: Update Status View: {e}")
         return Response("", status=status.HTTP_201_CREATED, headers="")
-
-class ClientListAndUpdatesView(generics.ListAPIView):
-    serializer_class = ClientListSerializer
-    pagination_class = CustomPagination
-    def get_queryset(self):
-        company = Company.objects.get(id=self.kwargs['company'])
-        print(Client.objects.filter(company=company).count())
-        return Client.objects.prefetch_related('clientUpdates').filter(company=company).order_by('status')
 
 class UploadFileView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
@@ -214,11 +184,13 @@ class UpdateClientView(APIView):
         try:
             if len(request.data['clients']) == 1:
                 client = Client.objects.get(id=request.data['clients'][0])
-                client.delete()
+                client.active = False
+                client.save()
             else:
                 for client in request.data['clients']:
                     client = Client.objects.get(id=client)
-                    client.delete()
+                    client.active = False
+                    client.save()
         except Exception as e:
             print(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
@@ -315,33 +287,3 @@ class SalesforceConsumerView(APIView):
             print(e)
             return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
         
-# @api_view(['PUT', 'DELETE'])
-# def update_client(request):
-#     try:
-#         if request.method == 'PUT':
-#             try:
-#                 client = Client.objects.get(id=request.data['clients'])
-#                 if request.data['note']:
-#                     client.note = request.data['note']
-#                     ClientUpdate.objects.create(client=client, note=request.data['note'])
-#                 if request.data['contacted'] != "":
-#                     client.contacted = request.data['contacted']
-#                     ClientUpdate.objects.create(client=client, contacted=request.data['contacted'])
-#                 client.save()
-#             except Exception as e:
-#                 print(e)
-#                 return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-#         elif request.method == 'DELETE':
-#             try:
-#                 if len(request.data['clients']) == 1:
-#                     client = Client.objects.get(id=request.data['clients'][0])
-#                     client.delete()
-#                 else:
-#                     Client.objects.filter(id__in=request.data['clients']).delete()
-#             except Exception as e:
-#                 print(e)
-#                 return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-#         return Response({"status": "Success"}, status=status.HTTP_201_CREATED, headers="")
-#     except Exception as e:
-#         print(e)
-#         return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
