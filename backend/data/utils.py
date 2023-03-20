@@ -243,7 +243,12 @@ def find_data(zip, i, status, url, extra):
     except Exception as e:
         print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
         print(f"URL: {url}")
-    delVariables([scrapfly, first_page, first_result, content, soup, first_data, results, total, count, url, extra, page_url, new_results, parsed])
+    vars = [scrapfly, first_page, first_result, content, soup, first_data, results, total, count, url, extra, new_results, parsed]
+    if total:
+        vars.append(total)
+    if page_url:
+        vars.append(page_url)
+    delVariables(vars)
 
 
 class PropertyPreviewResult(TypedDict):
