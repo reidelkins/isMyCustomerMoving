@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import PropTypes from 'prop-types';
 
 import { makeStyles } from '@mui/styles';
 import {
@@ -50,7 +51,9 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-
+CustomerDataFilter.propTypes = {
+  product: PropTypes.object.isRequired,
+}
 
 export default function CustomerDataFilter(product) {
     const classes = useStyles();

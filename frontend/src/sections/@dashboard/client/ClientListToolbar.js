@@ -5,7 +5,7 @@ import { styled } from '@mui/material/styles';
 import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment } from '@mui/material';
 // component
 import Iconify from '../../../components/Iconify';
-import CustomerDataFilter from './CustomerDataFilter';
+import CustomerDataFilter  from './CustomerDataFilter';
 // redux
 import { deleteClientAsync } from '../../../redux/actions/usersActions';
 

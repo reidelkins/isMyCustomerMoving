@@ -1,0 +1,17 @@
+{% extends "base.html" %} {% block content %}
+<h1>Customer Deletion Notice</h1>
+<p>Dear Customer,</p>
+<p>
+  We are sorry to inform you that we have deleted {{ deletedClients }} of your
+  clients from our platform because your subscription plan does not allow for as
+  many users as you tried to upload.
+</p>
+<p>
+  If you would like to increase the number of clients allowed, you can upgrade
+  your subscription within the account settings panel.
+</p>
+<p>Please let us know if you have any questions or concerns.</p>
+<a href="https://app.ismycustomermoving.com/" class="btn"
+  >Upgrade Subscription</a
+>
+{% endblock %}
