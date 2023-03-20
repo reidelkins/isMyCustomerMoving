@@ -84,6 +84,9 @@ class HomeListingTags(models.Model):
                           default=uuid.uuid4, editable=False)
     tag = models.CharField(max_length=100)
 
+    def __str__(self):
+        return self.tag
+
 
 class Task(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,

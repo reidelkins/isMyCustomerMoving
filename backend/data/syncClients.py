@@ -1,13 +1,15 @@
 from celery import shared_task
 import requests
 import gc
+from time import sleep
+
 from datetime import datetime
 from django.conf import settings
 from django.db.models.functions import Coalesce
 
 from accounts.models import Company
 from .models import Client, Task
-from .utils import saveClientList, updateClientList, doItAll
+from .utils import saveClientList, updateClientList, doItAll, deleteExtraClients, delVariables
 from simple_salesforce import Salesforce
 
 
@@ -92,38 +94,20 @@ def get_serviceTitan_clients(company_id, task_id):
         clients = response.json()['data']
         if response.json()['hasMore'] == False:
             moreClients = False
-        saveClientList.delay(clients, company_id)
-        try:
-            del clients
-        except:
-            pass
-        try:
-            del response
-        except:
-            pass
-    clients = Client.objects.filter(company=company)
-    # diff = clients.count() - company.product.customerLimit
-    task = Task.objects.get(id=task_id)
-    # if diff > 0:
-    #     deleteClients = clients[:diff].values_list('id')
-    #     # Client.objects.filter(id__in=deleteClients).delete()
-    #     task.deletedClients = diff
-    task.completed = True
-    task.save()
+        result = saveClientList.delay(clients, company_id)
+        delVariables([clients, response])
+    
+    # wait up to 30 seconds for the last task to complete
+    count = 0
+    while(result.status != 'SUCCESS' and count < 30):
+        sleep(1)
+        count += 1
+
+    deleteExtraClients.delay(company_id, task_id)
+    
     get_servicetitan_equipment.delay(company_id)
     doItAll.delay(company_id)
 
-
-    # clearing out old data    
-    try:
-        del deleteClients
-    except:
-        pass
-    try:
-        del diff
-    except:
-        pass
-    gc.collect()
     frm = ""
     moreClients = True
     page = 0
@@ -138,39 +122,9 @@ def get_serviceTitan_clients(company_id, task_id):
         else:
             moreClients = False        
         updateClientList.delay(numbers)
-        try:
-            del numbers
-        except:
-            pass
-        try:
-            del response
-        except:
-            pass
-    gc.collect()        
-    try:
-        del frm
-    except:
-        pass
-    try:
-        del moreClients
-    except:
-        pass
-    try:
-        del headers
-    except:
-        pass
-    try:
-        del data
-    except:
-        pass
-    try:
-        del company
-    except:
-        pass
-    try:
-        del tenant
-    except:
-        pass
+        delVariables([numbers, response])
+    delVariables([frm, moreClients, headers, data, company, tenant])
+
 
 @shared_task
 def update_clients_with_last_service_date(equipment, company_id):
@@ -220,22 +174,4 @@ def get_servicetitan_equipment(company_id):
         # with open('equipment.json', 'a') as f:
         #     json.dump(equipment, f, indent=4)
         update_clients_with_last_service_date.delay(equipment, company_id)
-        try:
-            del equipment
-        except:
-            pass
-        try:
-            del response
-        except:
-            pass
-    
-    # clearing out old data    
-    try:
-        del deleteClients
-    except:
-        pass
-    try:
-        del diff
-    except:
-        pass
-    gc.collect()
+        delVariables([equipment, response])

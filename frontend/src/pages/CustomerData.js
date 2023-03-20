@@ -131,7 +131,7 @@ export default function CustomerData() {
   }, [userInfo]);
 
   const listClient = useSelector(selectClients);
-  const {loading, CLIENTLIST, forSale, recentlySold, count, message } = listClient;
+  const {loading, CLIENTLIST, forSale, recentlySold, count, message, deleted } = listClient;
 
   useEffect(() => {
     if (message) {
@@ -160,6 +160,13 @@ export default function CustomerData() {
   const [csvLoading, setCsvLoading] = useState(false);
 
   const [alertOpen, setAlertOpen] = useState(false);
+  const [deletedAlertOpen, setDeletedAlertOpen] = useState(false);
+
+  useEffect(() => {
+    if (deleted > 0) {
+      setDeletedAlertOpen(true);
+    }
+  }, [deleted]);
 
   const [clientListLength, setClientListLength] = useState(0);
 
@@ -435,7 +442,6 @@ export default function CustomerData() {
                             </Tooltip>                                                                         
                             {expandedRow === id && userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy' && (
                               <TableRow style={{position:'relative', left:'10%'}}>
-                                <TableCell/>
                                 <TableCell colSpan={6}>
                                   <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
                                     <ClientEventTable clientUpdates={clientUpdates}/>                                     
@@ -478,6 +484,27 @@ export default function CustomerData() {
                 onRowsPerPageChange={handleChangeRowsPerPage}
               />
             </Card>
+            <Collapse in={deletedAlertOpen}>
+              <Alert
+                action={
+                  <IconButton
+                    aria-label="close"
+                    color="inherit"
+                    size="small"
+                    onClick={() => {
+                      setDeletedAlertOpen(false);
+                    }}
+                  >
+                    X
+                  </IconButton>
+                }
+                sx={{ mb: 2, mx: 'auto', width: '80%' }}
+                variant="filled"
+                severity="error"
+              >
+                You tried to upload {deleted} clients more than allowed for your subscription tier. If you would like to upload more clients, please upgrade your subscription.
+              </Alert>
+            </Collapse>
             {loading ? (
               <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
                 {((userInfo.first_name === 'reid' && userInfo.last_name === 'elkins') || (userInfo.first_name === 'Perspective' && userInfo.last_name === 'Customer')) && (
