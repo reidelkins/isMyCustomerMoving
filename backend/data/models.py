@@ -78,6 +78,8 @@ class HomeListing(models.Model):
     housingType = models.CharField(max_length=100, default=" ")
     year_built = models.IntegerField(default=0)
     tag = models.ManyToManyField("HomeListingTags", blank=True, related_name='homeListing_tag')
+    city = models.CharField(max_length=40, blank=True, null=True)
+    state = models.CharField(max_length=31, blank=True, null=True)
     
 class HomeListingTags(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,

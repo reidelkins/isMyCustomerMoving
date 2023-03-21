@@ -42,6 +42,8 @@ import { makeDate } from '../utils/makeDate';
 const TABLE_HEAD = [
   { id: 'listed', label: 'Date Sold', alignRight: false },
   { id: 'address', label: 'Address', alignRight: false },
+  { id: 'city', label: 'City', alignRight: false },
+  { id: 'state', label: 'State', alignRight: false },
   { id: 'zipCode', label: 'Zip Code', alignRight: false },
   { id: 'price', label: 'Price', alignRight: false },
   { id: 'year_built', label: 'Year Built', alignRight: false },
@@ -208,7 +210,7 @@ export default function RecentlySoldData() {
                       />
                       <TableBody>
                         {filteredRecentlySold.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                          const { id, address, zipCode, listed, price, year_built: yearBuilt} = row;
+                          const { id, address, city, state, zipCode, listed, price, year_built: yearBuilt} = row;
                           
                           return (
                             <React.Fragment key={row.id}>
@@ -226,6 +228,8 @@ export default function RecentlySoldData() {
                                   </Stack>
                                 </TableCell>
                                 <TableCell align="left">{address}</TableCell>
+                                <TableCell align="left">{city}</TableCell>
+                                <TableCell align="left">{state}</TableCell>
                                 <TableCell align="left">{zipCode}</TableCell>     
                                   <TableCell align="left">{price.toLocaleString()}</TableCell>
                                   <TableCell align="left">{yearBuilt}</TableCell>                                               
