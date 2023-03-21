@@ -472,7 +472,7 @@ def auto_update(company_id=None):
         try:
             company = Company.objects.get(id=company_id)
             getAllZipcodes(company_id)
-
+            delVariables([company])
         except:
             print("Company does not exist")
             return
@@ -486,7 +486,7 @@ def auto_update(company_id=None):
                     print("free tier")
             except Exception as e:
                 print(e)
-    delVariables([company, companies])
+        delVariables([company, companies])
     
 
 @shared_task

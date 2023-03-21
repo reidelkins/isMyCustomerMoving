@@ -2,7 +2,7 @@ import axios from 'axios';
 import { createSlice } from '@reduxjs/toolkit';
 
 import { DOMAIN } from '../constants';
-import { logoutClients } from './usersActions'
+import { logoutClients, clientsAsync  } from './usersActions'
 
 export const authSlice = createSlice({
   name: "auth",
@@ -369,6 +369,7 @@ export const upgradePlan = (plan) => async (dispatch, getState) => {
     const { data } = await axios.post(`${DOMAIN}/api/v1/payments/upgrade_plan/${userInfo.id}/`, { plan }, config);
     dispatch(login(data));
     localStorage.setItem('userInfo', JSON.stringify(data));
+    dispatch(clientsAsync(1));
   } catch (error) {
     dispatch(loginError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }

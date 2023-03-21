@@ -96,7 +96,7 @@ class Company(models.Model):
     email = models.EmailField(max_length=100, blank=True, null=True)
     stripeID = models.CharField(max_length=100, blank=True, null=True)
     crm = models.CharField(max_length=100, choices=CRM, default='None')
-    franchise = models.ForeignKey(Franchise, on_delete=models.SET_NULL, blank=True, null=True)
+    # franchise = models.ForeignKey(Franchise, on_delete=models.SET_NULL, blank=True, null=True)
 
     # Service Titan
     tenantID = models.IntegerField(blank=True, null=True)

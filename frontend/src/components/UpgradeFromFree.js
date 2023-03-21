@@ -23,17 +23,17 @@ const UpgradeFromFree = () => {
             setLink("#");
             setPlanName("Small Business");
             setMonthlyPrice("150");
-            setAnnualPrice("1,620");
+            setAnnualPrice("1,650");
         } else if (count < 10000) {
             setLink("#");
             setPlanName("Franchise");
             setMonthlyPrice("250");
-            setAnnualPrice("2700");
+            setAnnualPrice("2750");
         } else if (count < 20000) {
             setLink("#");
             setPlanName("Large Business");
             setMonthlyPrice("400");
-            setAnnualPrice("4,320");
+            setAnnualPrice("4,400");
         } else {
             setLink("https://www.ismycustomermoving.com/#contact");
             setPlanName("Enterprise");            

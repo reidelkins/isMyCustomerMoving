@@ -155,13 +155,13 @@ class Upgrade_Plan(APIView):
                 price = prices[1]
 
         customer = stripe.Customer.retrieve(company.stripeID)
-        # subscription = stripe.Subscription.create(
-        #     customer=customer.id,
-        #     items=[{"price": price.id}],
-        #     default_payment_method=customer.invoice_settings.default_payment_method,
-        #     expand=["latest_invoice.payment_intent"],
-        #     trial_period_days=7
-        # )
+        stripe.Subscription.create(
+            customer=customer.id,
+            items=[{"price": price.id}],
+            default_payment_method=customer.invoice_settings.default_payment_method,
+            expand=["latest_invoice.payment_intent"],
+            trial_period_days=7
+        )
         company.product = price
         company.save()
         user = CustomUser.objects.get(id=self.kwargs['user'])
@@ -177,8 +177,12 @@ def completed_checkout(event: djstripe_models.Event):
         email = obj['customer_details']['email']
         companyName = obj['custom_fields'][0]['text']['value']
         stripeId = obj['customer']
-        subscription = djstripe_models.Subscription.objects.get(id=obj['subscription'])
-        plan = subscription.plan
+        try:
+            subscription = djstripe_models.Subscription.objects.get(id=obj['subscription'])
+            plan = subscription.plan
+        except:
+            product = djstripe_models.Product.objects.get(name="Base Plan")
+            plan = djstripe_models.Price.objects.get(product_id=product.id)
         try:
             company = Company.objects.get(name=companyName, email=email, stripeID=stripeId)
         except:
