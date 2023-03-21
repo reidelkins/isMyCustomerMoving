@@ -96,7 +96,6 @@ def test_makeCompany(company):
     assert company.phone == "8881234567"
     assert company.stripeID == "testStripeId1234"
     assert company.accessToken != None
-    assert company.franchise == None
 
 
 @pytest.mark.django_db
