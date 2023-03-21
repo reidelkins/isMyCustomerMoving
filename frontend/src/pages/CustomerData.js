@@ -359,7 +359,7 @@ export default function CustomerData() {
                         
                         return (
                           <React.Fragment key={row.id}>
-                            <Tooltip title="Click For Expanded Details">
+                            <Tooltip title={userInfo.company.product === 'price_1Mi1KuAkLES5P4qQ2MEEwV9l' ? "Upgrade from basic to see more details" : "Click For Expanded Details"}>
                               <TableRow
                                 hover
                                 key={id}
@@ -390,7 +390,7 @@ export default function CustomerData() {
                                     </Label>
                                   ) : (
                                     <Label variant="ghost" color='warning'>
-                                      Free Tier
+                                      Basic Plan
                                     </Label>
                                   )}
                                   
