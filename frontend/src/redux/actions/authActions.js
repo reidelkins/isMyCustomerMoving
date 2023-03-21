@@ -361,12 +361,12 @@ export const upgradePlan = (plan) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.token}`,
+        // Authorization: `Bearer ${userInfo.token}`,
       },
     };
 
     dispatch(loginLoading());
-    const { data } = await axios.post(`${DOMAIN}/api/v1/payments/upgrade/${userInfo.company.id}`, { plan }, config);
+    const { data } = await axios.post(`${DOMAIN}/api/v1/payments/upgrade_plan/${userInfo.id}/`, { plan }, config);
     dispatch(login(data));
     localStorage.setItem('userInfo', JSON.stringify(data));
   } catch (error) {

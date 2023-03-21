@@ -1,10 +1,14 @@
 from django.conf import settings
 from django.template.loader import get_template
 from django.core.mail import send_mail
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import status
 from accounts.models import Company, CustomUser
+from accounts.serializers import UserSerializerWithToken
 from accounts.utils import makeCompany
+from data.models import Client
 from data.utils import deleteExtraClients
-from datetime import datetime, timedelta
 
 from djstripe import webhooks, models as djstripe_models
 
@@ -118,39 +122,52 @@ def create_subscription(event: djstripe_models.Event):
 #         print(e)
 #         print("error")
 
-# a view that will create a new subscription using the card on file for the customer
-def upgrade_plan(request):
-    if request.method == 'POST':
-        data = request.data
-        company = data['company']
+class Upgrade_Plan(APIView):
+    # permission_classes = [IsAuthenticated]
+    def post(self, request, *args, **kwargs):        
+        user = CustomUser.objects.get(id=self.kwargs['user'])
+        company = user.company
         try:
             company = Company.objects.get(name=company)
         except Company.DoesNotExist:
             return Response("Company does not exist", status=status.HTTP_400_BAD_REQUEST)
-        try:
-            product = Product.objects.get(tier=data['tier'], timeFrame=data['timeFrame'])
-        except Product.DoesNotExist:
-            return Response("Product does not exist", status=status.HTTP_400_BAD_REQUEST)
+        clientCount = Client.objects.filter(company=company).count()
+        if clientCount < 5000:
+            plan = "Small Business"
+        elif clientCount < 10000:
+            plan = "Franchise"
+        else:
+            plan = "Large Business"
+        product = djstripe_models.Product.objects.get(name=plan, livemode=True)
+        prices = djstripe_models.Price.objects.filter(product_id=product.id, active=True)
+        # should just be two prices, one for monthly and one for yearly. Yearly will always be the one with a higher price
+        if prices.count() != 2:
+            return Response("Error: There should only be two prices for this product", status=status.HTTP_400_BAD_REQUEST)
+        if request.data['plan'] == 'month':
+            if prices[0].unit_amount < prices[1].unit_amount:
+                price = prices[0]
+            else:
+                price = prices[1]
+        else:
+            if prices[0].unit_amount > prices[1].unit_amount:
+                price = prices[0]
+            else:
+                price = prices[1]
+
         customer = stripe.Customer.retrieve(company.stripeID)
-        subscription = stripe.Subscription.create(
-            customer=customer,
-            items=[
-                {
-                'price': product.pid
-                }
-            ],
-        )
-        company.product = product
+        # subscription = stripe.Subscription.create(
+        #     customer=customer.id,
+        #     items=[{"price": price.id}],
+        #     default_payment_method=customer.invoice_settings.default_payment_method,
+        #     expand=["latest_invoice.payment_intent"],
+        #     trial_period_days=7
+        # )
+        company.product = price
         company.save()
-        if type(company) == dict:
-            return Response(company, status=status.HTTP_400_BAD_REQUEST)
-        return Response(status=status.HTTP_200_OK, 
-            data={
-                'message': 'Success', 
-                'data': {'customer_id': customer.id,
-                'sub_id':  subscription,
-                } }  
-        )
+        user = CustomUser.objects.get(id=self.kwargs['user'])
+        serializer = UserSerializerWithToken(user, many=False)
+        return Response(serializer.data)
+
 
 @webhooks.handler('checkout.session.completed')
 def completed_checkout(event: djstripe_models.Event):
