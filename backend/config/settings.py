@@ -36,6 +36,10 @@ if IS_HEROKU or IS_GITHUB:
     SALESFORCE_CONSUMER_KEY = os.environ['SALESFORCE_CONSUMER_KEY']
     SALESFORCE_CONSUMER_SECRET = os.environ['SALESFORCE_CONSUMER_SECRET']
     CELERY_RESULT_BACKEND = os.environ['REDIS_URL']
+    BASE_FRONTEND_URL = 'https://app.ismycustomermoving.com'
+    BASE_BACKEND_URL = 'https://is-my-customer-moving.herokuapp.com'
+    GOOGLE_OAUTH2_CLIENT_ID = os.environ['GOOGLE_OAUTH2_CLIENT_ID']
+    GOOGLE_OAUTH2_CLIENT_SECRET = os.environ['GOOGLE_OAUTH2_CLIENT_SECRET']
     
 else:
     DEBUG = True
@@ -47,6 +51,10 @@ else:
     SALESFORCE_CONSUMER_KEY = env('SALESFORCE_CONSUMER_KEY')
     SALESFORCE_CONSUMER_SECRET = env('SALESFORCE_CONSUMER_SECRET')
     CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+    BASE_FRONTEND_URL = 'http://localhost:3000'
+    BASE_BACKEND_URL = 'http://localhost:8000'
+    GOOGLE_OAUTH2_CLIENT_ID = env('GOOGLE_OAUTH2_CLIENT_ID')
+    GOOGLE_OAUTH2_CLIENT_SECRET = env('GOOGLE_OAUTH2_CLIENT_SECRET')
 
 ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "is-my-customer-moving.herokuapp.com"]
 
@@ -325,3 +333,8 @@ DJSTRIPE_WEBHOOK_SECRET = "whsec_N8LMT9fUTcrtlEBvKaHLKTnXWLE2uybj"
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
 
 DJSTRIPE_WEBHOOK_VALIDATION='retrieve_event'
+
+
+SIMPLE_JWT = {
+    'AUTH_COOKIE': 'IMCM_Cookie'
+}

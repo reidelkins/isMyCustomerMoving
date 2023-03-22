@@ -9,9 +9,14 @@ from rest_framework_simplejwt.views import (
 router = routers.DefaultRouter()
 router.register(r"users", views.UserViewSet)
 
+login_patterns = [
+    path('', views.MyTokenObtainPairView.as_view(), name='login'),
+    path('google/', views.GoogleLoginApi.as_view(), name='google_login'),
+]
+
 urlpatterns = [
     path('verify_registration/', views.VerifyRegistrationView.as_view(), name='verify'),
-    path('refresh_token/', TokenRefreshView.as_view(), name='refresh_token'),
+    path('exchange_token/', views.Exchange_Token.as_view(), name='exchange_token'),
     path('confirmation/<str:pk>/<str:uid>/', views.confirmation, name='email_confirmation'),
     path('otp/disable/', views.OTPDisableView.as_view(), name='otp-disable'),
     path('otp/validate/', views.OTPValidateView.as_view(), name='otp-validate'),
@@ -22,7 +27,7 @@ urlpatterns = [
     path('password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
     path('users/<str:company>/', views.UserListView.as_view(), name='user-list'),
     path('register/', views.RegisterView.as_view(), name='register'),
-    path('login/', views.MyTokenObtainPairView.as_view(), name='login'),
+    path('login/', include(login_patterns)),
     path("", include(router.urls)),
     
 ]
