@@ -41,6 +41,8 @@ jobs:
           STRIPE_SECRET_KEY_TEST: ${{secrets.STRIPE_SECRET_KEY_TEST }}
           STRIPE_PUBLIC_KEY: ${{secrets.STRIPE_PUBLIC_KEY }}
           STRIPE_PUBLIC_KEY_TEST: ${{secrets.STRIPE_PUBLIC_KEY_TEST }}
+          GOOGLE_OAUTH2_CLIENT_ID: ${{secrets.GOOGLE_OAUTH2_CLIENT_ID }}
+          GOOGLE_OAUTH2_CLIENT_SECRET: ${{secrets.GOOGLE_OAUTH2_CLIENT_SECRET }}
 
         run: |
           cd backend
