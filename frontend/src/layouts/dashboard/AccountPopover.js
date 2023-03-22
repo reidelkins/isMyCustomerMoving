@@ -58,6 +58,7 @@ export default function AccountPopover() {
   const logoutHandler = () => {
     dispatch(logout());
     navigate('/login', { replace: true });
+    document.cookie = "IMCM_Cookie=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
   };
 
   const initials = userInfo?.name?.split(' ').map((n) => n[0]).join('');
