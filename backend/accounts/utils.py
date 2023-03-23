@@ -89,7 +89,15 @@ def jwt_login(*, response: HttpResponse, user: CustomUser) -> HttpResponse:
     token = serializer.data['access']
 
     # set JWT cookie
-    response.set_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'], str(token), httponly=False)
+    if settings.IS_HEROKU:
+        response.set_cookie(
+            key=settings.SIMPLE_JWT['AUTH_COOKIE'], 
+            value=str(token), 
+            httponly=False, 
+            secure=True  # Set the secure flag to true
+        )
+    else:    
+        response.set_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'], str(token), httponly=False)
 
     return response
 
