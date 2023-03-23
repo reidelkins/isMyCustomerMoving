@@ -97,6 +97,8 @@ def jwt_login(*, response: HttpResponse, user: CustomUser) -> HttpResponse:
             value=str(token), 
             max_age=3600, secure=True, httponly=True, samesite='None', domain="app.ismycustomermoving.com"  # Set the secure flag to true
         )
+        print(response.__dict__)
+        print(response.cookies.__dict__)
         print("...and no issues")
     else:    
         response.set_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'], str(token), max_age=3600, httponly=False)
