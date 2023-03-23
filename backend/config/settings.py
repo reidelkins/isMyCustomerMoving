@@ -251,30 +251,30 @@ STATICFILES_DIRS = [
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:3006",
-    "http://localhost:3007",  # React App will be on this port
-    "https://is-my-customer-moving.vercel.app",
-    "https://ismycustomermoving.com",
-    "https://www.ismycustomermoving.com",
-    "https://app.ismycustomermoving.com",
+CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",
+#     "http://localhost:3006",
+#     "http://localhost:3007",  # React App will be on this port
+#     "https://is-my-customer-moving.vercel.app",
+#     "https://ismycustomermoving.com",
+#     "https://www.ismycustomermoving.com",
+#     "https://app.ismycustomermoving.com",
 
-    # Stripe
-    "https://3.18.12.63",
-    "https://3.130.192.231",
-    "https://13.235.14.237",
-    "https://13.235.122.149",
-    "https://18.211.135.69",
-    "https://35.154.171.200",
-    "https://52.15.183.38",
-    "https://54.88.130.119",
-    "https://54.88.130.237",
-    "https://54.187.174.169",
-    "https://54.187.205.235",
-    "https://54.187.216.72",
-]
+#     # Stripe
+#     "https://3.18.12.63",
+#     "https://3.130.192.231",
+#     "https://13.235.14.237",
+#     "https://13.235.122.149",
+#     "https://18.211.135.69",
+#     "https://35.154.171.200",
+#     "https://52.15.183.38",
+#     "https://54.88.130.119",
+#     "https://54.88.130.237",
+#     "https://54.187.174.169",
+#     "https://54.187.205.235",
+#     "https://54.187.216.72",
+# ]
 
 
 # Default primary key field type
