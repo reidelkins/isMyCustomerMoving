@@ -94,15 +94,14 @@ export default function Login() {
 
   useEffect(() => {
     const cookie = document.cookie;
-    if (cookie){
-      console.log(typeof(cookie))
-      console.log(cookie.split('; '))
-      // adding this to see if there was an error with the cookie
-      const jwtToken = cookie.split('; ').find(row => row.startsWith('IMCM_Cookie=')).split('=')[1];
-      
-      // if (jwtToken){
-      //   dispatch(jwtLoginAsync(jwtToken));
-      // }
+    if (typeof cookie === "string"){
+      const jwtCookie = cookie.split('; ').find(row => row.startsWith('IMCM_Cookie='))
+      if (jwtCookie){
+        const jwtToken = jwtCookie.split('=')[1];
+        if (jwtToken){
+          dispatch(jwtLoginAsync(jwtToken));
+        }
+      }      
     }
   }, []);
 
