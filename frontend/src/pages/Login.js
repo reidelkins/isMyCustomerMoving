@@ -97,7 +97,9 @@ export default function Login() {
     if (cookie){
       console.log(typeof(cookie))
       console.log(cookie.split('; '))
-      // const jwtToken = cookie.split('; ').find(row => row.startsWith('IMCM_Cookie=')).split('=')[1];
+      // adding this to see if there was an error with the cookie
+      const jwtToken = cookie.split('; ').find(row => row.startsWith('IMCM_Cookie=')).split('=')[1];
+      
       // if (jwtToken){
       //   dispatch(jwtLoginAsync(jwtToken));
       // }
