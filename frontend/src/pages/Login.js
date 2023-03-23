@@ -95,7 +95,8 @@ export default function Login() {
   useEffect(() => {
     const cookie = document.cookie;
     if (cookie){
-      console.log(cookie)
+      console.log(typeof(cookie))
+      console.log(cookie.split('; '))
       // const jwtToken = cookie.split('; ').find(row => row.startsWith('IMCM_Cookie=')).split('=')[1];
       // if (jwtToken){
       //   dispatch(jwtLoginAsync(jwtToken));
