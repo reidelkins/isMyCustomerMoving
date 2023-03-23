@@ -87,17 +87,16 @@ def jwt_payload_handler_func(user):
 def jwt_login(*, response: HttpResponse, user: CustomUser) -> HttpResponse:
     serializer = UserSerializerWithToken(user, many=False)
     token = serializer.data['access']
-
+    print("jk I am right here")
     # set JWT cookie
     if settings.IS_HEROKU:
         response.set_cookie(
             key=settings.SIMPLE_JWT['AUTH_COOKIE'], 
             value=str(token), 
-            httponly=False, 
-            secure=True  # Set the secure flag to true
+            max_age=3600, secure=True, httponly=True, samesite='None'  # Set the secure flag to true
         )
     else:    
-        response.set_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'], str(token), httponly=False)
+        response.set_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'], str(token), max_age=3600, httponly=False)
 
     return response
 

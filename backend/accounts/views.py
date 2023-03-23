@@ -314,7 +314,13 @@ class MyTokenObtainPairView(TokenObtainPairView):
         # set JWT cookie on successful login
         if response.status_code == 200:
             token = response.data.get('access')
-            response.set_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'], token, httponly=False)
+            if settings.IS_HEROKU:
+                response.set_cookie(
+                    key=settings.SIMPLE_JWT['AUTH_COOKIE'], 
+                    value=str(token), 
+                    max_age=3600, secure=True, httponly=True, samesite='None')
+            else:    
+                response.set_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'], str(token), httponly=False)
 
         return response
     
