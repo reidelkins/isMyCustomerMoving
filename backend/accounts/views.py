@@ -304,26 +304,20 @@ class Exchange_Token(APIView):
     
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
-
-    def get(self, request, *args, **kwargs):
-        response = super().get(request, *args, **kwargs)
-        if response.status_code == 200:
-            return Response({'detail': 'Login Successful'}, status=status.HTTP_200_OK)
-
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
 
-        # set JWT cookie on successful login
-        if response.status_code == 200:
-            token = response.data.get('access')
-            if settings.IS_HEROKU:
-                response.set_cookie(
-                    key=settings.SIMPLE_JWT['AUTH_COOKIE'], 
-                    value=str(token), 
-                    max_age=3600, secure=True, httponly=True, samesite='None')
-            else:    
-                response.set_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'], str(token), httponly=False)
-
+        # # set JWT cookie on successful login
+        # if response.status_code == 200:
+        #     token = response.data.get('access')
+        #     if settings.IS_HEROKU:
+        #         response.set_cookie(
+        #             key=settings.SIMPLE_JWT['AUTH_COOKIE'], 
+        #             value=str(token), 
+        #             max_age=3600, secure=True, httponly=True, samesite='None')
+        #     else:    
+        #         response.set_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'], str(token), httponly=False)
+        print(response.__dict__)
         return response
     
 class UserViewSet(ReadOnlyModelViewSet):
