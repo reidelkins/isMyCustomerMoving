@@ -305,6 +305,11 @@ class Exchange_Token(APIView):
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
+    def get(self, request, *args, **kwargs):
+        response = super().get(request, *args, **kwargs)
+        if response.status_code == 200:
+            return Response({'detail': 'Login Successful'}, status=status.HTTP_200_OK)
+
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
 
