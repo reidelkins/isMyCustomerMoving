@@ -91,7 +91,7 @@ def jwt_login(*, response: HttpResponse, user: CustomUser) -> HttpResponse:
     # set JWT cookie
     if settings.IS_HEROKU:
         # set a cookie so that this works on a different domain and in a production environment on any browser
-        response.set_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'], str(token), max_age=3600, httponly=False, secure=True, samesite='None', domain='.ismycustomermoving.com')
+        response.set_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'], str(token), max_age=3600, httponly=False, secure=True, samesite='Lax' , domain='.ismycustomermoving.com', path='/')
     else:    
         response.set_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'], str(token), max_age=3600, httponly=False)
 
