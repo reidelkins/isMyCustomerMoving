@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect } from 'react';
+import React from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 
 // @mui
 import { styled } from '@mui/material/styles';
 import { Card, Link, Container, Typography } from '@mui/material';
-import GoogleButton from 'react-google-button';
+
 
 // hooks
 import useResponsive from '../hooks/useResponsive';
@@ -14,7 +14,6 @@ import Page from '../components/Page';
 import Logo from '../components/Logo';
 
 import { LoginForm } from '../sections/auth/login';
-import { jwtLoginAsync } from '../redux/actions/authActions';
 // ----------------------------------------------------------------------
 
 const RootStyle = styled('div')(({ theme }) => ({
@@ -61,49 +60,11 @@ const ContentStyle = styled('div')(({ theme }) => ({
 // ----------------------------------------------------------------------
 
 export default function Login() {
-  const { REACT_APP_GOOGLE_CLIENT_ID, REACT_APP_BASE_BACKEND_URL } = process.env;
   const dispatch = useDispatch();
   
   const smUp = useResponsive('up', 'sm');
 
   const mdUp = useResponsive('up', 'md');
-
-  const openGoogleLoginPage = useCallback(() => {
-    const googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
-    const redirectUri = 'api/v1/accounts/login/google/';
-
-    const scope = [
-      'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/userinfo.profile'
-    ].join(' ');
-
-    const params = {
-      response_type: 'code',
-      client_id: REACT_APP_GOOGLE_CLIENT_ID,
-      redirect_uri: `${REACT_APP_BASE_BACKEND_URL}/${redirectUri}`,
-      prompt: 'select_account',
-      access_type: 'offline',
-      scope
-    };
-
-    const urlParams = new URLSearchParams(params).toString();
-
-    window.location = `${googleAuthUrl}?${urlParams}`;
-
-  }, []);
-
-  useEffect(() => {
-    const cookie = document.cookie;
-    if (typeof cookie === "string"){
-      const jwtCookie = cookie.split('; ').find(row => row.startsWith('IMCM_Cookie='))
-      if (jwtCookie){
-        const jwtToken = jwtCookie.split('=')[1];
-        if (jwtToken){
-          dispatch(jwtLoginAsync(jwtToken));
-        }
-      }      
-    }
-  }, []);
 
   return (
     <Page title="Login">
@@ -144,13 +105,6 @@ export default function Login() {
             <Typography sx={{ color: 'text.secondary', mb: 5 }}>Enter your details below.</Typography>
 
             <LoginForm />
-            <GoogleButton 
-              style={{ width: '100%', marginTop: '1rem' }}
-              onClick={openGoogleLoginPage}
-              label="Sign in with Google"
-              disabled={!REACT_APP_GOOGLE_CLIENT_ID}
-            />
-
             {!smUp && (
               <Typography variant="body2" align="center" sx={{ mt: 3 }}>
                 Don’t have an account?{' '}

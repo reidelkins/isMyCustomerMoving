@@ -144,26 +144,6 @@ export const loginAsync = (email, password) => async (dispatch) => {
   }
 };
 
-export const jwtLoginAsync = (jwtToken) => async (dispatch) => {
-  try {
-    dispatch(loginLoading());
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-      },
-    };
-    const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/exchange_token/`, { jwtToken }, config);
-    dispatch(login(data));
-    localStorage.setItem('userInfo', JSON.stringify(data));
-  } catch (error) {
-    console.log(error.response)
-    // eslint-disable-next-line no-nested-ternary
-    dispatch(loginError(error.response && error.response.data.non_field_errors ? error.response.data.non_field_errors[0] :
-      (error.response && error.response.data.detail ? error.response.data.detail : error.message)));
-  }
-};
-
-
 export const editUserAsync = (email, firstName, lastName, serviceTitan) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();

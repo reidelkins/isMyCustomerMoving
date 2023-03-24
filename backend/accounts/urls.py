@@ -11,7 +11,6 @@ router.register(r"users", views.UserViewSet)
 
 login_patterns = [
     path('', views.MyTokenObtainPairView.as_view(), name='login'),
-    path('google/', views.GoogleLoginApi.as_view(), name='google_login'),
 ]
 
 urlpatterns = [
