@@ -40,6 +40,7 @@ if IS_HEROKU or IS_GITHUB:
     BASE_BACKEND_URL = 'https://is-my-customer-moving.herokuapp.com'
     GOOGLE_OAUTH2_CLIENT_ID = os.environ['GOOGLE_OAUTH2_CLIENT_ID']
     GOOGLE_OAUTH2_CLIENT_SECRET = os.environ['GOOGLE_OAUTH2_CLIENT_SECRET']
+    # DJANGO_SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
     
 else:
     DEBUG = True
@@ -55,6 +56,13 @@ else:
     BASE_BACKEND_URL = 'http://localhost:8000'
     GOOGLE_OAUTH2_CLIENT_ID = env('GOOGLE_OAUTH2_CLIENT_ID')
     GOOGLE_OAUTH2_CLIENT_SECRET = env('GOOGLE_OAUTH2_CLIENT_SECRET')
+    # DJANGO_SECRET_KEY = env('DJANGO_SECRET_KEY')
+    # CLIENT_ORIGIN_URL=env('CLIENT_ORIGIN_URL')
+    # PORT=env('PORT')
+    # DEBUG_ENABLE=env('DEBUG_ENABLE')
+
+    # AUTH0_DOMAIN=env('AUTH0_DOMAIN')
+    # AUTH0_AUDIENCE=env('AUTH0_AUDIENCE')
 
 ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "is-my-customer-moving.herokuapp.com"]
 
@@ -255,31 +263,32 @@ MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
-# CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:3006",
-    "http://localhost:3007",  # React App will be on this port
-    "https://is-my-customer-moving.vercel.app",
-    "https://ismycustomermoving.com",
-    "https://www.ismycustomermoving.com",
-    "https://app.ismycustomermoving.com",
 
-    # Stripe
-    "https://3.18.12.63",
-    "https://3.130.192.231",
-    "https://13.235.14.237",
-    "https://13.235.122.149",
-    "https://18.211.135.69",
-    "https://35.154.171.200",
-    "https://52.15.183.38",
-    "https://54.88.130.119",
-    "https://54.88.130.237",
-    "https://54.187.174.169",
-    "https://54.187.205.235",
-    "https://54.187.216.72",
-]
+# CORS_ALLOW_CREDENTIALS = True
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",
+#     "http://localhost:3006",
+#     "http://localhost:3007",  # React App will be on this port
+#     "https://is-my-customer-moving.vercel.app",
+#     "https://ismycustomermoving.com",
+#     "https://www.ismycustomermoving.com",
+#     "https://app.ismycustomermoving.com",
+
+#     # Stripe
+#     "https://3.18.12.63",
+#     "https://3.130.192.231",
+#     "https://13.235.14.237",
+#     "https://13.235.122.149",
+#     "https://18.211.135.69",
+#     "https://35.154.171.200",
+#     "https://52.15.183.38",
+#     "https://54.88.130.119",
+#     "https://54.88.130.237",
+#     "https://54.187.174.169",
+#     "https://54.187.205.235",
+#     "https://54.187.216.72",
+# ]
+CORS_ALLOW_ALL_ORIGINS = True
 
 
 # Default primary key field type
