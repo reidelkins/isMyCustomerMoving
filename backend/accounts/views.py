@@ -470,4 +470,5 @@ class GoogleLoginApi(PublicApiMixin, ApiErrorsMixin, APIView):
 
         response = redirect(settings.BASE_FRONTEND_URL)
         response = jwt_login(response=response, user=user)
+        print(response.__dict__)
         return response
