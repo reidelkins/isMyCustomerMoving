@@ -40,7 +40,9 @@ if IS_HEROKU or IS_GITHUB:
     BASE_BACKEND_URL = 'https://is-my-customer-moving.herokuapp.com'
     GOOGLE_OAUTH2_CLIENT_ID = os.environ['GOOGLE_OAUTH2_CLIENT_ID']
     GOOGLE_OAUTH2_CLIENT_SECRET = os.environ['GOOGLE_OAUTH2_CLIENT_SECRET']
-    # DJANGO_SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
+    DJANGO_SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
+    AUTH0_DOMAIN=os.environ['AUTH0_DOMAIN']
+    AUTH0_AUDIENCE=os.environ['AUTH0_AUDIENCE']
     
 else:
     DEBUG = True
@@ -56,13 +58,9 @@ else:
     BASE_BACKEND_URL = 'http://localhost:8000'
     GOOGLE_OAUTH2_CLIENT_ID = env('GOOGLE_OAUTH2_CLIENT_ID')
     GOOGLE_OAUTH2_CLIENT_SECRET = env('GOOGLE_OAUTH2_CLIENT_SECRET')
-    # DJANGO_SECRET_KEY = env('DJANGO_SECRET_KEY')
-    # CLIENT_ORIGIN_URL=env('CLIENT_ORIGIN_URL')
-    # PORT=env('PORT')
-    # DEBUG_ENABLE=env('DEBUG_ENABLE')
-
-    # AUTH0_DOMAIN=env('AUTH0_DOMAIN')
-    # AUTH0_AUDIENCE=env('AUTH0_AUDIENCE')
+    DJANGO_SECRET_KEY = env('DJANGO_SECRET_KEY')
+    AUTH0_DOMAIN=env('AUTH0_DOMAIN')
+    AUTH0_AUDIENCE=env('AUTH0_AUDIENCE')
 
 ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "is-my-customer-moving.herokuapp.com"]
 
@@ -97,6 +95,7 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
+    'config.middleware.Auth0Middleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -106,12 +105,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
-
-INTERNAL_IPS = [
-    # ...
-    '127.0.0.1',
-    # ...
+    
 ]
 
 # Auth user
@@ -119,18 +113,22 @@ AUTH_USER_MODEL = "accounts.CustomUser"
 
 # Configure django-rest-framework
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
+        'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication'
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'user': '100/day',
+    },
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
-    # 'DEFAULT_THROTTLE_CLASSES': [
-    #     'rest_framework.throttling.AnonRateThrottle',
-    #     'rest_framework.throttling.UserRateThrottle'
-    # ],
-    # 'DEFAULT_THROTTLE_RATES': {
-    #     'anon': '100/day',
-    #     'user': '1000/day'
-    # }
 }
 
 SIMPLE_JWT = {
@@ -143,18 +141,18 @@ SIMPLE_JWT = {
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
     'VERIFYING_KEY': None,
-    'AUDIENCE': None,
-    'ISSUER': None,
-    'JWK_URL': None,
+    'AUDIENCE': AUTH0_AUDIENCE,
+    'ISSUER': f'https://{AUTH0_DOMAIN}/',
+    'JWK_URL': f'https://{AUTH0_DOMAIN}/.well-known/jwks.json',
     'LEEWAY': 0,
 
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
     'USER_ID_FIELD': 'id',
-    'USER_ID_CLAIM': 'user_id',
+    'USER_ID_CLAIM': 'sub',
     'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
 
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken', 'config.tokens.Auth0Token',),
     'TOKEN_TYPE_CLAIM': 'token_type',
     'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
 
@@ -166,6 +164,31 @@ SIMPLE_JWT = {
 
     'AUTH_COOKIE': 'IMCM_Cookie',
 }
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'django.contrib.auth.backends.RemoteUserBackend',
+]
+
+# SIMPLE_JWT = {
+#     'ALGORITHM': 'RS256',
+#     'JWK_URL': f'https://{AUTH0_DOMAIN}/.well-known/jwks.json',
+#     'AUDIENCE': AUTH0_AUDIENCE,
+#     'ISSUER': f'https://{AUTH0_DOMAIN}/',
+#     'USER_ID_CLAIM': 'sub',
+#     'AUTH_TOKEN_CLASSES': ('authz.tokens.Auth0Token',),
+# }
+
+# JWT_AUTH = {
+#     'JWT_PAYLOAD_GET_USERNAME_HANDLER':
+#         'auth0authorization.utils.jwt_get_username_from_payload_handler',
+#     'JWT_DECODE_HANDLER':
+#         'auth0authorization.utils.jwt_decode_token',
+#     'JWT_ALGORITHM': 'RS256',
+#     'JWT_AUDIENCE': AUTH0_AUDIENCE,
+#     'JWT_ISSUER': f'https://{AUTH0_DOMAIN}/',
+#     'JWT_AUTH_HEADER_PREFIX': 'Bearer',
+# }
 
 
 ROOT_URLCONF = 'config.urls'
@@ -265,30 +288,39 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # CORS_ALLOW_CREDENTIALS = True
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000",
-#     "http://localhost:3006",
-#     "http://localhost:3007",  # React App will be on this port
-#     "https://is-my-customer-moving.vercel.app",
-#     "https://ismycustomermoving.com",
-#     "https://www.ismycustomermoving.com",
-#     "https://app.ismycustomermoving.com",
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:3006",
+    "http://localhost:3007",  # React App will be on this port
+    "https://is-my-customer-moving.vercel.app",
+    "https://ismycustomermoving.com",
+    "https://www.ismycustomermoving.com",
+    "https://app.ismycustomermoving.com",
 
-#     # Stripe
-#     "https://3.18.12.63",
-#     "https://3.130.192.231",
-#     "https://13.235.14.237",
-#     "https://13.235.122.149",
-#     "https://18.211.135.69",
-#     "https://35.154.171.200",
-#     "https://52.15.183.38",
-#     "https://54.88.130.119",
-#     "https://54.88.130.237",
-#     "https://54.187.174.169",
-#     "https://54.187.205.235",
-#     "https://54.187.216.72",
-# ]
-CORS_ALLOW_ALL_ORIGINS = True
+    # Stripe
+    "https://3.18.12.63",
+    "https://3.130.192.231",
+    "https://13.235.14.237",
+    "https://13.235.122.149",
+    "https://18.211.135.69",
+    "https://35.154.171.200",
+    "https://52.15.183.38",
+    "https://54.88.130.119",
+    "https://54.88.130.237",
+    "https://54.187.174.169",
+    "https://54.187.205.235",
+    "https://54.187.216.72",
+]
+CORS_ALLOW_HEADERS = [
+    "authorization",
+    "content-type",
+]
+# CORS_ALLOW_ALL_ORIGINS = True
+
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_SECONDS = 31536000
+
+CSP_FRAME_ANCESTORS = "'none'"
 
 
 # Default primary key field type

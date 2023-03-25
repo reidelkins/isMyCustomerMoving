@@ -26,7 +26,9 @@ ReactDOM.render(
     domain="dev-xv7akt6j0j1ojdng.us.auth0.com"
     clientId="f2pIlCewKkwJm70CE7IWXPOpOgkijCym"
     authorizationParams={{
-      redirect_uri: "http://localhost:3000/dashboard/customers"
+      redirect_uri: "http://localhost:3000/dashboard/customers",
+      audience: `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/`,
+      scope: "read:current_user",
     }}
   >
     <HelmetProvider>

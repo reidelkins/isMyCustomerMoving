@@ -144,6 +144,24 @@ export const loginAsync = (email, password) => async (dispatch) => {
   }
 };
 
+export const getUser = (accessToken) => async (dispatch, getState) => {
+  try {
+    dispatch(loginLoading());
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+         Authorization: `Bearer ${accessToken}`,
+      },
+    };
+    console.log(accessToken)
+    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/authenticated_user/`, config);
+    console.log(data)
+    dispatch(login(data));
+  } catch (error) {
+    dispatch(loginError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+}
+
 export const editUserAsync = (email, firstName, lastName, serviceTitan) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
@@ -264,7 +282,6 @@ export const submitNewPassAsync = (password, token) => async (dispatch) => {
     dispatch(registerError(err.response && err.response.data.detail ? err.response.data.detail : err.message,));
   }
 };
-
 
 export const logout = (error=null) => (dispatch) => {
   localStorage.removeItem('userInfo');

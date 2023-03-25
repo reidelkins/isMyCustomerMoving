@@ -15,7 +15,6 @@ login_patterns = [
 
 urlpatterns = [
     path('verify_registration/', views.VerifyRegistrationView.as_view(), name='verify'),
-    path('exchange_token/', views.Exchange_Token.as_view(), name='exchange_token'),
     path('confirmation/<str:pk>/<str:uid>/', views.confirmation, name='email_confirmation'),
     path('otp/disable/', views.OTPDisableView.as_view(), name='otp-disable'),
     path('otp/validate/', views.OTPValidateView.as_view(), name='otp-validate'),
@@ -27,6 +26,7 @@ urlpatterns = [
     path('users/<str:company>/', views.UserListView.as_view(), name='user-list'),
     path('register/', views.RegisterView.as_view(), name='register'),
     path('login/', include(login_patterns)),
+    path('authenticated_user/', views.AuthenticatedUserView.as_view(), name='authenticated_user'),
     path("", include(router.urls)),
     
 ]

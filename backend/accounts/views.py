@@ -2,7 +2,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from django.template.loader import get_template
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from rest_framework import permissions, status, generics
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
@@ -11,18 +11,59 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
-from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.generics import RetrieveAPIView
+
+
 from .utils import makeCompany
 from .models import CustomUser, Company, InviteToken
-from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, MyTokenObtainPairSerializer
+from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, MyTokenObtainPairSerializer, MessageSerializer
+from config import settings
+
 import datetime
 import jwt
-from config import settings
 import pytz
 import pyotp
 import uuid
+from functools import wraps
+
+
+
+
+
+
+def get_token_auth_header(request):
+    """Obtains the Access Token from the Authorization Header
+    """
+    print(request.META )
+    auth = request.META.get("HTTP_AUTHORIZATION", None)
+    parts = auth.split()
+    token = parts[1]
+
+    return token
+
+def requires_scope(required_scope):
+    """Determines if the required scope is present in the Access Token
+    Args:
+        required_scope (str): The scope required to access the resource
+    """
+    def require_scope(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            token = get_token_auth_header(args[0])
+            decoded = jwt.decode(token, verify=False)
+            if decoded.get("scope"):
+                token_scopes = decoded["scope"].split()
+                for token_scope in token_scopes:
+                    if token_scope == required_scope:
+                        return f(*args, **kwargs)
+            response = JsonResponse({'message': 'You don\'t have access to this resource'})
+            response.status_code = 403
+            return response
+        return decorated
+    return require_scope
 
 class ManageUserView(APIView):
+    permission_classes = [IsAuthenticated]
     #TODO: Currently not checking if user email is already in use
     def post(self, request, *args, **kwargs):
         try:
@@ -281,45 +322,24 @@ def confirmation(request, pk, uid):
         return HttpResponse('Your activation link has been expired')
     else:
         return redirect('http://www.ismycustomermoving.com/login')
-    
-
-class Exchange_Token(APIView):
-    authentication_classes = [JWTAuthentication]
-    def post(self, request):
-        try:
-            token = request.data['jwtToken']
-            try:
-                payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-                user = CustomUser.objects.get(id=payload['user_id'])
-                print(user)
-            except jwt.ExpiredSignatureError as identifier:
-                return Response({'detail': 'Activation Expired'}, status=status.HTTP_400_BAD_REQUEST)
-            except jwt.exceptions.DecodeError as identifier:
-                return Response({'detail': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            print(e)
-            return Response({'detail': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
-        serializer = UserSerializerWithToken(user, many=False)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
+        
 class MyTokenObtainPairView(TokenObtainPairView):
+    permission_classes = [IsAuthenticated]
     serializer_class = MyTokenObtainPairSerializer
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-
-        # # set JWT cookie on successful login
-        # if response.status_code == 200:
-        #     token = response.data.get('access')
-        #     if settings.IS_HEROKU:
-        #         response.set_cookie(
-        #             key=settings.SIMPLE_JWT['AUTH_COOKIE'], 
-        #             value=str(token), 
-        #             max_age=3600, secure=True, httponly=True, samesite='None')
-        #     else:    
-        #         response.set_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'], str(token), httponly=False)
-        print(response.__dict__)
-        return response
     
+class AuthenticatedUserView(APIView):
+    permission_classes = [IsAuthenticated]   
+    def get(self, request):
+        return JsonResponse({'message': 'Hello from a public endpoint! You don\'t need to be authenticated to see this.'})
+        # response = request.get('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token={}'.format(request.headers['Authorization']))
+        # if response.status_code == 403:
+        #     print(response.json()['detail'])
+
+
+        # user = CustomUser.objects.get(email=request.email)
+        # serializer = UserSerializer(user, many=False)
+        # return Response(serializer.data)
+
 class UserViewSet(ReadOnlyModelViewSet):
     throttle_classes = [UserRateThrottle]
     serializer_class = UserSerializer
@@ -327,7 +347,7 @@ class UserViewSet(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
 
 class OTPGenerateView(generics.GenericAPIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticated]
     throttle_classes = [AnonRateThrottle]
     authentication_classes = []
 
@@ -351,7 +371,7 @@ class OTPGenerateView(generics.GenericAPIView):
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 
 class OTPVerifyView(generics.GenericAPIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticated]
     throttle_classes = [AnonRateThrottle]
     authentication_classes = []
 
@@ -378,7 +398,7 @@ class OTPVerifyView(generics.GenericAPIView):
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)       
 
 class OTPValidateView(generics.GenericAPIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticated]
     throttle_classes = [AnonRateThrottle]
     authentication_classes = []
 
@@ -404,7 +424,7 @@ class OTPValidateView(generics.GenericAPIView):
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 
 class OTPDisableView(generics.GenericAPIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticated]
     throttle_classes = [AnonRateThrottle]
     authentication_classes = []
 
@@ -424,6 +444,7 @@ class OTPDisableView(generics.GenericAPIView):
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = UserListSerializer
     def get_queryset(self):
         return CustomUser.objects.filter(company=self.kwargs['company'])

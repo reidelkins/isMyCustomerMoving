@@ -48,7 +48,7 @@ import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client
 
 import ClientsListCall from '../redux/calls/ClientsListCall';
 import { selectClients, update, updateClientAsync, serviceTitanSync, salesForceSync, clientsAsync } from '../redux/actions/usersActions';
-import { logout, showLoginInfo } from '../redux/actions/authActions';
+import { getUser, showLoginInfo } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
 
@@ -287,12 +287,20 @@ export default function CustomerData() {
       setShownClients(count)
     }
   }, [count, filteredClients])
-  const { user, isAuthenticated, isLoading } = useAuth0();
-  useEffect(() => {
+  const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
+  
+  useEffect(async () => {
     if (isAuthenticated) {
-      console.log("get user info data")
-      // dispatch(getUser(user.sub));
+      console.log("get user info data");
+      const accessToken = await getAccessTokenSilently({
+        authorizationParams: {
+          audience: `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/`,
+          scope: "read:current_user",
+        },
+      });
+      dispatch(getUser(accessToken));
     }
+    
   }, [isAuthenticated, user]);
 
   if (isLoading) {

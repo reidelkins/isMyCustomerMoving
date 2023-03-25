@@ -1,20 +1,13 @@
 import traceback
-import requests
 from typing import Dict, Any
 from datetime import datetime, timedelta
 from .models import Company, Franchise, CustomUser
 from .serializers import CompanySerializer, UserSerializerWithToken
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.template.loader import get_template
-from django.http import HttpResponse
 
-
-GOOGLE_ID_TOKEN_INFO_URL = 'https://www.googleapis.com/oauth2/v3/tokeninfo'
-GOOGLE_ACCESS_TOKEN_OBTAIN_URL = 'https://oauth2.googleapis.com/token'
-GOOGLE_USER_INFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
 def makeCompany(companyName, email, phone, stripeId):
     try:
