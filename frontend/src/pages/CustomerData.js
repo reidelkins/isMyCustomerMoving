@@ -94,6 +94,19 @@ export default function CustomerData() {
 
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
+  const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
+  const [accessToken, setAccessToken] = useState('');
+
+  useEffect(async () => {
+    if (isAuthenticated) {
+      const at = await getAccessTokenSilently();
+      setAccessToken(at);
+      dispatch(getUser(at, user.email));
+
+    }
+    
+  }, [isAuthenticated, user]);
+  
   
   const [TABLE_HEAD, setTABLE_HEAD] = useState([{ id: 'name', label: 'Name', alignRight: false },
         { id: 'address', label: 'Address', alignRight: false },
@@ -123,10 +136,6 @@ export default function CustomerData() {
 
   const listClient = useSelector(selectClients);
   const {loading, CLIENTLIST, forSale, recentlySold, count, message, deleted } = listClient;
-  const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
-  
-  
-
   useEffect(() => {
     if (message) {
       setAlertOpen(true);
@@ -157,16 +166,6 @@ export default function CustomerData() {
 
   const [deletedAlertOpen, setDeletedAlertOpen] = useState(false);
 
-  const [accessToken, setAccessToken] = useState('');
-
-  useEffect(async () => {
-    if (isAuthenticated) {
-      const at = await getAccessTokenSilently();
-      setAccessToken(at);
-      dispatch(getUser(at, user.email));
-    }
-    
-  }, [isAuthenticated, user]);
 
   useEffect(() => {
     if (deleted > 0) {
