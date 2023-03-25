@@ -1,13 +1,15 @@
 import { useRef, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useAuth0 } from "@auth0/auth0-react";
 // @mui
 import { alpha } from '@mui/material/styles';
 import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton } from '@mui/material';
 
 import { useSelector, useDispatch } from 'react-redux';
-import { showLoginInfo, logout } from '../../redux/actions/authActions';
+import { showLoginInfo } from '../../redux/actions/authActions';
 // components
 import MenuPopover from '../../components/MenuPopover';
+import { URL } from '../../redux/constants';
 
 // ----------------------------------------------------------------------
 
@@ -54,11 +56,16 @@ export default function AccountPopover() {
   //     navigate('/login', { replace: true });
   //   }
   // }, [navigate, userInfo]);
-
+  const { logout } = useAuth0();
   const logoutHandler = () => {
-    dispatch(logout());
-    navigate('/login', { replace: true });
-    document.cookie = "IMCM_Cookie=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+     logout({
+      logoutParams: {
+        returnTo: `${URL}/logout`,
+      },
+    });
+    // dispatch(logout());
+    navigate('/logout', { replace: true });
+    // document.cookie = "IMCM_Cookie=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
   };
 
   const initials = userInfo?.name?.split(' ').map((n) => n[0]).join('');

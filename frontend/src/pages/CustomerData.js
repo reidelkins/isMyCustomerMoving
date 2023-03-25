@@ -27,6 +27,8 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
+import { useAuth0 } from "@auth0/auth0-react";
+
 import { DOMAIN } from '../redux/constants';
 
 // components
@@ -89,20 +91,9 @@ export function applySortFilter(array, comparator, query, userInfo) {
 
 export default function CustomerData() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();  
 
   const userLogin = useSelector(showLoginInfo);
-  const { userInfo, twoFA } = userLogin;
-  useEffect(() => {
-    if (!userInfo) {
-      dispatch(logout());
-      navigate('/login', { replace: true });
-      window.location.reload(false);
-    } else if (userInfo.otp_enabled && twoFA === false) {
-      navigate('/login', { replace: true });
-    }
-
-  }, [userInfo, dispatch, navigate]);
+  const { userInfo } = userLogin;
   
   const [TABLE_HEAD, setTABLE_HEAD] = useState([{ id: 'name', label: 'Name', alignRight: false },
         { id: 'address', label: 'Address', alignRight: false },
@@ -114,7 +105,7 @@ export default function CustomerData() {
         { id: 'note', label: 'Note', alignRight: false },
         { id: 'phone', label: 'Phone Number', alignRight: false }]);
   useEffect(() => {
-    if (userInfo.company.franchise) {
+    if (userInfo && userInfo.company.franchise) {
       setTABLE_HEAD([
         { id: 'name', label: 'Name', alignRight: false },
         { id: 'address', label: 'Address', alignRight: false },
@@ -296,309 +287,327 @@ export default function CustomerData() {
       setShownClients(count)
     }
   }, [count, filteredClients])
+  const { user, isAuthenticated, isLoading } = useAuth0();
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log("get user info data")
+      // dispatch(getUser(user.sub));
+    }
+  }, [isAuthenticated, user]);
 
+  if (isLoading) {
+      console.log("loading");
+      return <div>Loading ...</div>;
+    }
+  
+  
   return (
-    <Page title="User" userInfo={userInfo}>
-      <Container>
-        {userInfo ? <ClientsListCall /> : null}
-        {userInfo && (
-          <>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-              <Typography variant="h4" gutterBottom>
-                Welcome {(userInfo.first_name).charAt(0).toUpperCase()+(userInfo.first_name).slice(1)} {(userInfo.last_name).charAt(0).toUpperCase()+(userInfo.last_name).slice(1)} 👋
-              </Typography>              
-              {/* {(userInfo.email === 'reid@gmail.com' || userInfo.email === 'jb@aquaclearws.com' || userInfo.email === 'reidelkins3@gmail.com') && (
-                // <Button variant="contained" component={RouterLink} to="/dashboard/adduser" startIcon={<Iconify icon="eva:plus-fill" />}>
-                <NewCompanyModal/>
-              )} */}
-            </Stack>
-            <Stack direction="row" alignItems="center" justifyContent="space-around" mb={5} mx={10}>
-              <Stack direction="column" alignItems="center" justifyContent="center">
-                <CounterCard
-                  start={0}
-                  end={forSale.current}
-                  title="For Sale"
-                />
-                <Typography variant="h6" gutterBottom mt={-3}> All Time: {forSale.total}</Typography>
+    <div>
+    {isAuthenticated && userInfo && (
+      <Page title="User" userInfo={userInfo}>
+        <Container>
+          {userInfo ? <ClientsListCall /> : null}
+          {userInfo && (
+            <>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+                <Typography variant="h4" gutterBottom>
+                  Welcome {(userInfo.first_name).charAt(0).toUpperCase()+(userInfo.first_name).slice(1)} {(userInfo.last_name).charAt(0).toUpperCase()+(userInfo.last_name).slice(1)} 👋
+                </Typography>              
+                {/* {(userInfo.email === 'reid@gmail.com' || userInfo.email === 'jb@aquaclearws.com' || userInfo.email === 'reidelkins3@gmail.com') && (
+                  // <Button variant="contained" component={RouterLink} to="/dashboard/adduser" startIcon={<Iconify icon="eva:plus-fill" />}>
+                  <NewCompanyModal/>
+                )} */}
               </Stack>
+              <Stack direction="row" alignItems="center" justifyContent="space-around" mb={5} mx={10}>
+                <Stack direction="column" alignItems="center" justifyContent="center">
+                  <CounterCard
+                    start={0}
+                    end={forSale.current}
+                    title="For Sale"
+                  />
+                  <Typography variant="h6" gutterBottom mt={-3}> All Time: {forSale.total}</Typography>
+                </Stack>
 
-              <Stack direction="column" alignItems="center" justifyContent="center">
-                <CounterCard
-                  start={0}
-                  end={recentlySold.current}
-                  title="Recently Sold"
-                />
-                <Typography variant="h6" gutterBottom mt={-3}> All Time: {recentlySold.total}</Typography>
+                <Stack direction="column" alignItems="center" justifyContent="center">
+                  <CounterCard
+                    start={0}
+                    end={recentlySold.current}
+                    title="Recently Sold"
+                  />
+                  <Typography variant="h6" gutterBottom mt={-3}> All Time: {recentlySold.total}</Typography>
+                </Stack>
               </Stack>
-            </Stack>
-            <Card sx={{marginBottom:"3%"}}>
-              <ClientListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedClients={selectedClients} setSelected setSelectedClients product={userInfo.company.product} />
-              {loading ? (
-                <Box sx={{ width: '100%' }}>
-                  <LinearProgress />
-                </Box>
-              ) : null}
+              <Card sx={{marginBottom:"3%"}}>
+                <ClientListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedClients={selectedClients} setSelected setSelectedClients product={userInfo.company.product} />
+                {loading ? (
+                  <Box sx={{ width: '100%' }}>
+                    <LinearProgress />
+                  </Box>
+                ) : null}
 
-              <Scrollbar>
-                <TableContainer sx={{ minWidth: 800 }}>
-                  <Table>
-                    <ClientListHead
-                      order={order}
-                      orderBy={orderBy}
-                      headLabel={TABLE_HEAD}
-                      rowCount={rowsPerPage}
-                      numSelected={selected.length}
-                      onRequestSort={handleRequestSort}
-                      onSelectAllClick={handleSelectAllClick}
-                      checkbox={1}
-                    />
-                    <TableBody>
-                      {filteredClients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                        const { id, name, address, city, state, zipCode, status, contacted, note, phoneNumber, clientUpdates_client: clientUpdates, price, year_built: yearBuilt, housingType, equipmentInstalledDate} = row;
-                        const isItemSelected = selected.indexOf(address) !== -1;                        
-                        
-                        return (
-                          <React.Fragment key={row.id}>
-                            <Tooltip title="Click For Expanded Details">
-                              <TableRow
-                                hover
-                                key={id}
-                                tabIndex={-1}
-                                role="checkbox"
-                                selected={isItemSelected}
-                                aria-checked={isItemSelected}
-                                onClick={() => handleRowClick(id)}
-                              >
-                                <TableCell padding="checkbox">
-                                  <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, address, id)} />
-                                </TableCell>
-                                <TableCell component="th" scope="row" padding="none">
-                                  <Stack direction="row" alignItems="center" spacing={2}>
-                                    <Typography variant="subtitle2" noWrap>
-                                      {name}
-                                    </Typography>
-                                  </Stack>
-                                </TableCell>
-                                <TableCell align="left">{address}</TableCell>
-                                <TableCell align="left">{city}</TableCell>
-                                <TableCell align="left">{state}</TableCell>
-                                <TableCell align="left">{zipCode}</TableCell>
-                                <TableCell align="left">
-                                  {userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy' ? (
-                                    <Label variant="ghost" color={(status === 'No Change' && 'warning') || (contacted === 'False' && 'error'  || 'success')}>
-                                      {sentenceCase(status)}
-                                    </Label>
-                                  ) : (
-                                    <Label variant="ghost" color='warning'>
-                                      Free Tier
-                                    </Label>
-                                  )}
-                                  
-                                </TableCell>
-                                <TableCell>
-                                  {(() => {
-                                    if (status !== 'No Change' && userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy') {
-                                      if (contacted) {
-                                        return(
-                                          <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, false)}>
-                                            <Iconify icon="bi:check-lg" />
-                                          </IconButton>
-                                        )
-                                      }
-                                      return(
-                                        <IconButton color="error" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, true)}>
-                                          <Iconify icon="ps:check-box-empty" />
-                                        </IconButton>
-                                      )
-                                    }
-                                    return null;                                
-                                  })()}                          
-                                </TableCell>
-                                <TableCell>
-                                  <NoteModal 
-                                    passedNote={note}
-                                    id={id}
-                                    name={name}
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  {/* make phone number look like (123) 456-7890 */}
-                                  {phoneNumber ? `(${phoneNumber.slice(0,3)}) ${phoneNumber.slice(3,6)}-${phoneNumber.slice(6,10)}`: "N/A"}
-                                </TableCell>
-                                {userInfo.company.franchise && (
+                <Scrollbar>
+                  <TableContainer sx={{ minWidth: 800 }}>
+                    <Table>
+                      <ClientListHead
+                        order={order}
+                        orderBy={orderBy}
+                        headLabel={TABLE_HEAD}
+                        rowCount={rowsPerPage}
+                        numSelected={selected.length}
+                        onRequestSort={handleRequestSort}
+                        onSelectAllClick={handleSelectAllClick}
+                        checkbox={1}
+                      />
+                      <TableBody>
+                        {filteredClients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                          const { id, name, address, city, state, zipCode, status, contacted, note, phoneNumber, clientUpdates_client: clientUpdates, price, year_built: yearBuilt, housingType, equipmentInstalledDate} = row;
+                          const isItemSelected = selected.indexOf(address) !== -1;                        
+                          
+                          return (
+                            <React.Fragment key={row.id}>
+                              <Tooltip title="Click For Expanded Details">
+                                <TableRow
+                                  hover
+                                  key={id}
+                                  tabIndex={-1}
+                                  role="checkbox"
+                                  selected={isItemSelected}
+                                  aria-checked={isItemSelected}
+                                  onClick={() => handleRowClick(id)}
+                                >
+                                  <TableCell padding="checkbox">
+                                    <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, address, id)} />
+                                  </TableCell>
+                                  <TableCell component="th" scope="row" padding="none">
+                                    <Stack direction="row" alignItems="center" spacing={2}>
+                                      <Typography variant="subtitle2" noWrap>
+                                        {name}
+                                      </Typography>
+                                    </Stack>
+                                  </TableCell>
+                                  <TableCell align="left">{address}</TableCell>
+                                  <TableCell align="left">{city}</TableCell>
+                                  <TableCell align="left">{state}</TableCell>
+                                  <TableCell align="left">{zipCode}</TableCell>
+                                  <TableCell align="left">
+                                    {userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy' ? (
+                                      <Label variant="ghost" color={(status === 'No Change' && 'warning') || (contacted === 'False' && 'error'  || 'success')}>
+                                        {sentenceCase(status)}
+                                      </Label>
+                                    ) : (
+                                      <Label variant="ghost" color='warning'>
+                                        Free Tier
+                                      </Label>
+                                    )}
+                                    
+                                  </TableCell>
                                   <TableCell>
                                     {(() => {
-                                      if (status !== 'No Change') {
+                                      if (status !== 'No Change' && userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy') {
+                                        if (contacted) {
+                                          return(
+                                            <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, false)}>
+                                              <Iconify icon="bi:check-lg" />
+                                            </IconButton>
+                                          )
+                                        }
                                         return(
-                                          <ReferralModal id={id} alreadyReferred={false}/>
+                                          <IconButton color="error" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, true)}>
+                                            <Iconify icon="ps:check-box-empty" />
+                                          </IconButton>
                                         )
                                       }
                                       return null;                                
                                     })()}                          
                                   </TableCell>
-                                )}
-                                
-                              </TableRow>
-                            </Tooltip>                                                                         
-                            {expandedRow === id && userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy' && (
-                              <TableRow style={{position:'relative', left:'10%'}}>
-                                <TableCell colSpan={6}>
-                                  <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-                                    <ClientEventTable clientUpdates={clientUpdates}/>                                     
-                                    <ClientDetailsTable price={price} yearBuilt={yearBuilt} housingType={housingType} equipmentInstalledDate={equipmentInstalledDate} />                                    
-                                  </Stack>
+                                  <TableCell>
+                                    <NoteModal 
+                                      passedNote={note}
+                                      id={id}
+                                      name={name}
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    {/* make phone number look like (123) 456-7890 */}
+                                    {phoneNumber ? `(${phoneNumber.slice(0,3)}) ${phoneNumber.slice(3,6)}-${phoneNumber.slice(6,10)}`: "N/A"}
+                                  </TableCell>
+                                  {userInfo.company.franchise && (
+                                    <TableCell>
+                                      {(() => {
+                                        if (status !== 'No Change') {
+                                          return(
+                                            <ReferralModal id={id} alreadyReferred={false}/>
+                                          )
+                                        }
+                                        return null;                                
+                                      })()}                          
+                                    </TableCell>
+                                  )}
                                   
-                                </TableCell>
-                              </TableRow>
-                            )}
-                          </React.Fragment>
-                        );
-                      })}
-                      {emptyRows > 0 && (
-                        <TableRow style={{ height: 53 * emptyRows }}>
-                          <TableCell colSpan={6} />
-                        </TableRow>
-                      )}
-                    </TableBody>
-
-                    {filteredClients.length === 0 && (
-                      <TableBody>
-                        <TableRow>
-                          <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                            <SearchNotFound searchQuery={filterName} tipe="client"/>
-                          </TableCell>
-                        </TableRow>
+                                </TableRow>
+                              </Tooltip>                                                                         
+                              {expandedRow === id && userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy' && (
+                                <TableRow style={{position:'relative', left:'10%'}}>
+                                  <TableCell colSpan={6}>
+                                    <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+                                      <ClientEventTable clientUpdates={clientUpdates}/>                                     
+                                      <ClientDetailsTable price={price} yearBuilt={yearBuilt} housingType={housingType} equipmentInstalledDate={equipmentInstalledDate} />                                    
+                                    </Stack>
+                                    
+                                  </TableCell>
+                                </TableRow>
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
+                        {emptyRows > 0 && (
+                          <TableRow style={{ height: 53 * emptyRows }}>
+                            <TableCell colSpan={6} />
+                          </TableRow>
+                        )}
                       </TableBody>
-                    )}
-                  </Table>
-                </TableContainer>
-              </Scrollbar>
 
-              <TablePagination
-                rowsPerPageOptions={[10, 50, 100]}
-                component="div"
-                count={shownClients}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-              />
-            </Card>
-            <Collapse in={deletedAlertOpen}>
-              <Alert
-                action={
-                  <IconButton
-                    aria-label="close"
-                    color="inherit"
-                    size="small"
-                    onClick={() => {
-                      setDeletedAlertOpen(false);
-                    }}
-                  >
-                    X
-                  </IconButton>
-                }
-                sx={{ mb: 2, mx: 'auto', width: '80%' }}
-                variant="filled"
-                severity="error"
-              >
-                You tried to upload {deleted} clients more than allowed for your subscription tier. If you would like to upload more clients, please upgrade your subscription.
-              </Alert>
-            </Collapse>
-            {loading ? (
-              <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-                {((userInfo.first_name === 'reid' && userInfo.last_name === 'elkins') || (userInfo.first_name === 'Perspective' && userInfo.last_name === 'Customer')) && (
-                  <Button variant="contained" >
-                    <CircularProgress color="secondary"/>
-                  </Button>
-                )  }            
+                      {filteredClients.length === 0 && (
+                        <TableBody>
+                          <TableRow>
+                            <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
+                              <SearchNotFound searchQuery={filterName} tipe="client"/>
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      )}
+                    </Table>
+                  </TableContainer>
+                </Scrollbar>
 
-                {(userInfo.status === 'admin' && userInfo.finishedSTIntegration) && (
-                  <Button variant="contained">
-                    <CircularProgress color="secondary"/>
-                  </Button>
-                )}
+                <TablePagination
+                  rowsPerPageOptions={[10, 50, 100]}
+                  component="div"
+                  count={shownClients}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                />
+              </Card>
+              <Collapse in={deletedAlertOpen}>
+                <Alert
+                  action={
+                    <IconButton
+                      aria-label="close"
+                      color="inherit"
+                      size="small"
+                      onClick={() => {
+                        setDeletedAlertOpen(false);
+                      }}
+                    >
+                      X
+                    </IconButton>
+                  }
+                  sx={{ mb: 2, mx: 'auto', width: '80%' }}
+                  variant="filled"
+                  severity="error"
+                >
+                  You tried to upload {deleted} clients more than allowed for your subscription tier. If you would like to upload more clients, please upgrade your subscription.
+                </Alert>
+              </Collapse>
+              {loading ? (
+                <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+                  {((userInfo.first_name === 'reid' && userInfo.last_name === 'elkins') || (userInfo.first_name === 'Perspective' && userInfo.last_name === 'Customer')) && (
+                    <Button variant="contained" >
+                      <CircularProgress color="secondary"/>
+                    </Button>
+                  )  }            
 
-                {(userInfo.status === 'admin') && (
-                  <Button variant="contained">
-                    <CircularProgress color="secondary"/>
-                  </Button>
-                )}
-              </Stack>
-
-            ):(
-              <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-                {((userInfo.first_name === 'reid' && userInfo.last_name === 'elkins') || (userInfo.first_name === 'Perspective' && userInfo.last_name === 'Customer')) && (
-                  <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
-                    Update Status
-                  </Button>
-                )}        
-
-                {userInfo.status === 'admin' && (                 
-                  (
-                    userInfo.company.crm === 'ServiceTitan' ? (
-                      <Button onClick={stSync} variant="contained">
-                        Sync With Service Titan
-                      </Button>
-                    )
-                    :
-                  (
-                    userInfo.company.crm === 'Salesforce' && (
-                      <Button onClick={sfSync} variant="contained">
-                        Sync With Salesforce
-                      </Button>
-                    )
-                  ))                  
-                )}
-                {csvLoading ? (
-                  (userInfo.status === 'admin') && (
+                  {(userInfo.status === 'admin' && userInfo.finishedSTIntegration) && (
                     <Button variant="contained">
                       <CircularProgress color="secondary"/>
                     </Button>
-                  )
-                ):(
-                  (userInfo.status === 'admin' && userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy') && (
-                    <Button onClick={exportCSV} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
-                      Download To CSV
+                  )}
+
+                  {(userInfo.status === 'admin') && (
+                    <Button variant="contained">
+                      <CircularProgress color="secondary"/>
                     </Button>
-                  )
-                )}
-                {userInfo.company.product === 'price_1MhxfPAkLES5P4qQbu8O45xy' && (
-                  <UpgradeFromFree />
-                )}
-                
-              </Stack>
-            )}
-                                      
-            { userInfo.status === 'admin' && (
-                <FileUploader />
-            )}
-            
-            <Collapse in={alertOpen}>
-              <Alert
-                action={
-                  <IconButton
-                    aria-label="close"
-                    color="inherit"
-                    size="small"
-                    onClick={() => {
-                      setAlertOpen(false);
-                    }}
-                  >
-                    X
-                  </IconButton>
-                }
-                sx={{ mb: 2, mx: 'auto', width: '50%' }}
-                variant="filled"
-                severity="success"
-              >
-                {message}
-              </Alert>
-            </Collapse>
-            
-          </>
-        )}
-      </Container>
-    </Page>
+                  )}
+                </Stack>
+
+              ):(
+                <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+                  {((userInfo.first_name === 'reid' && userInfo.last_name === 'elkins') || (userInfo.first_name === 'Perspective' && userInfo.last_name === 'Customer')) && (
+                    <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+                      Update Status
+                    </Button>
+                  )}        
+
+                  {userInfo.status === 'admin' && (                 
+                    (
+                      userInfo.company.crm === 'ServiceTitan' ? (
+                        <Button onClick={stSync} variant="contained">
+                          Sync With Service Titan
+                        </Button>
+                      )
+                      :
+                    (
+                      userInfo.company.crm === 'Salesforce' && (
+                        <Button onClick={sfSync} variant="contained">
+                          Sync With Salesforce
+                        </Button>
+                      )
+                    ))                  
+                  )}
+                  {csvLoading ? (
+                    (userInfo.status === 'admin') && (
+                      <Button variant="contained">
+                        <CircularProgress color="secondary"/>
+                      </Button>
+                    )
+                  ):(
+                    (userInfo.status === 'admin' && userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy') && (
+                      <Button onClick={exportCSV} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+                        Download To CSV
+                      </Button>
+                    )
+                  )}
+                  {userInfo.company.product === 'price_1MhxfPAkLES5P4qQbu8O45xy' && (
+                    <UpgradeFromFree />
+                  )}
+                  
+                </Stack>
+              )}
+                                        
+              { userInfo.status === 'admin' && (
+                  <FileUploader />
+              )}
+              
+              <Collapse in={alertOpen}>
+                <Alert
+                  action={
+                    <IconButton
+                      aria-label="close"
+                      color="inherit"
+                      size="small"
+                      onClick={() => {
+                        setAlertOpen(false);
+                      }}
+                    >
+                      X
+                    </IconButton>
+                  }
+                  sx={{ mb: 2, mx: 'auto', width: '50%' }}
+                  variant="filled"
+                  severity="success"
+                >
+                  {message}
+                </Alert>
+              </Collapse>
+              
+            </>
+          )}
+        </Container>
+      </Page>
+    )
+    }
+    </div>
   );
 }
