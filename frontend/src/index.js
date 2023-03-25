@@ -4,7 +4,7 @@ import 'simplebar/src/simplebar.css';
 import ReactDOM from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import { Auth0Provider } from "@auth0/auth0-react";
+
 
 
 // ** Redux Imports
@@ -13,6 +13,7 @@ import store from './redux/store';
 
 //
 import App from './App';
+import { Auth0ProviderWithNavigate } from './auth0ProviderWithNavigate';
 import * as serviceWorker from './serviceWorker';
 import reportWebVitals from './reportWebVitals';
 import 'font-awesome/css/font-awesome.min.css'; // font-awesome
@@ -22,23 +23,16 @@ import 'font-awesome/css/font-awesome.min.css'; // font-awesome
 // ----------------------------------------------------------------------
 
 ReactDOM.render(
-  <Auth0Provider
-    domain="dev-xv7akt6j0j1ojdng.us.auth0.com"
-    clientId="f2pIlCewKkwJm70CE7IWXPOpOgkijCym"
-    authorizationParams={{
-      redirect_uri: "http://localhost:3000/dashboard/customers",
-      audience: `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/`,
-      scope: "read:current_user",
-    }}
-  >
-    <HelmetProvider>
-      <BrowserRouter>
+  
+  <HelmetProvider>
+    <BrowserRouter>
+      <Auth0ProviderWithNavigate>
         <Provider store={store}>
           <App />
         </Provider>
-      </BrowserRouter>
-    </HelmetProvider>
-  </Auth0Provider>,
+      </Auth0ProviderWithNavigate>
+    </BrowserRouter>
+  </HelmetProvider>,
   document.getElementById('root')
 );
 

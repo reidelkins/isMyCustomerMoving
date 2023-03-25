@@ -123,6 +123,9 @@ export default function CustomerData() {
 
   const listClient = useSelector(selectClients);
   const {loading, CLIENTLIST, forSale, recentlySold, count, message, deleted } = listClient;
+  const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
+  
+  
 
   useEffect(() => {
     if (message) {
@@ -151,7 +154,19 @@ export default function CustomerData() {
   const [csvLoading, setCsvLoading] = useState(false);
 
   const [alertOpen, setAlertOpen] = useState(false);
+
   const [deletedAlertOpen, setDeletedAlertOpen] = useState(false);
+
+  const [accessToken, setAccessToken] = useState('');
+
+  useEffect(async () => {
+    if (isAuthenticated) {
+      const at = await getAccessTokenSilently();
+      setAccessToken(at);
+      dispatch(getUser(at, user.email));
+    }
+    
+  }, [isAuthenticated, user]);
 
   useEffect(() => {
     if (deleted > 0) {
@@ -224,7 +239,7 @@ export default function CustomerData() {
   const handleChangePage = (event, newPage) => {
     // fetch new page if two away from needing to see new page
     if ((newPage+2) * rowsPerPage % 1000 === 0) {
-      dispatch(clientsAsync(((newPage+2) * rowsPerPage / 1000)+1))
+      dispatch(clientsAsync(accessToken, ((newPage+2) * rowsPerPage / 1000)+1))
     }
     setPage(newPage);
   };
@@ -236,16 +251,16 @@ export default function CustomerData() {
     setFilterName(event.target.value);
   };
   const updateContacted = (event, id, contacted) => {
-    dispatch(updateClientAsync(id, contacted, ""));
+    dispatch(updateClientAsync(accessToken, id, contacted, ""));
   };
   const updateStatus = () => {
-    dispatch(update());
+    dispatch(update(accessToken));
   };
   const stSync = () => {
-    dispatch(serviceTitanSync());
+    dispatch(serviceTitanSync(accessToken));
   };
   const sfSync = () => {
-    dispatch(salesForceSync());
+    dispatch(salesForceSync(accessToken));
   };
 
   const exportCSV = async () => {
@@ -287,21 +302,7 @@ export default function CustomerData() {
       setShownClients(count)
     }
   }, [count, filteredClients])
-  const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
   
-  useEffect(async () => {
-    if (isAuthenticated) {
-      console.log("get user info data");
-      const accessToken = await getAccessTokenSilently({
-        authorizationParams: {
-          audience: `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/`,
-          scope: "read:current_user",
-        },
-      });
-      dispatch(getUser(accessToken));
-    }
-    
-  }, [isAuthenticated, user]);
 
   if (isLoading) {
       console.log("loading");

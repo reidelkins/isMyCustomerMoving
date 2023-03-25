@@ -16,7 +16,7 @@ from rest_framework.generics import RetrieveAPIView
 
 from .utils import makeCompany
 from .models import CustomUser, Company, InviteToken
-from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, MyTokenObtainPairSerializer, MessageSerializer
+from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, MyTokenObtainPairSerializer
 from config import settings
 
 import datetime

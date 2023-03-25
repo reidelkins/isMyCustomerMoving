@@ -203,7 +203,7 @@ export const selectUsers = (state) => state.user.usersInfo;
 export const selectReferrals = (state) => state.user.referralInfo;
 export default userSlice.reducer;
 
-export const usersAsync = () => async (dispatch, getState) => {
+export const usersAsync = (accessToken) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -211,7 +211,7 @@ export const usersAsync = () => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
     dispatch(usersLoading());
@@ -223,7 +223,7 @@ export const usersAsync = () => async (dispatch, getState) => {
   }
 };
 
-export const deleteUserAsync = (ids) => async (dispatch, getState) => {
+export const deleteUserAsync = (accessToken, ids) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -232,7 +232,7 @@ export const deleteUserAsync = (ids) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
     dispatch(usersLoading());
@@ -243,14 +243,14 @@ export const deleteUserAsync = (ids) => async (dispatch, getState) => {
   }
 };
 
-export const clientsAsync = (page) => async (dispatch, getState) => {
+export const clientsAsync = (accessToken, page) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
     if (page === 1) {
@@ -275,7 +275,7 @@ export const clientsAsync = (page) => async (dispatch, getState) => {
   }
 };
 
-export const deleteClientAsync = (ids) => async (dispatch, getState) => {
+export const deleteClientAsync = (accessToken, ids) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -283,7 +283,7 @@ export const deleteClientAsync = (ids) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
     dispatch(clientsLoading());
@@ -301,15 +301,12 @@ export const deleteClientAsync = (ids) => async (dispatch, getState) => {
   }
 };
 
-export const updateClientAsync = (id, contacted, note) => async (dispatch, getState) => {
+export const updateClientAsync = (accessToken, id, contacted, note) => async (dispatch) => {
   try {
-    const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
-
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
     dispatch(clientsLoading());
@@ -320,12 +317,12 @@ export const updateClientAsync = (id, contacted, note) => async (dispatch, getSt
   }
 };
 
-export const uploadClientsUpdateAsync = (id, access) => async (dispatch) => {
+export const uploadClientsUpdateAsync = (accessToken, id) => async (dispatch) => {
   try {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        'Authorization': `Bearer ${access}`,
+        'Authorization': `Bearer ${accessToken}`,
       },
     };
     const { data } = await axios.get(`${DOMAIN}/api/v1/data/upload/${id}/`, config);
@@ -335,7 +332,7 @@ export const uploadClientsUpdateAsync = (id, access) => async (dispatch) => {
       dispatch(clientsAsync(1));
     } else {
       setTimeout(() => {
-        dispatch(uploadClientsUpdateAsync(id, access));
+        dispatch(uploadClientsUpdateAsync(accessToken, id));
       }, 1000);
     }
   } catch (error) {
@@ -343,7 +340,7 @@ export const uploadClientsUpdateAsync = (id, access) => async (dispatch) => {
   }
 };
 
-export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
+export const uploadClientsAsync = (accessToken, customers) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -351,20 +348,20 @@ export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
 
     dispatch(clientsLoading());
     const {data} = await axios.put(`${DOMAIN}/api/v1/data/upload/${company}/`, customers, config);
     dispatch(clientsUpload(data.data));
-    dispatch(uploadClientsUpdateAsync(data.task, userInfo.access))
+    dispatch(uploadClientsUpdateAsync(accessToken, data.task))
     } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 };
 
-export const filterClientsAsync = (statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax) => async (dispatch, getState) => {
+export const filterClientsAsync = (accessToken, statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -372,7 +369,7 @@ export const filterClientsAsync = (statusFilters, minPrice, maxPrice, minYear, m
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
     let filters = ""
@@ -407,12 +404,12 @@ export const filterClientsAsync = (statusFilters, minPrice, maxPrice, minYear, m
   }
 };
 
-export const serviceTitanUpdateAsync = (id, access) => async (dispatch) => {
+export const serviceTitanUpdateAsync = (accessToken, id) => async (dispatch) => {
   try {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        'Authorization': `Bearer ${access}`,
+        'Authorization': `Bearer ${accessToken}`,
       },
     };
     const { data } = await axios.get(`${DOMAIN}/api/v1/data/servicetitan/${id}/`, config);
@@ -422,7 +419,7 @@ export const serviceTitanUpdateAsync = (id, access) => async (dispatch) => {
       dispatch(clientsAsync(1));
     } else {     
       setTimeout(() => {
-        dispatch(serviceTitanUpdateAsync(id, access));
+        dispatch(serviceTitanUpdateAsync(accessToken, id));
       }, 1000);
       
     }
@@ -432,7 +429,7 @@ export const serviceTitanUpdateAsync = (id, access) => async (dispatch) => {
 };
         
 
-export const serviceTitanSync = () => async (dispatch, getState) => {
+export const serviceTitanSync = (accessToken) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -441,12 +438,12 @@ export const serviceTitanSync = () => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
     dispatch(clientsLoading());
     const { data } = await axios.put(`${DOMAIN}/api/v1/data/servicetitan/${company}/`, config);
-    dispatch(serviceTitanUpdateAsync(data.task, userInfo.access))
+    dispatch(serviceTitanUpdateAsync(accessToken, data.task))
     
   } catch (error) {
     throw new Error(error);
@@ -454,7 +451,7 @@ export const serviceTitanSync = () => async (dispatch, getState) => {
   }
 };
 
-export const salesForceSync = () => async (dispatch, getState) => {
+export const salesForceSync = (accessToken) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -463,7 +460,7 @@ export const salesForceSync = () => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
     // dispatch(clientsLoading());
@@ -476,7 +473,7 @@ export const salesForceSync = () => async (dispatch, getState) => {
   }
 };
 
-export const createCompany = (company, email) => async (dispatch, getState) => {
+export const createCompany = (accessToken, company, email) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -484,7 +481,7 @@ export const createCompany = (company, email) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
 
@@ -499,7 +496,7 @@ export const createCompany = (company, email) => async (dispatch, getState) => {
   }
 };
 
-export const manageUser = (email) => async (dispatch, getState) => {
+export const manageUser = (accessToken, email) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -507,7 +504,7 @@ export const manageUser = (email) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
 
@@ -524,7 +521,7 @@ export const manageUser = (email) => async (dispatch, getState) => {
   }
 };
 
-export const makeAdminAsync = (userId) => async (dispatch, getState) => {
+export const makeAdminAsync = (accessToken, userId) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -532,7 +529,7 @@ export const makeAdminAsync = (userId) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
 
@@ -548,14 +545,14 @@ export const makeAdminAsync = (userId) => async (dispatch, getState) => {
   }
 };
 
-export const update = () => async (dispatch, getState) => {
+export const update = (accessToken) => async (getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
     await axios.get(`${DOMAIN}/api/v1/data/update/${userInfo.company.id}`, config);
@@ -564,14 +561,14 @@ export const update = () => async (dispatch, getState) => {
   }
 };
 
-export const recentlySoldAsync = (page) => async (dispatch, getState) => {
+export const recentlySoldAsync = (accessToken, page) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
     if (page === 1) {
@@ -593,14 +590,14 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
   }
 }
 
-export const filterRecentlySoldAsync = (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters) => async (dispatch, getState) => {
+export const filterRecentlySoldAsync = (accessToken, minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
     dispatch(recentlySoldLoading());
@@ -630,14 +627,14 @@ export const filterRecentlySoldAsync = (minPrice, maxPrice, minYear, maxYear, mi
   }
 };
 
-export const makeReferralAsync = (id, area) => async (dispatch, getState) => {
+export const makeReferralAsync = (accessToken, id, area) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
     await axios.post(`${DOMAIN}/api/v1/accounts/referrals/${userInfo.company.id}/`, {id, area}, config);
@@ -646,14 +643,14 @@ export const makeReferralAsync = (id, area) => async (dispatch, getState) => {
   }
 }
 
-export const referralsAsync = (page) => async (dispatch, getState) => {
+export const referralsAsync = (accessToken, page) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
     if (page === 1) {

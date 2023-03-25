@@ -144,17 +144,16 @@ export const loginAsync = (email, password) => async (dispatch) => {
   }
 };
 
-export const getUser = (accessToken) => async (dispatch, getState) => {
+export const getUser = (accessToken, email) => async (dispatch, getState) => {
   try {
     dispatch(loginLoading());
     const config = {
       headers: {
         'Content-type': 'application/json',
-         Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
-    console.log(accessToken)
-    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/authenticated_user/`, config);
+    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/authenticated_user/${email}/`, config);
     console.log(data)
     dispatch(login(data));
   } catch (error) {
