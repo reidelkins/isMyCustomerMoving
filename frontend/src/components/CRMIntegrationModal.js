@@ -10,7 +10,7 @@ import ServiceTitanTagsModal from './ServiceTitanTagsModal';
 import AddSecretModal from './AddSecretModal';
 import Iconify from './Iconify';
 
-import { companyAsync, showSTInfo, salesForceAsync, salesForceTokenAsync } from '../redux/actions/authActions';
+import { companyAsync, showSTInfo, } from '../redux/actions/authActions';
 
 
 
@@ -204,10 +204,7 @@ const CRMIntegrationModal = ({user}) => {
     const [hsOpen, setHsOpen] = useState(false);
     const [zohoOpen, setZohoOpen] = useState(false);
 
-    const dispatch = useDispatch();
-    useEffect(() => {
-        dispatch(salesForceAsync())
-    }, [dispatch])
+    const dispatch = useDispatch();    
 
     const salesForce = useSelector(showSTInfo);
 
@@ -229,6 +226,7 @@ const CRMIntegrationModal = ({user}) => {
     },
     validationSchema: crmSchema,
     onSubmit: (values) => {
+        // TODO
         // dispatch(sendSuggestion(values.crm));
         setOpen(false);
     },
@@ -272,7 +270,7 @@ const CRMIntegrationModal = ({user}) => {
             // };
             // const resp = await axios.get(`https://login.salesforce.com/services/oauth2/token?grant_type=authorization_code&client_id=${salesForce.key}&client_secret=${salesForce.secret}&redirect_uri=${window.location.href}&code=${code}`, config)
             // console.log(resp.data)
-            dispatch(salesForceTokenAsync(code));
+            // dispatch(salesForceTokenAsync(code));
         }
     }, [dispatch])
 

@@ -1,8 +1,7 @@
-
-import { useAuth0 } from "@auth0/auth0-react";
-
 import React from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+
+
 
 // @mui
 import { styled } from '@mui/material/styles';
@@ -66,12 +65,10 @@ export default function Logout() {
   const smUp = useResponsive('up', 'sm');
 
   const mdUp = useResponsive('up', 'md');
-  const { loginWithRedirect } = useAuth0();
-  
 
-  const login = () => {
-    loginWithRedirect();
-  };
+  const returnToLogin = () => {
+    navigate('/login', { replace: true });
+    };
   
 
   return (
@@ -95,10 +92,10 @@ export default function Logout() {
         <Container maxWidth="sm">
           <ContentStyle>
             <Typography variant="h2" gutterBottom>
-              Log In Here
+              You Have Succesfully Logged Out
             </Typography>
             
-            <Button variant="contained" onClick={login}>Login</Button>
+            <Button variant="contained" onClick={returnToLogin}>Return To Login Page</Button>
             
             {!smUp && (
               <Typography variant="body2" align="center" sx={{ mt: 3 }}>
@@ -114,7 +111,3 @@ export default function Logout() {
     </Page>
   );
 }
-
-
-
-  

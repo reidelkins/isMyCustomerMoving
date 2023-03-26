@@ -17,6 +17,7 @@ import {
 
 } from '@mui/material';
 import { makeStyles } from '@mui/styles';
+import { useAuth0 } from "@auth0/auth0-react";
 import Iconify from './Iconify';
 import { uploadClientsAsync, selectClients } from '../redux/actions/usersActions';
 
@@ -50,6 +51,22 @@ const FileUploader = () => {
     'zip code': '',
     'phone number': '',
   });
+   const { getAccessTokenSilently } = useAuth0();
+const [accessToken, setAccessToken] = useState(null);
+
+useEffect(() => {
+  const fetchAccessToken = async () => {
+    const token = await getAccessTokenSilently();
+    setAccessToken(token);
+  };
+
+  fetchAccessToken();
+
+  // return a cleanup function to cancel any pending async operation and prevent updating the state on an unmounted component
+  return () => {
+    setAccessToken(null);
+  };
+}, [getAccessTokenSilently]);
 
   const listClient = useSelector(selectClients);
   const { loading } = listClient;
@@ -178,7 +195,7 @@ const FileUploader = () => {
   };
 
   const sendData = (data) => {
-    dispatch(uploadClientsAsync(data))
+    dispatch(uploadClientsAsync(data, accessToken))
   };
 
   return (

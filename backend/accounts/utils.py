@@ -1,20 +1,13 @@
 import traceback
-import requests
 from typing import Dict, Any
 from datetime import datetime, timedelta
 from .models import Company, Franchise, CustomUser
 from .serializers import CompanySerializer, UserSerializerWithToken
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.template.loader import get_template
-from django.http import HttpResponse
 
-
-GOOGLE_ID_TOKEN_INFO_URL = 'https://www.googleapis.com/oauth2/v3/tokeninfo'
-GOOGLE_ACCESS_TOKEN_OBTAIN_URL = 'https://oauth2.googleapis.com/token'
-GOOGLE_USER_INFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
 def makeCompany(companyName, email, phone, stripeId):
     try:
@@ -55,72 +48,4 @@ def find_franchise(area, franchise, referredFrom):
         print(f"ERROR: {e}")
         print(traceback.format_exc())
 
-def get_first_matching_attr(obj, *attrs, default=None):
-    for attr in attrs:
-        if hasattr(obj, attr):
-            return getattr(obj, attr)
 
-    return default
-
-def get_error_message(exc) -> str:
-    if hasattr(exc, 'message_dict'):
-        return exc.message_dict
-    error_msg = get_first_matching_attr(exc, 'message', 'messages')
-
-    if isinstance(error_msg, list):
-        error_msg = ', '.join(error_msg)
-
-    if error_msg is None:
-        error_msg = str(exc)
-
-    return error_msg
-
-def jwt_payload_handler_func(user):
-    payload = {
-        'user_id': user.id,
-        'email': user.email,
-        'exp': datetime.utcnow() + timedelta(days=1),
-        'iat': datetime.utcnow()
-    }
-    return payload
-
-def jwt_login(*, response: HttpResponse, user: CustomUser) -> HttpResponse:
-    serializer = UserSerializerWithToken(user, many=False)
-    token = serializer.data['access']
-
-    # set JWT cookie
-    response.set_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'], str(token), httponly=False)
-
-    return response
-
-def google_get_access_token(*, code: str, redirect_uri: str) -> str:
-    # Reference: https://developers.google.com/identity/protocols/oauth2/web-server#obtainingaccesstokens
-    data = {
-        'code': code,
-        'client_id': settings.GOOGLE_OAUTH2_CLIENT_ID,
-        'client_secret': settings.GOOGLE_OAUTH2_CLIENT_SECRET,
-        'redirect_uri': redirect_uri,
-        'grant_type': 'authorization_code'
-    }
-
-    response = requests.post(GOOGLE_ACCESS_TOKEN_OBTAIN_URL, data=data)
-
-    if not response.ok:
-        raise ValidationError('Failed to obtain access token from Google.')
-
-    access_token = response.json()['access_token']
-
-    return access_token
-
-
-def google_get_user_info(*, access_token: str) -> Dict[str, Any]:
-    # Reference: https://developers.google.com/identity/protocols/oauth2/web-server#callinganapi
-    response = requests.get(
-        GOOGLE_USER_INFO_URL,
-        params={'access_token': access_token}
-    )
-
-    if not response.ok:
-        raise ValidationError('Failed to obtain user info from Google.')
-
-    return response.json()

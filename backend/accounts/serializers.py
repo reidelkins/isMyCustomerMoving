@@ -28,7 +28,7 @@ class CompanySerializer(serializers.ModelSerializer):
     stripeID = serializers.CharField(max_length=100, required=False)
     recentlySoldPurchased = serializers.BooleanField(default=False)
     crm = serializers.CharField(max_length=100, required=False)
-    franchise = FranchiseSerializer(required=False)
+    # franchise = FranchiseSerializer(required=False)
     product = serializers.SerializerMethodField('get_product', read_only=True)
 
 
@@ -53,7 +53,7 @@ class CompanySerializer(serializers.ModelSerializer):
             return "No product"
     class Meta:
         model = Company
-        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'franchise', 'product']
+        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'product']
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
