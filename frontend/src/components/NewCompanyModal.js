@@ -17,6 +17,22 @@ export default function NewCompanyModal() {
     // const classes = useStyles();
     const [open, setOpen] = React.useState(false);
     const dispatch = useDispatch();
+    const { getAccessTokenSilently } = useAuth0();
+    const [accessToken, setAccessToken] = useState(null);
+
+    useEffect(() => {
+    const fetchAccessToken = async () => {
+        const token = await getAccessTokenSilently();
+        setAccessToken(token);
+    };
+
+    fetchAccessToken();
+
+    // return a cleanup function to cancel any pending async operation and prevent updating the state on an unmounted component
+    return () => {
+        setAccessToken(null);
+    };
+    }, [getAccessTokenSilently]);
     const handleOpen = () => {
         setOpen(true);
     };
@@ -36,7 +52,7 @@ export default function NewCompanyModal() {
         },
         validationSchema: NewCompanySchema,
         onSubmit: () => {
-            dispatch(createCompany(values.company, values.email));
+            dispatch(createCompany(values.company, values.email, accessToken));
             values.company = '';
             values.email = '';
             setOpen(false);
