@@ -91,39 +91,39 @@ export const authSlice = createSlice({
   
 });
 
-export const salesForceAsync = () => async (dispatch) => {
-  const config = {
-      headers: {
-        'Content-type': 'application/json',
-      },
-    };
-  try{      
-      const { data } = await axios.get(`${DOMAIN}/api/v1/data/salesforce/a/`, config);      
-      dispatch(salesForce(data));
-    } catch (error) {
-      console.log(error)
-      dispatch(salesForceError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    }
-}
+// export const salesForceAsync = () => async (dispatch) => {
+//   const config = {
+//       headers: {
+//         'Content-type': 'application/json',
+//       },
+//     };
+//   try{      
+//       const { data } = await axios.get(`${DOMAIN}/api/v1/data/salesforce/a/`, config);      
+//       dispatch(salesForce(data));
+//     } catch (error) {
+//       console.log(error)
+//       dispatch(salesForceError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+//     }
+// }
 
-export const salesForceTokenAsync = (code) => async (dispatch, getState) => {
-  const config = {
-      headers: {
-        'Content-type': 'application/json',
-      },
-    };
-  try{
-      const reduxStore = getState();
-      const {userInfo} = reduxStore.auth.userInfo;
-      const { id } = userInfo;
-      const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/salesforce/${userInfo.company.id}/`, {code, id}, config);
-      dispatch(login(data));
-      localStorage.setItem('userInfo', JSON.stringify(data));
-  } catch (error) {
-      console.log(error)
-      dispatch(salesForceError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    }
-}
+// export const salesForceTokenAsync = (code) => async (dispatch, getState) => {
+//   const config = {
+//       headers: {
+//         'Content-type': 'application/json',
+//       },
+//     };
+//   try{
+//       const reduxStore = getState();
+//       const {userInfo} = reduxStore.auth.userInfo;
+//       const { id } = userInfo;
+//       const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/salesforce/${userInfo.company.id}/`, {code, id}, config);
+//       dispatch(login(data));
+//       localStorage.setItem('userInfo', JSON.stringify(data));
+//   } catch (error) {
+//       console.log(error)
+//       dispatch(salesForceError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+//     }
+// }
       
 export const loginAsync = (email, password) => async (dispatch) => {
   try {
@@ -144,7 +144,7 @@ export const loginAsync = (email, password) => async (dispatch) => {
   }
 };
 
-export const getUser = (accessToken, email) => async (dispatch, getState) => {
+export const getUser = (email, accessToken) => async (dispatch) => {
   try {
     dispatch(loginLoading());
     const config = {
@@ -154,14 +154,14 @@ export const getUser = (accessToken, email) => async (dispatch, getState) => {
       },
     };
     const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/authenticated_user/${email}/`, config);
-    console.log(data)
     dispatch(login(data));
+    localStorage.setItem('userInfo', JSON.stringify(data));
   } catch (error) {
     dispatch(loginError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 }
 
-export const editUserAsync = (email, firstName, lastName, serviceTitan) => async (dispatch, getState) => {
+export const editUserAsync = (email, firstName, lastName, serviceTitan, accessToken) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -169,7 +169,7 @@ export const editUserAsync = (email, firstName, lastName, serviceTitan) => async
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
     dispatch(loginLoading());
@@ -181,7 +181,7 @@ export const editUserAsync = (email, firstName, lastName, serviceTitan) => async
   }
 };
 
-export const registerAsync = (company, accessToken, firstName, lastName, email, password, phone) => async (dispatch) => {
+export const registerAsync = (company, registrationToken, firstName, lastName, email, password, phone) => async (dispatch) => {
   try {
     dispatch(registerLoading());
     const config = {
@@ -189,7 +189,7 @@ export const registerAsync = (company, accessToken, firstName, lastName, email, 
         'Content-type': 'application/json',
       },
     };
-    const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/register/`, { company, accessToken, firstName, lastName, email, password, phone }, config);    
+    const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/register/`, { company, registrationToken, firstName, lastName, email, password, phone }, config);    
     dispatch(register(data));
     localStorage.setItem('userInfo', JSON.stringify(data));
   } catch (err) {

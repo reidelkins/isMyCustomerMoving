@@ -46,7 +46,9 @@ const TwoFactorAuth = ({
   };
 
   useEffect(() => {
-    QRCode.toDataURL(userInfo.otp_auth_url).then(setqrCodeUrl);
+    if (userInfo.otp_auth_url) {
+        QRCode.toDataURL(userInfo.otp_auth_url).then(setqrCodeUrl);
+    }
   }, [userInfo.otp_auth_url]);
 
   return (

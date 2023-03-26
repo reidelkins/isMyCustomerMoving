@@ -476,6 +476,7 @@ def auto_update(company_id=None):
         except:
             print("Company does not exist")
             return
+        delVariables([company_id, company])
     else:
         companies = Company.objects.all()
         for company in companies:
@@ -486,7 +487,7 @@ def auto_update(company_id=None):
                     print("free tier")
             except Exception as e:
                 print(e)
-    delVariables([company, companies])
+        delVariables([company, companies])
     
 
 @shared_task

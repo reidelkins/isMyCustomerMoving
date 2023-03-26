@@ -51,9 +51,6 @@ import { selectClients, update, updateClientAsync, serviceTitanSync, salesForceS
 import { getUser, showLoginInfo } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
-
-
-// ----------------------------------------------------------------------
 // change this to sort by status
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -91,21 +88,32 @@ export function applySortFilter(array, comparator, query, userInfo) {
 
 export default function CustomerData() {
   const dispatch = useDispatch();
+  const { getAccessTokenSilently } = useAuth0();
+  const [accessToken, setAccessToken] = useState(null);
+
+  useEffect(() => {
+    const fetchAccessToken = async () => {
+      const token = await getAccessTokenSilently();
+      setAccessToken(token);
+    };
+
+    fetchAccessToken();
+
+    // return a cleanup function to cancel any pending async operation and prevent updating the state on an unmounted component
+    return () => {
+      setAccessToken(null);
+    };
+  }, [getAccessTokenSilently]);
 
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
-  const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
-  const [accessToken, setAccessToken] = useState('');
+  const { user, isAuthenticated, isLoading } = useAuth0();
 
   useEffect(async () => {
-    if (isAuthenticated) {
-      const at = await getAccessTokenSilently();
-      setAccessToken(at);
-      dispatch(getUser(at, user.email));
-
+    if (isAuthenticated && accessToken) {      
+      dispatch(getUser(user.email, accessToken));
     }
-    
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, accessToken]);
   
   
   const [TABLE_HEAD, setTABLE_HEAD] = useState([{ id: 'name', label: 'Name', alignRight: false },
@@ -166,7 +174,6 @@ export default function CustomerData() {
 
   const [deletedAlertOpen, setDeletedAlertOpen] = useState(false);
 
-
   useEffect(() => {
     if (deleted > 0) {
       setDeletedAlertOpen(true);
@@ -175,10 +182,18 @@ export default function CustomerData() {
 
   const [clientListLength, setClientListLength] = useState(0);
 
+  const [filteredClients, setFilteredClients] = useState([]);
+
+  useEffect(() => {
+    if (CLIENTLIST.length > 0) {
+      setFilteredClients(applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName, userInfo.status));
+    }
+  }, [CLIENTLIST, order, orderBy, filterName, userInfo]);
+
   useEffect(() => {
     if (CLIENTLIST.length < clientListLength) {
       setPage(0);
-      setShownClients(0);
+      setShownClients(0);      
     }
     setClientListLength(CLIENTLIST.length);
   }, [CLIENTLIST]);
@@ -238,7 +253,7 @@ export default function CustomerData() {
   const handleChangePage = (event, newPage) => {
     // fetch new page if two away from needing to see new page
     if ((newPage+2) * rowsPerPage % 1000 === 0) {
-      dispatch(clientsAsync(accessToken, ((newPage+2) * rowsPerPage / 1000)+1))
+      dispatch(clientsAsync( ((newPage+2) * rowsPerPage / 1000)+1, accessToken))
     }
     setPage(newPage);
   };
@@ -250,7 +265,7 @@ export default function CustomerData() {
     setFilterName(event.target.value);
   };
   const updateContacted = (event, id, contacted) => {
-    dispatch(updateClientAsync(accessToken, id, contacted, ""));
+    dispatch(updateClientAsync(id, contacted, "", accessToken));
   };
   const updateStatus = () => {
     dispatch(update(accessToken));
@@ -292,7 +307,7 @@ export default function CustomerData() {
     setCsvLoading(false);
   };
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
-  const filteredClients = userInfo ? applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName, userInfo.status) : [];
+  
   
   useEffect(() => {
     if (filteredClients.length < CLIENTLIST.length) {

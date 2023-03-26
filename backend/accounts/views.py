@@ -3,6 +3,7 @@ from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from django.template.loader import get_template
 from django.http import HttpResponse, JsonResponse
+from django.utils.timezone import make_aware
 from rest_framework import permissions, status, generics
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
@@ -76,9 +77,9 @@ class ManageUserView(APIView):
                         )
                         token, created = InviteToken.objects.get_or_create(company=company, email=request.data['email'])
                         if created:
-                            mail_subject = "Account Invite For Is My Customer Moving"                            
+                            mail_subject = "Account Invite For Is My Customer Moving"
                         else:
-                            token.expiration = datetime.datetime.utcnow() + datetime.timedelta(days=1)
+                            token.expiration = make_aware(datetime.datetime.utcnow() + datetime.timedelta(days=1), timezone=pytz.UTC)
                             token.save()
                             mail_subject = "Invite Reminder For Is My Customer Moving"
 

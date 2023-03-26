@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from django.utils.crypto import get_random_string
 from django.conf import settings
 from django.template.loader import get_template
+from djstripe import models as djstripe_models
 
 
 STATUS_CHOICES = (
@@ -91,7 +92,7 @@ class Company(models.Model):
                           default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     accessToken = models.CharField(default=create_access_token, max_length=100)
-    product = models.ForeignKey("djstripe.Plan", blank=True, null=True, on_delete=models.SET_NULL)
+    product = models.ForeignKey("djstripe.Plan", blank=True, null=True, on_delete=models.SET_NULL, default=djstripe_models.Plan.objects.get(id="price_1MhxfPAkLES5P4qQbu8O45xy").pk)
     phone = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(max_length=100, blank=True, null=True)
     stripeID = models.CharField(max_length=100, blank=True, null=True)

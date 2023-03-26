@@ -23,6 +23,7 @@ import {
   Divider,
   Stack
 } from '@mui/material';
+import { useAuth0 } from "@auth0/auth0-react";
 
 import Iconify from '../../../components/Iconify';
 import { filterRecentlySoldAsync, recentlySoldAsync } from '../../../redux/actions/usersActions'
@@ -65,6 +66,22 @@ export default function RecentlySoldDataFilter() {
     const [maxDaysAgo, setMaxDaysAgo] = useState(30);
     const [error, setError] = useState('');
     const dispatch = useDispatch();
+    const { getAccessTokenSilently } = useAuth0();
+    const [accessToken, setAccessToken] = useState(null);
+
+    useEffect(() => {
+    const fetchAccessToken = async () => {
+        const token = await getAccessTokenSilently();
+        setAccessToken(token);
+    };
+
+    fetchAccessToken();
+
+    // return a cleanup function to cancel any pending async operation and prevent updating the state on an unmounted component
+    return () => {
+        setAccessToken(null);
+    };
+    }, [getAccessTokenSilently]);
 
     const handleTagFilterChange = (event) => {
         const { value } = event.target;
@@ -95,7 +112,7 @@ export default function RecentlySoldDataFilter() {
         setMaxDaysAgo(30);
         setTagFilters([]);
         setError('');
-        dispatch(recentlySoldAsync(1));
+        dispatch(recentlySoldAsync(1, accessToken));
     };
 
     const tagOptions = [
@@ -137,7 +154,7 @@ export default function RecentlySoldDataFilter() {
         if( minDaysAgo > maxDaysAgo || maxDaysAgo < minDaysAgo) {
             setError('Min days ago sold must be less than max days ago sold')
         } else {
-            dispatch(filterRecentlySoldAsync(minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters))
+            dispatch(filterRecentlySoldAsync(minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, accessToken))
             setShowFilters(false);
         }
     };

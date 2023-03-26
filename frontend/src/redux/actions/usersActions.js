@@ -207,7 +207,6 @@ export const usersAsync = (accessToken) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
-
     const config = {
       headers: {
         'Content-type': 'application/json',
@@ -223,7 +222,7 @@ export const usersAsync = (accessToken) => async (dispatch, getState) => {
   }
 };
 
-export const deleteUserAsync = (accessToken, ids) => async (dispatch, getState) => {
+export const deleteUserAsync = (ids, accessToken) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -243,7 +242,7 @@ export const deleteUserAsync = (accessToken, ids) => async (dispatch, getState) 
   }
 };
 
-export const clientsAsync = (accessToken, page) => async (dispatch, getState) => {
+export const clientsAsync = (page, accessToken) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -275,15 +274,12 @@ export const clientsAsync = (accessToken, page) => async (dispatch, getState) =>
   }
 };
 
-export const deleteClientAsync = (accessToken, ids) => async (dispatch, getState) => {
+export const deleteClientAsync = (ids, accessToken) => async (dispatch) => {
   try {
-    const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
-
     const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
+      headers: { 
+        'Authorization': `Bearer ${accessToken}`, 
+        'Content-Type': 'application/json',
       },
     };
     dispatch(clientsLoading());
@@ -291,17 +287,21 @@ export const deleteClientAsync = (accessToken, ids) => async (dispatch, getState
     let i = 0;
     for (i; i < ids.length; i += chunkSize) {
       const chunk = ids.slice(i, i + chunkSize);
-      await axios.delete(`${DOMAIN}/api/v1/data/updateclient/`, { data: {'clients': chunk}}, config);
+
+      await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, {'clients': ids, 'type': 'delete'}, config);
+
     }
     const chunk = ids.slice(i, i + chunkSize);
-    await axios.delete(`${DOMAIN}/api/v1/data/updateclient/`, { data: {'clients': chunk}}, config);
-    dispatch(clientsAsync(1));
+    if (chunk.length > 0) {
+      await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, {'clients': ids, 'type': 'delete'}, config);
+    }
+    dispatch(clientsAsync(1, accessToken));
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 };
 
-export const updateClientAsync = (accessToken, id, contacted, note) => async (dispatch) => {
+export const updateClientAsync = (id, contacted, note, accessToken) => async (dispatch) => {
   try {
     const config = {
       headers: {
@@ -310,14 +310,14 @@ export const updateClientAsync = (accessToken, id, contacted, note) => async (di
       },
     };
     dispatch(clientsLoading());
-    await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, { 'clients': id, contacted, note }, config);
-    dispatch(clientsAsync(1));
+    await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, { 'clients': id, 'type': 'edit', contacted, note }, config);
+    dispatch(clientsAsync(1, accessToken));
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 };
 
-export const uploadClientsUpdateAsync = (accessToken, id) => async (dispatch) => {
+export const uploadClientsUpdateAsync = (id, accessToken) => async (dispatch) => {
   try {
     const config = {
       headers: {
@@ -329,10 +329,10 @@ export const uploadClientsUpdateAsync = (accessToken, id) => async (dispatch) =>
     if (data.status === 'SUCCESS') {
       dispatch(clientsUpload(data.data))
       dispatch(clientsNotAdded(data.deleted))
-      dispatch(clientsAsync(1));
+      dispatch(clientsAsync(1, accessToken));
     } else {
       setTimeout(() => {
-        dispatch(uploadClientsUpdateAsync(accessToken, id));
+        dispatch(uploadClientsUpdateAsync(id, accessToken));
       }, 1000);
     }
   } catch (error) {
@@ -340,7 +340,7 @@ export const uploadClientsUpdateAsync = (accessToken, id) => async (dispatch) =>
   }
 };
 
-export const uploadClientsAsync = (accessToken, customers) => async (dispatch, getState) => {
+export const uploadClientsAsync = (customers, accessToken) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -355,13 +355,13 @@ export const uploadClientsAsync = (accessToken, customers) => async (dispatch, g
     dispatch(clientsLoading());
     const {data} = await axios.put(`${DOMAIN}/api/v1/data/upload/${company}/`, customers, config);
     dispatch(clientsUpload(data.data));
-    dispatch(uploadClientsUpdateAsync(accessToken, data.task))
+    dispatch(uploadClientsUpdateAsync(data.task, accessToken))
     } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 };
 
-export const filterClientsAsync = (accessToken, statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax) => async (dispatch, getState) => {
+export const filterClientsAsync = (statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, accessToken) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -404,7 +404,7 @@ export const filterClientsAsync = (accessToken, statusFilters, minPrice, maxPric
   }
 };
 
-export const serviceTitanUpdateAsync = (accessToken, id) => async (dispatch) => {
+export const serviceTitanUpdateAsync = (id, accessToken) => async (dispatch) => {
   try {
     const config = {
       headers: {
@@ -416,10 +416,10 @@ export const serviceTitanUpdateAsync = (accessToken, id) => async (dispatch) => 
     if (data.status === 'SUCCESS') {
       dispatch(clientsNotAdded(data.deleted))
       dispatch(clientsUpload(data.data))
-      dispatch(clientsAsync(1));
+      dispatch(clientsAsync(1, accessToken));
     } else {     
       setTimeout(() => {
-        dispatch(serviceTitanUpdateAsync(accessToken, id));
+        dispatch(serviceTitanUpdateAsync(id, accessToken));
       }, 1000);
       
     }
@@ -428,7 +428,6 @@ export const serviceTitanUpdateAsync = (accessToken, id) => async (dispatch) => 
   }
 };
         
-
 export const serviceTitanSync = (accessToken) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
@@ -443,7 +442,7 @@ export const serviceTitanSync = (accessToken) => async (dispatch, getState) => {
     };
     dispatch(clientsLoading());
     const { data } = await axios.put(`${DOMAIN}/api/v1/data/servicetitan/${company}/`, config);
-    dispatch(serviceTitanUpdateAsync(accessToken, data.task))
+    dispatch(serviceTitanUpdateAsync(data.task, accessToken))
     
   } catch (error) {
     throw new Error(error);
@@ -465,7 +464,7 @@ export const salesForceSync = (accessToken) => async (dispatch, getState) => {
     };
     // dispatch(clientsLoading());
     await axios.put(`${DOMAIN}/api/v1/data/salesforce/${company}/`, config);
-    dispatch(clientsAsync(1))
+    dispatch(clientsAsync(1, accessToken))
     
   } catch (error) {
     throw new Error(error);
@@ -473,10 +472,8 @@ export const salesForceSync = (accessToken) => async (dispatch, getState) => {
   }
 };
 
-export const createCompany = (accessToken, company, email) => async (dispatch, getState) => {
+export const createCompany = (company, email, accessToken) => async () => {
   try {
-    const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
 
     const config = {
       headers: {
@@ -496,7 +493,7 @@ export const createCompany = (accessToken, company, email) => async (dispatch, g
   }
 };
 
-export const manageUser = (accessToken, email) => async (dispatch, getState) => {
+export const addUser = (email, accessToken) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -521,10 +518,8 @@ export const manageUser = (accessToken, email) => async (dispatch, getState) => 
   }
 };
 
-export const makeAdminAsync = (accessToken, userId) => async (dispatch, getState) => {
+export const makeAdminAsync = (userId, accessToken) => async (dispatch) => {
   try {
-    const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
 
     const config = {
       headers: {
@@ -545,7 +540,7 @@ export const makeAdminAsync = (accessToken, userId) => async (dispatch, getState
   }
 };
 
-export const update = (accessToken) => async (getState) => {
+export const update = () => async (getState, accessToken) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -561,7 +556,7 @@ export const update = (accessToken) => async (getState) => {
   }
 };
 
-export const recentlySoldAsync = (accessToken, page) => async (dispatch, getState) => {
+export const recentlySoldAsync = (page, accessToken) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -590,7 +585,7 @@ export const recentlySoldAsync = (accessToken, page) => async (dispatch, getStat
   }
 }
 
-export const filterRecentlySoldAsync = (accessToken, minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters) => async (dispatch, getState) => {
+export const filterRecentlySoldAsync = (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, accessToken) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -627,7 +622,7 @@ export const filterRecentlySoldAsync = (accessToken, minPrice, maxPrice, minYear
   }
 };
 
-export const makeReferralAsync = (accessToken, id, area) => async (dispatch, getState) => {
+export const makeReferralAsync = (id, area, accessToken) => async (getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -643,7 +638,7 @@ export const makeReferralAsync = (accessToken, id, area) => async (dispatch, get
   }
 }
 
-export const referralsAsync = (accessToken, page) => async (dispatch, getState) => {
+export const referralsAsync = (page, accessToken) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
