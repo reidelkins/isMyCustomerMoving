@@ -11,6 +11,10 @@ export const Auth0ProviderWithNavigate = ({
   const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID;
   const redirectUri = process.env.REACT_APP_AUTH0_CALLBACK_URL;
   const audience = process.env.REACT_APP_AUTH0_AUDIENCE;
+  console.log('domain: ', domain)
+  console.log('clientId: ', clientId)
+  console.log('redirectUri: ', redirectUri)
+  console.log('audience: ', audience)
 
   const onRedirectCallback = (appState) => {
     navigate(appState?.returnTo || window.location.pathname);
