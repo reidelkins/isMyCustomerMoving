@@ -19,8 +19,7 @@ const RootStyle = styled(Toolbar)(({ theme }) => ({
 export default function RecentlySoldListToolbar() {
 
   return (
-    <RootStyle>
-      
+    <RootStyle>      
         <RecentlySoldDataFilter />
     </RootStyle>
   );
