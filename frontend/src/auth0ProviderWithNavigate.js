@@ -18,6 +18,8 @@ export const Auth0ProviderWithNavigate = ({
 
   const onRedirectCallback = (appState) => {
     console.log("onRedirectCallback")
+    console.log(appState)
+    console.log(window.location.pathname)
     // navigate(appState?.returnTo || window.location.pathname);
   };
 
