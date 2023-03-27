@@ -41,6 +41,7 @@ packaging==23.0
 platformdirs==3.1.1
 pluggy==1.0.0
 prompt-toolkit==3.0.38
+psycopg2==2.9.5
 pycparser==2.20
 PyJWT==2.2.0
 pyotp==2.8.0
