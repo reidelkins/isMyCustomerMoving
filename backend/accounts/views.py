@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-# from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 from rest_framework.generics import RetrieveAPIView
@@ -320,9 +320,8 @@ def confirmation(request, pk, uid):
     else:
         return redirect('http://www.ismycustomermoving.com/login')
         
-# class MyTokenObtainPairView(TokenObtainPairView):
-#     permission_classes = [IsAuthenticated]
-#     serializer_class = MyTokenObtainPairSerializer
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
     
 class AuthenticatedUserView(APIView):
     permission_classes = [IsAuthenticated]   
