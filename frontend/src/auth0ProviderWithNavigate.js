@@ -17,14 +17,10 @@ export const Auth0ProviderWithNavigate = ({
   console.log('audience: ', audience)
 
   const onRedirectCallback = (appState) => {
-    console.log("onRedirectCallback")
-    console.log(appState)
-    console.log(window.location.pathname)
-    // navigate(appState?.returnTo || window.location.pathname);
+    navigate(window.location.pathname, { replace: true });
   };
 
   if (!(domain && clientId && redirectUri && audience)) {
-    console.log("here")
     return null;
   }
 
