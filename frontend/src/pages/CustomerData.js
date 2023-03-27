@@ -112,13 +112,12 @@ export default function CustomerData() {
   useEffect(() => {
     // TODO figure out how to set an error that lasts
     if (error) {
-      console.log('error', error)
-      // logout({
-      //   logoutParams: {
-      //     returnTo: `${URL}/login/error`,
-      //     state: 'error=NoUserWithThatEmail'
-      //   },
-      // });
+      logout({
+        logoutParams: {
+          returnTo: `${URL}/login/error`,
+          state: 'error=NoUserWithThatEmail'
+        },
+      });
     }
   }, [error]);
 
