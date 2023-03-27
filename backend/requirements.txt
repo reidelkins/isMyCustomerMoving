@@ -18,6 +18,7 @@ click-plugins==1.1.1
 click-repl==0.2.0
 cryptography==35.0.0
 decorator==5.1.1
+dj-database-url==1.2.0
 dj-stripe==2.7.3
 Django==3.2.8
 django-cors-headers==3.10.0
