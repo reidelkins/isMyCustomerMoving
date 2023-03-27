@@ -42,7 +42,15 @@ DATABASES = {
     }
 }
 MAX_CONN_AGE = 600
-
+SECRET_KEY=get_env_var('SECRET_KEY')
+DJANGO_SECRET_KEY = get_env_var('DJANGO_SECRET_KEY')
+EMAIL_HOST_PASSWORD = get_env_var('EMAIL_PASSWD')
+SCRAPFLY_KEY = get_env_var('SCRAPFLY_KEY')
+ST_APP_KEY = get_env_var('ST_APP_KEY')
+SALESFORCE_CONSUMER_KEY = get_env_var('SALESFORCE_CONSUMER_KEY')
+SALESFORCE_CONSUMER_SECRET = get_env_var('SALESFORCE_CONSUMER_SECRET')
+AUTH0_DOMAIN=get_env_var('AUTH0_DOMAIN')
+AUTH0_AUDIENCE=get_env_var('AUTH0_AUDIENCE')
 # REDIS_URL = os.environ.get('REDIS_URL')
 if IS_HEROKU or IS_GITHUB:
     DEBUG = False
@@ -61,16 +69,10 @@ else:
     BASE_FRONTEND_URL = 'http://localhost:3000'
     BASE_BACKEND_URL = 'http://localhost:8000'
     CLIENT_ORIGIN_URL="http://localhost:3000"
+    
+    SECRET_KEY=open(f'{BASE_DIR}/{SECRET_KEY}').read()
 
-SECRET_KEY=get_env_var('SECRET_KEY')
-DJANGO_SECRET_KEY = get_env_var('DJANGO_SECRET_KEY')
-EMAIL_HOST_PASSWORD = get_env_var('EMAIL_PASSWD')
-SCRAPFLY_KEY = get_env_var('SCRAPFLY_KEY')
-ST_APP_KEY = get_env_var('ST_APP_KEY')
-SALESFORCE_CONSUMER_KEY = get_env_var('SALESFORCE_CONSUMER_KEY')
-SALESFORCE_CONSUMER_SECRET = get_env_var('SALESFORCE_CONSUMER_SECRET')
-AUTH0_DOMAIN=get_env_var('AUTH0_DOMAIN')
-AUTH0_AUDIENCE=get_env_var('AUTH0_AUDIENCE')
+
 
 
 ALLOWED_HOSTS = ['*']
@@ -247,7 +249,7 @@ AUTH0_DOMAIN = get_env_var('AUTH0_DOMAIN')
 AUTH0_AUDIENCE = get_env_var('AUTH0_AUDIENCE')
 
 SIMPLE_JWT = {
-    'ALGORITHM': 'HS256',
+    'ALGORITHM': 'RS256',
     'JWK_URL': f'https://{AUTH0_DOMAIN}/.well-known/jwks.json',
     'AUDIENCE': AUTH0_AUDIENCE,
     'ISSUER': f'https://{AUTH0_DOMAIN}/',
