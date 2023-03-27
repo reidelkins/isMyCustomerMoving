@@ -18,7 +18,7 @@ export const Auth0ProviderWithNavigate = ({
 
   const onRedirectCallback = (appState) => {
     console.log("onRedirectCallback")
-    navigate(appState?.returnTo || window.location.pathname);
+    // navigate(appState?.returnTo || window.location.pathname);
   };
 
   if (!(domain && clientId && redirectUri && audience)) {
@@ -34,7 +34,7 @@ export const Auth0ProviderWithNavigate = ({
         audience,
         redirect_uri: redirectUri,
       }}
-      // onRedirectCallback={onRedirectCallback}
+      onRedirectCallback={onRedirectCallback}
     >
       {children}
     </Auth0Provider>
