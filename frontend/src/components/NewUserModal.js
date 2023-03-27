@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import * as Yup from 'yup';
 import {
     Button,
@@ -9,14 +9,32 @@ import {
 } from '@mui/material';
 import { useFormik, Form, FormikProvider } from 'formik';
 import { useDispatch } from 'react-redux';
+import { useAuth0 } from "@auth0/auth0-react";
 
-import { manageUser } from '../redux/actions/usersActions';
+import { addUser } from '../redux/actions/usersActions';
+ 
 
 
 export default function NewUserModal() {
     // const classes = useStyles();
     const [open, setOpen] = React.useState(false);
     const dispatch = useDispatch();
+    const { getAccessTokenSilently } = useAuth0();
+    const [accessToken, setAccessToken] = useState(null);
+
+    useEffect(() => {
+    const fetchAccessToken = async () => {
+        const token = await getAccessTokenSilently();
+        setAccessToken(token);
+    };
+
+    fetchAccessToken();
+
+    // return a cleanup function to cancel any pending async operation and prevent updating the state on an unmounted component
+    return () => {
+        setAccessToken(null);
+    };
+    }, [getAccessTokenSilently]);
     const handleOpen = () => {
         setOpen(true);
     };
@@ -34,7 +52,7 @@ export default function NewUserModal() {
         },
         validationSchema: NewUserSchema,
         onSubmit: () => {
-            dispatch(manageUser(values.email));
+            dispatch(addUser(values.email, accessToken));
             values.email = '';
             setOpen(false);
         },

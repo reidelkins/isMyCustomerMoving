@@ -25,23 +25,22 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
       - name: Run Tests
-        env:
-          SECRET_KEY: ${{secrets.SECRET_KEY}}
-          RAPID_API: ${{secrets.RAPID_API}}
+        env:          
+          AUTH0_DOMAIN: ${{secrets.AUTH0_DOMAIN}}
+          AUTH0_AUDIENCE: ${{secrets.AUTH0_AUDIENCE}}
+          DJANGO_SECRET_KEY: ${{secrets.DJANGO_SECRET_KEY}}
+          EMAIL: ${{secrets.EMAIL}}
           EMAIL_PASSWD: ${{secrets.EMAIL_PASSWD}}
-          SCRAPFLY_KEY: ${{secrets.SCRAPFLY_KEY}}
-          ST_APP_KEY: ${{secrets.ST_APP_KEY}}
+          REDIS_URL: ${{secrets.REDIS_URL}}
           SALESFORCE_CONSUMER_KEY: ${{secrets.SALESFORCE_CONSUMER_KEY}}
           SALESFORCE_CONSUMER_SECRET: ${{secrets.SALESFORCE_CONSUMER_SECRET}}
-          STRIPE_PUBLISHABLE_KEY: ${{secrets.STRIPE_PUBLIC_KEY}}
-          STRIPE_LIVE_SECRET_KEY: ${{secrets.STRIPE_SECRET_KEY}}
-          REDIS_URL: ${{secrets.REDIS_URL}}
-          EMAIL: ${{secrets.EMAIL}}
+          SCRAPFLY_KEY: ${{secrets.SCRAPFLY_KEY}}
+          ST_APP_KEY: ${{secrets.ST_APP_KEY}}
           STRIPE_SECRET_KEY: ${{secrets.STRIPE_SECRET_KEY }}
           STRIPE_SECRET_KEY_TEST: ${{secrets.STRIPE_SECRET_KEY_TEST }}
           STRIPE_PUBLIC_KEY: ${{secrets.STRIPE_PUBLIC_KEY }}
           STRIPE_PUBLIC_KEY_TEST: ${{secrets.STRIPE_PUBLIC_KEY_TEST }}
-
+          
         run: |
           cd backend
           python manage.py makemigrations

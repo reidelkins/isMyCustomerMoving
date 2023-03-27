@@ -2,26 +2,65 @@ from django.shortcuts import redirect
 from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from django.template.loader import get_template
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.utils.timezone import make_aware
 from rest_framework import permissions, status, generics
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.views import TokenObtainPairView
+# from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
-from .utils import makeCompany
+from rest_framework.generics import RetrieveAPIView
+
+
+# from .utils import makeCompany
 from .models import CustomUser, Company, InviteToken
 from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, MyTokenObtainPairSerializer
+from config import settings
+
 import datetime
 import jwt
-from config import settings
 import pytz
 import pyotp
 import uuid
+from functools import wraps
+
+
+def get_token_auth_header(request):
+    """Obtains the Access Token from the Authorization Header
+    """
+    print(request.META )
+    auth = request.META.get("HTTP_AUTHORIZATION", None)
+    parts = auth.split()
+    token = parts[1]
+
+    return token
+
+def requires_scope(required_scope):
+    """Determines if the required scope is present in the Access Token
+    Args:
+        required_scope (str): The scope required to access the resource
+    """
+    def require_scope(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            token = get_token_auth_header(args[0])
+            decoded = jwt.decode(token, verify=False)
+            if decoded.get("scope"):
+                token_scopes = decoded["scope"].split()
+                for token_scope in token_scopes:
+                    if token_scope == required_scope:
+                        return f(*args, **kwargs)
+            response = JsonResponse({'message': 'You don\'t have access to this resource'})
+            response.status_code = 403
+            return response
+        return decorated
+    return require_scope
 
 class ManageUserView(APIView):
+    permission_classes = [IsAuthenticated]
     #TODO: Currently not checking if user email is already in use
     def post(self, request, *args, **kwargs):
         try:
@@ -38,9 +77,9 @@ class ManageUserView(APIView):
                         )
                         token, created = InviteToken.objects.get_or_create(company=company, email=request.data['email'])
                         if created:
-                            mail_subject = "Account Invite For Is My Customer Moving"                            
+                            mail_subject = "Account Invite For Is My Customer Moving"
                         else:
-                            token.expiration = datetime.datetime.utcnow() + datetime.timedelta(days=1)
+                            token.expiration = make_aware(datetime.datetime.utcnow() + datetime.timedelta(days=1), timezone=pytz.UTC)
                             token.save()
                             mail_subject = "Invite Reminder For Is My Customer Moving"
 
@@ -133,47 +172,47 @@ class ManageUserView(APIView):
             print(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST', 'PUT'])
-def company(request):
-    if request.method == 'POST':
-        try:
-            company = request.data['name']
-            email = request.data['email']
-            comp = makeCompany(company, email)
-            if comp == "":
-                return Response("", status=status.HTTP_201_CREATED, headers="")
-            else:
-                return Response(comp, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            print(e)
-            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-    elif request.method == 'PUT':
-        try:
-            company = Company.objects.get(id=request.data['company'])
-            if request.data['email'] != "":
-                company.email = request.data['email']
-            if request.data['phone'] != "":
-                company.phone = request.data['phone']
-            if request.data['tenantID'] != "":
-                company.tenantID = request.data['tenantID']
-            if request.data['clientID'] != "":
-                company.clientID = request.data['clientID']
-                company.clientSecret = request.data['clientSecret']
-            if request.data['forSaleTag'] != "":
-                company.serviceTitanForSaleTagID = request.data['forSaleTag']
-            if request.data['forRentTag'] != "":
-                company.serviceTitanForRentTagID = request.data['forRentTag']
-            if request.data['soldTag'] != "":
-                company.serviceTitanRecentlySoldTagID = request.data['soldTag']
-            if request.data['crm'] != "":
-                company.crm = request.data['crm']
-            company.save()
-            user = CustomUser.objects.get(id=request.data['user'])
-            serializer = UserSerializerWithToken(user, many=False)
-            return Response( serializer.data , status=status.HTTP_201_CREATED, headers="")
-        except Exception as e:
-            print(e)
-            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)   
+# @api_view(['POST', 'PUT'])
+# def company(request):
+#     if request.method == 'POST':
+#         try:
+#             company = request.data['name']
+#             email = request.data['email']
+#             comp = makeCompany(company, email)
+#             if comp == "":
+#                 return Response("", status=status.HTTP_201_CREATED, headers="")
+#             else:
+#                 return Response(comp, status=status.HTTP_400_BAD_REQUEST)
+#         except Exception as e:
+#             print(e)
+#             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+#     elif request.method == 'PUT':
+#         try:
+#             company = Company.objects.get(id=request.data['company'])
+#             if request.data['email'] != "":
+#                 company.email = request.data['email']
+#             if request.data['phone'] != "":
+#                 company.phone = request.data['phone']
+#             if request.data['tenantID'] != "":
+#                 company.tenantID = request.data['tenantID']
+#             if request.data['clientID'] != "":
+#                 company.clientID = request.data['clientID']
+#                 company.clientSecret = request.data['clientSecret']
+#             if request.data['forSaleTag'] != "":
+#                 company.serviceTitanForSaleTagID = request.data['forSaleTag']
+#             if request.data['forRentTag'] != "":
+#                 company.serviceTitanForRentTagID = request.data['forRentTag']
+#             if request.data['soldTag'] != "":
+#                 company.serviceTitanRecentlySoldTagID = request.data['soldTag']
+#             if request.data['crm'] != "":
+#                 company.crm = request.data['crm']
+#             company.save()
+#             user = CustomUser.objects.get(id=request.data['user'])
+#             serializer = UserSerializerWithToken(user, many=False)
+#             return Response( serializer.data , status=status.HTTP_201_CREATED, headers="")
+#         except Exception as e:
+#             print(e)
+#             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)   
 
 class VerifyRegistrationView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -280,9 +319,21 @@ def confirmation(request, pk, uid):
         return HttpResponse('Your activation link has been expired')
     else:
         return redirect('http://www.ismycustomermoving.com/login')
+        
+# class MyTokenObtainPairView(TokenObtainPairView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = MyTokenObtainPairSerializer
     
-class MyTokenObtainPairView(TokenObtainPairView):
-    serializer_class = MyTokenObtainPairSerializer
+class AuthenticatedUserView(APIView):
+    permission_classes = [IsAuthenticated]   
+    def get(self, request, email=None):  
+        try:
+            user = CustomUser.objects.get(email=email)
+            serializer = UserSerializer(user, many=False)
+            return Response(serializer.data)
+        except Exception as e:
+            print(e)
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)      
 
 class UserViewSet(ReadOnlyModelViewSet):
     throttle_classes = [UserRateThrottle]
@@ -291,7 +342,7 @@ class UserViewSet(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
 
 class OTPGenerateView(generics.GenericAPIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticated]
     throttle_classes = [AnonRateThrottle]
     authentication_classes = []
 
@@ -315,7 +366,7 @@ class OTPGenerateView(generics.GenericAPIView):
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 
 class OTPVerifyView(generics.GenericAPIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticated]
     throttle_classes = [AnonRateThrottle]
     authentication_classes = []
 
@@ -342,7 +393,7 @@ class OTPVerifyView(generics.GenericAPIView):
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)       
 
 class OTPValidateView(generics.GenericAPIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticated]
     throttle_classes = [AnonRateThrottle]
     authentication_classes = []
 
@@ -368,7 +419,7 @@ class OTPValidateView(generics.GenericAPIView):
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 
 class OTPDisableView(generics.GenericAPIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticated]
     throttle_classes = [AnonRateThrottle]
     authentication_classes = []
 
@@ -388,6 +439,7 @@ class OTPDisableView(generics.GenericAPIView):
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = UserListSerializer
     def get_queryset(self):
         return CustomUser.objects.filter(company=self.kwargs['company'])
