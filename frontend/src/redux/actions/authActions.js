@@ -158,6 +158,7 @@ export const getUser = (email, accessToken) => async (dispatch) => {
     localStorage.setItem('userInfo', JSON.stringify(data));
   } catch (error) {
     dispatch(loginError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    dispatch(logout(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 }
 

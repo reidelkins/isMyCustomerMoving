@@ -7,6 +7,7 @@ import LogoOnlyLayout from './layouts/LogoOnlyLayout';
 import CustomerData from './pages/CustomerData';
 import RecentlySoldData from './pages/RecentlySoldData';
 import Login from './pages/Login';
+import LoginError from './pages/LoginError';
 import Logout from './pages/Logout';
 import Validate2fa from './pages/Validate2fa';
 import ForgotPassword from './pages/ForgotPassword';
@@ -47,6 +48,7 @@ export default function Router() {
       children: [
         { path: '/', element: <Navigate to="/dashboard/customers" /> },
         { path: 'login', element: <Login /> },
+        { path: 'login/error', element: <LoginError /> },
         { path: 'logout', element: <Logout />},
         { path: 'validate2fa', element: <Validate2fa />},
         { path: 'register/:company?/:accesstoken?', element: <Register /> },

@@ -29,7 +29,7 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import { useAuth0 } from "@auth0/auth0-react";
 
-import { DOMAIN } from '../redux/constants';
+import { DOMAIN, URL } from '../redux/constants';
 
 // components
 import ReferralModal from '../components/ReferralModal';
@@ -106,8 +106,18 @@ export default function CustomerData() {
   }, [getAccessTokenSilently]);
 
   const userLogin = useSelector(showLoginInfo);
-  const { userInfo } = userLogin;
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { userInfo, error } = userLogin;
+  const { user, isAuthenticated, isLoading, logout } = useAuth0();
+
+  useEffect(() => {
+    // TODO figure out how to set an error that lasts
+    logout({
+      logoutParams: {
+        returnTo: `${URL}/login/error`,
+        state: 'error=NoUserWithThatEmail'
+      },
+    });
+  }, [error]);
 
   useEffect(async () => {
     if (isAuthenticated && accessToken) {      

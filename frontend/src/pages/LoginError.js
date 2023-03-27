@@ -60,7 +60,7 @@ const ContentStyle = styled('div')(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 
-export default function Login() {  
+export default function LoginError() {
   const smUp = useResponsive('up', 'sm');
 
   const mdUp = useResponsive('up', 'md');
@@ -97,6 +97,7 @@ export default function Login() {
             </Typography>
             
             <Button variant="contained" onClick={login}>Login</Button>
+            <div><br/><Typography variant="body1" color="red" sx={{mx:4}}>Login Error: User with that email does not exist</Typography></div>
             
             {!smUp && (
               <Typography variant="body2" align="center" sx={{ mt: 3 }}>

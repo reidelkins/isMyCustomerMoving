@@ -63,9 +63,7 @@ export default function AccountPopover() {
         returnTo: `${URL}/logout`,
       },
     });
-    // dispatch(logout());
     navigate('/logout', { replace: true });
-    // document.cookie = "IMCM_Cookie=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
   };
 
   const initials = userInfo?.name?.split(' ').map((n) => n[0]).join('');
