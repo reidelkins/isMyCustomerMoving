@@ -27,19 +27,19 @@ export const Auth0ProviderWithNavigate = ({
   }
 
   return (
-    // <Auth0Provider
-    //   domain={domain}
-    //   clientId={clientId}
-    //   authorizationParams={{
-    //     audience,
-    //     redirect_uri: redirectUri,
-    //   }}
-    //   onRedirectCallback={onRedirectCallback}
-    // >
-    //   {children}
-    // </Auth0Provider>
-    <div>
+    <Auth0Provider
+      domain={domain}
+      clientId={clientId}
+      authorizationParams={{
+        audience,
+        redirect_uri: redirectUri,
+      }}
+      // onRedirectCallback={onRedirectCallback}
+    >
       {children}
-    </div>
+    </Auth0Provider>
+    // <div>
+    //   {children}
+    // </div>
   );
 };
