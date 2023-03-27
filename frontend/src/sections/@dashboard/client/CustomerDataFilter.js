@@ -24,6 +24,7 @@ import {
   Divider,
   Stack
 } from '@mui/material';
+import { useAuth0 } from "@auth0/auth0-react";
 
 import Iconify from '../../../components/Iconify';
 import { filterClientsAsync, clientsAsync } from '../../../redux/actions/usersActions'
@@ -52,10 +53,10 @@ const useStyles = makeStyles((theme) => ({
 
 
 CustomerDataFilter.propTypes = {
-  product: PropTypes.object.isRequired,
+  product: PropTypes.string.isRequired,
 }
 
-export default function CustomerDataFilter(product) {
+export default function CustomerDataFilter(product ) {
     const classes = useStyles();
     const [showFilters, setShowFilters] = useState(false);
     const [statusFilters, setStatusFilters] = useState([]);
@@ -69,6 +70,22 @@ export default function CustomerDataFilter(product) {
     const [equipInstallDateMax, setEquipInstallDateMax] = useState(today.toISOString().slice(0, 10));    
     const [showClearFilters, setShowClearFilters] = useState(false);
     const dispatch = useDispatch();
+    const { getAccessTokenSilently } = useAuth0();
+    const [accessToken, setAccessToken] = useState(null);
+
+    useEffect(() => {
+    const fetchAccessToken = async () => {
+        const token = await getAccessTokenSilently();
+        setAccessToken(token);
+    };
+
+    fetchAccessToken();
+
+    // return a cleanup function to cancel any pending async operation and prevent updating the state on an unmounted component
+    return () => {
+        setAccessToken(null);
+    };
+    }, [getAccessTokenSilently]);
 
     const handleTagFilterChange = (event) => {
         const { value } = event.target;
@@ -119,7 +136,7 @@ export default function CustomerDataFilter(product) {
     const handleFilterSubmit = (event) => {
         event.preventDefault();
         // Filter data based on selected filters
-        dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax))
+        dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, accessToken))
         setShowFilters(false);
     };
 
@@ -140,7 +157,7 @@ export default function CustomerDataFilter(product) {
         setTagFilters([]);
         setEquipInstallDateMax(today.toISOString().slice(0, 10));
         setEquipInstallDateMin('1900-01-01');
-        dispatch(clientsAsync(1));
+        dispatch(clientsAsync(1, accessToken));
     };
 
     return (

@@ -1,11 +1,13 @@
 import traceback
-
-from .models import Company, Franchise
-from .serializers import CompanySerializer
+from typing import Dict, Any
+from datetime import datetime, timedelta
+from .models import Company, Franchise, CustomUser
+from .serializers import CompanySerializer, UserSerializerWithToken
 
 from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import get_template
+
 
 def makeCompany(companyName, email, phone, stripeId):
     try:
@@ -45,3 +47,5 @@ def find_franchise(area, franchise, referredFrom):
         print("finding franchise failed")
         print(f"ERROR: {e}")
         print(traceback.format_exc())
+
+

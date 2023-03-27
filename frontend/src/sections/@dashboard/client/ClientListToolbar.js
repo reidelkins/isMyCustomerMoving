@@ -1,8 +1,10 @@
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {useDispatch } from 'react-redux';
 // material
 import { styled } from '@mui/material/styles';
 import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment } from '@mui/material';
+import { useAuth0 } from "@auth0/auth0-react";
 // component
 import Iconify from '../../../components/Iconify';
 import CustomerDataFilter  from './CustomerDataFilter';
@@ -43,9 +45,26 @@ ClientListToolbar.propTypes = {
 
 export default function ClientListToolbar({ numSelected, filterName, onFilterName, selectedClients, product }) {
   const dispatch = useDispatch();
+  const { getAccessTokenSilently } = useAuth0();
+  const [accessToken, setAccessToken] = useState(null);
+
+  useEffect(() => {
+    const fetchAccessToken = async () => {
+      const token = await getAccessTokenSilently();
+      setAccessToken(token);
+    };
+
+    fetchAccessToken();
+
+    // return a cleanup function to cancel any pending async operation and prevent updating the state on an unmounted component
+    return () => {
+      setAccessToken(null);
+    };
+  }, [getAccessTokenSilently]);
+
 
   const clickDelete = (event, clients) => {
-    dispatch(deleteClientAsync(clients));
+    dispatch(deleteClientAsync(clients, accessToken));
     const timer = Math.ceil(clients.length / 1000)*250;
     setTimeout(() => {
      window.location.reload();
