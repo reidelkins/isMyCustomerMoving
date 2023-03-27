@@ -72,9 +72,6 @@ else:
     
     SECRET_KEY=open(f'{BASE_DIR}/{SECRET_KEY}').read()
 
-print(SECRET_KEY)
-
-
 ALLOWED_HOSTS = ['*']
 
 
