@@ -123,7 +123,8 @@ export default function CustomerData() {
   }, [error]);
 
   useEffect(async () => {
-    if (isAuthenticated && accessToken) {      
+    if (isAuthenticated && accessToken) {    
+      console.log(accessToken)  
       if (user.email) {
         dispatch(getUser(user.email, accessToken));
       } else {
