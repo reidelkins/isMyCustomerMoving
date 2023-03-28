@@ -58,6 +58,7 @@ class CompanySerializer(serializers.ModelSerializer):
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
+        print(1)
         data = super().validate(attrs)
         print(attrs)
         serializer = UserSerializerWithToken(self.user).data
@@ -71,6 +72,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         return data
     @classmethod
     def get_token(cls, user):
+        print(2)
         token = super().get_token(user)
         if user.isVerified:
             return token
