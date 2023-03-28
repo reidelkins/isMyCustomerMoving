@@ -195,24 +195,25 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Security
 
+# Allow all CORS ORIGINS
+CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOWED_ORIGINS = [
+#     CLIENT_ORIGIN_URL,
 
-CORS_ALLOWED_ORIGINS = [
-    CLIENT_ORIGIN_URL,
-
-    # STRIPE
-    "https://3.18.12.63",
-    "https://3.130.192.231",
-    "https://13.235.14.237",
-    "https://13.235.122.149",
-    "https://18.211.135.69",
-    "https://35.154.171.200",
-    "https://52.15.183.38",
-    "https://54.88.130.119",
-    "https://54.88.130.237",
-    "https://54.187.174.169",
-    "https://54.187.205.235",
-    "https://54.187.216.72"
-]
+#     # STRIPE
+#     "https://3.18.12.63",
+#     "https://3.130.192.231",
+#     "https://13.235.14.237",
+#     "https://13.235.122.149",
+#     "https://18.211.135.69",
+#     "https://35.154.171.200",
+#     "https://52.15.183.38",
+#     "https://54.88.130.119",
+#     "https://54.88.130.237",
+#     "https://54.187.174.169",
+#     "https://54.187.205.235",
+#     "https://54.187.216.72"
+# ]
 
 CORS_ALLOW_METHODS = [
     'DELETE',
