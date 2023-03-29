@@ -326,7 +326,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         # Log/print information
         print("Logging information here")
-        print(request.__dict__)
+        print(request.data)
         # Call the serializer class to validate the data
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
