@@ -13,8 +13,6 @@ import {
   Grid,
   Input,
   InputLabel,
-  MenuItem,
-  Select,
   Typography,
   Tooltip,
   IconButton,
@@ -54,24 +52,34 @@ const useStyles = makeStyles((theme) => ({
 
 CustomerDataFilter.propTypes = {
   product: PropTypes.string.isRequired,
+  minPrice: PropTypes.string,
+  setMinPrice: PropTypes.func,
+  maxPrice: PropTypes.string,
+  setMaxPrice: PropTypes.func,
+  minYear: PropTypes.string,
+  setMinYear: PropTypes.func,
+  maxYear: PropTypes.string,
+  setMaxYear: PropTypes.func,
+  equipInstallDateMin: PropTypes.string,
+  setEquipInstallDateMin: PropTypes.func,
+  equipInstallDateMax: PropTypes.string,
+  setEquipInstallDateMax: PropTypes.func,
+  statusFilters: PropTypes.array,
+  setStatusFilters: PropTypes.func
 }
 
-export default function CustomerDataFilter(product ) {
+export default function CustomerDataFilter({ product, minPrice, setMinPrice: handleChangeMinPrice, maxPrice, setMaxPrice: handleChangeMaxPrice,
+                                                    minYear, setMinYear: handleChangeMinYear, maxYear, setMaxYear: handleChangeMaxYear,
+                                                    equipInstallDateMin, setEquipInstallDateMin: handleEquipInstallDateMin,
+                                                    equipInstallDateMax, setEquipInstallDateMax: handleEquipInstallDateMax,
+                                                    statusFilters, setStatusFilters: handleStatusFiltersChange } ) {
     const classes = useStyles();
-    const [showFilters, setShowFilters] = useState(false);
-    const [statusFilters, setStatusFilters] = useState([]);
-    const [minPrice, setMinPrice] = useState('');
-    const [maxPrice, setMaxPrice] = useState('');
-    const [minYear, setMinYear] = useState('');
-    const [maxYear, setMaxYear] = useState('');
-    const [tagFilters, setTagFilters] = useState([]);
-    const [equipInstallDateMin, setEquipInstallDateMin] = useState('1900-01-01');
-    const today = new Date();
-    const [equipInstallDateMax, setEquipInstallDateMax] = useState(today.toISOString().slice(0, 10));    
+    const [showFilters, setShowFilters] = useState(false);    
     const [showClearFilters, setShowClearFilters] = useState(false);
     const dispatch = useDispatch();
     const { getAccessTokenSilently } = useAuth0();
     const [accessToken, setAccessToken] = useState(null);
+    const today = new Date();
 
     useEffect(() => {
     const fetchAccessToken = async () => {
@@ -87,24 +95,32 @@ export default function CustomerDataFilter(product ) {
     };
     }, [getAccessTokenSilently]);
 
-    const handleTagFilterChange = (event) => {
-        const { value } = event.target;
-        setTagFilters((prevFilters) => {
-        if (prevFilters.includes(value)) {
-            return prevFilters.filter((filter) => filter !== value);
-        } 
-        return [...prevFilters, value];
+    // const handleTagFilterChange = (event) => {
+    //     const { value } = event.target;
+    //     setTagFilters((prevFilters) => {
+    //     if (prevFilters.includes(value)) {
+    //         return prevFilters.filter((filter) => filter !== value);
+    //     } 
+    //     return [...prevFilters, value];
         
-        });
-    };
+    //     });
+    // };
+
+    // useEffect(() => {
+    //     if (statusFilters.length > 0 || minPrice || maxPrice || minYear || maxYear || tagFilters.length > 0 || equipInstallDateMin || equipInstallDateMax) {
+    //         setShowClearFilters(true);
+    //     } else {
+    //         setShowClearFilters(false);
+    //     }
+    // }, [statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax]);
 
     useEffect(() => {
-        if (statusFilters.length > 0 || minPrice || maxPrice || minYear || maxYear || tagFilters.length > 0 || equipInstallDateMin || equipInstallDateMax) {
+        if ( minPrice || maxPrice || minYear || maxYear || equipInstallDateMin || equipInstallDateMax ) {
             setShowClearFilters(true);
         } else {
             setShowClearFilters(false);
         }
-    }, [statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax]);
+    }, [minPrice, maxPrice, minYear, maxYear, equipInstallDateMin, equipInstallDateMax]);
 
     const tagOptions = [
         { value: 'Solar', label: 'Solar' },
@@ -117,7 +133,7 @@ export default function CustomerDataFilter(product ) {
 
     const handleStatusFilterChange = (event) => {
         const { value } = event.target;
-        setStatusFilters((prevFilters) => {
+        handleStatusFiltersChange((prevFilters) => {
         if (prevFilters.includes(value)) {
             return prevFilters.filter((filter) => filter !== value);
         } 
@@ -136,7 +152,8 @@ export default function CustomerDataFilter(product ) {
     const handleFilterSubmit = (event) => {
         event.preventDefault();
         // Filter data based on selected filters
-        dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, accessToken))
+        // dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, accessToken))
+        dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, "", equipInstallDateMin, equipInstallDateMax, accessToken))
         setShowFilters(false);
     };
 
@@ -149,14 +166,14 @@ export default function CustomerDataFilter(product ) {
     }
 
     const handleClearFilters = () => {
-        setStatusFilters([]);
-        setMinPrice('');
-        setMaxPrice('');
-        setMinYear('');
-        setMaxYear('');
-        setTagFilters([]);
-        setEquipInstallDateMax(today.toISOString().slice(0, 10));
-        setEquipInstallDateMin('1900-01-01');
+        handleStatusFiltersChange([]);
+        handleChangeMinPrice('');
+        handleChangeMaxPrice('');
+        handleChangeMinYear('');
+        handleChangeMaxYear('');
+        // setTagFilters([]);
+        handleEquipInstallDateMax(today.toISOString().slice(0, 10));
+        handleEquipInstallDateMin('1900-01-01');
         dispatch(clientsAsync(1, accessToken));
     };
 
@@ -191,19 +208,7 @@ export default function CustomerDataFilter(product ) {
                     </Box>
                     <Grid container spacing={2}>
                         <Tooltip title="Client Status">
-                            <Grid item xs={12}>
-                                {/* <FormControl fullWidth>
-                                <InputLabel>Status</InputLabel>
-                                <Select
-                                    value={statusFilter}
-                                    onChange={(event) => setStatusFilter(event.target.value)}
-                                >
-                                    <MenuItem value="For Sale">For Sale</MenuItem>
-                                    <MenuItem value="Recently Sold">Recently Sold</MenuItem>
-                                    <MenuItem value="Off Market">Off Market</MenuItem>
-                                    <MenuItem value="Off Market">No Status</MenuItem>
-                                </Select>
-                                </FormControl> */}
+                            <Grid item xs={12}>                        
                                 {statusOptions.map((option) => (
                                     <FormControlLabel
                                     key={option.value}
@@ -229,7 +234,7 @@ export default function CustomerDataFilter(product ) {
                                             <Input
                                                 type="number"
                                                 value={minPrice}
-                                                onChange={(event) => setMinPrice(event.target.value)}
+                                                onChange={(event) => handleChangeMinPrice(event.target.value)}
                                             />
                                         </FormControl>
                                         <FormControl fullWidth>
@@ -237,7 +242,7 @@ export default function CustomerDataFilter(product ) {
                                         <Input
                                             type="number"
                                             value={maxPrice}
-                                            onChange={(event) => setMaxPrice(event.target.value)}
+                                            onChange={(event) => handleChangeMaxPrice(event.target.value)}
                                         />
                                         </FormControl>
                                     </Stack>
@@ -255,7 +260,7 @@ export default function CustomerDataFilter(product ) {
                                                 type="date"
                                                 defaultValue={equipInstallDateMin}
                                                 value={equipInstallDateMin}
-                                                onChange={(event) => setEquipInstallDateMin(event.target.value)}
+                                                onChange={(event) => handleEquipInstallDateMin(event.target.value)}
                                             />
                                         </FormControl>
                                     
@@ -265,13 +270,13 @@ export default function CustomerDataFilter(product ) {
                                                 type="date"
                                                 defaultValue={equipInstallDateMax}
                                                 value={equipInstallDateMax}
-                                                onChange={(event) => setEquipInstallDateMax(event.target.value)}
+                                                onChange={(event) => handleEquipInstallDateMax(event.target.value)}
                                             />
                                         </FormControl>
                                     </Stack>
                                 </Box>
                             </Tooltip>
-                        </Grid>
+                        </Grid>                        
                         
                         <Grid item xs={12}>
                             <Tooltip title="Year the house was built">
@@ -283,7 +288,7 @@ export default function CustomerDataFilter(product ) {
                                             <Input
                                                 type="number"
                                                 value={minYear}
-                                                onChange={(event) => setMinYear(event.target.value)}
+                                                onChange={(event) => handleChangeMinYear(event.target.value)}
                                             />
                                         </FormControl>
                                         <FormControl fullWidth>
@@ -291,13 +296,13 @@ export default function CustomerDataFilter(product ) {
                                             <Input
                                                 type="number"
                                                 value={maxYear}
-                                                onChange={(event) => setMaxYear(event.target.value)}
+                                                onChange={(event) => handleChangeMaxYear(event.target.value)}
                                             />
                                         </FormControl>
                                     </Stack>
                                 </Box>
                             </Tooltip>
-                        </Grid>                        
+                        </Grid>
                     {/* <Grid item xs={12}>
                         <FormControl component="fieldset">
                         <FormLabel component="legend">Tags</FormLabel>

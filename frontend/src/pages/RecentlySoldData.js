@@ -34,7 +34,7 @@ import Iconify from '../components/Iconify';
 import {RecentlySoldListToolbar} from '../sections/@dashboard/recentlySold';
 
 import RecentlySoldListCall from '../redux/calls/RecentlySoldListCall';
-import { selectRecentlySold, recentlySoldAsync } from '../redux/actions/usersActions';
+import { selectRecentlySold, recentlySoldAsync, getRecentlySoldCSV } from '../redux/actions/usersActions';
 import { logout, showLoginInfo } from '../redux/actions/authActions';
 import { makeDate } from '../utils/makeDate';
  
@@ -156,35 +156,49 @@ export default function RecentlySoldData() {
     setPage(0);
   };
 
-  const exportCSV = async () => {
-    if (RECENTLYSOLDLIST.length === 0) { return }
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
-      },
-    };
-    setCsvLoading(true);
-    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/allrecentlysold/${userInfo.company.id}`, config);
-    let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += 'Sold Date, Address, Zip Code\r\n';
-    data.forEach((n) => {
-      csvContent += `${n.listed.slice(0, 10)}, ${n.address}, ${n.zipCode}\r\n`
-    });
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [minYear, setMinYear] = useState('');
+  const [maxYear, setMaxYear] = useState('');
+  const [tagFilters, setTagFilters] = useState([]);
+  const handleMinPriceChange = (newMinPrice) => { setMinPrice(newMinPrice)}
+  const handleMaxPriceChange = (newMaxPrice) => {setMaxPrice(newMaxPrice)}
+  const handleMinYearChange = (newMinYear) => {setMinYear(newMinYear)}
+  const handleMaxYearChange = (newMaxYear) => {setMaxYear(newMaxYear)}
+  
+  const exportCSV = () => {
+    dispatch(getRecentlySoldCSV( minPrice, maxPrice, minYear, maxYear, tagFilters))
+  }
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    // Create a download link for the CSV file
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    const d1 = new Date().toLocaleDateString('en-US')
-    const docName = `isMyCustomerMoving_RecentlySold_${d1}`    
+  // const exportCSV = async () => {
+  //   if (RECENTLYSOLDLIST.length === 0) { return }
+  //   const config = {
+  //     headers: {
+  //       'Content-type': 'application/json',
+  //       Authorization: `Bearer ${userInfo.access}`,
+  //     },
+  //   };
+  //   setCsvLoading(true);
+  //   const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/allrecentlysold/${userInfo.company.id}`, config);
+  //   let csvContent = 'data:text/csv;charset=utf-8,';
+  //   csvContent += 'Sold Date, Address, Zip Code\r\n';
+  //   data.forEach((n) => {
+  //     csvContent += `${n.listed.slice(0, 10)}, ${n.address}, ${n.zipCode}\r\n`
+  //   });
 
-    link.setAttribute('download', `${docName}.csv`);
-    document.body.appendChild(link); // add the link to body
-    link.click();
-    document.body.removeChild(link); // remove the link from body
-    setCsvLoading(false);
-  };
+  //   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  //   // Create a download link for the CSV file
+  //   const link = document.createElement('a');
+  //   link.href = window.URL.createObjectURL(blob);
+  //   const d1 = new Date().toLocaleDateString('en-US')
+  //   const docName = `isMyCustomerMoving_RecentlySold_${d1}`    
+
+  //   link.setAttribute('download', `${docName}.csv`);
+  //   document.body.appendChild(link); // add the link to body
+  //   link.click();
+  //   document.body.removeChild(link); // remove the link from body
+  //   setCsvLoading(false);
+  // };
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - RECENTLYSOLDLIST.length) : 0;
   const filteredRecentlySold = userInfo ? applySortFilter(RECENTLYSOLDLIST, getComparator(order, orderBy)) : [];
@@ -212,7 +226,17 @@ export default function RecentlySoldData() {
               ) : null}
               {userInfo.company.recentlySoldPurchased ? (
                 <Scrollbar>
-                  <RecentlySoldListToolbar product={userInfo.company.product} />
+                  <RecentlySoldListToolbar 
+                    product={userInfo.company.product} 
+                    minPrice={minPrice}
+                    setMinPrice={handleMinPriceChange}
+                    maxPrice={maxPrice}
+                    setMaxPrice={handleMaxPriceChange}
+                    minYear={minYear}
+                    setMinYear={handleMinYearChange}
+                    maxYear={maxYear}
+                    setMaxYear={handleMaxYearChange}
+                  />
                   <TableContainer sx={{ minWidth: 800 }}>
                     <Table>
                       <ClientListHead

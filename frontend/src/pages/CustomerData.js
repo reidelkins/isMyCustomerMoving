@@ -1,9 +1,8 @@
 /* eslint-disable camelcase */
 import _, { filter} from 'lodash';
-import axios from 'axios';
 import { sentenceCase } from 'change-case';
 import React, { useState, useEffect } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 // material
 import {
   Alert,
@@ -29,7 +28,7 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import { useAuth0 } from "@auth0/auth0-react";
 
-import { DOMAIN, URL } from '../redux/constants';
+import { URL } from '../redux/constants';
 
 // components
 import ReferralModal from '../components/ReferralModal';
@@ -47,7 +46,7 @@ import ClientDetailsTable from '../components/ClientDetailsTable';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
 
 import ClientsListCall from '../redux/calls/ClientsListCall';
-import { selectClients, update, updateClientAsync, serviceTitanSync, salesForceSync, clientsAsync } from '../redux/actions/usersActions';
+import { selectClients, update, updateClientAsync, serviceTitanSync, salesForceSync, clientsAsync, getClientsCSV } from '../redux/actions/usersActions';
 import { getUser, showLoginInfo } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
@@ -119,19 +118,17 @@ export default function CustomerData() {
         },
       });
     }
-  }, [error]);
+  }, [error, logout]);
 
-  useEffect(async () => {
+  useEffect(() => {
     if (isAuthenticated && accessToken) {    
-      console.log(accessToken)  
       if (user.email) {
         dispatch(getUser(user.email, accessToken));
       } else {
         dispatch(getUser(user.sub.split('|')[1], accessToken));
-      }
-      
+      }      
     }
-  }, [isAuthenticated, user, accessToken]);
+  }, [isAuthenticated, user, accessToken, dispatch]);
   
   
   const [TABLE_HEAD, setTABLE_HEAD] = useState([{ id: 'name', label: 'Name', alignRight: false },
@@ -214,7 +211,7 @@ export default function CustomerData() {
       setShownClients(0);      
     }
     setClientListLength(CLIENTLIST.length);
-  }, [CLIENTLIST]);
+  }, [CLIENTLIST, clientListLength, CLIENTLIST.length]);
 
   const handleRowClick = (rowIndex) => {
     if (expandedRow === rowIndex) {
@@ -295,35 +292,35 @@ export default function CustomerData() {
     dispatch(salesForceSync(accessToken));
   };
 
-  const exportCSV = async () => {
-    if (CLIENTLIST.length === 0) { return }
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
-      },
-    };
-    setCsvLoading(true);
-    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/allClients/${userInfo.id}`, config);
-    let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += 'Name,Address,City,State,ZipCode,Status,Contacted,Note,Phone Number\r\n';
-    data.forEach((n) => {
-      csvContent += `${n.name}, ${n.address}, ${n.city}, ${n.state}, ${n.zipCode}, ${n.status}, ${n.contacted}, ${n.note}, ${n.phoneNumber}\r\n`
-    });
+  // const exportCSV = async () => {
+  //   if (CLIENTLIST.length === 0) { return }
+  //   const config = {
+  //     headers: {
+  //       'Content-type': 'application/json',
+  //       Authorization: `Bearer ${userInfo.access}`,
+  //     },
+  //   };
+  //   setCsvLoading(true);
+  //   const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/allClients/${userInfo.id}`, config);
+  //   let csvContent = 'data:text/csv;charset=utf-8,';
+  //   csvContent += 'Name,Address,City,State,ZipCode,Status,Contacted,Note,Phone Number\r\n';
+  //   data.forEach((n) => {
+  //     csvContent += `${n.name}, ${n.address}, ${n.city}, ${n.state}, ${n.zipCode}, ${n.status}, ${n.contacted}, ${n.note}, ${n.phoneNumber}\r\n`
+  //   });
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    // Create a download link for the CSV file
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    const d1 = new Date().toLocaleDateString('en-US')
-    const docName = `isMyCustomerMoving_${d1}`    
+  //   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  //   // Create a download link for the CSV file
+  //   const link = document.createElement('a');
+  //   link.href = window.URL.createObjectURL(blob);
+  //   const d1 = new Date().toLocaleDateString('en-US')
+  //   const docName = `isMyCustomerMoving_${d1}`    
 
-    link.setAttribute('download', `${docName}.csv`);
-    document.body.appendChild(link); // add the link to body
-    link.click();
-    document.body.removeChild(link); // remove the link from body
-    setCsvLoading(false);
-  };
+  //   link.setAttribute('download', `${docName}.csv`);
+  //   document.body.appendChild(link); // add the link to body
+  //   link.click();
+  //   document.body.removeChild(link); // remove the link from body
+  //   setCsvLoading(false);
+  // };
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
   
   
@@ -333,13 +330,32 @@ export default function CustomerData() {
     } else {
       setShownClients(count)
     }
-  }, [count, filteredClients])
+  }, [count, filteredClients, CLIENTLIST.length])
   
+  const [statusFilters, setStatusFilters] = useState([]);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [minYear, setMinYear] = useState('');
+  const [maxYear, setMaxYear] = useState('');
+  const [tagFilters, setTagFilters] = useState([]);
+  const [equipInstallDateMin, setEquipInstallDateMin] = useState('1900-01-01');
+  const today = new Date();
+  const [equipInstallDateMax, setEquipInstallDateMax] = useState(today.toISOString().slice(0, 10));
+  const handleStatusFiltersChange = (newFilters) => {setStatusFilters(newFilters)}
+  const handleMinPriceChange = (newMinPrice) => { setMinPrice(newMinPrice)}
+  const handleMaxPriceChange = (newMaxPrice) => {setMaxPrice(newMaxPrice)}
+  const handleMinYearChange = (newMinYear) => {setMinYear(newMinYear)}
+  const handleMaxYearChange = (newMaxYear) => {setMaxYear(newMaxYear)}
+  const handleEquipInstallDateMin = (newEquipInstallDateMin) => {setEquipInstallDateMin(newEquipInstallDateMin)}
+  const handleEquipInstallDateMax = (newEquipInstallDateMax) => {setEquipInstallDateMax(newEquipInstallDateMax)}
+  const exportCSV = () => {
+    dispatch(getClientsCSV(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax))
+  }
 
   if (isLoading) {
-      console.log("loading");
-      return <div>Loading ...</div>;
-    }
+    console.log("loading");
+    return <div>Loading ...</div>;
+  }
   
   
   return (
@@ -379,7 +395,30 @@ export default function CustomerData() {
                 </Stack>
               </Stack>
               <Card sx={{marginBottom:"3%"}}>
-                <ClientListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedClients={selectedClients} setSelected setSelectedClients product={userInfo.company.product} />
+                <ClientListToolbar 
+                  numSelected={selected.length} 
+                  filterName={filterName} 
+                  onFilterName={handleFilterByName} 
+                  selectedClients={selectedClients} 
+                  setSelected 
+                  setSelectedClients 
+                  product={userInfo.company.product}
+                  minPrice={minPrice}
+                  setMinPrice={handleMinPriceChange}
+                  maxPrice={maxPrice}
+                  setMaxPrice={handleMaxPriceChange}
+                  minYear={minYear}
+                  setMinYear={handleMinYearChange}
+                  maxYear={maxYear}
+                  setMaxYear={handleMaxYearChange}
+                  equipInstallDateMin={equipInstallDateMin}
+                  setEquipInstallDateMin={handleEquipInstallDateMin}
+                  equipInstallDateMax={equipInstallDateMax}
+                  setEquipInstallDateMax={handleEquipInstallDateMax}
+                  statusFilters={statusFilters}
+                  setStatusFilters={handleStatusFiltersChange}
+                  
+                  />
                 {loading ? (
                   <Box sx={{ width: '100%' }}>
                     <LinearProgress />

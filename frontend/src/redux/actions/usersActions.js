@@ -288,12 +288,12 @@ export const deleteClientAsync = (ids, accessToken) => async (dispatch) => {
     for (i; i < ids.length; i += chunkSize) {
       const chunk = ids.slice(i, i + chunkSize);
 
-      await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, {'clients': ids, 'type': 'delete'}, config);
+      await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, {'clients': chunk, 'type': 'delete'}, config);
 
     }
     const chunk = ids.slice(i, i + chunkSize);
     if (chunk.length > 0) {
-      await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, {'clients': ids, 'type': 'delete'}, config);
+      await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, {'clients': chunk, 'type': 'delete'}, config);
     }
     dispatch(clientsAsync(1, accessToken));
   } catch (error) {
@@ -665,5 +665,74 @@ export const referralsAsync = (page, accessToken) => async (dispatch, getState) 
   } catch (error) {
     console.log("error", error)
     dispatch(referralsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+}
+
+export const getClientsCSV = (statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, accessToken) => async (getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    };
+    let filters = ""
+    if (statusFilters.length > 0) {
+      filters += `&status=${statusFilters.join(',')}`
+    }
+    if (minPrice) {
+      filters += `&min_price=${minPrice}`
+    }
+    if (maxPrice) {
+      filters += `&max_price=${maxPrice}`
+    }
+    if (minYear) {
+      filters += `&min_price=${minYear}`
+    }
+    if (maxYear) {
+      filters += `&max_price=${maxYear}`
+    }
+    if (equipInstallDateMin) {
+      filters += `&install_date_min=${equipInstallDateMin}`
+    }
+    if (equipInstallDateMax) {
+      filters += `&install_date_max=${equipInstallDateMax}`
+    }
+    console.log(filters)
+    await axios.get(`${DOMAIN}/api/v1/data/downloadclients/${userInfo.id}/?${filters}`, config);
+  } catch (error) {
+    console.log("error", error)
+  }
+}
+
+export const getRecentlySoldCSV = (minPrice, maxPrice, minYear, maxYear, tagFilters, accessToken) => async (getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    };
+    let filters = ""
+    if (minPrice) {
+      filters += `&min_price=${minPrice}`
+    }
+    if (maxPrice) {
+      filters += `&max_price=${maxPrice}`
+    }
+    if (minYear) {
+      filters += `&min_price=${minYear}`
+    }
+    if (maxYear) {
+      filters += `&max_price=${maxYear}`
+    }
+    console.log(filters)
+    await axios.get(`${DOMAIN}/api/v1/data/downloadrecentlysold/${userInfo.id}/?${filters}`, config);
+  } catch (error) {
+    console.log("error", error)
   }
 }

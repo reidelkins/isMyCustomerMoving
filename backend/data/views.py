@@ -15,15 +15,56 @@ from .serializers import ClientListSerializer, HomeListingSerializer
 from .syncClients import get_salesforce_clients, get_serviceTitan_clients
 from .utils import getAllZipcodes, saveClientList
 
+from django.http import HttpResponse
+import csv
 
 
 # Create your views here.
-class AllClientListView(generics.ListAPIView):
-    serializer_class = ClientListSerializer
+class DownloadClientView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        queryset = self.get_queryset()
+        # Define the CSV header row
+        header = ['id', 'name', 'email', 'status']
+        # Create a response object with the CSV content
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="clients.csv"'
+        # Create a CSV writer object
+        writer = csv.writer(response)
+        # Write the header row to the CSV file
+        writer.writerow(header)
+        # Write the data rows to the CSV file
+        for client in queryset:
+            row = [client.id, client.name, client.email, client.status]
+            writer.writerow(row)
+        # Return the response
+        return response
+
     def get_queryset(self):
+        query_params = self.request.query_params
         user = CustomUser.objects.get(id=self.request.user.id)
-        return Client.objects.filter(company=user.company).order_by('status')
+        queryset = Client.objects.filter(company=user.company).order_by('status')
+        if 'min_price' in query_params:
+            queryset = queryset.filter(price__gte=query_params['min_price'])
+        if 'max_price' in query_params:
+            queryset = queryset.filter(price__lte=query_params['max_price'], price__gt=0)
+        if 'min_year' in query_params:
+            queryset = queryset.filter(year_built__gte=query_params['min_year'])
+        if 'max_year' in query_params:
+            queryset = queryset.filter(year_built__lte=query_params['max_year'], year_built__gt=0)
+        if 'status' in query_params:
+            statuses = []
+            if "For Sale" in query_params['status']:
+                statuses.append("House For Sale")
+            if "Recently Sold" in query_params['status']:
+                statuses.append("House Recently Sold (6)")
+            queryset = queryset.filter(status__in=statuses)
+        if 'equip_install_date_min' in query_params:
+            queryset = queryset.filter(equipmentInstalledDate__gte=query_params['equip_install_date_min'])
+        if 'equip_install_date_max' in query_params:
+            queryset = queryset.filter(equipmentInstalledDate__lte=query_params['equip_install_date_max'])
+        return queryset
 
 class CustomPagination(PageNumberPagination):
     page_size = 1000
