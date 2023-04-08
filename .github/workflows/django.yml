@@ -26,11 +26,11 @@ jobs:
           pip install -r backend/requirements.txt
       - name: Run Tests
         env:          
-          AUTH0_DOMAIN: ${{secrets.AUTH0_DOMAIN}}
-          AUTH0_AUDIENCE: ${{secrets.AUTH0_AUDIENCE}}
           DJANGO_SECRET_KEY: ${{secrets.DJANGO_SECRET_KEY}}
           EMAIL: ${{secrets.EMAIL}}
           EMAIL_PASSWD: ${{secrets.EMAIL_PASSWD}}
+          GOOGLE_CLIENT_ID: ${{secrets.GOOGLE_CLIENT_ID}}
+          GOOGLE_CLIENT_SECRET: ${{secrets.GOOGLE_CLIENT_SECRET}}
           REDIS_URL: ${{secrets.REDIS_URL}}
           SALESFORCE_CONSUMER_KEY: ${{secrets.SALESFORCE_CONSUMER_KEY}}
           SALESFORCE_CONSUMER_SECRET: ${{secrets.SALESFORCE_CONSUMER_SECRET}}
