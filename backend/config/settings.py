@@ -309,7 +309,7 @@ CACHES = {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "SSL_CERT_REQS": "CERT_NONE",
             "CONNECTION_POOL_KWARGS": {
-                "ssl_cert_reqs": None
+                "ssl_cert_reqs": "CERT_NONE"
             },
         }
     }
