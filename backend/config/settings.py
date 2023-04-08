@@ -307,12 +307,13 @@ CACHES = {
         "LOCATION": CELERY_BROKER_URL,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            # "CONNECTION_POOL_KWARGS": {
-            #     "ssl_cert_reqs": ssl.CERT_NONE,
-            # },
+            "SSL_CERT_REQS": "CERT_NONE"
         }
     }
 }
+# "CONNECTION_POOL_KWARGS": {
+            #     "ssl_cert_reqs": ssl.CERT_NONE,
+            # },
 
 # EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = "smtp.gmail.com" # Your SMTP Provider or in this case gmail
