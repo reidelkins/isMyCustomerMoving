@@ -299,7 +299,7 @@ DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
 
 DJSTRIPE_WEBHOOK_VALIDATION='retrieve_event'
 
-CELERY_BROKER_URL = CELERY_RESULT_BACKEND
+CELERY_BROKER_URL = CELERY_RESULT_BACKEND + "?ssl_cert_reqs=CERT_NONE"
 CELERY_TIMEZONE = 'US/Central'
 CELERYD_TASK_TIME_LIMIT= 10
 CELERY_TASK_RESULT_EXPIRES = 10
@@ -319,12 +319,16 @@ CACHES = {
         "LOCATION": CELERY_BROKER_URL,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            # "CONNECTION_POOL_KWARGS": {
-            #     "ssl_cert_reqs": ssl.CERT_NONE,
-            # },
+            "SSL_CERT_REQS": "CERT_NONE",
+            "CONNECTION_POOL_KWARGS": {
+                "ssl_cert_reqs": "CERT_NONE"
+            },
         }
     }
 }
+# "CONNECTION_POOL_KWARGS": {
+            #     "ssl_cert_reqs": ssl.CERT_NONE,
+            # },
 
 # EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = "smtp.gmail.com" # Your SMTP Provider or in this case gmail
