@@ -144,33 +144,36 @@ export const loginAsync = (email, password) => async (dispatch) => {
   }
 };
 
-export const getUser = (email, accessToken) => async (dispatch) => {
+export const googleLoginAsync = (accessToken) => async (dispatch) => {
   try {
-    dispatch(loginLoading());
+    dispatch(loginLoading()); 
     const config = {
       headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
+        'Content-type': 'application/x-www-form-urlencoded',
+        'Authorization': `Bearer ${accessToken}`,
       },
     };
-    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/authenticated_user/${email}/`, config);
+    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/login/google/`, config);
     dispatch(login(data));
     localStorage.setItem('userInfo', JSON.stringify(data));
+    
   } catch (error) {
-    dispatch(loginError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    dispatch(logout(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-  }
-}
+    console.log(error.response.data)
+    // eslint-disable-next-line no-nested-ternary    
+    dispatch(loginError(error.response && error.response.data.non_field_errors ? error.response.data.non_field_errors[0] : 
+      (error.response && error.response.data ? error.response.data : error.message)));
+    dispatch(logout(error.response && error.response.data ? error.response.data : error.message));
+    }
+};
 
-export const editUserAsync = (email, firstName, lastName, serviceTitan, accessToken) => async (dispatch, getState) => {
+export const editUserAsync = (email, firstName, lastName, serviceTitan) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
-
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${userInfo.accessToken}`,
       },
     };
     dispatch(loginLoading());
@@ -201,13 +204,12 @@ export const registerAsync = (company, registrationToken, firstName, lastName, e
 export const companyAsync = (email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag, crm) => async (dispatch, getState) => {
   try {
     dispatch(companyLoading());
-
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
-
     const config = {
       headers: {
         'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.accessToken}`,
       },
     };
     const { data } = await axios.put(
@@ -222,9 +224,6 @@ export const companyAsync = (email, phone, tenantID, clientID, clientSecret, for
     dispatch(companyError(err.response && err.response.data.detail ? err.response.data.detail : err.message,));
   }
 };
-
-// export const resetPasswordAsync = (oldPassword, password) => async (dispatch) => {
-// };
 
 export const addUserAsync = (firstName, lastName, email, password, token, phone) => async (dispatch) => {
   try {
@@ -293,13 +292,14 @@ export const logout = (error=null) => (dispatch) => {
 
 export const generateQrCodeAsync = () => async (dispatch, getState) => {
   try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.accessToken}`,
       },
     };
-    const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
     const {id} = userInfo;
     dispatch(loginLoading());
     const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/otp/generate/`, { id }, config);
@@ -312,13 +312,14 @@ export const generateQrCodeAsync = () => async (dispatch, getState) => {
 
 export const verifyOtp = (otp) => async (dispatch, getState) => {
   try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.accessToken}`,
       },
     };
-    const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
     const {id} = userInfo;
     dispatch(loginLoading());
     const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/otp/verify/`, { id, otp }, config);
@@ -332,13 +333,14 @@ export const verifyOtp = (otp) => async (dispatch, getState) => {
 
 export const validateOtp = (otp) => async (dispatch, getState) => {
   try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.accessToken}`,
       },
     };
-    const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
     const {id} = userInfo;
     dispatch(loginLoading());
     const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/otp/validate/`, { id, otp }, config);
@@ -353,13 +355,14 @@ export const validateOtp = (otp) => async (dispatch, getState) => {
 
 export const disableTwoFactorAuth = () => async (dispatch, getState) => {
   try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.accessToken}`,
       },
     };
-    const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
     const {id} = userInfo;
     dispatch(loginLoading());
     const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/otp/disable/`, { id }, config);

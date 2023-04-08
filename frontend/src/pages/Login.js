@@ -1,12 +1,12 @@
-
-import { useAuth0 } from "@auth0/auth0-react";
-
-import React from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import React, {useEffect} from 'react';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useSelector } from "react-redux";
 
 // @mui
 import { styled } from '@mui/material/styles';
 import { Card, Link, Container, Typography, Button } from '@mui/material';
+
+import { showLoginInfo } from '../redux/actions/authActions';
 
 
 // hooks
@@ -14,6 +14,10 @@ import useResponsive from '../hooks/useResponsive';
 // components
 import Page from '../components/Page';
 import Logo from '../components/Logo';
+import { LoginForm } from '../sections/auth/login';
+// import Facebook from "../components/social-media/Facebook";
+// import Twitter from "../components/social-media/Twitter";
+import Google from "../components/social-media/Google";
 
 // ----------------------------------------------------------------------
 
@@ -64,16 +68,20 @@ export default function Login() {
   const smUp = useResponsive('up', 'sm');
 
   const mdUp = useResponsive('up', 'md');
-  const { loginWithRedirect } = useAuth0();
-  
+  const navigate = useNavigate();
+  const userLogin = useSelector(showLoginInfo);
+  const { userInfo } = userLogin;
 
-  const login = () => {
-    loginWithRedirect();
-  };
+  useEffect(() => {
+    if(userInfo) {
+      navigate('/dashboard/customers', { replace: true })
+    }
+    
+  }, [userInfo]);
   
 
   return (
-    <Page title="Logout">
+    <Page title="Login">
       <RootStyle>
         <HeaderStyle>
           <Logo />
@@ -96,8 +104,8 @@ export default function Login() {
               Log In Here
             </Typography>
             
-            <Button variant="contained" onClick={login}>Login</Button>
-            
+            <LoginForm />
+            <Google />
             {!smUp && (
               <Typography variant="body2" align="center" sx={{ mt: 3 }}>
                 Don’t have an account?{' '}

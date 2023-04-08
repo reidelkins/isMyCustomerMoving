@@ -51,6 +51,8 @@ SALESFORCE_CONSUMER_KEY = get_env_var('SALESFORCE_CONSUMER_KEY')
 SALESFORCE_CONSUMER_SECRET = get_env_var('SALESFORCE_CONSUMER_SECRET')
 AUTH0_DOMAIN=get_env_var('AUTH0_DOMAIN')
 AUTH0_AUDIENCE=get_env_var('AUTH0_AUDIENCE')
+GOOGLE_CLIENT_ID=get_env_var('GOOGLE_CLIENT_ID')
+# Celery Configuration
 # REDIS_URL = os.environ.get('REDIS_URL')
 if IS_HEROKU or IS_GITHUB:
     DEBUG = False
@@ -70,9 +72,13 @@ else:
     BASE_BACKEND_URL = 'http://localhost:8000'
     CLIENT_ORIGIN_URL="http://localhost:3000"
     
-    SECRET_KEY=open(f'{BASE_DIR}/{SECRET_KEY}').read()
+    SECRET_KEY=open(f'{BASE_DIR}/jwtRS256.key').read()
 
 ALLOWED_HOSTS = ['*']
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = get_env_var('GOOGLE_CLIENT_ID')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = get_env_var('GOOGLE_CLIENT_SECRET')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['email', 'profile']
+SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS = {'access_type': 'offline'}
 
 
 # Application definition
@@ -91,6 +97,9 @@ INSTALLED_APPS = [
     'payments',
     'data',
     'djstripe',
+    'social_django',    
+    'rest_framework_social_oauth2',
+    'oauth2_provider'
 
 ]
 
@@ -114,6 +123,45 @@ AUTH_USER_MODEL = "accounts.CustomUser"
 
 ROOT_URLCONF = 'config.urls'
 
+# CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    CLIENT_ORIGIN_URL,
+
+    # STRIPE
+    "https://3.18.12.63",
+    "https://3.130.192.231",
+    "https://13.235.14.237",
+    "https://13.235.122.149",
+    "https://18.211.135.69",
+    "https://35.154.171.200",
+    "https://52.15.183.38",
+    "https://54.88.130.119",
+    "https://54.88.130.237",
+    "https://54.187.174.169",
+    "https://54.187.205.235",
+    "https://54.187.216.72"
+]
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -135,7 +183,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # Password validation
-# https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
+# https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -161,9 +209,8 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
 ]
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/3.2/topics/i18n/
+# https://docs.djangoproject.com/en/4.1/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
@@ -177,7 +224,7 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
+# https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = '/static/'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -192,36 +239,14 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# Default primary key field type
+# https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
-# Security
+
+# Oauth2
+LOGIN_URL='/admin/login/'
 
 
-CORS_ALLOWED_ORIGINS = [
-    CLIENT_ORIGIN_URL,
-
-    # STRIPE
-    "https://3.18.12.63",
-    "https://3.130.192.231",
-    "https://13.235.14.237",
-    "https://13.235.122.149",
-    "https://18.211.135.69",
-    "https://35.154.171.200",
-    "https://52.15.183.38",
-    "https://54.88.130.119",
-    "https://54.88.130.237",
-    "https://54.187.174.169",
-    "https://54.187.205.235",
-    "https://54.187.216.72"
-]
-
-CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-]
 
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_SECONDS = 31536000
@@ -233,48 +258,40 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'accounts.utils.CustomAuthentication'
     ],
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
 }
-    
-
-# JWT
-
-AUTH0_DOMAIN = get_env_var('AUTH0_DOMAIN')
-AUTH0_AUDIENCE = get_env_var('AUTH0_AUDIENCE')
-
 SIMPLE_JWT = {
-    'ALGORITHM': 'RS256',
-    'JWK_URL': f'https://{AUTH0_DOMAIN}/.well-known/jwks.json',
-    'AUDIENCE': AUTH0_AUDIENCE,
-    'ISSUER': f'https://{AUTH0_DOMAIN}/',
-    'USER_ID_CLAIM': 'sub',
-    'AUTH_TOKEN_CLASSES': ('authz.tokens.Auth0Token',),
-    'SIGNING_KEY': SECRET_KEY,
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': False,
 
-    # 'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    # 'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    # 'ROTATE_REFRESH_TOKENS': True,
-    # 'BLACKLIST_AFTER_ROTATION': True,
-    # 'UPDATE_LAST_LOGIN': False,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY.encode(),
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+    'JWK_URL': None,
+    'LEEWAY': 0,
 
-    # 'AUTH_HEADER_TYPES': ('Bearer',),
-    # 'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
-    # 'USER_ID_FIELD': 'id',
-    # 'USER_ID_CLAIM': 'user_id',
-    # 'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'Authorization',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
 
-    # 'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-    # 'TOKEN_TYPE_CLAIM': 'token_type',
-    # 'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+    'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
 
-    # 'JTI_CLAIM': 'jti',
+    'JTI_CLAIM': 'jti',
 
-    # 'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    # 'SLIDING_TOKEN_LIFETIME': timedelta(minutes=60),
-    # 'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=60),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
 
