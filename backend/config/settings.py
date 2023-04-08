@@ -49,8 +49,6 @@ SCRAPFLY_KEY = get_env_var('SCRAPFLY_KEY')
 ST_APP_KEY = get_env_var('ST_APP_KEY')
 SALESFORCE_CONSUMER_KEY = get_env_var('SALESFORCE_CONSUMER_KEY')
 SALESFORCE_CONSUMER_SECRET = get_env_var('SALESFORCE_CONSUMER_SECRET')
-AUTH0_DOMAIN=get_env_var('AUTH0_DOMAIN')
-AUTH0_AUDIENCE=get_env_var('AUTH0_AUDIENCE')
 GOOGLE_CLIENT_ID=get_env_var('GOOGLE_CLIENT_ID')
 # Celery Configuration
 # REDIS_URL = os.environ.get('REDIS_URL')
@@ -104,7 +102,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'config.middleware.Auth0Middleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -179,8 +176,6 @@ TEMPLATES = [
         },
     },
 ]
-
-WSGI_APPLICATION = 'config.wsgi.application'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
