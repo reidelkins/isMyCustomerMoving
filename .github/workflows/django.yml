@@ -40,6 +40,7 @@ jobs:
           STRIPE_SECRET_KEY_TEST: ${{secrets.STRIPE_SECRET_KEY_TEST }}
           STRIPE_PUBLIC_KEY: ${{secrets.STRIPE_PUBLIC_KEY }}
           STRIPE_PUBLIC_KEY_TEST: ${{secrets.STRIPE_PUBLIC_KEY_TEST }}
+          IS_GITHUB: True
           
         run: |
           cd backend
