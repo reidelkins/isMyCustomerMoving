@@ -1,5 +1,9 @@
 from django.urls import path, include
+from django.conf.urls import url
 from rest_framework import routers
+from rest_framework_social_oauth2 import urls as oauth2_urls
+from rest_framework_social_oauth2.views import ConvertTokenView
+
 from . import views
 
 from rest_framework_simplejwt.views import (
@@ -8,9 +12,11 @@ from rest_framework_simplejwt.views import (
 
 router = routers.DefaultRouter()
 router.register(r"users", views.UserViewSet)
+router.register(r'glogin',views.googleLoginViewSet,basename='glogin')
 
 login_patterns = [
     path('', views.MyTokenObtainPairView.as_view(), name='login'),
+    path('google/', views.TokenValidate.as_view(), name='google-login')
 ]
 
 urlpatterns = [
