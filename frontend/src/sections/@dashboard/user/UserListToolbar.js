@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {useDispatch } from 'react-redux';
 // material
 import { styled } from '@mui/material/styles';
 import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput } from '@mui/material';
-import { useAuth0 } from "@auth0/auth0-react";
+
 // component
 import Iconify from '../../../components/Iconify';
 // redux
@@ -28,25 +27,10 @@ UserListToolbar.propTypes = {
 
 export default function UserListToolbar({ numSelected, selectedUsers }) {
   const dispatch = useDispatch();
-  const { getAccessTokenSilently } = useAuth0();
-  const [accessToken, setAccessToken] = useState(null);
-
-  useEffect(() => {
-    const fetchAccessToken = async () => {
-      const token = await getAccessTokenSilently();
-      setAccessToken(token);
-    };
-
-    fetchAccessToken();
-
-    // return a cleanup function to cancel any pending async operation and prevent updating the state on an unmounted component
-    return () => {
-      setAccessToken(null);
-    };
-  }, [getAccessTokenSilently]);
+  
 
   const clickDelete = (event, Users) => {
-    dispatch(deleteUserAsync(Users, accessToken));
+    dispatch(deleteUserAsync(Users));
     setTimeout(() => {
       window.location.reload();
     }, 200);

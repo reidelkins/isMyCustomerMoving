@@ -98,14 +98,14 @@ class UserSerializer(serializers.Serializer):
 
 
 class UserSerializerWithToken(UserSerializer):
-    access = serializers.SerializerMethodField(read_only=True)
-    refresh = serializers.SerializerMethodField(read_only=True)
+    accessToken = serializers.SerializerMethodField(read_only=True)
+    refreshToken = serializers.SerializerMethodField(read_only=True)
 
-    def get_access(self, obj):
+    def get_accessToken(self, obj):
         token = RefreshToken.for_user(obj)
         return str(token.access_token)
 
-    def get_refresh(self, obj):
+    def get_refreshToken(self, obj):
         token = RefreshToken.for_user(obj)
         return str(token)
 
