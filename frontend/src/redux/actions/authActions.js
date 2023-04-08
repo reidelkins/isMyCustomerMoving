@@ -235,7 +235,7 @@ export const addUserAsync = (firstName, lastName, email, password, token, phone)
     };
 
     const { data } = await axios.post(
-      `${DOMAIN}/api/v1/accounts/manageuser/${token}/`,
+      `${DOMAIN}/api/v1/accounts/acceptinvite/${token}/`,
       { firstName, lastName, email, password, phone },
       config
     );

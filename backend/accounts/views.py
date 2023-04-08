@@ -7,7 +7,7 @@ from django.http import HttpResponse, JsonResponse
 from django.utils.timezone import make_aware
 from rest_framework import permissions, status, generics, viewsets
 from rest_framework.decorators import api_view
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -61,8 +61,47 @@ def requires_scope(required_scope):
         return decorated
     return require_scope
 
+class AcceptInvite(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request, *args, **kwargs):
+        # Accept Invite and Make User
+        if InviteToken.objects.filter(id=self.kwargs['invitetoken']).exists():
+            utc = pytz.UTC
+            try:
+                token = InviteToken.objects.get(id=self.kwargs['invitetoken'], email=request.data['email'])
+                if token.expiration > utc.localize(datetime.datetime.utcnow()):
+                    company = token.company
+                    if company:
+                        try:
+                            user = CustomUser.objects.get(
+                                email=request.data['email'],
+                                company=company,
+                                status='pending'
+                            )
+                        except Exception as e:
+                            print(e)
+                            return Response({"status": "Cannot find user"}, status=status.HTTP_400_BAD_REQUEST)
+
+                        user.password = make_password(request.data['password'])
+                        user.status = 'active'
+                        user.first_name = request.data['firstName']
+                        user.last_name = request.data['lastName']
+                        user.phone = request.data['phone']
+                        user.isVerified = True
+                        user.save()                            
+                        token.delete()
+                else:
+                    return Response({"status": "Token Expired"}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                return Response({"status": "Data Error on Invite Token"}, status=status.HTTP_400_BAD_REQUEST)
+            serializer = UserSerializerWithToken(user, many=False)
+            return Response(serializer.data)
+        else:
+            return Response({"status": "Invalid Invite Token"}, status=status.HTTP_400_BAD_REQUEST)
+
 class ManageUserView(APIView):
     permission_classes = [IsAuthenticated]
+    
     #TODO: Currently not checking if user email is already in use
     def post(self, request, *args, **kwargs):
         try:
@@ -95,39 +134,7 @@ class ManageUserView(APIView):
                     return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
                 users = CustomUser.objects.filter(company=user.company)
                 serializer = UserListSerializer(users, many=True)
-                return Response(serializer.data)
-            # Accept Invite and Make User
-            elif InviteToken.objects.filter(id=self.kwargs['id']).exists():
-                utc = pytz.UTC
-                try:
-                    token = InviteToken.objects.get(id=self.kwargs['id'], email=request.data['email'])
-                    if token.expiration > utc.localize(datetime.datetime.utcnow()):
-                        company = token.company
-                        if company:
-                            try:
-                                user = CustomUser.objects.get(
-                                    email=request.data['email'],
-                                    company=company,
-                                    status='pending'
-                                )
-                            except Exception as e:
-                                print(e)
-                                return Response({"status": "Cannot find user"}, status=status.HTTP_400_BAD_REQUEST)
-
-                            user.password = make_password(request.data['password'])
-                            user.status = 'active'
-                            user.first_name = request.data['firstName']
-                            user.last_name = request.data['lastName']
-                            user.phone = request.data['phone']
-                            user.isVerified = True
-                            user.save()                            
-                            token.delete()
-                    else:
-                        return Response({"status": "Token Expired"}, status=status.HTTP_400_BAD_REQUEST)
-                except Exception as e:
-                    return Response({"status": "Data Error on Invite Token"}, status=status.HTTP_400_BAD_REQUEST)
-                serializer = UserSerializerWithToken(user, many=False)
-                return Response(serializer.data)
+                return Response(serializer.data)            
             # Make User an Admin
             elif CustomUser.objects.filter(id=self.kwargs['id']).exists():
                 try:
