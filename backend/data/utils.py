@@ -31,7 +31,7 @@ def delVariables(vars):
             pass
     gc.collect()
 
-def findClientsToDelete(clientCount, subscriptionType):
+def findClientCount(subscriptionType):
     if subscriptionType == "Small Business":
         ceiling = 5000
     elif subscriptionType == "Franchise":
@@ -42,18 +42,32 @@ def findClientsToDelete(clientCount, subscriptionType):
     #     ceiling = 100
     else:
         ceiling = 100000
+    return ceiling
+
+def findClientsToDelete(clientCount, subscriptionType):
+    ceiling = findClientCount(subscriptionType)
     if clientCount > ceiling:
         return clientCount - ceiling
     else:
         return 0
     
+def reactivateClients(companyID):
+    company = Company.objects.get(id=companyID)
+    clients = Client.objects.filter(company=company)
+    clientCeiling = findClientCount(company.product.product.name)
+    if clientCeiling > clients.count():
+        clients.update(active="true")
+    else:
+        toReactiveCount = clientCeiling - clients.filter(active="true").count()
+        clients.filter(active="false").order_by('id')[:toReactiveCount].update(active="true")
+    
 @shared_task
 def deleteExtraClients(companyID, taskID=None):
     company = Company.objects.get(id=companyID)
-    clients = Client.objects.filter(company=company)
+    clients = Client.objects.filter(company=company, active="true")
     deletedClients = findClientsToDelete(clients.count(), company.product.product.name)
     if deletedClients > 0:
-        Client.objects.filter(id__in=list(clients.values_list('id', flat=True)[:deletedClients])).delete()
+        Client.objects.filter(id__in=list(clients.values_list('id', flat=True)[:deletedClients])).update(active="false")
         admins = CustomUser.objects.filter(company=company, status="admin")
         mail_subject = "IMCM Clients Deleted"
         messagePlain = "Your company has exceeded the number of clients allowed for your subscription. The oldest clients have been deleted. You can upgrade your subscription at any time to increase the number of clients you can have."
@@ -165,7 +179,7 @@ def updateClientList(numbers):
 @shared_task
 def getAllZipcodes(company):
     company_object = Company.objects.get(id=company)
-    zipCode_objects = Client.objects.filter(company=company_object).values('zipCode')
+    zipCode_objects = Client.objects.filter(company=company_object, active=True).values('zipCode')
     zipCodes = zipCode_objects.distinct()
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
     zips = list(zipCodes.order_by('zipCode').values('zipCode'))
@@ -359,8 +373,8 @@ def updateStatus(zip, company, status):
         return
     #addresses from all home listings with the provided zip code and status
     listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')
-    clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses, zipCode=zipCode_object)
-    previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status)
+    clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses, zipCode=zipCode_object, active=True)
+    previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status, active=True)
     newlyListed = clientsToUpdate.difference(previousListed)
     #TODO add logic so if date for one listing is older than date of other, it will not update status
     for toList in newlyListed:
@@ -414,7 +428,7 @@ def update_clients_statuses(company_id=None):
     for company in companies:
         try:
             if company.product.id != "price_1MhxfPAkLES5P4qQbu8O45xy":
-                zipCode_objects = Client.objects.filter(company=company).values('zipCode')
+                zipCode_objects = Client.objects.filter(company=company, active=True).values('zipCode')
                 zipCodes = zipCode_objects.distinct()
                 zips = list(zipCodes.order_by('zipCode').values('zipCode'))
                 for zip in zips:
@@ -442,8 +456,8 @@ def sendDailyEmail(company_id=None):
                 emails = list(CustomUser.objects.filter(company=company).values_list('email'))
                 subject = 'Did Your Customers Move?'
                 
-                forSaleCustomers = Client.objects.filter(company=company, status="House For Sale").exclude(contacted=True).count()
-                soldCustomers = Client.objects.filter(company=company, status="House Recently Sold (6)").exclude(contacted=True).count()
+                forSaleCustomers = Client.objects.filter(company=company, status="House For Sale", active=True).exclude(contacted=True).count()
+                soldCustomers = Client.objects.filter(company=company, status="House Recently Sold (6)", active=True).exclude(contacted=True).count()
                 message = get_template("dailyEmail.html").render({
                     'forSale': forSaleCustomers, 'sold': soldCustomers
                 })

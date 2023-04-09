@@ -3,7 +3,7 @@ from django.template.loader import get_template
 from django.core.mail import send_mail
 from accounts.models import Company, CustomUser
 from accounts.utils import makeCompany
-from data.utils import deleteExtraClients
+from data.utils import deleteExtraClients, reactivateClients
 from datetime import datetime, timedelta
 
 from djstripe import webhooks, models as djstripe_models
@@ -186,6 +186,7 @@ def update_subscription(event: djstripe_models.Event):
         company.save()
         if plan != "price_1MhxfPAkLES5P4qQbu8O45xy":
             deleteExtraClients(company.id)
+            reactivateClients(company.id)
     except Exception as e:
         print(e)
         print("error")
