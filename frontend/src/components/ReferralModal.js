@@ -13,7 +13,7 @@ import { useFormik, Form, FormikProvider } from 'formik';
 import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import * as Yup from 'yup';
-import { useAuth0 } from "@auth0/auth0-react";
+
 
 import { makeReferralAsync } from '../redux/actions/usersActions';
 
@@ -31,22 +31,7 @@ export default function ReferralModal({
     const [open, setOpen] = useState(false);
     const [referred, setReferred] = useState(alreadyReferred);
     const dispatch = useDispatch();
-    const { getAccessTokenSilently } = useAuth0();
-    const [accessToken, setAccessToken] = useState(null);
 
-    useEffect(() => {
-    const fetchAccessToken = async () => {
-        const token = await getAccessTokenSilently();
-        setAccessToken(token);
-    };
-
-    fetchAccessToken();
-
-    // return a cleanup function to cancel any pending async operation and prevent updating the state on an unmounted component
-    return () => {
-        setAccessToken(null);
-    };
-    }, [getAccessTokenSilently]);
     const handleOpen = () => {
         setOpen(true);
         
@@ -71,7 +56,7 @@ export default function ReferralModal({
         },
         validationSchema: ReferralSchema,
         onSubmit: () => {
-            dispatch(makeReferralAsync(id, values.area, accessToken));
+            dispatch(makeReferralAsync(id, values.area));
             setOpen(false);
             setReferred(true);
         },

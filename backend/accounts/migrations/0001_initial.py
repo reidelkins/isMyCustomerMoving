@@ -35,7 +35,6 @@ class Migration(migrations.Migration):
                 ('recentlySoldPurchased', models.BooleanField(default=False)),
                 ('sfAccessToken', models.CharField(blank=True, max_length=100, null=True)),
                 ('sfRefreshToken', models.CharField(blank=True, max_length=100, null=True)),
-                ('product', models.CharField(blank=True, max_length=100, null=True)),
             ],
         ),
         migrations.CreateModel(

@@ -346,6 +346,8 @@ def create_home_listings(results, status, resp=None):
                         price = price,
                         housingType = listing['description']['type'],
                         year_built = year_built,
+                        state = listing['location']['address']['state_code'],
+                        city = listing['location']['address']['city'],
                         )
             if resp:
                 homeListing[0].ScrapeResponse = ScrapeResponse.objects.get(id=resp)

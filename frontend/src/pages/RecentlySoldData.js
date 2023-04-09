@@ -20,7 +20,7 @@ import {
   TablePagination,
   CircularProgress
 } from '@mui/material';
-import { useAuth0 } from "@auth0/auth0-react";
+
 import { useSelector, useDispatch } from 'react-redux';
 import { DOMAIN } from '../redux/constants';
 
@@ -43,6 +43,8 @@ import { makeDate } from '../utils/makeDate';
 const TABLE_HEAD = [
   { id: 'listed', label: 'Date Sold', alignRight: false },
   { id: 'address', label: 'Address', alignRight: false },
+  { id: 'city', label: 'City', alignRight: false },
+  { id: 'state', label: 'State', alignRight: false },
   { id: 'zipCode', label: 'Zip Code', alignRight: false },
   { id: 'price', label: 'Price', alignRight: false },
   { id: 'year_built', label: 'Year Built', alignRight: false },
@@ -111,22 +113,6 @@ export default function RecentlySoldData() {
   const [csvLoading, setCsvLoading] = useState(false);
 
   const [recentlySoldLength, setRecentlySoldLength] = useState(0);
-  const { getAccessTokenSilently } = useAuth0();
-  const [accessToken, setAccessToken] = useState(null);
-
-  useEffect(() => {
-    const fetchAccessToken = async () => {
-      const token = await getAccessTokenSilently();
-      setAccessToken(token);
-    };
-
-    fetchAccessToken();
-
-    // return a cleanup function to cancel any pending async operation and prevent updating the state on an unmounted component
-    return () => {
-      setAccessToken(null);
-    };
-  }, [getAccessTokenSilently]);
 
   useEffect(() => {
     if (RECENTLYSOLDLIST.length < recentlySoldLength) {
@@ -145,7 +131,7 @@ export default function RecentlySoldData() {
   const handleChangePage = (event, newPage) => {
     // fetch new page if two away from needing to see new page
     if ((newPage+2) * rowsPerPage % 1000 === 0) {
-      dispatch(recentlySoldAsync(((newPage+2) * rowsPerPage / 1000)+1, accessToken))
+      dispatch(recentlySoldAsync(((newPage+2) * rowsPerPage / 1000)+1))
     }
     setPage(newPage);
   };
@@ -225,7 +211,7 @@ export default function RecentlySoldData() {
                       />
                       <TableBody>
                         {filteredRecentlySold.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                          const { id, address, zipCode, listed, price, year_built: yearBuilt} = row;
+                          const { id, address, city, state, zipCode, listed, price, year_built: yearBuilt} = row;
                           
                           return (
                             <React.Fragment key={row.id}>
@@ -243,6 +229,8 @@ export default function RecentlySoldData() {
                                   </Stack>
                                 </TableCell>
                                 <TableCell align="left">{address}</TableCell>
+                                <TableCell align="left">{city}</TableCell>
+                                <TableCell align="left">{state}</TableCell>
                                 <TableCell align="left">{zipCode}</TableCell>     
                                   <TableCell align="left">{price.toLocaleString()}</TableCell>
                                   <TableCell align="left">{yearBuilt}</TableCell>                                               

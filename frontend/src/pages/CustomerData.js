@@ -27,7 +27,6 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
-import { useAuth0 } from "@auth0/auth0-react";
 
 import { DOMAIN } from '../redux/constants';
 
@@ -48,7 +47,7 @@ import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client
 
 import ClientsListCall from '../redux/calls/ClientsListCall';
 import { selectClients, update, updateClientAsync, serviceTitanSync, salesForceSync, clientsAsync } from '../redux/actions/usersActions';
-import { getUser, showLoginInfo } from '../redux/actions/authActions';
+import { showLoginInfo, logout } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
 // change this to sort by status
@@ -88,33 +87,22 @@ export function applySortFilter(array, comparator, query, userInfo) {
 
 export default function CustomerData() {
   const dispatch = useDispatch();
-  const { getAccessTokenSilently } = useAuth0();
-  const [accessToken, setAccessToken] = useState(null);
-
-  useEffect(() => {
-    const fetchAccessToken = async () => {
-      const token = await getAccessTokenSilently();
-      setAccessToken(token);
-    };
-
-    fetchAccessToken();
-
-    // return a cleanup function to cancel any pending async operation and prevent updating the state on an unmounted component
-    return () => {
-      setAccessToken(null);
-    };
-  }, [getAccessTokenSilently]);
+  const navigate = useNavigate();
 
   const userLogin = useSelector(showLoginInfo);
-  const { userInfo } = userLogin;
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { userInfo, twoFA } = userLogin;
 
-  useEffect(async () => {
-    if (isAuthenticated && accessToken) {      
-      dispatch(getUser(user.email, accessToken));
+  useEffect(() => {
+    if (!userInfo) {
+      dispatch(logout());
+      navigate('/login', { replace: true });
+      window.location.reload(false);
+    } else if (userInfo.otp_enabled && twoFA === false) {
+      navigate('/login', { replace: true });
+      window.location.reload(true);
     }
-  }, [isAuthenticated, user, accessToken]);
-  
+
+  }, [userInfo, dispatch, navigate]);
   
   const [TABLE_HEAD, setTABLE_HEAD] = useState([{ id: 'name', label: 'Name', alignRight: false },
         { id: 'address', label: 'Address', alignRight: false },
@@ -253,7 +241,7 @@ export default function CustomerData() {
   const handleChangePage = (event, newPage) => {
     // fetch new page if two away from needing to see new page
     if ((newPage+2) * rowsPerPage % 1000 === 0) {
-      dispatch(clientsAsync( ((newPage+2) * rowsPerPage / 1000)+1, accessToken))
+      dispatch(clientsAsync( ((newPage+2) * rowsPerPage / 1000)+1 ))
     }
     setPage(newPage);
   };
@@ -265,16 +253,16 @@ export default function CustomerData() {
     setFilterName(event.target.value);
   };
   const updateContacted = (event, id, contacted) => {
-    dispatch(updateClientAsync(id, contacted, "", accessToken));
+    dispatch(updateClientAsync(id, contacted, "", ));
   };
   const updateStatus = () => {
-    dispatch(update(accessToken));
+    dispatch(update());
   };
   const stSync = () => {
-    dispatch(serviceTitanSync(accessToken));
+    dispatch(serviceTitanSync());
   };
   const sfSync = () => {
-    dispatch(salesForceSync(accessToken));
+    dispatch(salesForceSync());
   };
 
   const exportCSV = async () => {
@@ -317,16 +305,10 @@ export default function CustomerData() {
     }
   }, [count, filteredClients])
   
-
-  if (isLoading) {
-      console.log("loading");
-      return <div>Loading ...</div>;
-    }
-  
   
   return (
     <div>
-    {isAuthenticated && userInfo && (
+    {userInfo && (
       <Page title="User" userInfo={userInfo}>
         <Container>
           {userInfo ? <ClientsListCall /> : null}

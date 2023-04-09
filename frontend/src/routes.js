@@ -30,14 +30,11 @@ export default function Router() {
       children: [
         // { path: '', element:<PrivateRoute path="/dashboard/customers" component={<Navigate to="/dashboard/customers" />} />},
         { path: '', element: <Navigate to="/dashboard/customers" /> },
-        // { path: 'settings', element: <PrivateRoute path="/dashboard/settings" component={<ProfileSettings />} />},
-        { path: 'settings', element: <AuthenticationGuard component={ProfileSettings} /> },
-        // { path: 'customers', element: <PrivateRoute path="/dashboard/customers" component={<CustomerData />} /> },
-        { path: 'customers', element: <AuthenticationGuard component={CustomerData} /> },
-        { path: 'recentlysold', element: <AuthenticationGuard component={RecentlySoldData} />},
-        { path: 'referrals', element: <AuthenticationGuard component={Referrals} />},
-        // { path: 'adduser', element: <PrivateRoute path="/dashboard/adduser" component={<AddUser />} />}
-        { path: 'adduser', element: <AuthenticationGuard component={AddUser} />},
+        { path: 'settings', element: <ProfileSettings />} ,
+        { path: 'customers', element: <CustomerData /> },
+        { path: 'recentlysold', element: <RecentlySoldData />},
+        { path: 'referrals', element: <Referrals />},
+        { path: 'adduser', element: <AddUser />},
         
       ],
     },

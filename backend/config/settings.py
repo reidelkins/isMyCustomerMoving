@@ -14,18 +14,43 @@ import os
 import dotenv
 from pathlib import Path
 from common.utils import get_env_var
+import dj_database_url
+from datetime import timedelta
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 dotenv.load_dotenv(BASE_DIR / '.env')
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
+IS_HEROKU = False
+IS_GITHUB = False
+try:
+    IS_HEROKU = get_env_var('IS_HEROKU')
+except:
+    pass
+try:
+    IS_GITHUB = get_env_var('IS_GITHUB')
+except:
+    pass
 
-# Declared in your environment variables
-IS_HEROKU = "DYNO" in os.environ
-IS_GITHUB = "GITHUB_WORKFLOW" in os.environ
+
+# this part will be executed if IS_POSTGRESQL = False
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}
+MAX_CONN_AGE = 600
+SECRET_KEY=get_env_var('SECRET_KEY')
+DJANGO_SECRET_KEY = get_env_var('DJANGO_SECRET_KEY')
+EMAIL_HOST_PASSWORD = get_env_var('EMAIL_PASSWD')
+SCRAPFLY_KEY = get_env_var('SCRAPFLY_KEY')
+ST_APP_KEY = get_env_var('ST_APP_KEY')
+SALESFORCE_CONSUMER_KEY = get_env_var('SALESFORCE_CONSUMER_KEY')
+SALESFORCE_CONSUMER_SECRET = get_env_var('SALESFORCE_CONSUMER_SECRET')
+GOOGLE_CLIENT_ID=get_env_var('GOOGLE_CLIENT_ID')
+# Celery Configuration
 # REDIS_URL = os.environ.get('REDIS_URL')
 if IS_HEROKU or IS_GITHUB:
     DEBUG = False
@@ -33,24 +58,25 @@ if IS_HEROKU or IS_GITHUB:
     BASE_FRONTEND_URL = 'https://app.ismycustomermoving.com'
     BASE_BACKEND_URL = 'https://is-my-customer-moving.herokuapp.com'
     CLIENT_ORIGIN_URL="https://app.ismycustomermoving.com"
+    if IS_HEROKU:
+        DATABASES["default"] = dj_database_url.config(
+            conn_max_age=MAX_CONN_AGE, ssl_require=True)
+    else:
+        DATABASES["default"]["TEST"] = DATABASES["default"]
 else:
     DEBUG = True
     CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
     BASE_FRONTEND_URL = 'http://localhost:3000'
     BASE_BACKEND_URL = 'http://localhost:8000'
     CLIENT_ORIGIN_URL="http://localhost:3000"
-
-SECRET_KEY = get_env_var('DJANGO_SECRET_KEY')
-EMAIL_HOST_PASSWORD = get_env_var('EMAIL_PASSWD')
-SCRAPFLY_KEY = get_env_var('SCRAPFLY_KEY')
-ST_APP_KEY = get_env_var('ST_APP_KEY')
-SALESFORCE_CONSUMER_KEY = get_env_var('SALESFORCE_CONSUMER_KEY')
-SALESFORCE_CONSUMER_SECRET = get_env_var('SALESFORCE_CONSUMER_SECRET')
-AUTH0_DOMAIN=get_env_var('AUTH0_DOMAIN')
-AUTH0_AUDIENCE=get_env_var('AUTH0_AUDIENCE')
-
+    
+    SECRET_KEY=open(f'{BASE_DIR}/jwtRS256.key').read()
 
 ALLOWED_HOSTS = ['*']
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = get_env_var('GOOGLE_CLIENT_ID')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = get_env_var('GOOGLE_CLIENT_SECRET')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['email', 'profile']
+SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS = {'access_type': 'offline'}
 
 
 # Application definition
@@ -69,11 +95,14 @@ INSTALLED_APPS = [
     'payments',
     'data',
     'djstripe',
+    'social_django',    
+    'rest_framework_social_oauth2',
+    'oauth2_provider'
 
 ]
 
 MIDDLEWARE = [
-    'config.middleware.Auth0Middleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -91,6 +120,45 @@ AUTH_USER_MODEL = "accounts.CustomUser"
 
 ROOT_URLCONF = 'config.urls'
 
+# CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    CLIENT_ORIGIN_URL,
+
+    # STRIPE
+    "https://3.18.12.63",
+    "https://3.130.192.231",
+    "https://13.235.14.237",
+    "https://13.235.122.149",
+    "https://18.211.135.69",
+    "https://35.154.171.200",
+    "https://52.15.183.38",
+    "https://54.88.130.119",
+    "https://54.88.130.237",
+    "https://54.187.174.169",
+    "https://54.187.205.235",
+    "https://54.187.216.72"
+]
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -109,22 +177,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'config.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-
 # Password validation
-# https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
+# https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -141,9 +195,17 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+PASSWORD_HASHERS = [
+    # python -m pip install argon2-cffi
+    # https://docs.djangoproject.com/en/3.2/topics/auth/passwords/#using-argon2-with-django
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+]
 
 # Internationalization
-# https://docs.djangoproject.com/en/3.2/topics/i18n/
+# https://docs.djangoproject.com/en/4.1/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
@@ -157,50 +219,29 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
+# https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = '/staticfiles/'
-# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATIC_URL = '/static/'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
+
 ]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# Default primary key field type
+# https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
-# Security
+
+# Oauth2
+LOGIN_URL='/admin/login/'
 
 
-CORS_ALLOWED_ORIGINS = [
-    CLIENT_ORIGIN_URL,
-
-    # STRIPE
-    "https://3.18.12.63",
-    "https://3.130.192.231",
-    "https://13.235.14.237",
-    "https://13.235.122.149",
-    "https://18.211.135.69",
-    "https://35.154.171.200",
-    "https://52.15.183.38",
-    "https://54.88.130.119",
-    "https://54.88.130.237",
-    "https://54.187.174.169",
-    "https://54.187.205.235",
-    "https://54.187.216.72"
-]
-
-CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-]
 
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_SECONDS = 31536000
@@ -212,23 +253,42 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
+        'accounts.utils.CustomAuthentication'
     ],
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
 }
-
-# JWT
-
-AUTH0_DOMAIN = get_env_var('AUTH0_DOMAIN')
-AUTH0_AUDIENCE = get_env_var('AUTH0_AUDIENCE')
-
 SIMPLE_JWT = {
-    'ALGORITHM': 'RS256',
-    'JWK_URL': f'https://{AUTH0_DOMAIN}/.well-known/jwks.json',
-    'AUDIENCE': AUTH0_AUDIENCE,
-    'ISSUER': f'https://{AUTH0_DOMAIN}/',
-    'USER_ID_CLAIM': 'sub',
-    'AUTH_TOKEN_CLASSES': ('authz.tokens.Auth0Token',),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': False,
+
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY.encode(),
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+    'JWK_URL': None,
+    'LEEWAY': 0,
+
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'Authorization',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+    'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
+
+    'JTI_CLAIM': 'jti',
+
+    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=60),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
+
 
 STRIPE_TEST_SECRET_KEY = get_env_var('STRIPE_SECRET_KEY_TEST')
 STRIPE_LIVE_SECRET_KEY = get_env_var('STRIPE_SECRET_KEY')
@@ -239,7 +299,7 @@ DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
 
 DJSTRIPE_WEBHOOK_VALIDATION='retrieve_event'
 
-CELERY_BROKER_URL = CELERY_RESULT_BACKEND
+CELERY_BROKER_URL = CELERY_RESULT_BACKEND + "?ssl_cert_reqs=CERT_NONE"
 CELERY_TIMEZONE = 'US/Central'
 CELERYD_TASK_TIME_LIMIT= 10
 CELERY_TASK_RESULT_EXPIRES = 10
@@ -259,9 +319,23 @@ CACHES = {
         "LOCATION": CELERY_BROKER_URL,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            # "CONNECTION_POOL_KWARGS": {
-            #     "ssl_cert_reqs": ssl.CERT_NONE,
-            # },
+            "SSL_CERT_REQS": "CERT_NONE",
+            "CONNECTION_POOL_KWARGS": {
+                "ssl_cert_reqs": "CERT_NONE"
+            },
         }
     }
 }
+# "CONNECTION_POOL_KWARGS": {
+            #     "ssl_cert_reqs": ssl.CERT_NONE,
+            # },
+
+# EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = "smtp.gmail.com" # Your SMTP Provider or in this case gmail
+EMAIL_PORT = 587
+EMAIL_USE_SSL = False
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = get_env_var('EMAIL')
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+#assigned at the beginning
+# EMAIL_HOST_PASSWORD
