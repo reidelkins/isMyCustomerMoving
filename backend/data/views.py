@@ -74,7 +74,7 @@ class ClientListView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         user = CustomUser.objects.get(id=self.kwargs['user'])
-        allClients = Client.objects.filter(company=user.company)
+        allClients = Client.objects.filter(company=user.company, active=True)
         forSale = allClients.filter(status="House For Sale", contacted=False).count()
         recentlySold = allClients.filter(status="House Recently Sold (6)", contacted=False).count()
         allClientUpdates = ClientUpdate.objects.filter(client__company=user.company)

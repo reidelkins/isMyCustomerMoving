@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0006_client_equipmentinstalleddate'),
+        ('data', '0007_client_active'),
     ]
 
     operations = [
@@ -19,5 +19,5 @@ class Migration(migrations.Migration):
             model_name='homelisting',
             name='state',
             field=models.CharField(blank=True, max_length=31, null=True),
-        ),
+        ),        
     ]
