@@ -203,6 +203,7 @@ def getAllZipcodes(company):
 
 @shared_task
 def find_data(zip, i, status, url, extra):
+    scrapfly, first_page, first_result, content, soup, first_data, results, total, count, url, extra, new_results, parsed = ""
     scrapfly = scrapflies[i % 20]    
     try:
         first_page = f"{url}/{zip}/{extra}"
