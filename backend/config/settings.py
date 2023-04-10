@@ -299,7 +299,11 @@ DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
 
 DJSTRIPE_WEBHOOK_VALIDATION='retrieve_event'
 
-CELERY_BROKER_URL = CELERY_RESULT_BACKEND + "?ssl_cert_reqs=CERT_NONE"
+# CELERY_BROKER_URL = CELERY_RESULT_BACKEND + "?ssl_cert_reqs=CERT_NONE"
+CELERY_BROKER_URL = "{}?ssl_cert_reqs={}".format(
+        CELERY_RESULT_BACKEND, "CERT_NONE",
+)
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 CELERY_TIMEZONE = 'US/Central'
 CELERYD_TASK_TIME_LIMIT= 10
 CELERY_TASK_RESULT_EXPIRES = 10
@@ -308,7 +312,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [CELERY_BROKER_URL],
+            "hosts": [get_env_var('REDIS_URL')],
         },
     },
 }
@@ -316,7 +320,7 @@ CHANNEL_LAYERS = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": CELERY_BROKER_URL,
+        "LOCATION": get_env_var('REDIS_URL'),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "SSL_CERT_REQS": "CERT_NONE",
