@@ -110,7 +110,7 @@ def formatZip(zip):
 
 @shared_task
 def saveClientList(clients, company_id, task=None):
-    clientsToAdd, clients, company, company_id, badStreets = "", "", "", "", ""
+    clientsToAdd, company, badStreets = "", "", ""
     #create
     clientsToAdd = []
     company = Company.objects.get(id=company_id)        
@@ -164,7 +164,7 @@ def saveClientList(clients, company_id, task=None):
 
 @shared_task
 def updateClientList(numbers):
-    phoneNumbers, clients, numbers = "", "", ""
+    phoneNumbers, clients = "", ""
     phoneNumbers = {}
     for number in numbers:
         try:
@@ -180,7 +180,7 @@ def updateClientList(numbers):
 
 @shared_task
 def getAllZipcodes(company):
-    company_object, zipCode_objects, zipCodes, zips, company = "", "", "", "", ""
+    company_object, zipCode_objects, zipCodes, zips = "", "", "", ""
     company_object = Company.objects.get(id=company)
     zipCode_objects = Client.objects.filter(company=company_object, active=True).values('zipCode')
     zipCodes = zipCode_objects.distinct()
@@ -206,7 +206,7 @@ def getAllZipcodes(company):
 
 @shared_task
 def find_data(zip, i, status, url, extra):
-    scrapfly, first_page, first_result, content, soup, first_data, results, total, count, url, extra, new_results, parsed = "", "", "", "", "", "", "", "", "", "", "", "", ""
+    scrapfly, first_page, first_result, content, soup, first_data, results, total, count, new_results, parsed = "", "", "", "", "", "", "", "", "", "", ""
     scrapfly = scrapflies[i % 20]    
     try:
         first_page = f"{url}/{zip}/{extra}"
@@ -305,7 +305,7 @@ def parse_search(result: ScrapeApiResponse, searchType: str) -> SearchResults:
         return False
 
 def create_home_listings(results, status, resp=None):
-    zip_object, created, listType, homeListing, currTag, results = "", "", "", "", "", ""
+    zip_object, created, listType, homeListing, currTag = "", "", "", "", ""
     two_years_ago = datetime.now() - timedelta(days=365*2)
     for listing in results:
         zip_object, created = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
@@ -492,7 +492,7 @@ def sendDailyEmail(company_id=None):
 
 @shared_task
 def auto_update(company_id=None):
-    company_id, company = "", ""
+    company = ""
     if company_id:
         try:
             company = Company.objects.get(id=company_id)
@@ -509,6 +509,7 @@ def auto_update(company_id=None):
             try:
                 print(f"Auto Update: {company.product} {company.name}")
                 if company.product.id != "price_1MhxfPAkLES5P4qQbu8O45xy":
+                    print("In the if statement")
                     getAllZipcodes(company.id)
                 else:
                     print("free tier")
@@ -519,7 +520,7 @@ def auto_update(company_id=None):
 
 @shared_task
 def update_serviceTitan_client_tags(forSale, company, status):
-    headers, data, response, payload, company, status, tagType, forSale, resp, error, word = "", "", "", "", "", "", "", "", "", "", ""
+    headers, data, response, payload, tagType, resp, error, word = "", "", "", "", "", "", "", ""
     try:
         company = Company.objects.get(id=company)
         if forSale and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):
@@ -638,7 +639,7 @@ def remove_all_serviceTitan_tags(company):
 
 
 def update_serviceTitan_tasks(clients, company, status):
-    headers, data, response, company, status = "", "", "", "", ""
+    headers, data, response = "", "", ""
     if clients and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):
         try:
             headers = {
