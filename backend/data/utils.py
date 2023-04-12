@@ -507,12 +507,13 @@ def auto_update(company_id=None):
         companies = Company.objects.all()
         for company in companies:
             try:
+                print(f"Auto Update: {company.product} {company.name}")
                 if company.product.id != "price_1MhxfPAkLES5P4qQbu8O45xy":
                     getAllZipcodes(company.id)
                 else:
                     print("free tier")
             except Exception as e:
-                print(e)
+                print(f"Auto Update Error: {e}")
         delVariables([company, companies])
     
 
