@@ -449,7 +449,7 @@ def update_clients_statuses(company_id=None):
 
 @shared_task
 def sendDailyEmail(company_id=None):
-    companies, company, emails, subject, forSaleCustomers, soldCustomers, message, email, msg , "", "", "", "", "", "", "", ""
+    companies, company, emails, subject, forSaleCustomers, soldCustomers, message, email, msg , "", "", "", "", "", "", "", "", ""
     if company_id:
         companies = Company.objects.filter(id=company_id)
     else:
