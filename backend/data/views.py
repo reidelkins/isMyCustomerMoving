@@ -23,10 +23,10 @@ import csv
 class DownloadClientView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, format=None):
-        queryset = self.get_queryset()
+    def get(self, request, user, format=None):
+        queryset = self.get_queryset(user)
         # Define the CSV header row
-        header = ['id', 'name', 'email', 'status']
+        header = ['name', 'address', 'city', 'state', 'zipCode', 'status', 'phoneNumber']
         # Create a response object with the CSV content
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="clients.csv"'
@@ -36,14 +36,14 @@ class DownloadClientView(APIView):
         writer.writerow(header)
         # Write the data rows to the CSV file
         for client in queryset:
-            row = [client.id, client.name, client.email, client.status]
+            row = [client.name, client.address, client.city, client.state, client.zipCode.zipCode, client.status, client.phoneNumber]
             writer.writerow(row)
         # Return the response
         return response
 
-    def get_queryset(self):
+    def get_queryset(self, user):
         query_params = self.request.query_params
-        user = CustomUser.objects.get(id=self.request.user.id)
+        user = CustomUser.objects.get(id=user)
         queryset = Client.objects.filter(company=user.company, active=True).order_by('status')
         if 'min_price' in query_params:
             queryset = queryset.filter(price__gte=query_params['min_price'])

@@ -2,7 +2,7 @@
 import _, { filter} from 'lodash';
 import { sentenceCase } from 'change-case';
 import React, { useState, useEffect } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // material
 import {
   Alert,
@@ -43,7 +43,7 @@ import ClientDetailsTable from '../components/ClientDetailsTable';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
 
 import ClientsListCall from '../redux/calls/ClientsListCall';
-import { selectClients, update, updateClientAsync, serviceTitanSync, salesForceSync, clientsAsync } from '../redux/actions/usersActions';
+import { selectClients, update, updateClientAsync, serviceTitanSync, salesForceSync, clientsAsync, getClientsCSV } from '../redux/actions/usersActions';
 import { showLoginInfo, logout } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
@@ -308,9 +308,8 @@ export default function CustomerData() {
   const [minYear, setMinYear] = useState('');
   const [maxYear, setMaxYear] = useState('');
   const [tagFilters, setTagFilters] = useState([]);
-  const [equipInstallDateMin, setEquipInstallDateMin] = useState('1900-01-01');
-  const today = new Date();
-  const [equipInstallDateMax, setEquipInstallDateMax] = useState(today.toISOString().slice(0, 10));
+  const [equipInstallDateMin, setEquipInstallDateMin] = useState('');
+  const [equipInstallDateMax, setEquipInstallDateMax] = useState('');
   const handleStatusFiltersChange = (newFilters) => {setStatusFilters(newFilters)}
   const handleMinPriceChange = (newMinPrice) => { setMinPrice(newMinPrice)}
   const handleMaxPriceChange = (newMaxPrice) => {setMaxPrice(newMaxPrice)}

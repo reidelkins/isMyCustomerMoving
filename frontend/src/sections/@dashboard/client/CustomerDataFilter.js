@@ -134,7 +134,7 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
     const handleFilterSubmit = (event) => {
         event.preventDefault();
         // Filter data based on selected filters
-        dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax))
+        dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, "", equipInstallDateMin, equipInstallDateMax))
         setShowFilters(false);
     };
 
@@ -153,8 +153,8 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
         handleChangeMinYear('');
         handleChangeMaxYear('');
         // setTagFilters([]);
-        handleEquipInstallDateMax(today.toISOString().slice(0, 10));
-        handleEquipInstallDateMin('1900-01-01');
+        handleEquipInstallDateMax('');
+        handleEquipInstallDateMin('');
         dispatch(clientsAsync(1));
     };
 
@@ -236,22 +236,28 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
                                     <Typography variant="h6" mb={2}>Equipment Installation Date</Typography>
                                     <Stack direction="row" spacing={2} alignItems="space-between">
                                         <FormControl fullWidth>
-                                            <InputLabel>Earliest</InputLabel>
                                             <Input
                                                 type="date"
-                                                defaultValue={equipInstallDateMin}
                                                 value={equipInstallDateMin}
                                                 onChange={(event) => handleEquipInstallDateMin(event.target.value)}
+                                                startAdornment={
+                                                    <InputLabel shrink>
+                                                        Earliest
+                                                    </InputLabel>
+                                                }
                                             />
                                         </FormControl>
                                     
                                         <FormControl fullWidth>
-                                            <InputLabel>Latest</InputLabel>
                                             <Input
                                                 type="date"
-                                                defaultValue={equipInstallDateMax}
                                                 value={equipInstallDateMax}
                                                 onChange={(event) => handleEquipInstallDateMax(event.target.value)}
+                                                startAdornment={
+                                                    <InputLabel shrink>
+                                                        Latest
+                                                    </InputLabel>
+                                                }
                                             />
                                         </FormControl>
                                     </Stack>

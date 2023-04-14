@@ -1,4 +1,5 @@
 import axios from 'axios';
+import FileSaver from 'file-saver';
 import { createSlice } from '@reduxjs/toolkit';
 import { DOMAIN } from '../constants';
 import { logout } from './authActions';
@@ -252,6 +253,7 @@ export const clientsAsync = (page) => async (dispatch, getState) => {
         Authorization: `Bearer ${userInfo.accessToken}`,
       },
     };
+    
     if (page === 1) {
       dispatch(clientsLoading());
     }
@@ -419,6 +421,7 @@ export const serviceTitanUpdateAsync = (id) => async (dispatch, getState) => {
         Authorization: `Bearer ${userInfo.accessToken}`,
       },
     };
+    
     const { data } = await axios.get(`${DOMAIN}/api/v1/data/servicetitan/${id}/`, config);
     if (data.status === 'SUCCESS') {
       dispatch(clientsNotAdded(data.deleted))
@@ -435,8 +438,9 @@ export const serviceTitanUpdateAsync = (id) => async (dispatch, getState) => {
   }
 };
         
-export const serviceTitanSync = (accessToken) => async (dispatch, getState) => {
+export const serviceTitanSync = () => async (dispatch, getState) => {
   try {
+    dispatch(clientsLoading());
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
     const {id: company} = userInfo.company;
@@ -447,8 +451,7 @@ export const serviceTitanSync = (accessToken) => async (dispatch, getState) => {
         Authorization: `Bearer ${userInfo.accessToken}`,
       },
     };
-    dispatch(clientsLoading());
-    const { data } = await axios.put(`${DOMAIN}/api/v1/data/servicetitan/${company}/`, config);
+    const { data } = await axios.put(`${DOMAIN}/api/v1/data/servicetitan/${company}/`, {}, config);
     dispatch(serviceTitanUpdateAsync(data.task))
     
   } catch (error) {
@@ -677,15 +680,16 @@ export const referralsAsync = (page) => async (dispatch, getState) => {
   }
 }
 
-export const getClientsCSV = (statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, accessToken) => async (getState) => {
-  try {
+export const getClientsCSV = (statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, accessToken) => {
+  return async (dispatch, getState) => {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${userInfo.accessToken}`,
       },
+      responseType: 'blob' // Tell axios to expect a binary response
     };
     let filters = ""
     if (statusFilters.length > 0) {
@@ -709,12 +713,11 @@ export const getClientsCSV = (statusFilters, minPrice, maxPrice, minYear, maxYea
     if (equipInstallDateMax) {
       filters += `&install_date_max=${equipInstallDateMax}`
     }
-    console.log(filters)
-    await axios.get(`${DOMAIN}/api/v1/data/downloadclients/${userInfo.id}/?${filters}`, config);
-  } catch (error) {
-    console.log("error", error)
-  }
-}
+    const response = await axios.get(`${DOMAIN}/api/v1/data/downloadclients/${userInfo.id}/?${filters}`, config);
+    const csvBlob = new Blob([response.data], {type: 'text/csv'}); // Convert binary response to a blob
+    FileSaver.saveAs(csvBlob, 'clients.csv'); // Download the file using FileSaver
+  };
+};
 
 export const getRecentlySoldCSV = (minPrice, maxPrice, minYear, maxYear, tagFilters, accessToken) => async (getState) => {
   try {
