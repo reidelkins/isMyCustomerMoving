@@ -22,7 +22,6 @@ import {
   Divider,
   Stack
 } from '@mui/material';
-import { useAuth0 } from "@auth0/auth0-react";
 
 import Iconify from '../../../components/Iconify';
 import { filterClientsAsync, clientsAsync } from '../../../redux/actions/usersActions'
@@ -76,24 +75,7 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
     const classes = useStyles();
     const [showFilters, setShowFilters] = useState(false);    
     const [showClearFilters, setShowClearFilters] = useState(false);
-    const dispatch = useDispatch();
-    const { getAccessTokenSilently } = useAuth0();
-    const [accessToken, setAccessToken] = useState(null);
-    const today = new Date();
-
-    useEffect(() => {
-    const fetchAccessToken = async () => {
-        const token = await getAccessTokenSilently();
-        setAccessToken(token);
-    };
-
-    fetchAccessToken();
-
-    // return a cleanup function to cancel any pending async operation and prevent updating the state on an unmounted component
-    return () => {
-        setAccessToken(null);
-    };
-    }, [getAccessTokenSilently]);
+    const dispatch = useDispatch();    
 
     // const handleTagFilterChange = (event) => {
     //     const { value } = event.target;
@@ -152,8 +134,7 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
     const handleFilterSubmit = (event) => {
         event.preventDefault();
         // Filter data based on selected filters
-        // dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, accessToken))
-        dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, "", equipInstallDateMin, equipInstallDateMax, accessToken))
+        dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax))
         setShowFilters(false);
     };
 
@@ -174,7 +155,7 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
         // setTagFilters([]);
         handleEquipInstallDateMax(today.toISOString().slice(0, 10));
         handleEquipInstallDateMin('1900-01-01');
-        dispatch(clientsAsync(1, accessToken));
+        dispatch(clientsAsync(1));
     };
 
     return (

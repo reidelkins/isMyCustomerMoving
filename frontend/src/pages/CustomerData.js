@@ -26,9 +26,6 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
-import { useAuth0 } from "@auth0/auth0-react";
-
-import { URL } from '../redux/constants';
 
 // components
 import ReferralModal from '../components/ReferralModal';
@@ -46,8 +43,8 @@ import ClientDetailsTable from '../components/ClientDetailsTable';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
 
 import ClientsListCall from '../redux/calls/ClientsListCall';
-import { selectClients, update, updateClientAsync, serviceTitanSync, salesForceSync, clientsAsync, getClientsCSV } from '../redux/actions/usersActions';
-import { getUser, showLoginInfo } from '../redux/actions/authActions';
+import { selectClients, update, updateClientAsync, serviceTitanSync, salesForceSync, clientsAsync } from '../redux/actions/usersActions';
+import { showLoginInfo, logout } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
 // change this to sort by status
@@ -87,49 +84,22 @@ export function applySortFilter(array, comparator, query, userInfo) {
 
 export default function CustomerData() {
   const dispatch = useDispatch();
-  const { getAccessTokenSilently } = useAuth0();
-  const [accessToken, setAccessToken] = useState(null);
-
-  useEffect(() => {
-    const fetchAccessToken = async () => {
-      const token = await getAccessTokenSilently();
-      setAccessToken(token);
-    };
-
-    fetchAccessToken();
-
-    // return a cleanup function to cancel any pending async operation and prevent updating the state on an unmounted component
-    return () => {
-      setAccessToken(null);
-    };
-  }, [getAccessTokenSilently]);
+  const navigate = useNavigate();
 
   const userLogin = useSelector(showLoginInfo);
-  const { userInfo, error } = userLogin;
-  const { user, isAuthenticated, isLoading, logout } = useAuth0();
+  const { userInfo, twoFA } = userLogin;
 
   useEffect(() => {
-    // TODO figure out how to set an error that lasts
-    if (error) {
-      logout({
-        logoutParams: {
-          returnTo: `${URL}/login/error`,
-          state: 'error=NoUserWithThatEmail'
-        },
-      });
+    if (!userInfo) {
+      dispatch(logout());
+      navigate('/login', { replace: true });
+      window.location.reload(false);
+    } else if (userInfo.otp_enabled && twoFA === false) {
+      navigate('/login', { replace: true });
+      window.location.reload(true);
     }
-  }, [error, logout]);
 
-  useEffect(() => {
-    if (isAuthenticated && accessToken) {    
-      if (user.email) {
-        dispatch(getUser(user.email, accessToken));
-      } else {
-        dispatch(getUser(user.sub.split('|')[1], accessToken));
-      }      
-    }
-  }, [isAuthenticated, user, accessToken, dispatch]);
-  
+  }, [userInfo, dispatch, navigate]);
   
   const [TABLE_HEAD, setTABLE_HEAD] = useState([{ id: 'name', label: 'Name', alignRight: false },
         { id: 'address', label: 'Address', alignRight: false },
@@ -268,7 +238,7 @@ export default function CustomerData() {
   const handleChangePage = (event, newPage) => {
     // fetch new page if two away from needing to see new page
     if ((newPage+2) * rowsPerPage % 1000 === 0) {
-      dispatch(clientsAsync( ((newPage+2) * rowsPerPage / 1000)+1, accessToken))
+      dispatch(clientsAsync( ((newPage+2) * rowsPerPage / 1000)+1 ))
     }
     setPage(newPage);
   };
@@ -280,16 +250,16 @@ export default function CustomerData() {
     setFilterName(event.target.value);
   };
   const updateContacted = (event, id, contacted) => {
-    dispatch(updateClientAsync(id, contacted, "", accessToken));
+    dispatch(updateClientAsync(id, contacted, "", ));
   };
   const updateStatus = () => {
-    dispatch(update(accessToken));
+    dispatch(update());
   };
   const stSync = () => {
-    dispatch(serviceTitanSync(accessToken));
+    dispatch(serviceTitanSync());
   };
   const sfSync = () => {
-    dispatch(salesForceSync(accessToken));
+    dispatch(salesForceSync());
   };
 
   // const exportCSV = async () => {
@@ -351,16 +321,11 @@ export default function CustomerData() {
   const exportCSV = () => {
     dispatch(getClientsCSV(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax))
   }
-
-  if (isLoading) {
-    console.log("loading");
-    return <div>Loading ...</div>;
-  }
   
   
   return (
     <div>
-    {isAuthenticated && userInfo && (
+    {userInfo && (
       <Page title="User" userInfo={userInfo}>
         <Container>
           {userInfo ? <ClientsListCall /> : null}

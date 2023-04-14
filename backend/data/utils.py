@@ -31,7 +31,7 @@ def delVariables(vars):
             pass
     gc.collect()
 
-def findClientsToDelete(clientCount, subscriptionType):
+def findClientCount(subscriptionType):
     if subscriptionType == "Small Business":
         ceiling = 5000
     elif subscriptionType == "Franchise":
@@ -42,18 +42,32 @@ def findClientsToDelete(clientCount, subscriptionType):
     #     ceiling = 100
     else:
         ceiling = 100000
+    return ceiling
+
+def findClientsToDelete(clientCount, subscriptionType):
+    ceiling = findClientCount(subscriptionType)
     if clientCount > ceiling:
         return clientCount - ceiling
     else:
         return 0
     
+def reactivateClients(companyID):
+    company = Company.objects.get(id=companyID)
+    clients = Client.objects.filter(company=company)
+    clientCeiling = findClientCount(company.product.product.name)
+    if clientCeiling > clients.count():
+        clients.update(active="true")
+    else:
+        toReactiveCount = clientCeiling - clients.filter(active="true").count()
+        clients.filter(active="false").order_by('id')[:toReactiveCount].update(active="true")
+    
 @shared_task
 def deleteExtraClients(companyID, taskID=None):
     company = Company.objects.get(id=companyID)
-    clients = Client.objects.filter(company=company)
+    clients = Client.objects.filter(company=company, active="true")
     deletedClients = findClientsToDelete(clients.count(), company.product.product.name)
     if deletedClients > 0:
-        Client.objects.filter(id__in=list(clients.values_list('id', flat=True)[:deletedClients])).delete()
+        Client.objects.filter(id__in=list(clients.values_list('id', flat=True)[:deletedClients])).update(active="false")
         admins = CustomUser.objects.filter(company=company, status="admin")
         mail_subject = "IMCM Clients Deleted"
         messagePlain = "Your company has exceeded the number of clients allowed for your subscription. The oldest clients have been deleted. You can upgrade your subscription at any time to increase the number of clients you can have."
@@ -96,6 +110,7 @@ def formatZip(zip):
 
 @shared_task
 def saveClientList(clients, company_id, task=None):
+    clientsToAdd, company, badStreets = "", "", ""
     #create
     clientsToAdd = []
     company = Company.objects.get(id=company_id)        
@@ -149,6 +164,7 @@ def saveClientList(clients, company_id, task=None):
 
 @shared_task
 def updateClientList(numbers):
+    phoneNumbers, clients = "", ""
     phoneNumbers = {}
     for number in numbers:
         try:
@@ -164,8 +180,9 @@ def updateClientList(numbers):
 
 @shared_task
 def getAllZipcodes(company):
+    company_object, zipCode_objects, zipCodes, zips = "", "", "", ""
     company_object = Company.objects.get(id=company)
-    zipCode_objects = Client.objects.filter(company=company_object).values('zipCode')
+    zipCode_objects = Client.objects.filter(company=company_object, active=True).values('zipCode')
     zipCodes = zipCode_objects.distinct()
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
     zips = list(zipCodes.order_by('zipCode').values('zipCode'))
@@ -189,6 +206,7 @@ def getAllZipcodes(company):
 
 @shared_task
 def find_data(zip, i, status, url, extra):
+    scrapfly, first_page, first_result, content, soup, first_data, results, total, count, new_results, parsed, page_url, total = "", "", "", "", "", "", "", "", "", "", "", "", ""
     scrapfly = scrapflies[i % 20]    
     try:
         first_page = f"{url}/{zip}/{extra}"
@@ -243,11 +261,7 @@ def find_data(zip, i, status, url, extra):
     except Exception as e:
         print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
         print(f"URL: {url}")
-    vars = [scrapfly, first_page, first_result, content, soup, first_data, results, total, count, url, extra, new_results, parsed]
-    if total:
-        vars.append(total)
-    if page_url:
-        vars.append(page_url)
+    vars = [scrapfly, first_page, first_result, content, soup, first_data, results, total, count, url, extra, new_results, parsed, page_url, total]
     delVariables(vars)
 
 
@@ -287,6 +301,7 @@ def parse_search(result: ScrapeApiResponse, searchType: str) -> SearchResults:
         return False
 
 def create_home_listings(results, status, resp=None):
+    zip_object, created, listType, homeListing, currTag = "", "", "", "", ""
     two_years_ago = datetime.now() - timedelta(days=365*2)
     for listing in results:
         zip_object, created = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
@@ -351,6 +366,7 @@ def create_home_listings(results, status, resp=None):
 
 @shared_task
 def updateStatus(zip, company, status):
+    zipCode_object, listedAddresses, clientsToUpdate, previousListed, newlyListed, toList, listing, clientsToUpdate = "", "", "", "", "", "", "", ""
     company = Company.objects.get(id=company)
     try:
         zipCode_object = ZipCode.objects.get(zipCode=zip)
@@ -359,8 +375,8 @@ def updateStatus(zip, company, status):
         return
     #addresses from all home listings with the provided zip code and status
     listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')
-    clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses, zipCode=zipCode_object)
-    previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status)
+    clientsToUpdate = Client.objects.filter(company=company, address__in=listedAddresses, zipCode=zipCode_object, active=True)
+    previousListed = Client.objects.filter(company=company, zipCode=zipCode_object, status=status, active=True)
     newlyListed = clientsToUpdate.difference(previousListed)
     #TODO add logic so if date for one listing is older than date of other, it will not update status
     for toList in newlyListed:
@@ -407,6 +423,7 @@ def updateStatus(zip, company, status):
 
 @shared_task
 def update_clients_statuses(company_id=None):
+    companies, company, zipCode_objects, zipCodes, zips, zip = "", "", "", "", "", ""
     if company_id:
         companies = Company.objects.filter(id=company_id)
     else:
@@ -414,7 +431,7 @@ def update_clients_statuses(company_id=None):
     for company in companies:
         try:
             if company.product.id != "price_1MhxfPAkLES5P4qQbu8O45xy":
-                zipCode_objects = Client.objects.filter(company=company).values('zipCode')
+                zipCode_objects = Client.objects.filter(company=company, active=True).values('zipCode')
                 zipCodes = zipCode_objects.distinct()
                 zips = list(zipCodes.order_by('zipCode').values('zipCode'))
                 for zip in zips:
@@ -432,6 +449,7 @@ def update_clients_statuses(company_id=None):
 
 @shared_task
 def sendDailyEmail(company_id=None):
+    companies, company, emails, subject, forSaleCustomers, soldCustomers, message, email, msg , "", "", "", "", "", "", "", "", ""
     if company_id:
         companies = Company.objects.filter(id=company_id)
     else:
@@ -442,8 +460,8 @@ def sendDailyEmail(company_id=None):
                 emails = list(CustomUser.objects.filter(company=company).values_list('email'))
                 subject = 'Did Your Customers Move?'
                 
-                forSaleCustomers = Client.objects.filter(company=company, status="House For Sale").exclude(contacted=True).count()
-                soldCustomers = Client.objects.filter(company=company, status="House Recently Sold (6)").exclude(contacted=True).count()
+                forSaleCustomers = Client.objects.filter(company=company, status="House For Sale", active=True).exclude(contacted=True).count()
+                soldCustomers = Client.objects.filter(company=company, status="House Recently Sold (6)", active=True).exclude(contacted=True).count()
                 message = get_template("dailyEmail.html").render({
                     'forSale': forSaleCustomers, 'sold': soldCustomers
                 })
@@ -470,6 +488,7 @@ def sendDailyEmail(company_id=None):
 
 @shared_task
 def auto_update(company_id=None):
+    company = ""
     if company_id:
         try:
             company = Company.objects.get(id=company_id)
@@ -480,20 +499,24 @@ def auto_update(company_id=None):
             return
         delVariables([company_id, company])
     else:
+        company, companies = "", ""
         companies = Company.objects.all()
         for company in companies:
             try:
+                print(f"Auto Update: {company.product} {company.name}")
                 if company.product.id != "price_1MhxfPAkLES5P4qQbu8O45xy":
+                    print("In the if statement")
                     getAllZipcodes(company.id)
                 else:
                     print("free tier")
             except Exception as e:
-                print(e)
+                print(f"Auto Update Error: {e}")
         delVariables([company, companies])
     
 
 @shared_task
 def update_serviceTitan_client_tags(forSale, company, status):
+    headers, data, response, payload, tagType, resp, error, word = "", "", "", "", "", "", "", ""
     try:
         company = Company.objects.get(id=company)
         if forSale and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):
@@ -612,6 +635,7 @@ def remove_all_serviceTitan_tags(company):
 
 
 def update_serviceTitan_tasks(clients, company, status):
+    headers, data, response = "", "", ""
     if clients and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):
         try:
             headers = {

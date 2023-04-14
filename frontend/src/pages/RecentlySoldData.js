@@ -20,7 +20,7 @@ import {
   TablePagination,
   CircularProgress
 } from '@mui/material';
-import { useAuth0 } from "@auth0/auth0-react";
+
 import { useSelector, useDispatch } from 'react-redux';
 import { DOMAIN } from '../redux/constants';
 
@@ -113,22 +113,6 @@ export default function RecentlySoldData() {
   const [csvLoading, setCsvLoading] = useState(false);
 
   const [recentlySoldLength, setRecentlySoldLength] = useState(0);
-  const { getAccessTokenSilently } = useAuth0();
-  const [accessToken, setAccessToken] = useState(null);
-
-  useEffect(() => {
-    const fetchAccessToken = async () => {
-      const token = await getAccessTokenSilently();
-      setAccessToken(token);
-    };
-
-    fetchAccessToken();
-
-    // return a cleanup function to cancel any pending async operation and prevent updating the state on an unmounted component
-    return () => {
-      setAccessToken(null);
-    };
-  }, [getAccessTokenSilently]);
 
   useEffect(() => {
     if (RECENTLYSOLDLIST.length < recentlySoldLength) {
@@ -147,7 +131,7 @@ export default function RecentlySoldData() {
   const handleChangePage = (event, newPage) => {
     // fetch new page if two away from needing to see new page
     if ((newPage+2) * rowsPerPage % 1000 === 0) {
-      dispatch(recentlySoldAsync(((newPage+2) * rowsPerPage / 1000)+1, accessToken))
+      dispatch(recentlySoldAsync(((newPage+2) * rowsPerPage / 1000)+1))
     }
     setPage(newPage);
   };

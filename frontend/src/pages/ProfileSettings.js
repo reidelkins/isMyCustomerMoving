@@ -6,7 +6,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import * as Yup from 'yup';
 import { useFormik, Form, FormikProvider } from 'formik';
 import { useNavigate } from 'react-router-dom';
-import { useAuth0 } from "@auth0/auth0-react";
 
 import { Box, Checkbox, LinearProgress, Link, TextField, Card, Grid, Container, Typography, Stack, Button, TableContainer, Table, TableBody, TableCell, TableRow } from '@mui/material';
 
@@ -23,7 +22,7 @@ import { applySortFilter, getComparator } from './CustomerData';
 // import ResetPasswordModal from '../components/ResetPasswordModal';
 
 import UsersListCall from '../redux/calls/UsersListCall';
-import { showLoginInfo, logout, editUserAsync, getUser } from '../redux/actions/authActions';
+import { showLoginInfo, logout, editUserAsync } from '../redux/actions/authActions';
 import { addUser, selectUsers, makeAdminAsync } from '../redux/actions/usersActions';
 
 
@@ -43,34 +42,7 @@ export default function ProfileSettings() {
 
   const userLogin = useSelector(showLoginInfo);
   const { userInfo, twoFA } = userLogin;
-  const { user, isAuthenticated } = useAuth0();
-  const { getAccessTokenSilently } = useAuth0();
-  const [accessToken, setAccessToken] = useState(null);
-
-  useEffect(() => {
-    const fetchAccessToken = async () => {
-      const token = await getAccessTokenSilently();
-      setAccessToken(token);
-    };
-
-    fetchAccessToken();
-
-    // return a cleanup function to cancel any pending async operation and prevent updating the state on an unmounted component
-    return () => {
-      setAccessToken(null);
-    };
-  }, [getAccessTokenSilently]);
-
-  useEffect(async () => {
-    if (isAuthenticated) {
-      if (userInfo === null && accessToken) {
-        dispatch(getUser(user.email, accessToken));
-      }
-    }
-
-  }, [isAuthenticated, user, accessToken]);
   
-
   const [editting, setEditting] = useState(false);
 
   useEffect(() => {
@@ -120,7 +92,7 @@ export default function ProfileSettings() {
     validationSchema: SettingsSchema,
     onSubmit: () => {
       setEditting(false);
-      dispatch(editUserAsync(values.email, values.firstName, values.lastName, values.servTitan, accessToken));
+      dispatch(editUserAsync(values.email, values.firstName, values.lastName, values.servTitan));
     },
   });
 
@@ -134,11 +106,11 @@ export default function ProfileSettings() {
   };
 
   const sendReminder = (event, email) => {
-    dispatch(addUser(email, accessToken));
+    dispatch(addUser(email));
   };
 
   const makeAdmin = (event, userId) => {
-    dispatch(makeAdminAsync(userId, accessToken));
+    dispatch(makeAdminAsync(userId));
   };
 
   const [selected, setSelected] = useState([]);
