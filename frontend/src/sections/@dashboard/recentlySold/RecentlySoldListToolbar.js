@@ -25,11 +25,15 @@ RecentlySoldListToolbar.propTypes = {
   setMinYear: PropTypes.func,
   maxYear: PropTypes.string,
   setMaxYear: PropTypes.func,
+  minDaysAgo: PropTypes.string,
+  setMinDaysAgo: PropTypes.func,
+  maxDaysAgo: PropTypes.string,
+  setMaxDaysAgo: PropTypes.func
 
 };
 
 // ----------------------------------------------------------------------
-export default function RecentlySoldListToolbar(product, minPrice, setMinPrice, maxPrice, setMaxPrice, minYear, setMinYear, maxYear, setMaxYear,) {
+export default function RecentlySoldListToolbar({product, minPrice, setMinPrice, maxPrice, setMaxPrice, minYear, setMinYear, maxYear, setMaxYear, minDaysAgo, setMinDaysAgo, maxDaysAgo, setMaxDaysAgo}) {
 
   return (
     <RootStyle>      
@@ -43,6 +47,10 @@ export default function RecentlySoldListToolbar(product, minPrice, setMinPrice, 
           setMinYear={setMinYear}
           maxYear={maxYear}
           setMaxYear={setMaxYear}
+          minDaysAgo={minDaysAgo}
+          setMinDaysAgo={setMinDaysAgo}
+          maxDaysAgo={maxDaysAgo}
+          setMaxDaysAgo={setMaxDaysAgo}
         />
     </RootStyle>
   );

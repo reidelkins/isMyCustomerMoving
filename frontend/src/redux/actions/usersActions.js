@@ -680,7 +680,7 @@ export const referralsAsync = (page) => async (dispatch, getState) => {
   }
 }
 
-export const getClientsCSV = (statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, accessToken) => {
+export const getClientsCSV = (statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax) => {
   return async (dispatch, getState) => {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -719,14 +719,14 @@ export const getClientsCSV = (statusFilters, minPrice, maxPrice, minYear, maxYea
   };
 };
 
-export const getRecentlySoldCSV = (minPrice, maxPrice, minYear, maxYear, tagFilters, accessToken) => async (getState) => {
-  try {
+export const getRecentlySoldCSV = (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters) => {
+  return async (dispatch, getState) => {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${userInfo.accessToken}`,
       },
     };
     let filters = ""
@@ -737,14 +737,20 @@ export const getRecentlySoldCSV = (minPrice, maxPrice, minYear, maxYear, tagFilt
       filters += `&max_price=${maxPrice}`
     }
     if (minYear) {
-      filters += `&min_price=${minYear}`
+      filters += `&min_year=${minYear}`
     }
     if (maxYear) {
-      filters += `&max_price=${maxYear}`
+      filters += `&max_year=${maxYear}`
+    }
+    if (minDaysAgo) {
+      filters += `&min_days_ago=${minDaysAgo}`
+    }
+    if (maxDaysAgo) {
+      filters += `&max_days_ago=${maxDaysAgo}`
     }
     console.log(filters)
-    await axios.get(`${DOMAIN}/api/v1/data/downloadrecentlysold/${userInfo.id}/?${filters}`, config);
-  } catch (error) {
-    console.log("error", error)
+    const response = await axios.get(`${DOMAIN}/api/v1/data/downloadrecentlysold/${userInfo.company.id}/?${filters}`, config);
+    const csvBlob = new Blob([response.data], {type: 'text/csv'}); // Convert binary response to a blob
+    FileSaver.saveAs(csvBlob, 'homelistings.csv'); // Download the file using FileSaver
   }
 }

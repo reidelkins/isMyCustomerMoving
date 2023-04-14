@@ -144,14 +144,18 @@ export default function RecentlySoldData() {
   const [maxPrice, setMaxPrice] = useState('');
   const [minYear, setMinYear] = useState('');
   const [maxYear, setMaxYear] = useState('');
+  const [minDaysAgo, setMinDaysAgo] = useState('');
+  const [maxDaysAgo, setMaxDaysAgo] = useState('');
   const [tagFilters, setTagFilters] = useState([]);
   const handleMinPriceChange = (newMinPrice) => { setMinPrice(newMinPrice)}
   const handleMaxPriceChange = (newMaxPrice) => {setMaxPrice(newMaxPrice)}
   const handleMinYearChange = (newMinYear) => {setMinYear(newMinYear)}
   const handleMaxYearChange = (newMaxYear) => {setMaxYear(newMaxYear)}
+  const handleMinDaysAgoChange = (newMinDaysAgo) => {setMinDaysAgo(newMinDaysAgo)}
+  const handleMaxDaysAgoChange = (newMaxDaysAgo) => {setMaxDaysAgo(newMaxDaysAgo)}
   
   const exportCSV = () => {
-    dispatch(getRecentlySoldCSV( minPrice, maxPrice, minYear, maxYear, tagFilters))
+    dispatch(getRecentlySoldCSV( minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters))
   }
 
   // const exportCSV = async () => {
@@ -220,6 +224,10 @@ export default function RecentlySoldData() {
                     setMinYear={handleMinYearChange}
                     maxYear={maxYear}
                     setMaxYear={handleMaxYearChange}
+                    minDaysAgo={minDaysAgo}
+                    setMinDaysAgo={handleMinDaysAgoChange}
+                    maxDaysAgo={maxDaysAgo}
+                    setMaxDaysAgo={handleMaxDaysAgoChange}
                   />
                   <TableContainer sx={{ minWidth: 800 }}>
                     <Table>
@@ -307,7 +315,7 @@ export default function RecentlySoldData() {
               />
             </Card>
             {/* TODO */}
-            {/* {csvLoading ? (
+            {csvLoading ? (
               (userInfo.status === 'admin') && (
                 <Button variant="contained">
                   <CircularProgress color="secondary"/>
@@ -319,7 +327,7 @@ export default function RecentlySoldData() {
                   Download To CSV
                 </Button>
               )
-            )}        */}
+            )}       
           </>
         )}
       </Container>

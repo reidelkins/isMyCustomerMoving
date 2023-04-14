@@ -158,13 +158,45 @@ class RecentlySoldView(generics.ListAPIView):
             return HomeListing.objects.none()
 
 class AllRecentlySoldView(generics.ListAPIView):
-    serializer_class = HomeListingSerializer
     permission_classes = [IsAuthenticated]
-    def get_queryset(self):
-        company = Company.objects.get(id=self.kwargs['company'])
+
+    def get(self, request, company, format=None):
+        queryset = self.get_queryset(company)
+        # Define the CSV header row
+        header = ['address', 'city', 'state', 'zipCode', 'Listing Price', 'Year Built']
+        # Create a response object with the CSV content
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="HomeListings.csv"'
+        # Create a CSV writer object
+        writer = csv.writer(response)
+        # Write the header row to the CSV file
+        writer.writerow(header)
+        # Write the data rows to the CSV file
+        for homeListing in queryset:
+            row = [homeListing.address, homeListing.city, homeListing.state, homeListing.zipCode.zipCode, homeListing.price, homeListing.year_built]
+            writer.writerow(row)
+        # Return the response
+        return response
+    
+    def get_queryset(self, company):
+        query_params = self.request.query_params
+        company = Company.objects.get(id=company)
         if company.recentlySoldPurchased:
-            zipCode_objects = Client.objects.filter(company=company).values('zipCode')            
-            return HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')
+            zipCode_objects = Client.objects.filter(company=company).values('zipCode')
+            queryset =  HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')
+            if 'min_price' in query_params:
+                queryset = queryset.filter(price__gte=query_params['min_price'])
+            if 'max_price' in query_params:
+                queryset = queryset.filter(price__lte=query_params['max_price'], price__gt=0)
+            if 'min_year' in query_params:
+                queryset = queryset.filter(year_built__gte=query_params['min_year'])
+            if 'max_year' in query_params:
+                queryset = queryset.filter(year_built__lte=query_params['max_year'], year_built__gt=0)
+            if 'min_days_ago' in query_params:
+                queryset = queryset.filter(listed__lt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['min_days_ago']))).strftime('%Y-%m-%d'))
+            if 'max_days_ago' in query_params:
+                queryset = queryset.filter(listed__gt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['max_days_ago']))).strftime('%Y-%m-%d'))
+            return queryset
         else:
             return HomeListing.objects.none()
 
