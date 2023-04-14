@@ -53,17 +53,13 @@ const useStyles = makeStyles((theme) => ({
 
 
 
-export default function RecentlySoldDataFilter() {
+export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleChangeMinPrice, maxPrice, setMaxPrice: handleChangeMaxPrice,
+                                                    minYear, setMinYear: handleChangeMinYear, maxYear, setMaxYear: handleChangeMaxYear,
+                                                    minDaysAgo, setMinDaysAgo: handleChangeMinDaysAgo, maxDaysAgo, setMaxDaysAgo: handleChangeMaxDaysAgo,}) {
     const classes = useStyles();
     const [showFilters, setShowFilters] = useState(false);
     const [showClearFilters, setShowClearFilters] = useState(false);
-    const [minPrice, setMinPrice] = useState('');
-    const [maxPrice, setMaxPrice] = useState('');
-    const [minYear, setMinYear] = useState('');
-    const [maxYear, setMaxYear] = useState('');
     const [tagFilters, setTagFilters] = useState([]);
-    const [minDaysAgo, setMinDaysAgo] = useState(0);
-    const [maxDaysAgo, setMaxDaysAgo] = useState(30);
     const [error, setError] = useState('');
     const dispatch = useDispatch();
 
@@ -88,12 +84,12 @@ export default function RecentlySoldDataFilter() {
 
 
     const handleClearFilters = () => {
-        setMinPrice('');
-        setMaxPrice('');
-        setMinYear('');
-        setMaxYear('');
-        setMinDaysAgo(0);
-        setMaxDaysAgo(30);
+        handleChangeMinPrice('');
+        handleChangeMaxPrice('');
+        handleChangeMinYear('');
+        handleChangeMaxYear('');
+        handleChangeMinDaysAgo(0);
+        handleChangeMaxDaysAgo(30);
         setTagFilters([]);
         setError('');
         dispatch(recentlySoldAsync(1));
@@ -112,22 +108,22 @@ export default function RecentlySoldDataFilter() {
         const value = event.target.value;
         if (value < 0) {
             if (type === 'min') {
-                setMinDaysAgo(0);
+                handleChangeMinDaysAgo(0);                
             } else {
-                setMaxDaysAgo(0);
+                handleChangeMaxDaysAgo(0);                
             }
         } else if (value > 30) {
             if (type === 'min') {
-                setMinDaysAgo(30);
+                handleChangeMinDaysAgo(30);                
             } else {
-                setMaxDaysAgo(30);
+                handleChangeMaxDaysAgo(30);                
             }
         } else {
             /* eslint-disable no-lonely-if */
             if (type === 'min') {
-                setMinDaysAgo(value);
+                handleChangeMinDaysAgo(value);                
             } else {
-                setMaxDaysAgo(value);
+                handleChangeMaxDaysAgo(value);                
             }
         }        
     };
@@ -179,7 +175,7 @@ export default function RecentlySoldDataFilter() {
                                             <Input
                                                 type="number"
                                                 value={minPrice}
-                                                onChange={(event) => setMinPrice(event.target.value)}
+                                                onChange={(event) => handleChangeMinPrice(event.target.value)}
                                             />
                                         </FormControl>
                                         <FormControl fullWidth>
@@ -187,7 +183,7 @@ export default function RecentlySoldDataFilter() {
                                             <Input
                                                 type="number"
                                                 value={maxPrice}
-                                                onChange={(event) => setMaxPrice(event.target.value)}
+                                                onChange={(event) => handleChangeMaxPrice(event.target.value)}
                                             />
                                         </FormControl>
                                     </Stack>
@@ -234,7 +230,7 @@ export default function RecentlySoldDataFilter() {
                                             <Input
                                                 type="number"
                                                 value={minYear}
-                                                onChange={(event) => setMinYear(event.target.value)}
+                                                onChange={(event) => handleChangeMinYear(event.target.value)}
                                             />
                                         </FormControl>
                                         <FormControl fullWidth>
@@ -242,7 +238,7 @@ export default function RecentlySoldDataFilter() {
                                             <Input
                                                 type="number"
                                                 value={maxYear}
-                                                onChange={(event) => setMaxYear(event.target.value)}
+                                                onChange={(event) => handleChangeMaxYear(event.target.value)}
                                             />
                                         </FormControl>
                                     </Stack>

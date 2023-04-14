@@ -63,9 +63,13 @@ if IS_HEROKU or IS_GITHUB:
             conn_max_age=MAX_CONN_AGE, ssl_require=True)
     else:
         DATABASES["default"]["TEST"] = DATABASES["default"]
+    CELERY_BROKER_URL = "{}?ssl_cert_reqs={}".format(
+        CELERY_RESULT_BACKEND, "CERT_NONE",
+)
 else:
     DEBUG = True
     CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+    CELERY_BROKER_URL = CELERY_RESULT_BACKEND
     BASE_FRONTEND_URL = 'http://localhost:3000'
     BASE_BACKEND_URL = 'http://localhost:8000'
     CLIENT_ORIGIN_URL="http://localhost:3000"
@@ -300,9 +304,6 @@ DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
 DJSTRIPE_WEBHOOK_VALIDATION='retrieve_event'
 
 # CELERY_BROKER_URL = CELERY_RESULT_BACKEND + "?ssl_cert_reqs=CERT_NONE"
-CELERY_BROKER_URL = "{}?ssl_cert_reqs={}".format(
-        CELERY_RESULT_BACKEND, "CERT_NONE",
-)
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 CELERY_TIMEZONE = 'US/Central'
 CELERYD_TASK_TIME_LIMIT= 10
