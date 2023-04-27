@@ -201,7 +201,7 @@ export const registerAsync = (company, registrationToken, firstName, lastName, e
   }
 };
 
-export const companyAsync = (email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag, crm) => async (dispatch, getState) => {
+export const companyAsync = (email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag, forSaleContactedTag, soldContactedTag) => async (dispatch, getState) => {
   try {
     dispatch(companyLoading());
     const reduxStore = getState();
@@ -214,7 +214,7 @@ export const companyAsync = (email, phone, tenantID, clientID, clientSecret, for
     };
     const { data } = await axios.put(
       `${DOMAIN}/api/v1/accounts/company/`,
-      { 'company': userInfo.company.id, email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag, 'user': userInfo.id, crm},
+      { 'company': userInfo.company.id, email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag, forSaleContactedTag, soldContactedTag, 'user': userInfo.id},
       config
     );
     dispatch(company(data));

@@ -38,7 +38,8 @@ class CompanySerializer(serializers.ModelSerializer):
     serviceTitanForRentTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanForSaleTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanRecentlySoldTagID = serializers.CharField(max_length=100, required=False)
-
+    serviceTitanForSaleContactedTagID = serializers.CharField(max_length=100, required=False)
+    serviceTitanSoldContactedTagID = serializers.CharField(max_length=100, required=False)
     
 
     def create(self, validated_data):
@@ -53,7 +54,7 @@ class CompanySerializer(serializers.ModelSerializer):
             return "No product"
     class Meta:
         model = Company
-        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'product']
+        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'serviceTitanForSaleContactedTagID', 'serviceTitanSoldContactedTagID', 'product']
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):

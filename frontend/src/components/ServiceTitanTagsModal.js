@@ -41,6 +41,8 @@ export default function ServiceTitanTagsModal({userInfo}) {
     const IntegrateSTSchema = Yup.object().shape({
         forSale: Yup.string("'"),
         recentlySold: Yup.string(""),
+        forSale_contacted: Yup.string(""),
+        recentlySold_contacted: Yup.string(""),
         
     });
 
@@ -49,11 +51,13 @@ export default function ServiceTitanTagsModal({userInfo}) {
         forSale: userInfo.company.serviceTitanForSaleTagID ? userInfo.company.serviceTitanForSaleTagID : "",
         forRent: "",
         recentlySold: userInfo.company.serviceTitanRecentlySoldTagID ? userInfo.company.serviceTitanRecentlySoldTagID : "",
+        forSale_contacted: userInfo.company.serviceTitanForSaleContactedTagID ? userInfo.company.serviceTitanForSaleContactedTagID : "",
+        recentlySold_contacted: userInfo.company.serviceTitanSoldContactedTagID ? userInfo.company.serviceTitanSoldContactedTagID : "",
         },
         validationSchema: IntegrateSTSchema,
         onSubmit: () => {
             setOpen(false);
-            dispatch(companyAsync("", "", "", "", "", values.forSale, values.forRent, values.recentlySold))
+            dispatch(companyAsync("", "", "", "", "", values.forSale, values.forRent, values.recentlySold, values.forSale_contacted, values.recentlySold_contacted))
         },
     });
 
@@ -80,6 +84,7 @@ export default function ServiceTitanTagsModal({userInfo}) {
                                 {...getFieldProps('forSale')}
                                 error={Boolean(touched.forSale && errors.forSale)}
                                 helperText={touched.forSale && errors.forSale}
+                                sx={{ width: 400 }}
                             />
                             {/* <TextField
                                 fullWidth
@@ -96,6 +101,25 @@ export default function ServiceTitanTagsModal({userInfo}) {
                                 {...getFieldProps('recentlySold')}
                                 error={Boolean(touched.recentlySold && errors.recentlySold)}
                                 helperText={touched.recentlySold && errors.recentlySold}
+                                sx={{ width: 400 }}
+                            />
+                            <TextField
+                                fullWidth
+                                label="For Sale and Contacted"
+                                placeholder="1234567890"
+                                {...getFieldProps('forSale_contacted')}
+                                error={Boolean(touched.forSale_contacted && errors.forSale_contacted)}
+                                helperText={touched.forSale_contacted && errors.forSale_contacted}
+                                sx={{ width: 400 }}
+                            />
+                            <TextField
+                                fullWidth
+                                label="Recently Sold and Contacted"
+                                placeholder="1234567890"
+                                {...getFieldProps('recentlySold_contacted')}
+                                error={Boolean(touched.recentlySold_contacted && errors.recentlySold_contacted)}
+                                helperText={touched.recentlySold_contacted && errors.recentlySold_contacted}
+                                sx={{ width: 400 }}
                             />
                         </Stack>
                     </Form>
