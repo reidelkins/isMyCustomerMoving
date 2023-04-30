@@ -149,7 +149,8 @@ export default function ServiceTitanTagsModal({userInfo}) {
                     3. Next choose a color, a name (like "For Sale or Home Listed"), then click save. <br/><br/>
                     4. You then need to scroll the list of tags to find the one you just made. Once found, click the edit button on the row of that tag. <br/><br/>
                     5. Copy the ID number from the URL. It will be a long number like 1234567890. <br/><br/><br/>
-                    Note: You can make 3 different tags for this data or you can make one tag and use the same ID for all 3.<br/>
+                    Note: You can make 2 different tags for this data or you can make one tag and use the same ID for all 2.<br/>
+                    The last two tags are so you can keep track on Service Titan once you have marked a client as contacted within our system and differentiate your marketing campaigns with this data.
                     Click <a href="https://www.loom.com/share/523b171ab81e47f2a050e1b28704c30e" target="_blank" rel="noreferrer">here </a> to see a video walking through this process.
                     </Typography>                    
                 </Box>
