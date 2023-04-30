@@ -15,7 +15,7 @@ import Page from '../components/Page';
 import Scrollbar from '../components/Scrollbar';
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 import NewUserModal from '../components/NewUserModal';
-
+ 
 import TwoFactorAuth from '../components/TwoFactorAuth';
 import CRMIntegrationModal from '../components/CRMIntegrationModal';
 import { applySortFilter, getComparator } from './CustomerData';
@@ -23,7 +23,7 @@ import { applySortFilter, getComparator } from './CustomerData';
 
 import UsersListCall from '../redux/calls/UsersListCall';
 import { showLoginInfo, logout, editUserAsync } from '../redux/actions/authActions';
-import { manageUser, selectUsers, makeAdminAsync } from '../redux/actions/usersActions';
+import { addUser, selectUsers, makeAdminAsync } from '../redux/actions/usersActions';
 
 
 
@@ -43,7 +43,6 @@ export default function ProfileSettings() {
   const userLogin = useSelector(showLoginInfo);
   const { userInfo, twoFA } = userLogin;
   
-
   const [editting, setEditting] = useState(false);
 
   useEffect(() => {
@@ -107,7 +106,7 @@ export default function ProfileSettings() {
   };
 
   const sendReminder = (event, email) => {
-    dispatch(manageUser(email));
+    dispatch(addUser(email));
   };
 
   const makeAdmin = (event, userId) => {

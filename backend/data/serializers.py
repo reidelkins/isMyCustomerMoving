@@ -47,6 +47,8 @@ class ClientListSerializer(serializers.ModelSerializer):
 class HomeListingSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     address = serializers.CharField(max_length=100)
+    state = serializers.CharField(max_length=100)
+    city = serializers.CharField(max_length=100)
     zipCode = serializers.SerializerMethodField(read_only=True)
     listed = serializers.CharField(max_length=30)
     price = serializers.IntegerField()
@@ -62,7 +64,7 @@ class HomeListingSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = HomeListing
-        fields = ('id', 'address', 'listed', 'zipCode', 'price', 'housingType', 'year_built', 'tags')
+        fields = ('id', 'address', 'state', 'city', 'listed', 'zipCode', 'price', 'housingType', 'year_built', 'tags')
 
 class ReferralSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)

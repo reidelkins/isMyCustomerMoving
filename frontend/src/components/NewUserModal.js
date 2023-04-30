@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import * as Yup from 'yup';
 import {
     Button,
@@ -10,13 +10,16 @@ import {
 import { useFormik, Form, FormikProvider } from 'formik';
 import { useDispatch } from 'react-redux';
 
-import { manageUser } from '../redux/actions/usersActions';
+
+import { addUser } from '../redux/actions/usersActions';
+ 
 
 
 export default function NewUserModal() {
     // const classes = useStyles();
     const [open, setOpen] = React.useState(false);
     const dispatch = useDispatch();
+ 
     const handleOpen = () => {
         setOpen(true);
     };
@@ -34,7 +37,7 @@ export default function NewUserModal() {
         },
         validationSchema: NewUserSchema,
         onSubmit: () => {
-            dispatch(manageUser(values.email));
+            dispatch(addUser(values.email));
             values.email = '';
             setOpen(false);
         },

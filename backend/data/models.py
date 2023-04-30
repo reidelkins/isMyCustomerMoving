@@ -40,6 +40,7 @@ class Client(models.Model):
     year_built = models.IntegerField(default=0, blank=True, null=True)
     tag = models.ManyToManyField("HomeListingTags", blank=True, related_name='client_tags')
     equipmentInstalledDate = models.DateField(blank=True, null=True)
+    active = models.BooleanField(default=True)
 
     class Meta:
         unique_together = ('company', 'name', 'address')
@@ -78,6 +79,11 @@ class HomeListing(models.Model):
     housingType = models.CharField(max_length=100, default=" ")
     year_built = models.IntegerField(default=0)
     tag = models.ManyToManyField("HomeListingTags", blank=True, related_name='homeListing_tag')
+    city = models.CharField(max_length=40, blank=True, null=True)
+    state = models.CharField(max_length=31, blank=True, null=True)
+
+    class Meta:
+        unique_together = ('address', 'status', 'city', 'state')
     
 class HomeListingTags(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,

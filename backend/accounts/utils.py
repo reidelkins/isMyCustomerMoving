@@ -1,11 +1,17 @@
 import traceback
-
-from .models import Company, Franchise
+from .models import Company, Franchise, CustomUser
 from .serializers import CompanySerializer
 
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.template.loader import get_template
+
+from rest_framework.authentication import BaseAuthentication
+from rest_framework.exceptions import AuthenticationFailed
+import requests
+import jwt
+
 
 def makeCompany(companyName, email, phone, stripeId):
     try:
@@ -45,3 +51,51 @@ def find_franchise(area, franchise, referredFrom):
         print("finding franchise failed")
         print(f"ERROR: {e}")
         print(traceback.format_exc())
+
+def verify_token(token):
+    try:
+        decoded_token = jwt.decode(token, settings.SIMPLE_JWT['SIGNING_KEY'], algorithms=[settings.SIMPLE_JWT['ALGORITHM']])
+    except jwt.exceptions.ExpiredSignatureError:
+        raise AuthenticationFailed('Token has expired')
+    except jwt.exceptions.InvalidTokenError:
+        raise AuthenticationFailed('Invalid token')
+    return decoded_token
+
+class CustomAuthentication(BaseAuthentication):
+    def authenticate(self, request):
+        # Try to authenticate using JWT
+        try:
+            token = request.headers.get('Authorization', '').split(' ')[1]
+            decoded_token = verify_token(token)
+            user = CustomUser.objects.get(id=decoded_token['user_id'])
+            return user, decoded_token
+        except AuthenticationFailed:
+            pass
+        except Exception as e:
+            print(f"Non Authentication Error: {e}")
+            
+        # Try to authenticate using Google OAuth
+        access_token = request.headers.get("Authorization", None)
+        if access_token is None:
+            return None
+
+        access_token = access_token.split(" ")[1]
+        token_info = requests.get(f"https://www.googleapis.com/oauth2/v3/tokeninfo?access_token={access_token}").json()
+        if int(token_info["expires_in"]) <= 0:
+            return None
+        if token_info["aud"] != settings.GOOGLE_CLIENT_ID:
+            return None
+        user_info = requests.get(f"https://www.googleapis.com/oauth2/v3/userinfo?access_token={access_token}").json()        
+        if token_info["sub"] != user_info["sub"]:
+            return None        
+        # Authenticate the user using the retrieved information
+        user_data = {"email": user_info["email"], "username": user_info["name"], "password": "randompassword"}
+        try:        
+            user = CustomUser.objects.get(email=user_data["email"])
+        except ObjectDoesNotExist:
+            return None
+        
+        return user, None
+
+
+

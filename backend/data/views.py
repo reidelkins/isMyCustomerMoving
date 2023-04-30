@@ -10,18 +10,61 @@ import requests
 from accounts.models import CustomUser, Company
 from accounts.serializers import UserSerializerWithToken
 from config import settings
-from .models import Client, ClientUpdate, HomeListing, Task, HomeListingTags
+from .models import Client, ClientUpdate, HomeListing, Task
 from .serializers import ClientListSerializer, HomeListingSerializer
-from .syncClients import get_fieldEdge_clients, get_hubspot_clients, get_salesforce_clients, get_serviceTitan_clients
-from .utils import getAllZipcodes, saveClientList, doItAll
+from .syncClients import get_salesforce_clients, get_serviceTitan_clients
+from .utils import getAllZipcodes, saveClientList, add_serviceTitan_contacted_tag
+
+from django.http import HttpResponse
+import csv
+
 
 # Create your views here.
-class AllClientListView(generics.ListAPIView):
-    serializer_class = ClientListSerializer
+class DownloadClientView(APIView):
     permission_classes = [IsAuthenticated]
-    def get_queryset(self):
-        user = CustomUser.objects.get(id=self.request.user.id)
-        return Client.objects.filter(company=user.company).order_by('status')
+
+    def get(self, request, user, format=None):
+        queryset = self.get_queryset(user)
+        # Define the CSV header row
+        header = ['name', 'address', 'city', 'state', 'zipCode', 'status', 'phoneNumber']
+        # Create a response object with the CSV content
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="clients.csv"'
+        # Create a CSV writer object
+        writer = csv.writer(response)
+        # Write the header row to the CSV file
+        writer.writerow(header)
+        # Write the data rows to the CSV file
+        for client in queryset:
+            row = [client.name, client.address, client.city, client.state, client.zipCode.zipCode, client.status, client.phoneNumber]
+            writer.writerow(row)
+        # Return the response
+        return response
+
+    def get_queryset(self, user):
+        query_params = self.request.query_params
+        user = CustomUser.objects.get(id=user)
+        queryset = Client.objects.filter(company=user.company, active=True).order_by('status')
+        if 'min_price' in query_params:
+            queryset = queryset.filter(price__gte=query_params['min_price'])
+        if 'max_price' in query_params:
+            queryset = queryset.filter(price__lte=query_params['max_price'], price__gt=0)
+        if 'min_year' in query_params:
+            queryset = queryset.filter(year_built__gte=query_params['min_year'])
+        if 'max_year' in query_params:
+            queryset = queryset.filter(year_built__lte=query_params['max_year'], year_built__gt=0)
+        if 'status' in query_params:
+            statuses = []
+            if "For Sale" in query_params['status']:
+                statuses.append("House For Sale")
+            if "Recently Sold" in query_params['status']:
+                statuses.append("House Recently Sold (6)")
+            queryset = queryset.filter(status__in=statuses)
+        if 'equip_install_date_min' in query_params:
+            queryset = queryset.filter(equipmentInstalledDate__gte=query_params['equip_install_date_min'])
+        if 'equip_install_date_max' in query_params:
+            queryset = queryset.filter(equipmentInstalledDate__lte=query_params['equip_install_date_max'])
+        return queryset
 
 class CustomPagination(PageNumberPagination):
     page_size = 1000
@@ -29,13 +72,14 @@ class CustomPagination(PageNumberPagination):
 class ClientListView(generics.ListAPIView):
     serializer_class = ClientListSerializer
     pagination_class = CustomPagination
+    permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
         user = CustomUser.objects.get(id=self.kwargs['user'])
         query_params = self.request.query_params
 
         # Initialize the queryset with the base filters
-        queryset = Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company)
+        queryset = Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company, active=True)
 
         if 'min_price' in query_params:
             queryset = queryset.filter(price__gte=query_params['min_price'])
@@ -71,7 +115,7 @@ class ClientListView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         user = CustomUser.objects.get(id=self.kwargs['user'])
-        allClients = Client.objects.filter(company=user.company)
+        allClients = Client.objects.filter(company=user.company, active=True)
         forSale = allClients.filter(status="House For Sale", contacted=False).count()
         recentlySold = allClients.filter(status="House Recently Sold (6)", contacted=False).count()
         allClientUpdates = ClientUpdate.objects.filter(client__company=user.company)
@@ -112,6 +156,7 @@ class FilteredClientListView(generics.ListAPIView):
 class RecentlySoldView(generics.ListAPIView):
     serializer_class = HomeListingSerializer
     pagination_class = CustomPagination
+    permission_classes = [IsAuthenticated]
     def get_queryset(self):
         company = Company.objects.get(id=self.kwargs['company'])
         if company.recentlySoldPurchased:
@@ -135,16 +180,50 @@ class RecentlySoldView(generics.ListAPIView):
             return HomeListing.objects.none()
 
 class AllRecentlySoldView(generics.ListAPIView):
-    serializer_class = HomeListingSerializer
-    def get_queryset(self):
-        company = Company.objects.get(id=self.kwargs['company'])
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, company, format=None):
+        queryset = self.get_queryset(company)
+        # Define the CSV header row
+        header = ['address', 'city', 'state', 'zipCode', 'Listing Price', 'Year Built']
+        # Create a response object with the CSV content
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="HomeListings.csv"'
+        # Create a CSV writer object
+        writer = csv.writer(response)
+        # Write the header row to the CSV file
+        writer.writerow(header)
+        # Write the data rows to the CSV file
+        for homeListing in queryset:
+            row = [homeListing.address, homeListing.city, homeListing.state, homeListing.zipCode.zipCode, homeListing.price, homeListing.year_built]
+            writer.writerow(row)
+        # Return the response
+        return response
+    
+    def get_queryset(self, company):
+        query_params = self.request.query_params
+        company = Company.objects.get(id=company)
         if company.recentlySoldPurchased:
-            zipCode_objects = Client.objects.filter(company=company).values('zipCode')            
-            return HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')
+            zipCode_objects = Client.objects.filter(company=company).values('zipCode')
+            queryset =  HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')
+            if 'min_price' in query_params:
+                queryset = queryset.filter(price__gte=query_params['min_price'])
+            if 'max_price' in query_params:
+                queryset = queryset.filter(price__lte=query_params['max_price'], price__gt=0)
+            if 'min_year' in query_params:
+                queryset = queryset.filter(year_built__gte=query_params['min_year'])
+            if 'max_year' in query_params:
+                queryset = queryset.filter(year_built__lte=query_params['max_year'], year_built__gt=0)
+            if 'min_days_ago' in query_params:
+                queryset = queryset.filter(listed__lt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['min_days_ago']))).strftime('%Y-%m-%d'))
+            if 'max_days_ago' in query_params:
+                queryset = queryset.filter(listed__gt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['max_days_ago']))).strftime('%Y-%m-%d'))
+            return queryset
         else:
             return HomeListing.objects.none()
 
 class UpdateStatusView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, *args, **kwargs):
         try:
             getAllZipcodes.delay(self.kwargs['company'])
@@ -152,15 +231,8 @@ class UpdateStatusView(APIView):
             print(f"ERROR: Update Status View: {e}")
         return Response("", status=status.HTTP_201_CREATED, headers="")
 
-class ClientListAndUpdatesView(generics.ListAPIView):
-    serializer_class = ClientListSerializer
-    pagination_class = CustomPagination
-    def get_queryset(self):
-        company = Company.objects.get(id=self.kwargs['company'])
-        print(Client.objects.filter(company=company).count())
-        return Client.objects.prefetch_related('clientUpdates').filter(company=company).order_by('status')
-
 class UploadFileView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, *args, **kwargs):
         try:
             try:
@@ -186,7 +258,7 @@ class UploadFileView(generics.ListAPIView):
             print(e)
             return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            task = Task.objects.create()            
+            task = Task.objects.create()
             saveClientList.delay(request.data, company_id, task=task.id)
         except Exception as e:
             print(e)
@@ -195,36 +267,40 @@ class UploadFileView(generics.ListAPIView):
 
 # create a class for update client that will be used for the put and delete requests
 class UpdateClientView(APIView):
+    permission_classes = [IsAuthenticated]
     def put(self, request, *args, **kwargs):
         try:
-            client = Client.objects.get(id=request.data['clients'])
-            if request.data['note']:
-                client.note = request.data['note']
-                ClientUpdate.objects.create(client=client, note=request.data['note'])
-            if request.data['contacted'] != "":
-                client.contacted = request.data['contacted']
-                ClientUpdate.objects.create(client=client, contacted=request.data['contacted'])
-            client.save()
-        except Exception as e:
-            print(e)
-            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({"status": "Client Updated"}, status=status.HTTP_201_CREATED, headers="")
-
-    def delete(self, request, *args, **kwargs):
-        try:
-            if len(request.data['clients']) == 1:
-                client = Client.objects.get(id=request.data['clients'][0])
-                client.delete()
-            else:
-                for client in request.data['clients']:
-                    client = Client.objects.get(id=client)
+            if request.data['type'] == 'delete':
+                if len(request.data['clients']) == 1:
+                    print(request.data['clients'][0])
+                    client = Client.objects.get(id=request.data['clients'][0])
                     client.delete()
+                else:
+                    for client in request.data['clients']:
+                        client = Client.objects.get(id=client)
+                        client.delete()
+                return Response({"status": "Client Deleted"}, status=status.HTTP_201_CREATED, headers="")
+            else:
+                client = Client.objects.get(id=request.data['clients'])
+                if request.data['note']:
+                    client.note = request.data['note']
+                    ClientUpdate.objects.create(client=client, note=request.data['note'])
+                if request.data['contacted'] != "":
+                    client.contacted = request.data['contacted']
+                    ClientUpdate.objects.create(client=client, contacted=request.data['contacted'])
+                    if request.data['contacted'] and client.servTitanID:
+                        if client.status == "House For Sale" and client.company.serviceTitanForSaleContactedTagID:
+                            add_serviceTitan_contacted_tag.delay(client.id, client.company.serviceTitanForSaleContactedTagID)
+                        elif client.status == "House Recently Sold (6)" and client.company.serviceTitanRecentlySoldContactedTagID:
+                            add_serviceTitan_contacted_tag.delay(client.id, client.company.serviceTitanRecentlySoldContactedTagID)
+                client.save()
+                return Response({"status": "Client Updated"}, status=status.HTTP_201_CREATED, headers="")
         except Exception as e:
             print(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({"status": "Client Deleted"}, status=status.HTTP_201_CREATED, headers="")
-
+            
 class ServiceTitanView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, *args, **kwargs):
         try:
             try:
@@ -261,7 +337,7 @@ class ServiceTitanView(APIView):
 
 class SalesforceConsumerView(APIView):
     # GET request that returns the Salesforce Consumer Key and Consumer Secret from the config file, make this protected
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         try:
@@ -315,33 +391,3 @@ class SalesforceConsumerView(APIView):
             print(e)
             return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
         
-# @api_view(['PUT', 'DELETE'])
-# def update_client(request):
-#     try:
-#         if request.method == 'PUT':
-#             try:
-#                 client = Client.objects.get(id=request.data['clients'])
-#                 if request.data['note']:
-#                     client.note = request.data['note']
-#                     ClientUpdate.objects.create(client=client, note=request.data['note'])
-#                 if request.data['contacted'] != "":
-#                     client.contacted = request.data['contacted']
-#                     ClientUpdate.objects.create(client=client, contacted=request.data['contacted'])
-#                 client.save()
-#             except Exception as e:
-#                 print(e)
-#                 return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-#         elif request.method == 'DELETE':
-#             try:
-#                 if len(request.data['clients']) == 1:
-#                     client = Client.objects.get(id=request.data['clients'][0])
-#                     client.delete()
-#                 else:
-#                     Client.objects.filter(id__in=request.data['clients']).delete()
-#             except Exception as e:
-#                 print(e)
-#                 return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-#         return Response({"status": "Success"}, status=status.HTTP_201_CREATED, headers="")
-#     except Exception as e:
-#         print(e)
-#         return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)

@@ -1,8 +1,10 @@
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {useDispatch } from 'react-redux';
 // material
 import { styled } from '@mui/material/styles';
 import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment } from '@mui/material';
+
 // component
 import Iconify from '../../../components/Iconify';
 import CustomerDataFilter  from './CustomerDataFilter';
@@ -38,11 +40,32 @@ ClientListToolbar.propTypes = {
   filterName: PropTypes.string,
   onFilterName: PropTypes.func,
   selectedClients: PropTypes.array,
-  product: PropTypes.string
+  product: PropTypes.string,
+  minPrice: PropTypes.string,
+  setMinPrice: PropTypes.func,
+  maxPrice: PropTypes.string,
+  setMaxPrice: PropTypes.func,
+  minYear: PropTypes.string,
+  setMinYear: PropTypes.func,
+  maxYear: PropTypes.string,
+  setMaxYear: PropTypes.func,
+  equipInstallDateMin: PropTypes.string,
+  setEquipInstallDateMin: PropTypes.func,
+  equipInstallDateMax: PropTypes.string,
+  setEquipInstallDateMax: PropTypes.func,
+  statusFilters: PropTypes.array,
+  setStatusFilters: PropTypes.func
+
+  
+
 };
 
-export default function ClientListToolbar({ numSelected, filterName, onFilterName, selectedClients, product }) {
+export default function ClientListToolbar({ numSelected, filterName, onFilterName, selectedClients, product, 
+                                            minPrice, setMinPrice, maxPrice, setMaxPrice, minYear, setMinYear, maxYear, setMaxYear,
+                                            equipInstallDateMin, setEquipInstallDateMin, equipInstallDateMax, setEquipInstallDateMax,
+                                            statusFilters, setStatusFilters }) {
   const dispatch = useDispatch();
+
 
   const clickDelete = (event, clients) => {
     dispatch(deleteClientAsync(clients));
@@ -86,7 +109,23 @@ export default function ClientListToolbar({ numSelected, filterName, onFilterNam
           </IconButton>
         </Tooltip>
       ) : (
-        <CustomerDataFilter product={product}/>
+        <CustomerDataFilter
+          product={product}
+          minPrice={minPrice}
+          setMinPrice={setMinPrice}
+          maxPrice={maxPrice}
+          setMaxPrice={setMaxPrice}
+          minYear={minYear}
+          setMinYear={setMinYear}
+          maxYear={maxYear}
+          setMaxYear={setMaxYear}
+          equipInstallDateMin={equipInstallDateMin}
+          setEquipInstallDateMin={setEquipInstallDateMin}
+          equipInstallDateMax={equipInstallDateMax}
+          setEquipInstallDateMax={setEquipInstallDateMax}
+          statusFilters={statusFilters}
+          setStatusFilters={setStatusFilters}
+        />
       )}
     </RootStyle>
   );

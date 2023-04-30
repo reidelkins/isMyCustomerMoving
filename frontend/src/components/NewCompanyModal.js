@@ -17,6 +17,10 @@ export default function NewCompanyModal() {
     // const classes = useStyles();
     const [open, setOpen] = React.useState(false);
     const dispatch = useDispatch();
+    
+    
+
+    
     const handleOpen = () => {
         setOpen(true);
     };

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
     Button,
     TextField,
@@ -13,6 +13,7 @@ import { useFormik, Form, FormikProvider } from 'formik';
 import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import * as Yup from 'yup';
+
 
 import { makeReferralAsync } from '../redux/actions/usersActions';
 
@@ -30,6 +31,7 @@ export default function ReferralModal({
     const [open, setOpen] = useState(false);
     const [referred, setReferred] = useState(alreadyReferred);
     const dispatch = useDispatch();
+
     const handleOpen = () => {
         setOpen(true);
         

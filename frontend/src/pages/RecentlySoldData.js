@@ -20,6 +20,7 @@ import {
   TablePagination,
   CircularProgress
 } from '@mui/material';
+
 import { useSelector, useDispatch } from 'react-redux';
 import { DOMAIN } from '../redux/constants';
 
@@ -33,15 +34,17 @@ import Iconify from '../components/Iconify';
 import {RecentlySoldListToolbar} from '../sections/@dashboard/recentlySold';
 
 import RecentlySoldListCall from '../redux/calls/RecentlySoldListCall';
-import { selectRecentlySold, recentlySoldAsync } from '../redux/actions/usersActions';
+import { selectRecentlySold, recentlySoldAsync, getRecentlySoldCSV } from '../redux/actions/usersActions';
 import { logout, showLoginInfo } from '../redux/actions/authActions';
 import { makeDate } from '../utils/makeDate';
-
+ 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
   { id: 'listed', label: 'Date Sold', alignRight: false },
   { id: 'address', label: 'Address', alignRight: false },
+  { id: 'city', label: 'City', alignRight: false },
+  { id: 'state', label: 'State', alignRight: false },
   { id: 'zipCode', label: 'Zip Code', alignRight: false },
   { id: 'price', label: 'Price', alignRight: false },
   { id: 'year_built', label: 'Year Built', alignRight: false },
@@ -137,35 +140,53 @@ export default function RecentlySoldData() {
     setPage(0);
   };
 
-  const exportCSV = async () => {
-    if (RECENTLYSOLDLIST.length === 0) { return }
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
-      },
-    };
-    setCsvLoading(true);
-    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/allrecentlysold/${userInfo.company.id}`, config);
-    let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += 'Sold Date, Address, Zip Code\r\n';
-    data.forEach((n) => {
-      csvContent += `${n.listed.slice(0, 10)}, ${n.address}, ${n.zipCode}\r\n`
-    });
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [minYear, setMinYear] = useState('');
+  const [maxYear, setMaxYear] = useState('');
+  const [minDaysAgo, setMinDaysAgo] = useState('');
+  const [maxDaysAgo, setMaxDaysAgo] = useState('');
+  const [tagFilters, setTagFilters] = useState([]);
+  const handleMinPriceChange = (newMinPrice) => { setMinPrice(newMinPrice)}
+  const handleMaxPriceChange = (newMaxPrice) => {setMaxPrice(newMaxPrice)}
+  const handleMinYearChange = (newMinYear) => {setMinYear(newMinYear)}
+  const handleMaxYearChange = (newMaxYear) => {setMaxYear(newMaxYear)}
+  const handleMinDaysAgoChange = (newMinDaysAgo) => {setMinDaysAgo(newMinDaysAgo)}
+  const handleMaxDaysAgoChange = (newMaxDaysAgo) => {setMaxDaysAgo(newMaxDaysAgo)}
+  
+  const exportCSV = () => {
+    dispatch(getRecentlySoldCSV( minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters))
+  }
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    // Create a download link for the CSV file
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    const d1 = new Date().toLocaleDateString('en-US')
-    const docName = `isMyCustomerMoving_RecentlySold_${d1}`    
+  // const exportCSV = async () => {
+  //   if (RECENTLYSOLDLIST.length === 0) { return }
+  //   const config = {
+  //     headers: {
+  //       'Content-type': 'application/json',
+  //       Authorization: `Bearer ${userInfo.access}`,
+  //     },
+  //   };
+  //   setCsvLoading(true);
+  //   const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/allrecentlysold/${userInfo.company.id}`, config);
+  //   let csvContent = 'data:text/csv;charset=utf-8,';
+  //   csvContent += 'Sold Date, Address, Zip Code\r\n';
+  //   data.forEach((n) => {
+  //     csvContent += `${n.listed.slice(0, 10)}, ${n.address}, ${n.zipCode}\r\n`
+  //   });
 
-    link.setAttribute('download', `${docName}.csv`);
-    document.body.appendChild(link); // add the link to body
-    link.click();
-    document.body.removeChild(link); // remove the link from body
-    setCsvLoading(false);
-  };
+  //   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  //   // Create a download link for the CSV file
+  //   const link = document.createElement('a');
+  //   link.href = window.URL.createObjectURL(blob);
+  //   const d1 = new Date().toLocaleDateString('en-US')
+  //   const docName = `isMyCustomerMoving_RecentlySold_${d1}`    
+
+  //   link.setAttribute('download', `${docName}.csv`);
+  //   document.body.appendChild(link); // add the link to body
+  //   link.click();
+  //   document.body.removeChild(link); // remove the link from body
+  //   setCsvLoading(false);
+  // };
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - RECENTLYSOLDLIST.length) : 0;
   const filteredRecentlySold = userInfo ? applySortFilter(RECENTLYSOLDLIST, getComparator(order, orderBy)) : [];
@@ -193,7 +214,21 @@ export default function RecentlySoldData() {
               ) : null}
               {userInfo.company.recentlySoldPurchased ? (
                 <Scrollbar>
-                  <RecentlySoldListToolbar product={userInfo.company.product} />
+                  <RecentlySoldListToolbar 
+                    product={userInfo.company.product} 
+                    minPrice={minPrice}
+                    setMinPrice={handleMinPriceChange}
+                    maxPrice={maxPrice}
+                    setMaxPrice={handleMaxPriceChange}
+                    minYear={minYear}
+                    setMinYear={handleMinYearChange}
+                    maxYear={maxYear}
+                    setMaxYear={handleMaxYearChange}
+                    minDaysAgo={minDaysAgo}
+                    setMinDaysAgo={handleMinDaysAgoChange}
+                    maxDaysAgo={maxDaysAgo}
+                    setMaxDaysAgo={handleMaxDaysAgoChange}
+                  />
                   <TableContainer sx={{ minWidth: 800 }}>
                     <Table>
                       <ClientListHead
@@ -208,7 +243,7 @@ export default function RecentlySoldData() {
                       />
                       <TableBody>
                         {filteredRecentlySold.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                          const { id, address, zipCode, listed, price, year_built: yearBuilt} = row;
+                          const { id, address, city, state, zipCode, listed, price, year_built: yearBuilt} = row;
                           
                           return (
                             <React.Fragment key={row.id}>
@@ -226,6 +261,8 @@ export default function RecentlySoldData() {
                                   </Stack>
                                 </TableCell>
                                 <TableCell align="left">{address}</TableCell>
+                                <TableCell align="left">{city}</TableCell>
+                                <TableCell align="left">{state}</TableCell>
                                 <TableCell align="left">{zipCode}</TableCell>     
                                   <TableCell align="left">{price.toLocaleString()}</TableCell>
                                   <TableCell align="left">{yearBuilt}</TableCell>                                               
@@ -278,7 +315,7 @@ export default function RecentlySoldData() {
               />
             </Card>
             {/* TODO */}
-            {/* {csvLoading ? (
+            {csvLoading ? (
               (userInfo.status === 'admin') && (
                 <Button variant="contained">
                   <CircularProgress color="secondary"/>
@@ -290,7 +327,7 @@ export default function RecentlySoldData() {
                   Download To CSV
                 </Button>
               )
-            )}        */}
+            )}       
           </>
         )}
       </Container>

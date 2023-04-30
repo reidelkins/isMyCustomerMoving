@@ -8,7 +8,7 @@ from accounts.models import Company, CustomUser
 from accounts.serializers import UserSerializerWithToken
 from accounts.utils import makeCompany
 from data.models import Client
-from data.utils import deleteExtraClients
+from data.utils import deleteExtraClients, reactivateClients
 
 from djstripe import webhooks, models as djstripe_models
 
@@ -241,6 +241,7 @@ def update_subscription(event: djstripe_models.Event):
         company.save()
         if plan != "price_1Mi1KuAkLES5P4qQ2MEEwV9l":
             deleteExtraClients(company.id)
+            reactivateClients(company.id)
     except Exception as e:
         print(e)
         print("error")

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     IconButton,
     Button,
@@ -10,6 +10,7 @@ import {
 import { useFormik, Form, FormikProvider } from 'formik';
 import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
+
 
 import Iconify from './Iconify';
 import { updateClientAsync } from '../redux/actions/usersActions';
@@ -29,6 +30,7 @@ export default function NoteModal({
 }) {
     const [open, setOpen] = useState(false);
     const dispatch = useDispatch();
+
     const handleOpen = () => {
         setOpen(true);
     };

@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from django.utils.crypto import get_random_string
 from django.conf import settings
 from django.template.loader import get_template
+from djstripe import models as djstripe_models
 
 
 STATUS_CHOICES = (
@@ -91,7 +92,7 @@ class Company(models.Model):
                           default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     accessToken = models.CharField(default=create_access_token, max_length=100)
-    product = models.ForeignKey("djstripe.Price", blank=True, null=True, on_delete=models.SET_NULL)
+    product = models.ForeignKey("djstripe.Plan", blank=True, null=True, on_delete=models.SET_NULL, default=None)
     phone = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(max_length=100, blank=True, null=True)
     stripeID = models.CharField(max_length=100, blank=True, null=True)
@@ -105,6 +106,8 @@ class Company(models.Model):
     serviceTitanForSaleTagID = models.IntegerField(blank=True, null=True)
     serviceTitanForRentTagID = models.IntegerField(blank=True, null=True)
     serviceTitanRecentlySoldTagID = models.IntegerField(blank=True, null=True)
+    serviceTitanForSaleContactedTagID = models.IntegerField(blank=True, null=True)
+    serviceTitanRecentlySoldContactedTagID = models.IntegerField(blank=True, null=True)
     recentlySoldPurchased = models.BooleanField(default=False)
 
     # Salesforce
@@ -113,7 +116,7 @@ class Company(models.Model):
 
     def __str__(self):
         return self.name
-
+    
 
 def zipTime():
     return (datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d')

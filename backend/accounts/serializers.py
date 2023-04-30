@@ -28,7 +28,7 @@ class CompanySerializer(serializers.ModelSerializer):
     stripeID = serializers.CharField(max_length=100, required=False)
     recentlySoldPurchased = serializers.BooleanField(default=False)
     crm = serializers.CharField(max_length=100, required=False)
-    franchise = FranchiseSerializer(required=False)
+    # franchise = FranchiseSerializer(required=False)
     product = serializers.SerializerMethodField('get_product', read_only=True)
 
 
@@ -38,7 +38,8 @@ class CompanySerializer(serializers.ModelSerializer):
     serviceTitanForRentTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanForSaleTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanRecentlySoldTagID = serializers.CharField(max_length=100, required=False)
-
+    serviceTitanForSaleContactedTagID = serializers.CharField(max_length=100, required=False)
+    serviceTitanSoldContactedTagID = serializers.CharField(max_length=100, required=False)
     
 
     def create(self, validated_data):
@@ -53,7 +54,7 @@ class CompanySerializer(serializers.ModelSerializer):
             return "No product"
     class Meta:
         model = Company
-        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'franchise', 'product']
+        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'serviceTitanForSaleContactedTagID', 'serviceTitanSoldContactedTagID', 'product']
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -98,14 +99,14 @@ class UserSerializer(serializers.Serializer):
 
 
 class UserSerializerWithToken(UserSerializer):
-    access = serializers.SerializerMethodField(read_only=True)
-    refresh = serializers.SerializerMethodField(read_only=True)
+    accessToken = serializers.SerializerMethodField(read_only=True)
+    refreshToken = serializers.SerializerMethodField(read_only=True)
 
-    def get_access(self, obj):
+    def get_accessToken(self, obj):
         token = RefreshToken.for_user(obj)
         return str(token.access_token)
 
-    def get_refresh(self, obj):
+    def get_refreshToken(self, obj):
         token = RefreshToken.for_user(obj)
         return str(token)
 

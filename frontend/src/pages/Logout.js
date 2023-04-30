@@ -1,12 +1,11 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { useSelector } from "react-redux";
+
+
 
 // @mui
 import { styled } from '@mui/material/styles';
 import { Card, Link, Container, Typography, Button } from '@mui/material';
-
-import { showLoginInfo } from '../redux/actions/authActions';
 
 
 // hooks
@@ -14,10 +13,6 @@ import useResponsive from '../hooks/useResponsive';
 // components
 import Page from '../components/Page';
 import Logo from '../components/Logo';
-import { LoginForm } from '../sections/auth/login';
-// import Facebook from "../components/social-media/Facebook";
-// import Twitter from "../components/social-media/Twitter";
-import Google from "../components/social-media/Google";
 
 // ----------------------------------------------------------------------
 
@@ -64,24 +59,20 @@ const ContentStyle = styled('div')(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 
-export default function Login() {  
+export default function Logout() {
+  const navigate = useNavigate();
+  
   const smUp = useResponsive('up', 'sm');
 
   const mdUp = useResponsive('up', 'md');
-  const navigate = useNavigate();
-  const userLogin = useSelector(showLoginInfo);
-  const { userInfo } = userLogin;
 
-  useEffect(() => {
-    if(userInfo) {
-      navigate('/dashboard/customers', { replace: true })
-    }
-    
-  }, [userInfo]);
+  const returnToLogin = () => {
+    navigate('/login', { replace: true });
+    };
   
 
   return (
-    <Page title="Login">
+    <Page title="Logout">
       <RootStyle>
         <HeaderStyle>
           <Logo />
@@ -101,11 +92,11 @@ export default function Login() {
         <Container maxWidth="sm">
           <ContentStyle>
             <Typography variant="h2" gutterBottom>
-              Log In Here
+              You Have Succesfully Logged Out
             </Typography>
             
-            <LoginForm />
-            <Google />
+            <Button variant="contained" onClick={returnToLogin}>Return To Login Page</Button>
+            
             {!smUp && (
               <Typography variant="body2" align="center" sx={{ mt: 3 }}>
                 Don’t have an account?{' '}
@@ -120,7 +111,3 @@ export default function Login() {
     </Page>
   );
 }
-
-
-
-  

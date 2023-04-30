@@ -114,7 +114,7 @@ backend/*.sage.py
 # Environments
 backend/config/.env
 backend/.venv
-backend/env/
+backend/env
 backend/venv/
 backend/ENV/
 backend/env.bak/
@@ -189,4 +189,10 @@ backend/twoFactor/__pycache__/__init__.cpython-310.pyc
 backend/twoFactor/__pycache__/admin.cpython-310.pyc
 backend/twoFactor/__pycache__/apps.cpython-310.pyc
 backend/twoFactor/__pycache__/models.cpython-310.pyc
-.gitignore
+backend/authz/__pycache__/
+backend/authz/__pycache__/
+backend/common/utils/__pycache__/
+backend/requirements_old.txt
+.env.testing
+backend/__pycache__/conftest.cpython-310-pytest-7.2.2.pyc
+backend/conftest.py

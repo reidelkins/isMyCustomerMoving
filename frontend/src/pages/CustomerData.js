@@ -1,6 +1,5 @@
 /* eslint-disable camelcase */
 import _, { filter} from 'lodash';
-import axios from 'axios';
 import { sentenceCase } from 'change-case';
 import React, { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
@@ -27,7 +26,6 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
-import { DOMAIN } from '../redux/constants';
 
 // components
 import ReferralModal from '../components/ReferralModal';
@@ -45,11 +43,8 @@ import ClientDetailsTable from '../components/ClientDetailsTable';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
 
 import ClientsListCall from '../redux/calls/ClientsListCall';
-import { selectClients, update, updateClientAsync, serviceTitanSync, salesForceSync, clientsAsync } from '../redux/actions/usersActions';
-import { logout, showLoginInfo } from '../redux/actions/authActions';
-
-// ----------------------------------------------------------------------
-
+import { selectClients, update, updateClientAsync, serviceTitanSync, salesForceSync, clientsAsync, getClientsCSV } from '../redux/actions/usersActions';
+import { showLoginInfo, logout } from '../redux/actions/authActions';
 
 // ----------------------------------------------------------------------
 // change this to sort by status
@@ -89,10 +84,11 @@ export function applySortFilter(array, comparator, query, userInfo) {
 
 export default function CustomerData() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();  
+  const navigate = useNavigate();
 
   const userLogin = useSelector(showLoginInfo);
   const { userInfo, twoFA } = userLogin;
+
   useEffect(() => {
     if (!userInfo) {
       dispatch(logout());
@@ -100,6 +96,7 @@ export default function CustomerData() {
       window.location.reload(false);
     } else if (userInfo.otp_enabled && twoFA === false) {
       navigate('/login', { replace: true });
+      window.location.reload(true);
     }
 
   }, [userInfo, dispatch, navigate]);
@@ -114,7 +111,7 @@ export default function CustomerData() {
         { id: 'note', label: 'Note', alignRight: false },
         { id: 'phone', label: 'Phone Number', alignRight: false }]);
   useEffect(() => {
-    if (userInfo.company.franchise) {
+    if (userInfo && userInfo.company.franchise) {
       setTABLE_HEAD([
         { id: 'name', label: 'Name', alignRight: false },
         { id: 'address', label: 'Address', alignRight: false },
@@ -132,7 +129,6 @@ export default function CustomerData() {
 
   const listClient = useSelector(selectClients);
   const {loading, CLIENTLIST, forSale, recentlySold, count, message, deleted } = listClient;
-
   useEffect(() => {
     if (message) {
       setAlertOpen(true);
@@ -160,6 +156,7 @@ export default function CustomerData() {
   const [csvLoading, setCsvLoading] = useState(false);
 
   const [alertOpen, setAlertOpen] = useState(false);
+
   const [deletedAlertOpen, setDeletedAlertOpen] = useState(false);
 
   useEffect(() => {
@@ -170,13 +167,21 @@ export default function CustomerData() {
 
   const [clientListLength, setClientListLength] = useState(0);
 
+  const [filteredClients, setFilteredClients] = useState([]);
+
+  useEffect(() => {
+    if (CLIENTLIST.length > 0) {
+      setFilteredClients(applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName, userInfo.status));
+    }
+  }, [CLIENTLIST, order, orderBy, filterName, userInfo]);
+
   useEffect(() => {
     if (CLIENTLIST.length < clientListLength) {
       setPage(0);
-      setShownClients(0);
+      setShownClients(0);      
     }
     setClientListLength(CLIENTLIST.length);
-  }, [CLIENTLIST]);
+  }, [CLIENTLIST, clientListLength, CLIENTLIST.length]);
 
   const handleRowClick = (rowIndex) => {
     if (expandedRow === rowIndex) {
@@ -233,7 +238,7 @@ export default function CustomerData() {
   const handleChangePage = (event, newPage) => {
     // fetch new page if two away from needing to see new page
     if ((newPage+2) * rowsPerPage % 1000 === 0) {
-      dispatch(clientsAsync(((newPage+2) * rowsPerPage / 1000)+1))
+      dispatch(clientsAsync( ((newPage+2) * rowsPerPage / 1000)+1 ))
     }
     setPage(newPage);
   };
@@ -245,7 +250,7 @@ export default function CustomerData() {
     setFilterName(event.target.value);
   };
   const updateContacted = (event, id, contacted) => {
-    dispatch(updateClientAsync(id, contacted, ""));
+    dispatch(updateClientAsync(id, contacted, "", ));
   };
   const updateStatus = () => {
     dispatch(update());
@@ -257,37 +262,37 @@ export default function CustomerData() {
     dispatch(salesForceSync());
   };
 
-  const exportCSV = async () => {
-    if (CLIENTLIST.length === 0) { return }
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
-      },
-    };
-    setCsvLoading(true);
-    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/allClients/${userInfo.id}`, config);
-    let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += 'Name,Address,City,State,ZipCode,Status,Contacted,Note,Phone Number\r\n';
-    data.forEach((n) => {
-      csvContent += `${n.name}, ${n.address}, ${n.city}, ${n.state}, ${n.zipCode}, ${n.status}, ${n.contacted}, ${n.note}, ${n.phoneNumber}\r\n`
-    });
+  // const exportCSV = async () => {
+  //   if (CLIENTLIST.length === 0) { return }
+  //   const config = {
+  //     headers: {
+  //       'Content-type': 'application/json',
+  //       Authorization: `Bearer ${userInfo.access}`,
+  //     },
+  //   };
+  //   setCsvLoading(true);
+  //   const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/allClients/${userInfo.id}`, config);
+  //   let csvContent = 'data:text/csv;charset=utf-8,';
+  //   csvContent += 'Name,Address,City,State,ZipCode,Status,Contacted,Note,Phone Number\r\n';
+  //   data.forEach((n) => {
+  //     csvContent += `${n.name}, ${n.address}, ${n.city}, ${n.state}, ${n.zipCode}, ${n.status}, ${n.contacted}, ${n.note}, ${n.phoneNumber}\r\n`
+  //   });
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    // Create a download link for the CSV file
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    const d1 = new Date().toLocaleDateString('en-US')
-    const docName = `isMyCustomerMoving_${d1}`    
+  //   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  //   // Create a download link for the CSV file
+  //   const link = document.createElement('a');
+  //   link.href = window.URL.createObjectURL(blob);
+  //   const d1 = new Date().toLocaleDateString('en-US')
+  //   const docName = `isMyCustomerMoving_${d1}`    
 
-    link.setAttribute('download', `${docName}.csv`);
-    document.body.appendChild(link); // add the link to body
-    link.click();
-    document.body.removeChild(link); // remove the link from body
-    setCsvLoading(false);
-  };
+  //   link.setAttribute('download', `${docName}.csv`);
+  //   document.body.appendChild(link); // add the link to body
+  //   link.click();
+  //   document.body.removeChild(link); // remove the link from body
+  //   setCsvLoading(false);
+  // };
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
-  const filteredClients = userInfo ? applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName, userInfo.status) : [];
+  
   
   useEffect(() => {
     if (filteredClients.length < CLIENTLIST.length) {
@@ -295,49 +300,94 @@ export default function CustomerData() {
     } else {
       setShownClients(count)
     }
-  }, [count, filteredClients])
-
+  }, [count, filteredClients, CLIENTLIST.length])
+  
+  const [statusFilters, setStatusFilters] = useState([]);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [minYear, setMinYear] = useState('');
+  const [maxYear, setMaxYear] = useState('');
+  const [tagFilters, setTagFilters] = useState([]);
+  const [equipInstallDateMin, setEquipInstallDateMin] = useState('');
+  const [equipInstallDateMax, setEquipInstallDateMax] = useState('');
+  const handleStatusFiltersChange = (newFilters) => {setStatusFilters(newFilters)}
+  const handleMinPriceChange = (newMinPrice) => { setMinPrice(newMinPrice)}
+  const handleMaxPriceChange = (newMaxPrice) => {setMaxPrice(newMaxPrice)}
+  const handleMinYearChange = (newMinYear) => {setMinYear(newMinYear)}
+  const handleMaxYearChange = (newMaxYear) => {setMaxYear(newMaxYear)}
+  const handleEquipInstallDateMin = (newEquipInstallDateMin) => {setEquipInstallDateMin(newEquipInstallDateMin)}
+  const handleEquipInstallDateMax = (newEquipInstallDateMax) => {setEquipInstallDateMax(newEquipInstallDateMax)}
+  const exportCSV = () => {
+    dispatch(getClientsCSV(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax))
+  }
+  
+  
   return (
-    <Page title="User" userInfo={userInfo}>
-      <Container>
-        {userInfo ? <ClientsListCall /> : null}
-        {userInfo && (
-          <>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-              <Typography variant="h4" gutterBottom>
-                Welcome {(userInfo.first_name).charAt(0).toUpperCase()+(userInfo.first_name).slice(1)} {(userInfo.last_name).charAt(0).toUpperCase()+(userInfo.last_name).slice(1)} 👋
-              </Typography>              
-              {/* {(userInfo.email === 'reid@gmail.com' || userInfo.email === 'jb@aquaclearws.com' || userInfo.email === 'reidelkins3@gmail.com') && (
-                // <Button variant="contained" component={RouterLink} to="/dashboard/adduser" startIcon={<Iconify icon="eva:plus-fill" />}>
-                <NewCompanyModal/>
-              )} */}
-            </Stack>
-            <Stack direction="row" alignItems="center" justifyContent="space-around" mb={5} mx={10}>
-              <Stack direction="column" alignItems="center" justifyContent="center">
-                <CounterCard
-                  start={0}
-                  end={forSale.current}
-                  title="For Sale"
-                />
-                <Typography variant="h6" gutterBottom mt={-3}> All Time: {forSale.total}</Typography>
+    <div>
+    {userInfo && (
+      <Page title="User" userInfo={userInfo}>
+        <Container>
+          {userInfo ? <ClientsListCall /> : null}
+          {userInfo && (
+            <>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+                <Typography variant="h4" gutterBottom>
+                  Welcome {(userInfo.first_name).charAt(0).toUpperCase()+(userInfo.first_name).slice(1)} {(userInfo.last_name).charAt(0).toUpperCase()+(userInfo.last_name).slice(1)} 👋
+                </Typography>              
+                {/* {(userInfo.email === 'reid@gmail.com' || userInfo.email === 'jb@aquaclearws.com' || userInfo.email === 'reidelkins3@gmail.com') && (
+                  // <Button variant="contained" component={RouterLink} to="/dashboard/adduser" startIcon={<Iconify icon="eva:plus-fill" />}>
+                  <NewCompanyModal/>
+                )} */}
               </Stack>
+              <Stack direction="row" alignItems="center" justifyContent="space-around" mb={5} mx={10}>
+                <Stack direction="column" alignItems="center" justifyContent="center">
+                  <CounterCard
+                    start={0}
+                    end={forSale.current}
+                    title="For Sale"
+                  />
+                  <Typography variant="h6" gutterBottom mt={-3}> All Time: {forSale.total}</Typography>
+                </Stack>
 
-              <Stack direction="column" alignItems="center" justifyContent="center">
-                <CounterCard
-                  start={0}
-                  end={recentlySold.current}
-                  title="Recently Sold"
-                />
-                <Typography variant="h6" gutterBottom mt={-3}> All Time: {recentlySold.total}</Typography>
+                <Stack direction="column" alignItems="center" justifyContent="center">
+                  <CounterCard
+                    start={0}
+                    end={recentlySold.current}
+                    title="Recently Sold"
+                  />
+                  <Typography variant="h6" gutterBottom mt={-3}> All Time: {recentlySold.total}</Typography>
+                </Stack>
               </Stack>
-            </Stack>
-            <Card sx={{marginBottom:"3%"}}>
-              <ClientListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedClients={selectedClients} setSelected setSelectedClients product={userInfo.company.product} />
-              {loading ? (
-                <Box sx={{ width: '100%' }}>
-                  <LinearProgress />
-                </Box>
-              ) : null}
+              <Card sx={{marginBottom:"3%"}}>
+                <ClientListToolbar 
+                  numSelected={selected.length} 
+                  filterName={filterName} 
+                  onFilterName={handleFilterByName} 
+                  selectedClients={selectedClients} 
+                  setSelected 
+                  setSelectedClients 
+                  product={userInfo.company.product}
+                  minPrice={minPrice}
+                  setMinPrice={handleMinPriceChange}
+                  maxPrice={maxPrice}
+                  setMaxPrice={handleMaxPriceChange}
+                  minYear={minYear}
+                  setMinYear={handleMinYearChange}
+                  maxYear={maxYear}
+                  setMaxYear={handleMaxYearChange}
+                  equipInstallDateMin={equipInstallDateMin}
+                  setEquipInstallDateMin={handleEquipInstallDateMin}
+                  equipInstallDateMax={equipInstallDateMax}
+                  setEquipInstallDateMax={handleEquipInstallDateMax}
+                  statusFilters={statusFilters}
+                  setStatusFilters={handleStatusFiltersChange}
+                  
+                  />
+                {loading ? (
+                  <Box sx={{ width: '100%' }}>
+                    <LinearProgress />
+                  </Box>
+                ) : null}
 
               <Scrollbar>
                 <TableContainer sx={{ minWidth: 800 }}>
@@ -461,78 +511,78 @@ export default function CustomerData() {
                       )}
                     </TableBody>
 
-                    {filteredClients.length === 0 && (
-                      <TableBody>
-                        <TableRow>
-                          <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                            <SearchNotFound searchQuery={filterName} tipe="client"/>
-                          </TableCell>
-                        </TableRow>
-                      </TableBody>
-                    )}
-                  </Table>
-                </TableContainer>
-              </Scrollbar>
+                      {filteredClients.length === 0 && (
+                        <TableBody>
+                          <TableRow>
+                            <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
+                              <SearchNotFound searchQuery={filterName} tipe="client"/>
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      )}
+                    </Table>
+                  </TableContainer>
+                </Scrollbar>
 
-              <TablePagination
-                rowsPerPageOptions={[10, 50, 100]}
-                component="div"
-                count={shownClients}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-              />
-            </Card>
-            <Collapse in={deletedAlertOpen}>
-              <Alert
-                action={
-                  <IconButton
-                    aria-label="close"
-                    color="inherit"
-                    size="small"
-                    onClick={() => {
-                      setDeletedAlertOpen(false);
-                    }}
-                  >
-                    X
-                  </IconButton>
-                }
-                sx={{ mb: 2, mx: 'auto', width: '80%' }}
-                variant="filled"
-                severity="error"
-              >
-                You tried to upload {deleted} clients more than allowed for your subscription tier. If you would like to upload more clients, please upgrade your subscription.
-              </Alert>
-            </Collapse>
-            {loading ? (
-              <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-                {((userInfo.first_name === 'reid' && userInfo.last_name === 'elkins') || (userInfo.first_name === 'Perspective' && userInfo.last_name === 'Customer')) && (
-                  <Button variant="contained" >
-                    <CircularProgress color="secondary"/>
-                  </Button>
-                )  }            
+                <TablePagination
+                  rowsPerPageOptions={[10, 50, 100]}
+                  component="div"
+                  count={shownClients}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                />
+              </Card>
+              <Collapse in={deletedAlertOpen}>
+                <Alert
+                  action={
+                    <IconButton
+                      aria-label="close"
+                      color="inherit"
+                      size="small"
+                      onClick={() => {
+                        setDeletedAlertOpen(false);
+                      }}
+                    >
+                      X
+                    </IconButton>
+                  }
+                  sx={{ mb: 2, mx: 'auto', width: '80%' }}
+                  variant="filled"
+                  severity="error"
+                >
+                  You tried to upload {deleted} clients more than allowed for your subscription tier. If you would like to upload more clients, please upgrade your subscription.
+                </Alert>
+              </Collapse>
+              {loading ? (
+                <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+                  {((userInfo.first_name === 'reid' && userInfo.last_name === 'elkins') || (userInfo.first_name === 'Perspective' && userInfo.last_name === 'Customer')) && (
+                    <Button variant="contained" >
+                      <CircularProgress color="secondary"/>
+                    </Button>
+                  )  }            
 
-                {(userInfo.status === 'admin' && userInfo.finishedSTIntegration) && (
-                  <Button variant="contained">
-                    <CircularProgress color="secondary"/>
-                  </Button>
-                )}
+                  {(userInfo.status === 'admin' && userInfo.finishedSTIntegration) && (
+                    <Button variant="contained">
+                      <CircularProgress color="secondary"/>
+                    </Button>
+                  )}
 
-                {(userInfo.status === 'admin') && (
-                  <Button variant="contained">
-                    <CircularProgress color="secondary"/>
-                  </Button>
-                )}
-              </Stack>
+                  {(userInfo.status === 'admin') && (
+                    <Button variant="contained">
+                      <CircularProgress color="secondary"/>
+                    </Button>
+                  )}
+                </Stack>
 
-            ):(
-              <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-                {((userInfo.first_name === 'reid' && userInfo.last_name === 'elkins') || (userInfo.first_name === 'Perspective' && userInfo.last_name === 'Customer')) && (
-                  <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
-                    Update Status
-                  </Button>
-                )}        
+              ):(
+                <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+                  {((userInfo.first_name === 'reid' && userInfo.last_name === 'elkins') || (userInfo.first_name === 'Perspective' && userInfo.last_name === 'Customer')) && (
+                    <Button onClick={updateStatus} variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+                      Update Status
+                    </Button>
+                  )}        
 
                 {userInfo.status === 'admin' && (                 
                   (

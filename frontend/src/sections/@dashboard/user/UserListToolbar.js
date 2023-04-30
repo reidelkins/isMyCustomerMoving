@@ -3,6 +3,7 @@ import {useDispatch } from 'react-redux';
 // material
 import { styled } from '@mui/material/styles';
 import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput } from '@mui/material';
+
 // component
 import Iconify from '../../../components/Iconify';
 // redux
@@ -26,11 +27,12 @@ UserListToolbar.propTypes = {
 
 export default function UserListToolbar({ numSelected, selectedUsers }) {
   const dispatch = useDispatch();
+  
 
   const clickDelete = (event, Users) => {
     dispatch(deleteUserAsync(Users));
     setTimeout(() => {
-    window.location.reload();
+      window.location.reload();
     }, 200);
 
   };
