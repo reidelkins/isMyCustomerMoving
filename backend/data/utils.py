@@ -512,6 +512,16 @@ def auto_update(company_id=None):
             except Exception as e:
                 print(f"Auto Update Error: {e}")
         delVariables([company, companies])
+
+def get_serviceTitan_accessToken(company):
+    company = Company.objects.get(id=company)
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+    }
+    data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
+    response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
+    headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
+    return headers
     
 
 @shared_task
@@ -520,13 +530,7 @@ def update_serviceTitan_client_tags(forSale, company, status):
     try:
         company = Company.objects.get(id=company)
         if forSale and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):
-            print(forSale)
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            }
-            data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
-            response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
-            headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
+            headers = get_serviceTitan_accessToken(company.id)
             if status == 'House For Sale':
                 tagType = [str(company.serviceTitanForSaleTagID)]
             elif status == 'House Recently Sold (6)':
@@ -572,33 +576,29 @@ def update_serviceTitan_client_tags(forSale, company, status):
         print(traceback.format_exc())
     delVariables([headers, data, response, payload, company, status, tagType, forSale, resp, error, word])
 
+@shared_task
+def add_serviceTitan_contacted_tag(client, tagId):
+    client = Client.objects.get(id=client)
+    headers = get_serviceTitan_accessToken(client.company.id)
+    payload={'customerIds': [str(client.id)], 'tagTypeIds': [str(tagId)]}
+    requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{str(client.company.tenantID)}/tags', headers=headers, json=payload)
+    
 
 @shared_task
 def remove_all_serviceTitan_tags(company):
     try:
         company = Company.objects.get(id=company)
         if company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID:
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            }
-            data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
-            response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
-            headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
+            headers = get_serviceTitan_accessToken(company.id)
             time = datetime.now()
             tagTypes = [[str(company.serviceTitanForSaleTagID)], [str(company.serviceTitanRecentlySoldTagID)]]
             for tag in tagTypes:
                 # get a list of all the servTitanIDs for the clients with one from this company
-                # clients = list(Client.objects.filter(company=company).values_list('servTitanID'))
                 clients = list(Client.objects.filter(company=company).exclude(servTitanID=None).values_list('servTitanID', flat=True))
                 iters = (len(clients) // 250) + 1
                 for i in range(iters):
                     if time < datetime.now()-timedelta(minutes=15):
-                        headers = {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        }
-                        data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
-                        response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
-                        headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
+                        headers = get_serviceTitan_accessToken(company.id)
                         time = datetime.now()
                     print(i)
                     x = clients[i*250:(i+1)*250]
@@ -638,12 +638,7 @@ def update_serviceTitan_tasks(clients, company, status):
     headers, data, response = "", "", ""
     if clients and (company.serviceTitanForSaleTagID or company.serviceTitanRecentlySoldTagID):
         try:
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            }
-            data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
-            response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
-            headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
+            headers = get_serviceTitan_accessToken(company.id)
             response = requests.get(f'https://api.servicetitan.io/taskmanagement/v2/tenant/{str(company.tenantID)}/data', headers=headers)
             with open('tasks.json', 'w') as f:
                 json.dump(response.json(), f)

@@ -181,47 +181,49 @@ class ManageUserView(APIView):
             print(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
 
-# @api_view(['POST', 'PUT'])
-# def company(request):
-#     if request.method == 'POST':
-#         try:
-#             company = request.data['name']
-#             email = request.data['email']
-#             comp = makeCompany(company, email)
-#             if comp == "":
-#                 return Response("", status=status.HTTP_201_CREATED, headers="")
-#             else:
-#                 return Response(comp, status=status.HTTP_400_BAD_REQUEST)
-#         except Exception as e:
-#             print(e)
-#             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-#     elif request.method == 'PUT':
-#         try:
-#             company = Company.objects.get(id=request.data['company'])
-#             if request.data['email'] != "":
-#                 company.email = request.data['email']
-#             if request.data['phone'] != "":
-#                 company.phone = request.data['phone']
-#             if request.data['tenantID'] != "":
-#                 company.tenantID = request.data['tenantID']
-#             if request.data['clientID'] != "":
-#                 company.clientID = request.data['clientID']
-#                 company.clientSecret = request.data['clientSecret']
-#             if request.data['forSaleTag'] != "":
-#                 company.serviceTitanForSaleTagID = request.data['forSaleTag']
-#             if request.data['forRentTag'] != "":
-#                 company.serviceTitanForRentTagID = request.data['forRentTag']
-#             if request.data['soldTag'] != "":
-#                 company.serviceTitanRecentlySoldTagID = request.data['soldTag']
-#             if request.data['crm'] != "":
-#                 company.crm = request.data['crm']
-#             company.save()
-#             user = CustomUser.objects.get(id=request.data['user'])
-#             serializer = UserSerializerWithToken(user, many=False)
-#             return Response( serializer.data , status=status.HTTP_201_CREATED, headers="")
-#         except Exception as e:
-#             print(e)
-#             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)   
+@api_view(['PUT'])
+def company(request):
+    # if request.method == 'POST':
+    #     try:
+    #         company = request.data['name']
+    #         email = request.data['email']
+    #         comp = makeCompany(company, email)
+    #         if comp == "":
+    #             return Response("", status=status.HTTP_201_CREATED, headers="")
+    #         else:
+    #             return Response(comp, status=status.HTTP_400_BAD_REQUEST)
+    #     except Exception as e:
+    #         print(e)
+    #         return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+    if request.method == 'PUT':
+        try:
+            company = Company.objects.get(id=request.data['company'])
+            if request.data['email'] != "":
+                company.email = request.data['email']
+            if request.data['phone'] != "":
+                company.phone = request.data['phone']
+            if request.data['tenantID'] != "":
+                company.tenantID = request.data['tenantID']
+            if request.data['clientID'] != "":
+                company.clientID = request.data['clientID']
+                company.clientSecret = request.data['clientSecret']
+            if request.data['forSaleTag'] != "":
+                company.serviceTitanForSaleTagID = request.data['forSaleTag']
+            if request.data['forRentTag'] != "":
+                company.serviceTitanForRentTagID = request.data['forRentTag']
+            if request.data['soldTag'] != "":
+                company.serviceTitanRecentlySoldTagID = request.data['soldTag']
+            if request.data['soldContactedTag'] != "":
+                company.serviceTitanRecentlySoldContactedTagID = request.data['soldContactedTag']
+            if request.data['forSaleContactedTag'] != "":
+                company.serviceTitanForSaleContactedTagID = request.data['forSaleContactedTag']
+            company.save()
+            user = CustomUser.objects.get(id=request.data['user'])
+            serializer = UserSerializerWithToken(user, many=False)
+            return Response( serializer.data , status=status.HTTP_201_CREATED, headers="")
+        except Exception as e:
+            print(e)
+            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)   
 
 class VerifyRegistrationView(APIView):
     permission_classes = [permissions.AllowAny]

@@ -74,8 +74,6 @@ else:
     BASE_BACKEND_URL = 'http://localhost:8000'
     CLIENT_ORIGIN_URL="http://localhost:3000"
     
-    SECRET_KEY=open(f'{BASE_DIR}/jwtRS256.key').read()
-
 ALLOWED_HOSTS = ['*']
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = get_env_var('GOOGLE_CLIENT_ID')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = get_env_var('GOOGLE_CLIENT_SECRET')

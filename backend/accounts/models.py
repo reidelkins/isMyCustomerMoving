@@ -106,6 +106,8 @@ class Company(models.Model):
     serviceTitanForSaleTagID = models.IntegerField(blank=True, null=True)
     serviceTitanForRentTagID = models.IntegerField(blank=True, null=True)
     serviceTitanRecentlySoldTagID = models.IntegerField(blank=True, null=True)
+    serviceTitanForSaleContactedTagID = models.IntegerField(blank=True, null=True)
+    serviceTitanRecentlySoldContactedTagID = models.IntegerField(blank=True, null=True)
     recentlySoldPurchased = models.BooleanField(default=False)
 
     # Salesforce
@@ -114,7 +116,7 @@ class Company(models.Model):
 
     def __str__(self):
         return self.name
-
+    
 
 def zipTime():
     return (datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d')

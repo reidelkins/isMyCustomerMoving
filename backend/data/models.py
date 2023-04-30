@@ -81,6 +81,9 @@ class HomeListing(models.Model):
     tag = models.ManyToManyField("HomeListingTags", blank=True, related_name='homeListing_tag')
     city = models.CharField(max_length=40, blank=True, null=True)
     state = models.CharField(max_length=31, blank=True, null=True)
+
+    class Meta:
+        unique_together = ('address', 'status', 'city', 'state')
     
 class HomeListingTags(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,

@@ -13,7 +13,7 @@ from config import settings
 from .models import Client, ClientUpdate, HomeListing, Task
 from .serializers import ClientListSerializer, HomeListingSerializer
 from .syncClients import get_salesforce_clients, get_serviceTitan_clients
-from .utils import getAllZipcodes, saveClientList
+from .utils import getAllZipcodes, saveClientList, add_serviceTitan_contacted_tag
 
 from django.http import HttpResponse
 import csv
@@ -259,7 +259,6 @@ class UpdateClientView(APIView):
                         client.delete()
                 return Response({"status": "Client Deleted"}, status=status.HTTP_201_CREATED, headers="")
             else:
-                print(request.data)
                 client = Client.objects.get(id=request.data['clients'])
                 if request.data['note']:
                     client.note = request.data['note']
@@ -267,6 +266,11 @@ class UpdateClientView(APIView):
                 if request.data['contacted'] != "":
                     client.contacted = request.data['contacted']
                     ClientUpdate.objects.create(client=client, contacted=request.data['contacted'])
+                    if request.data['contacted'] and client.servTitanID:
+                        if client.status == "House For Sale" and client.company.serviceTitanForSaleContactedTagID:
+                            add_serviceTitan_contacted_tag.delay(client.id, client.company.serviceTitanForSaleContactedTagID)
+                        elif client.status == "House Recently Sold (6)" and client.company.serviceTitanRecentlySoldContactedTagID:
+                            add_serviceTitan_contacted_tag.delay(client.id, client.company.serviceTitanRecentlySoldContactedTagID)
                 client.save()
                 return Response({"status": "Client Updated"}, status=status.HTTP_201_CREATED, headers="")
         except Exception as e:
