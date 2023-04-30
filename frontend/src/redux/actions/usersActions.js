@@ -234,9 +234,10 @@ export const deleteUserAsync = (ids) => async (dispatch, getState) => {
         'Content-type': 'application/json',
         Authorization: `Bearer ${userInfo.accessToken}`,
       },
+      data: JSON.stringify(ids),
     };
     dispatch(usersLoading());
-    const { data } = await axios.delete(`${DOMAIN}/api/v1/accounts/manageuser/${company}/`, { data: ids}, config);
+    const { data } = await axios.delete(`${DOMAIN}/api/v1/accounts/manageuser/${company}/`, config);
     dispatch(users(data));
   } catch (error) {
     dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
