@@ -196,3 +196,4 @@ backend/requirements_old.txt
 .env.testing
 backend/__pycache__/conftest.cpython-310-pytest-7.2.2.pyc
 backend/conftest.py
+backend/.env
