@@ -42,8 +42,8 @@ DATABASES = {
     }
 }
 MAX_CONN_AGE = 600
-SECRET_KEY=get_env_var('SECRET_KEY')
 DJANGO_SECRET_KEY = get_env_var('DJANGO_SECRET_KEY')
+SECRET_KEY=get_env_var('SECRET_KEY')
 EMAIL_HOST_PASSWORD = get_env_var('EMAIL_PASSWD')
 SCRAPFLY_KEY = get_env_var('SCRAPFLY_KEY')
 ST_APP_KEY = get_env_var('ST_APP_KEY')
