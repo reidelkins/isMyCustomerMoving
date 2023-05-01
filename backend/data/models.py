@@ -88,7 +88,7 @@ class HomeListing(models.Model):
 class HomeListingTags(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
-    tag = models.CharField(max_length=100)
+    tag = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return self.tag

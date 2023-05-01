@@ -10,7 +10,7 @@ import requests
 from accounts.models import CustomUser, Company
 from accounts.serializers import UserSerializerWithToken
 from config import settings
-from .models import Client, ClientUpdate, HomeListing, Task
+from .models import Client, ClientUpdate, HomeListing, Task, HomeListingTags
 from .serializers import ClientListSerializer, HomeListingSerializer
 from .syncClients import get_salesforce_clients, get_serviceTitan_clients
 from .utils import getAllZipcodes, saveClientList, add_serviceTitan_contacted_tag
@@ -153,6 +153,10 @@ class RecentlySoldView(generics.ListAPIView):
                 queryset = queryset.filter(listed__lt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['min_days_ago']))).strftime('%Y-%m-%d'))
             if 'max_days_ago' in query_params:
                 queryset = queryset.filter(listed__gt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['max_days_ago']))).strftime('%Y-%m-%d'))
+            if 'tags' in query_params:
+                tags = query_params['tags'].split(',')
+                matching_tags = HomeListingTags.objects.filter(tag__in=tags)
+                queryset = queryset.filter(tag__in=matching_tags)
             return queryset
         else:
             return HomeListing.objects.none()

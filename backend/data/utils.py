@@ -56,18 +56,18 @@ def reactivateClients(companyID):
     clients = Client.objects.filter(company=company)
     clientCeiling = findClientCount(company.product.product.name)
     if clientCeiling > clients.count():
-        clients.update(active="true")
+        clients.update(active=True)
     else:
-        toReactiveCount = clientCeiling - clients.filter(active="true").count()
-        clients.filter(active="false").order_by('id')[:toReactiveCount].update(active="true")
+        toReactiveCount = clientCeiling - clients.filter(active=True).count()
+        clients.filter(active=False).order_by('id')[:toReactiveCount].update(active=True)
     
 @shared_task
 def deleteExtraClients(companyID, taskID=None):
     company = Company.objects.get(id=companyID)
-    clients = Client.objects.filter(company=company, active="true")
+    clients = Client.objects.filter(company=company, active=True)
     deletedClients = findClientsToDelete(clients.count(), company.product.product.name)
     if deletedClients > 0:
-        Client.objects.filter(id__in=list(clients.values_list('id', flat=True)[:deletedClients])).update(active="false")
+        Client.objects.filter(id__in=list(clients.values_list('id', flat=True)[:deletedClients])).update(active=False)
         admins = CustomUser.objects.filter(company=company, status="admin")
         mail_subject = "IMCM Clients Deleted"
         messagePlain = "Your company has exceeded the number of clients allowed for your subscription. The oldest clients have been deleted. You can upgrade your subscription at any time to increase the number of clients you can have."
@@ -187,7 +187,7 @@ def getAllZipcodes(company):
     zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
     zips = list(zipCodes.order_by('zipCode').values('zipCode'))
     zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
-    # zips = [{'zipCode': '37922'}]
+    # zips = [{'zipCode': '37919'}]
     for i in range(len(zips) * 2):
     # for i in range(len(zips)):
         extra = ""
@@ -359,9 +359,8 @@ def create_home_listings(results, status, resp=None):
                     homeListing[0].tag.add(currTag[0])
 
 
-        except Exception as e: 
-            print(f"ERROR for Single Listing: {e} with zipCode {zip_object}.")
-            print(traceback.format_exc())
+        except Exception as e:
+            print(f"Listing: {listing['location']['address']}")
     delVariables([zip_object, created, listType, homeListing, currTag, results])
 
 @shared_task

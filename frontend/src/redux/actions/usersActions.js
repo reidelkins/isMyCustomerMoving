@@ -691,6 +691,9 @@ export const filterRecentlySoldAsync = (minPrice, maxPrice, minYear, maxYear, mi
     if (maxDaysAgo) {
       filters += `&max_days_ago=${maxDaysAgo}`
     }
+    if (tagFilters) {
+      filters += `&tags=${tagFilters.join(',')}`
+    }
     const { data } = await axios.get(`${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}/?page=1${filters}`, config);
     dispatch(recentlySold(data));   
   } catch (error) {
