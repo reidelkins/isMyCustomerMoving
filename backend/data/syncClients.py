@@ -9,7 +9,7 @@ from django.db.models.functions import Coalesce
 
 from accounts.models import Company
 from .models import Client, Task
-from .utils import saveClientList, updateClientList, doItAll, deleteExtraClients, delVariables
+from .utils import saveClientList, updateClientList, doItAll, deleteExtraClients, delVariables, get_serviceTitan_accessToken
 from simple_salesforce import Salesforce
 
 
@@ -77,13 +77,7 @@ def get_salesforce_clients(company_id, task_id=None):
 def get_serviceTitan_clients(company_id, task_id):
     company = Company.objects.get(id=company_id)
     tenant = company.tenantID
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-    }
-    data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
-    response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)    
-
-    headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
+    headers = get_serviceTitan_accessToken(company_id)
     clients = []
     moreClients = True
     #get client data
@@ -123,7 +117,7 @@ def get_serviceTitan_clients(company_id, task_id):
             moreClients = False        
         updateClientList.delay(numbers)
         delVariables([numbers, response])
-    delVariables([frm, moreClients, headers, data, company, tenant])
+    delVariables([frm, moreClients, headers, company, tenant])
 
 
 @shared_task

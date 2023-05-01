@@ -2,7 +2,7 @@ import axios from 'axios';
 import FileSaver from 'file-saver';
 import { createSlice } from '@reduxjs/toolkit';
 import { DOMAIN } from '../constants';
-import { logout } from './authActions';
+import { logout, login } from './authActions';
 
 
 export const userSlice = createSlice({
@@ -204,6 +204,32 @@ export const selectUsers = (state) => state.user.usersInfo;
 export const selectReferrals = (state) => state.user.referralInfo;
 export default userSlice.reducer;
 
+export const getRefreshToken = (dispatch, func) => {
+  return async (dispatch, getState) => {
+    const reduxStore = getState();
+    const { userInfo } = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+      },
+    };
+    const data = { refresh: userInfo.refresh };
+
+    try {
+      const response = await axios.post(`${DOMAIN}/api/v1/accounts/refresh/`, data, config);
+      const newUserInfo = {
+        ...userInfo,
+        refresh: response.data.refresh,
+        accessToken: response.data.access,
+      };
+      dispatch(login(newUserInfo));
+      dispatch(func);
+    } catch (error) {
+      console.log("error", error);
+    }
+  }
+};
+
 export const usersAsync = () => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
@@ -219,7 +245,11 @@ export const usersAsync = () => async (dispatch, getState) => {
     dispatch(users(data));
   } catch (error) {
     dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    dispatch(logout());
+    if (error.response.status === 403) {
+      dispatch(getRefreshToken(dispatch, usersAsync()));
+    } else {
+      dispatch(logout());
+    }
   }
 };
 
@@ -241,6 +271,9 @@ export const deleteUserAsync = (ids) => async (dispatch, getState) => {
     dispatch(users(data));
   } catch (error) {
     dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    if (error.response.status === 403) {
+      dispatch(getRefreshToken(dispatch, deleteUserAsync(ids)));
+    }
   }
 };
 
@@ -274,6 +307,9 @@ export const clientsAsync = (page) => async (dispatch, getState) => {
     // localStorage.removeItem('userInfo');
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
     // dispatch(logout());
+    if (error.response.status === 403) {
+      dispatch(getRefreshToken(dispatch, clientsAsync(page)));
+    }
   }
 };
 
@@ -303,6 +339,9 @@ export const deleteClientAsync = (ids) => async (dispatch, getState) => {
     dispatch(clientsAsync(1));
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    if (error.response.status === 403) {
+      dispatch(getRefreshToken(dispatch, deleteClientAsync(ids)));
+    }
   }
 };
 
@@ -321,6 +360,9 @@ export const updateClientAsync = (id, contacted, note) => async (dispatch, getSt
     dispatch(clientsAsync(1));
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    if (error.response.status === 403) {
+      dispatch(getRefreshToken(dispatch, updateClientAsync(id, contacted, note)));
+    }
   }
 };
 
@@ -346,6 +388,9 @@ export const uploadClientsUpdateAsync = (id) => async (dispatch, getState) => {
     }
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    if (error.response.status === 403) {
+      dispatch(getRefreshToken(dispatch, uploadClientsUpdateAsync(id)));
+    }
   }
 };
 
@@ -367,6 +412,9 @@ export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
     dispatch(uploadClientsUpdateAsync(data.task))
     } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    if (error.response.status === 403) {
+      dispatch(getRefreshToken(dispatch, uploadClientsAsync(customers)));
+    }
   }
 };
 
@@ -409,6 +457,9 @@ export const filterClientsAsync = (statusFilters, minPrice, maxPrice, minYear, m
     dispatch(clients(data));
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    if (error.response.status === 403) {
+      dispatch(getRefreshToken(dispatch, filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax)));
+    }
   }
 };
 
@@ -436,6 +487,9 @@ export const serviceTitanUpdateAsync = (id) => async (dispatch, getState) => {
     }
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    if (error.response.status === 403) {
+      dispatch(getRefreshToken(dispatch, serviceTitanUpdateAsync(id)));
+    }
   }
 };
         
@@ -527,6 +581,9 @@ export const addUser = (email) => async (dispatch, getState) => {
 
     } catch (error) {
       dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+      if (error.response.status === 403) {
+        dispatch(getRefreshToken(dispatch, addUser(email)));
+      }
   }
 };
 
@@ -550,6 +607,9 @@ export const makeAdminAsync = (userId) => async (dispatch, getState) => {
 
     } catch (error) {
       dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+      if (error.response.status === 403) {
+        dispatch(getRefreshToken(dispatch, makeAdminAsync(userId)));
+      }
   }
 };
 
@@ -595,6 +655,9 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
     }
   } catch (error) {
     dispatch(recentlySoldError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    if (error.response.status === 403) {
+      dispatch(getRefreshToken(dispatch, recentlySoldAsync(page)));
+    }
   }
 }
 
@@ -628,10 +691,16 @@ export const filterRecentlySoldAsync = (minPrice, maxPrice, minYear, maxYear, mi
     if (maxDaysAgo) {
       filters += `&max_days_ago=${maxDaysAgo}`
     }
+    if (tagFilters) {
+      filters += `&tags=${tagFilters.join(',')}`
+    }
     const { data } = await axios.get(`${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}/?page=1${filters}`, config);
     dispatch(recentlySold(data));   
   } catch (error) {
     dispatch(recentlySoldError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    if (error.response.status === 403) {
+      dispatch(getRefreshToken(dispatch, filterRecentlySoldAsync(minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters)));
+    }
   }
 };
 
@@ -755,3 +824,4 @@ export const getRecentlySoldCSV = (minPrice, maxPrice, minYear, maxYear, minDays
     FileSaver.saveAs(csvBlob, 'homelistings.csv'); // Download the file using FileSaver
   }
 }
+

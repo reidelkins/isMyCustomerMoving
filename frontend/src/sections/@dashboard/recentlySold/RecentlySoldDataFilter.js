@@ -55,17 +55,17 @@ const useStyles = makeStyles((theme) => ({
 
 export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleChangeMinPrice, maxPrice, setMaxPrice: handleChangeMaxPrice,
                                                     minYear, setMinYear: handleChangeMinYear, maxYear, setMaxYear: handleChangeMaxYear,
-                                                    minDaysAgo, setMinDaysAgo: handleChangeMinDaysAgo, maxDaysAgo, setMaxDaysAgo: handleChangeMaxDaysAgo,}) {
+                                                    minDaysAgo, setMinDaysAgo: handleChangeMinDaysAgo, maxDaysAgo, setMaxDaysAgo: handleChangeMaxDaysAgo,
+                                                    tagFilters, setTagFilters: handleChangeTagFilters}) {
     const classes = useStyles();
     const [showFilters, setShowFilters] = useState(false);
     const [showClearFilters, setShowClearFilters] = useState(false);
-    const [tagFilters, setTagFilters] = useState([]);
     const [error, setError] = useState('');
     const dispatch = useDispatch();
 
     const handleTagFilterChange = (event) => {
         const { value } = event.target;
-        setTagFilters((prevFilters) => {
+        handleChangeTagFilters((prevFilters) => {
         if (prevFilters.includes(value)) {
             return prevFilters.filter((filter) => filter !== value);
         } 
@@ -88,21 +88,37 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
         handleChangeMaxPrice('');
         handleChangeMinYear('');
         handleChangeMaxYear('');
-        handleChangeMinDaysAgo(0);
-        handleChangeMaxDaysAgo(30);
-        setTagFilters([]);
+        handleChangeMinDaysAgo('0');
+        handleChangeMaxDaysAgo('30');
+        handleChangeTagFilters([]);
         setError('');
         dispatch(recentlySoldAsync(1));
     };
 
     const tagOptions = [
-        { value: 'Solar', label: 'Solar' },
-        { value: 'Well Water', label: 'Well Water' },
-        { value: 'Residential', label: 'Residential' },
-        { value: 'Pool', label: 'Pool' },
-        { value: 'Commercial', label: 'Commercial' },
-        { value: 'Fixer Upper', label: 'Fixer Upper' },
+        { value: 'garage_3_or_more', label: 'Garage 3+' },
+        { value: 'well_water', label: 'Well Water' },
+        { value: 'garage_1_or_more', label: 'Garage 1+' },
+        { value: 'central_heat', label: 'Central Heat' },
+        { value: 'central_air', label: 'Central Air' },
+        { value: 'forced_air', label: 'Forced Air' },
+        { value: 'solar_panels', label: 'Solar Panels' },
+        { value: 'solar_system', label: 'Solar System' },
+        { value: 'swimming_pool', label: 'Swimming Pool' },
+        { value: 'new roof', label: 'New Roof' },
     ];
+
+    const sortedTagOptions = tagOptions.sort((a, b) => {
+        const labelA = a.label.toUpperCase();
+        const labelB = b.label.toUpperCase();
+        if (labelA < labelB) {
+            return -1;
+        }
+        if (labelA > labelB) {
+            return 1;
+        }
+        return 0;
+    });
 
     const handleDaysAgoChange = (event, type) => {
         const value = event.target.value;
@@ -245,11 +261,11 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
                                 </Box>
                             </Tooltip>
                         </Grid>                                                
-                    {/* <Grid item xs={12}>
+                    <Grid item xs={12}>
                         <FormControl component="fieldset">
                         <FormLabel component="legend">Tags</FormLabel>
                         <Grid container spacing={1}>
-                            {tagOptions.map((option) => (
+                            {sortedTagOptions.map((option) => (
                                 <FormControlLabel
                                 key={option.value}
                                 control={
@@ -265,7 +281,7 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
                            
                         </Grid>
                         </FormControl>
-                    </Grid> */}
+                    </Grid>
                 </Grid>
                 <Box mt={2}>
                     <Button type="submit" variant="contained" color="primary">

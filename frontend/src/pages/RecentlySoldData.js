@@ -153,6 +153,7 @@ export default function RecentlySoldData() {
   const handleMaxYearChange = (newMaxYear) => {setMaxYear(newMaxYear)}
   const handleMinDaysAgoChange = (newMinDaysAgo) => {setMinDaysAgo(newMinDaysAgo)}
   const handleMaxDaysAgoChange = (newMaxDaysAgo) => {setMaxDaysAgo(newMaxDaysAgo)}
+  const handleTagFiltersChange = (newTagFilters) => {setTagFilters(newTagFilters)}
   
   const exportCSV = () => {
     dispatch(getRecentlySoldCSV( minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters))
@@ -228,6 +229,8 @@ export default function RecentlySoldData() {
                     setMinDaysAgo={handleMinDaysAgoChange}
                     maxDaysAgo={maxDaysAgo}
                     setMaxDaysAgo={handleMaxDaysAgoChange}
+                    tagFilters={tagFilters}
+                    setTagFilters={handleTagFiltersChange}
                   />
                   <TableContainer sx={{ minWidth: 800 }}>
                     <Table>
