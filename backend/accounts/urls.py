@@ -20,6 +20,7 @@ login_patterns = [
 ]
 
 urlpatterns = [
+    path('refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('verify_registration/', views.VerifyRegistrationView.as_view(), name='verify'),
     path('confirmation/<str:pk>/<str:uid>/', views.confirmation, name='email_confirmation'),
     path('otp/disable/', views.OTPDisableView.as_view(), name='otp-disable'),

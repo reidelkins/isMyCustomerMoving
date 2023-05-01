@@ -70,7 +70,7 @@ class CustomAuthentication(BaseAuthentication):
             user = CustomUser.objects.get(id=decoded_token['user_id'])
             return user, decoded_token
         except AuthenticationFailed:
-            pass
+            return None
         except Exception as e:
             print(f"Non Authentication Error: {e}")
             
