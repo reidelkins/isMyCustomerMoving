@@ -2,7 +2,7 @@ import axios from 'axios';
 import { createSlice } from '@reduxjs/toolkit';
 
 import { DOMAIN } from '../constants';
-import { logoutClients } from './usersActions'
+import { logoutClients, getRefreshToken } from './usersActions'
 
 export const authSlice = createSlice({
   name: "auth",
@@ -182,6 +182,9 @@ export const editUserAsync = (email, firstName, lastName, serviceTitan) => async
     localStorage.setItem('userInfo', JSON.stringify(data));
   } catch (error) {
     dispatch(loginError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    if (error.response.status === 403) {
+      dispatch(getRefreshToken(dispatch, editUserAsync(email, firstName, lastName, serviceTitan)))
+    }
   }
 };
 
@@ -222,6 +225,9 @@ export const companyAsync = (email, phone, tenantID, clientID, clientSecret, for
   } catch (err) {
     console.log(err)
     dispatch(companyError(err.response && err.response.data.detail ? err.response.data.detail : err.message,));
+    if (err.response.status === 403) {
+      dispatch(getRefreshToken(dispatch, companyAsync(email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag, forSaleContactedTag, soldContactedTag)))
+    }
   }
 };
 
