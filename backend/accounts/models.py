@@ -11,6 +11,11 @@ from django.conf import settings
 from django.template.loader import get_template
 from djstripe import models as djstripe_models
 
+from django.db import transaction
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+from rest_framework_simplejwt.exceptions import TokenError
+
 
 STATUS_CHOICES = (
 
@@ -145,6 +150,21 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.email
+    
+    @transaction.atomic
+    def delete_with_tokens(self):
+        # Revoke all refresh tokens associated with the user
+        user_refresh_tokens = OutstandingToken.objects.filter(user=self)
+        for token in user_refresh_tokens:
+            try:
+                refresh_token = RefreshToken(token.token)
+                refresh_token.blacklist()
+            except TokenError:
+                # Ignore if the token is already expired or blacklisted
+                pass
+
+        # Delete the user
+        self.delete()
 
     class Meta:
         ordering = ["-id"]
