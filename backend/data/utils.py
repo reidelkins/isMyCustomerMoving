@@ -704,4 +704,26 @@ def filter_recentlysold(query_params, queryset):
         tags = query_params['tags'].split(',')
         matching_tags = HomeListingTags.objects.filter(tag__in=tags)
         queryset = queryset.filter(tag__in=matching_tags)
+    return queryset
+
+def filter_clients(query_params, queryset):
+    if 'min_price' in query_params:
+        queryset = queryset.filter(price__gte=query_params['min_price'])
+    if 'max_price' in query_params:
+        queryset = queryset.filter(price__lte=query_params['max_price'], price__gt=0)
+    if 'min_year' in query_params:
+        queryset = queryset.filter(year_built__gte=query_params['min_year'])
+    if 'max_year' in query_params:
+        queryset = queryset.filter(year_built__lte=query_params['max_year'], year_built__gt=0)
+    if 'status' in query_params:
+        statuses = []
+        if "For Sale" in query_params['status']:
+            statuses.append("House For Sale")
+        if "Recently Sold" in query_params['status']:
+            statuses.append("House Recently Sold (6)")
+        queryset = queryset.filter(status__in=statuses)
+    if 'equip_install_date_min' in query_params:
+        queryset = queryset.filter(equipmentInstalledDate__gte=query_params['equip_install_date_min'])
+    if 'equip_install_date_max' in query_params:
+        queryset = queryset.filter(equipmentInstalledDate__lte=query_params['equip_install_date_max'])
     return queryset    
