@@ -818,7 +818,9 @@ export const getRecentlySoldCSV = (minPrice, maxPrice, minYear, maxYear, minDays
     if (maxDaysAgo) {
       filters += `&max_days_ago=${maxDaysAgo}`
     }
-    console.log(filters)
+    if (tagFilters) {
+      filters += `&tags=${tagFilters.join(',')}`
+    }
     const response = await axios.get(`${DOMAIN}/api/v1/data/downloadrecentlysold/${userInfo.company.id}/?${filters}`, config);
     const csvBlob = new Blob([response.data], {type: 'text/csv'}); // Convert binary response to a blob
     FileSaver.saveAs(csvBlob, 'homelistings.csv'); // Download the file using FileSaver

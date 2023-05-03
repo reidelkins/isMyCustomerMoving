@@ -200,6 +200,10 @@ class AllRecentlySoldView(generics.ListAPIView):
                 queryset = queryset.filter(listed__lt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['min_days_ago']))).strftime('%Y-%m-%d'))
             if 'max_days_ago' in query_params:
                 queryset = queryset.filter(listed__gt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['max_days_ago']))).strftime('%Y-%m-%d'))
+            if 'tags' in query_params:
+                tags = query_params['tags'].split(',')
+                matching_tags = HomeListingTags.objects.filter(tag__in=tags)
+                queryset = queryset.filter(tag__in=matching_tags)
             return queryset
         else:
             return HomeListing.objects.none()
