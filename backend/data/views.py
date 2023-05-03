@@ -13,7 +13,7 @@ from config import settings
 from .models import Client, ClientUpdate, HomeListing, Task, HomeListingTags
 from .serializers import ClientListSerializer, HomeListingSerializer
 from .syncClients import get_salesforce_clients, get_serviceTitan_clients
-from .utils import getAllZipcodes, saveClientList, add_serviceTitan_contacted_tag
+from .utils import getAllZipcodes, saveClientList, add_serviceTitan_contacted_tag, filter_recentlysold
 
 from django.http import HttpResponse
 import csv
@@ -136,28 +136,13 @@ class RecentlySoldView(generics.ListAPIView):
     pagination_class = CustomPagination
     permission_classes = [IsAuthenticated]
     def get_queryset(self):
+        query_params = self.request.query_params
         company = Company.objects.get(id=self.kwargs['company'])
         if company.recentlySoldPurchased:
-            zipCode_objects = Client.objects.filter(company=company).values('zipCode')            
-            queryset = HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')
-            query_params = self.request.query_params
-            if 'min_price' in query_params:
-                queryset = queryset.filter(price__gte=query_params['min_price'])
-            if 'max_price' in query_params:
-                queryset = queryset.filter(price__lte=query_params['max_price'], price__gt=0)
-            if 'min_year' in query_params:
-                queryset = queryset.filter(year_built__gte=query_params['min_year'])
-            if 'max_year' in query_params:
-                queryset = queryset.filter(year_built__lte=query_params['max_year'], year_built__gt=0)
-            if 'min_days_ago' in query_params:
-                queryset = queryset.filter(listed__lt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['min_days_ago']))).strftime('%Y-%m-%d'))
-            if 'max_days_ago' in query_params:
-                queryset = queryset.filter(listed__gt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['max_days_ago']))).strftime('%Y-%m-%d'))
-            if 'tags' in query_params:
-                tags = query_params['tags'].split(',')
-                matching_tags = HomeListingTags.objects.filter(tag__in=tags)
-                queryset = queryset.filter(tag__in=matching_tags)
-            return queryset
+            zipCode_objects = Client.objects.filter(company=company).values('zipCode')
+            queryset =  HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')            
+            return filter_recentlysold(query_params, queryset)
+            
         else:
             return HomeListing.objects.none()
 
@@ -187,26 +172,12 @@ class AllRecentlySoldView(generics.ListAPIView):
         company = Company.objects.get(id=company)
         if company.recentlySoldPurchased:
             zipCode_objects = Client.objects.filter(company=company).values('zipCode')
-            queryset =  HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')
-            if 'min_price' in query_params:
-                queryset = queryset.filter(price__gte=query_params['min_price'])
-            if 'max_price' in query_params:
-                queryset = queryset.filter(price__lte=query_params['max_price'], price__gt=0)
-            if 'min_year' in query_params:
-                queryset = queryset.filter(year_built__gte=query_params['min_year'])
-            if 'max_year' in query_params:
-                queryset = queryset.filter(year_built__lte=query_params['max_year'], year_built__gt=0)
-            if 'min_days_ago' in query_params:
-                queryset = queryset.filter(listed__lt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['min_days_ago']))).strftime('%Y-%m-%d'))
-            if 'max_days_ago' in query_params:
-                queryset = queryset.filter(listed__gt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['max_days_ago']))).strftime('%Y-%m-%d'))
-            if 'tags' in query_params:
-                tags = query_params['tags'].split(',')
-                matching_tags = HomeListingTags.objects.filter(tag__in=tags)
-                queryset = queryset.filter(tag__in=matching_tags)
-            return queryset
+            queryset =  HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')            
+            return filter_recentlysold(query_params, queryset)
+            
         else:
             return HomeListing.objects.none()
+        
 
 class UpdateStatusView(APIView):
     permission_classes = [IsAuthenticated]
