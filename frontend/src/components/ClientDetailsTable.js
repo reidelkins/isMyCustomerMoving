@@ -10,53 +10,9 @@ import {
     TableCell,
     TableHead,
     TableRow,
-    Typography,
 } from '@mui/material';
 
-import SearchNotFound from './SearchNotFound';
 import { makeDate } from '../utils/makeDate';
-
-const RowInformation = (info) => {
-    if (!info) return null;
-    
-    const update = info.info;
-    if (update.listed) {
-        if (update.status === 'House For Sale') {
-            return (
-                <Typography>
-                    Home listed for sale on {update.listed}
-                </Typography>
-            )
-        } else if (update.status === 'Taken Off Market') {
-            return (
-                <Typography>
-                    Home taken off market on {update.date}
-                </Typography>
-            )
-        } else {
-            return (
-                <Typography>
-                    Home sold on {update.listed}
-                </Typography>
-            )
-        }
-    } else {
-        if (update.note) {
-            return (
-                <Typography>
-                    Note changed to "{update.note}"
-                </Typography>
-            )
-        } else {
-            return (
-                <Typography>
-                    Client was marked as {update.contacted ? 'contacted' : 'not contacted'}
-                </Typography>
-            )
-        }
-    }
-
-}
 
 ClientDetailsTable.propTypes = {
     price: PropTypes.number,
