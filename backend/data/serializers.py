@@ -9,10 +9,11 @@ class ClientUpdateSerializer(serializers.ModelSerializer):
     listed = serializers.CharField(max_length=100)
     note = serializers.CharField(max_length=100)
     contacted = serializers.BooleanField()
+    error_flag = serializers.BooleanField()
 
     class Meta:
         model = ClientUpdate
-        fields = ('id', 'status', 'date', 'listed', 'note', 'contacted')
+        fields = ('id', 'status', 'date', 'listed', 'note', 'contacted', 'error_flag')
         read_only_fields = fields
 
 class ClientListSerializer(serializers.ModelSerializer):
@@ -31,6 +32,7 @@ class ClientListSerializer(serializers.ModelSerializer):
     year_built = serializers.IntegerField()
     tags = serializers.SerializerMethodField(read_only=True)
     equipmentInstalledDate = serializers.DateField()
+    error_flag = serializers.BooleanField()
     clientUpdates_client = ClientUpdateSerializer(many=True, read_only=True)
 
     def get_zipCode(self, obj):
@@ -41,7 +43,7 @@ class ClientListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Client
-        fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status', 'contacted', 'note', 'phoneNumber', 'clientUpdates_client', 'price', 'housingType', 'year_built', 'tags', 'equipmentInstalledDate')
+        fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status', 'contacted', 'note', 'phoneNumber', 'clientUpdates_client', 'price', 'housingType', 'year_built', 'tags','error_flag', 'equipmentInstalledDate')
         read_only_fields = fields
 
 class HomeListingSerializer(serializers.ModelSerializer):
