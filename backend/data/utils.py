@@ -179,15 +179,19 @@ def updateClientList(numbers):
 
 
 @shared_task
-def getAllZipcodes(company):
+def getAllZipcodes(company, zip=None):
     company_object, zipCode_objects, zipCodes, zips = "", "", "", ""
-    company_object = Company.objects.get(id=company)
-    zipCode_objects = Client.objects.filter(company=company_object, active=True).values('zipCode')
-    zipCodes = zipCode_objects.distinct()
-    zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
-    zips = list(zipCodes.order_by('zipCode').values('zipCode'))
-    zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
-    # zips = [{'zipCode': '37919'}]
+    try:
+        company_object = Company.objects.get(id=company)
+        zipCode_objects = Client.objects.filter(company=company_object, active=True).values('zipCode')
+        zipCodes = zipCode_objects.distinct()
+        zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
+        zips = list(zipCodes.order_by('zipCode').values('zipCode'))
+        zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
+         # zips = [{'zipCode': '37919'}]
+    except:
+        if zip:
+            zips = [{'zipCode': str(zip)}]
     for i in range(len(zips) * 2):
     # for i in range(len(zips)):
         extra = ""
@@ -286,7 +290,7 @@ class SearchResults(TypedDict):
 def parse_search(result: ScrapeApiResponse, searchType: str) -> SearchResults:
     data = result.selector.css("script#__NEXT_DATA__::text").get()
     if not data:
-        print(f"page {result.context['url']} is not a property listing page")
+        print(f"page {result.context['url']} is not a property listing page: Not Data")
         return
     
     data = dict(json.loads(data))
@@ -297,7 +301,7 @@ def parse_search(result: ScrapeApiResponse, searchType: str) -> SearchResults:
             data = data["props"]["pageProps"]["searchResults"]["home_search"]
         return data
     except KeyError:
-        print(f"page {result.context['url']} is not a property listing page")
+        print(f"page {result.context['url']} is not a property listing page: KeyError")
         return False
 
 def create_home_listings(results, status, resp=None):
@@ -486,7 +490,7 @@ def sendDailyEmail(company_id=None):
 
 
 @shared_task
-def auto_update(company_id=None):
+def auto_update(company_id=None, zip=None):
     company = ""
     if company_id:
         try:
@@ -497,6 +501,13 @@ def auto_update(company_id=None):
             print("Company does not exist")
             return
         delVariables([company_id, company])
+    elif zip:
+        try:
+            ZipCode.objects.get_or_create(zipCode=zip)
+            getAllZipcodes("", zip=zip)
+        except:
+            print("Zip does not exist")
+            return
     else:
         company, companies = "", ""
         companies = Company.objects.all()
@@ -684,7 +695,7 @@ def send_update_email(templateName):
 def doItAll(company):
     try:
         company = Company.objects.get(id=company)
-        result = auto_update.delay(company.id)  # Schedule auto_update task
+        result = auto_update.delay(company_id=company.id)  # Schedule auto_update task
         sleep(3600)  # TODO Calculate ETA for update_clients_statuses task
         result = update_clients_statuses(company.id)  # Schedule update_clients_statuses task
         sleep(360)
