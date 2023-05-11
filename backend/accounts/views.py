@@ -255,12 +255,13 @@ class RegisterView(APIView):
 
     def post(self, request):
         data = request.data
+        print(data)
         first_name = data.get('firstName')
         last_name = data.get('lastName')
         email = data.get('email')
         password = data.get('password')
         company = data.get('company')
-        accessToken = data.get('accessToken')
+        registrationToken = data.get('registrationToken')
         phone = data.get('phone')
         messages = {'errors': []}
         if first_name == None:
@@ -273,8 +274,8 @@ class RegisterView(APIView):
             messages['errors'].append('Password can\'t be empty')
         if company == None:
             messages['errors'].append('Company can\'t be empty')
-        if accessToken == None:
-            messages['errors'].append('Access Token can\'t be empty')
+        if registrationToken == None:
+            messages['errors'].append('Registration Token can\'t be empty')
         
         if CustomUser.objects.filter(email=email).exists():
             messages['errors'].append(
@@ -282,7 +283,7 @@ class RegisterView(APIView):
         if len(messages['errors']) > 0:
             return Response({"detail": messages['errors']}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            company = Company.objects.get(name=company, accessToken=accessToken)
+            company = Company.objects.get(name=company, accessToken=registrationToken)
             noAdmin = CustomUser.objects.filter(company=company, isVerified=True)
             if len(noAdmin) == 0:
                 user = CustomUser.objects.create(
