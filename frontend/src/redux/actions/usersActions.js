@@ -292,20 +292,24 @@ export const clientsAsync = (page) => async (dispatch, getState) => {
       dispatch(clientsLoading());
     }
     if (page > reduxStore.user.clientsInfo.highestPage || page === 1) {
-      const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/${userInfo.id}?page=${page}`, config);
-      if (data.results.clients.length > 0) {
-        dispatch(newPage(page));      }
+      const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/${userInfo.id}?page=${page}`, config);      
       if (page === 1) {
         dispatch(clients(data));        
       } else {
         dispatch(moreClients(data));
+      }
+      if (data.results.clients.length > 0) {
+        dispatch(newPage(page));
+        if (data.results.clients.length === 1000) {
+          dispatch(clientsAsync(page+1))
+        }
       }
     } else {
       dispatch(clientsNotLoading());
     }
   } catch (error) {
     // localStorage.removeItem('userInfo');
-    dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    // dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
     // dispatch(logout());
     if (error.response.status === 403) {
       dispatch(getRefreshToken(dispatch, clientsAsync(page)));
@@ -345,7 +349,7 @@ export const deleteClientAsync = (ids) => async (dispatch, getState) => {
   }
 };
 
-export const updateClientAsync = (id, contacted, note) => async (dispatch, getState) => {
+export const updateClientAsync = (id, contacted, note, errorFlag) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -356,12 +360,12 @@ export const updateClientAsync = (id, contacted, note) => async (dispatch, getSt
       },
     };
     dispatch(clientsLoading());
-    await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, { 'clients': id, 'type': 'edit', contacted, note }, config);
+    await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, { 'clients': id, 'type': 'edit', contacted, note, errorFlag }, config);
     dispatch(clientsAsync(1));
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
     if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, updateClientAsync(id, contacted, note)));
+      dispatch(getRefreshToken(dispatch, updateClientAsync(id, contacted, note, errorFlag)));
     }
   }
 };

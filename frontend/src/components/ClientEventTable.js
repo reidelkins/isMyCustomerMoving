@@ -19,6 +19,7 @@ import { makeDate } from '../utils/makeDate';
 const RowInformation = (info) => {
     if (!info) return null;
     
+    
     const update = info.info;
     if (update.listed) {
         if (update.status === 'House For Sale') {
@@ -47,6 +48,20 @@ const RowInformation = (info) => {
                     Note changed to "{update.note}"
                 </Typography>
             )
+        } else if (update.error_flag !== null) {
+            if (update.error_flag) {
+                return (
+                    <Typography>
+                        Client housing status was marked as incorrect
+                    </Typography>
+                )
+            } else {
+                return (
+                    <Typography>
+                        Error flag was manually removed
+                    </Typography>
+                )
+            }
         } else {
             return (
                 <Typography>

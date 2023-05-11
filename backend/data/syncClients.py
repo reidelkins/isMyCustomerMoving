@@ -148,13 +148,7 @@ def update_clients_with_last_service_date(equipment, company_id):
 def get_servicetitan_equipment(company_id):
     company = Company.objects.get(id=company_id)
     tenant = company.tenantID
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-    }
-    data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
-    response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)    
-
-    headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
+    headers = get_serviceTitan_accessToken(company_id)
     moreEquipment = True
     #get client data
     page = 1

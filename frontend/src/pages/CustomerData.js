@@ -28,6 +28,8 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 
 // components
+import IncorrectDataButton from '../components/IncorrectDataButton';
+import RemoveErrorFlagButton from '../components/RemoveErrorFlagButton'
 import ReferralModal from '../components/ReferralModal';
 import UpgradeFromFree from '../components/UpgradeFromFree';
 import NoteModal from '../components/NoteModal';
@@ -250,7 +252,7 @@ export default function CustomerData() {
     setFilterName(event.target.value);
   };
   const updateContacted = (event, id, contacted) => {
-    dispatch(updateClientAsync(id, contacted, "", ));
+    dispatch(updateClientAsync(id, contacted, "", ""));
   };
   const updateStatus = () => {
     dispatch(update());
@@ -404,7 +406,7 @@ export default function CustomerData() {
                       />
                       <TableBody>
                         {filteredClients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                          const { id, name, address, city, state, zipCode, status, contacted, note, phoneNumber, clientUpdates_client: clientUpdates, price, year_built: yearBuilt, housingType, equipmentInstalledDate} = row;
+                          const { id, name, address, city, state, zipCode, status, contacted, note, phoneNumber, clientUpdates_client: clientUpdates, price, year_built: yearBuilt, housingType, equipmentInstalledDate, error_flag: errorFlag} = row;
                           const isItemSelected = selected.indexOf(address) !== -1;                        
                           
                           return (
@@ -496,6 +498,7 @@ export default function CustomerData() {
                                     <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
                                       <ClientEventTable clientUpdates={clientUpdates}/>                                     
                                       <ClientDetailsTable price={price} yearBuilt={yearBuilt} housingType={housingType} equipmentInstalledDate={equipmentInstalledDate} />                                    
+                                      {errorFlag ? <RemoveErrorFlagButton clientId={id} /> : <IncorrectDataButton clientId={id}/>}                              
                                     </Stack>
                                     
                                   </TableCell>

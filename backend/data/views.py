@@ -13,7 +13,7 @@ from config import settings
 from .models import Client, ClientUpdate, HomeListing, Task, HomeListingTags
 from .serializers import ClientListSerializer, HomeListingSerializer
 from .syncClients import get_salesforce_clients, get_serviceTitan_clients
-from .utils import getAllZipcodes, saveClientList, add_serviceTitan_contacted_tag, filter_recentlysold, filter_clients
+from .utils import getAllZipcodes, saveClientList, add_serviceTitan_contacted_tag, filter_recentlysold, filter_clients, remove_all_serviceTitan_tags
 
 from django.http import HttpResponse
 import csv
@@ -214,6 +214,12 @@ class UpdateClientView(APIView):
                             add_serviceTitan_contacted_tag.delay(client.id, client.company.serviceTitanForSaleContactedTagID)
                         elif client.status == "House Recently Sold (6)" and client.company.serviceTitanRecentlySoldContactedTagID:
                             add_serviceTitan_contacted_tag.delay(client.id, client.company.serviceTitanRecentlySoldContactedTagID)
+                if request.data['errorFlag'] != "":
+                    client.status = "No Change"
+                    client.error_flag = request.data['errorFlag']
+                    ClientUpdate.objects.create(client=client, error_flag=request.data['errorFlag'])
+                    if client.servTitanID:
+                        remove_all_serviceTitan_tags.delay(client=client.id)
                 client.save()
                 return Response({"status": "Client Updated"}, status=status.HTTP_201_CREATED, headers="")
         except Exception as e:
