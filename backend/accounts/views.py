@@ -33,7 +33,6 @@ from functools import wraps
 def get_token_auth_header(request):
     """Obtains the Access Token from the Authorization Header
     """
-    print(request.META )
     auth = request.META.get("HTTP_AUTHORIZATION", None)
     parts = auth.split()
     token = parts[1]
@@ -257,7 +256,6 @@ class RegisterView(APIView):
 
     def post(self, request):
         data = request.data
-        print(data)
         first_name = data.get('firstName')
         last_name = data.get('lastName')
         email = data.get('email')
