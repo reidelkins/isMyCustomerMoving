@@ -19,5 +19,5 @@ class Migration(migrations.Migration):
             model_name='homelisting',
             name='state',
             field=models.CharField(blank=True, max_length=31, null=True),
-        ),
+        ),        
     ]

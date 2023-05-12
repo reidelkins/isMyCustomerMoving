@@ -40,6 +40,8 @@ class Client(models.Model):
     year_built = models.IntegerField(default=0, blank=True, null=True)
     tag = models.ManyToManyField("HomeListingTags", blank=True, related_name='client_tags')
     equipmentInstalledDate = models.DateField(blank=True, null=True)
+    active = models.BooleanField(default=True)
+    error_flag = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('company', 'name', 'address')
@@ -56,6 +58,7 @@ class ClientUpdate(models.Model):
     listed = models.CharField(max_length=30, blank=True, null=True)
     note = models.TextField(default="", blank=True, null=True)
     contacted = models.BooleanField(blank=True, null=True)
+    error_flag = models.BooleanField(blank=True, null=True)
 
 class ScrapeResponse(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
@@ -80,11 +83,14 @@ class HomeListing(models.Model):
     tag = models.ManyToManyField("HomeListingTags", blank=True, related_name='homeListing_tag')
     city = models.CharField(max_length=40, blank=True, null=True)
     state = models.CharField(max_length=31, blank=True, null=True)
+
+    class Meta:
+        unique_together = ('address', 'status', 'city', 'state')
     
 class HomeListingTags(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
-    tag = models.CharField(max_length=100)
+    tag = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return self.tag

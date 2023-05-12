@@ -11,6 +11,11 @@ from django.conf import settings
 from django.template.loader import get_template
 from djstripe import models as djstripe_models
 
+from django.db import transaction
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+from rest_framework_simplejwt.exceptions import TokenError
+
 
 STATUS_CHOICES = (
 
@@ -106,6 +111,8 @@ class Company(models.Model):
     serviceTitanForSaleTagID = models.IntegerField(blank=True, null=True)
     serviceTitanForRentTagID = models.IntegerField(blank=True, null=True)
     serviceTitanRecentlySoldTagID = models.IntegerField(blank=True, null=True)
+    serviceTitanForSaleContactedTagID = models.IntegerField(blank=True, null=True)
+    serviceTitanRecentlySoldContactedTagID = models.IntegerField(blank=True, null=True)
     recentlySoldPurchased = models.BooleanField(default=False)
 
     # Salesforce
@@ -114,7 +121,7 @@ class Company(models.Model):
 
     def __str__(self):
         return self.name
-
+    
 
 def zipTime():
     return (datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d')
@@ -143,6 +150,21 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.email
+    
+    @transaction.atomic
+    def delete_with_tokens(self):
+        # Revoke all refresh tokens associated with the user
+        user_refresh_tokens = OutstandingToken.objects.filter(user=self)
+        for token in user_refresh_tokens:
+            try:
+                refresh_token = RefreshToken(token.token)
+                refresh_token.blacklist()
+            except TokenError:
+                # Ignore if the token is already expired or blacklisted
+                pass
+
+        # Delete the user
+        self.delete()
 
     class Meta:
         ordering = ["-id"]

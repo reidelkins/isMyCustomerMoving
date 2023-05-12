@@ -10,20 +10,43 @@ import requests
 from accounts.models import CustomUser, Company
 from accounts.serializers import UserSerializerWithToken
 from config import settings
-from .models import Client, ClientUpdate, HomeListing, Task
+from .models import Client, ClientUpdate, HomeListing, Task, HomeListingTags
 from .serializers import ClientListSerializer, HomeListingSerializer
 from .syncClients import get_salesforce_clients, get_serviceTitan_clients
-from .utils import getAllZipcodes, saveClientList
+from .utils import getAllZipcodes, saveClientList, add_serviceTitan_contacted_tag, filter_recentlysold, filter_clients, remove_all_serviceTitan_tags
 
+from django.http import HttpResponse
+import csv
 
 
 # Create your views here.
-class AllClientListView(generics.ListAPIView):
-    serializer_class = ClientListSerializer
+class DownloadClientView(APIView):
     permission_classes = [IsAuthenticated]
-    def get_queryset(self):
-        user = CustomUser.objects.get(id=self.request.user.id)
-        return Client.objects.filter(company=user.company).order_by('status')
+
+    def get(self, request, user, format=None):
+        queryset = self.get_queryset(user)
+        # Define the CSV header row
+        header = ['name', 'address', 'city', 'state', 'zipCode', 'status', 'phoneNumber']
+        # Create a response object with the CSV content
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="clients.csv"'
+        # Create a CSV writer object
+        writer = csv.writer(response)
+        # Write the header row to the CSV file
+        writer.writerow(header)
+        # Write the data rows to the CSV file
+        for client in queryset:
+            row = [client.name, client.address, client.city, client.state, client.zipCode.zipCode, client.status, client.phoneNumber]
+            writer.writerow(row)
+        # Return the response
+        return response
+
+    def get_queryset(self, user):
+        query_params = self.request.query_params
+        user = CustomUser.objects.get(id=user)
+        queryset = Client.objects.filter(company=user.company, active=True).order_by('status')
+        return filter_clients(query_params, queryset)
+        
 
 class CustomPagination(PageNumberPagination):
     page_size = 1000
@@ -38,27 +61,9 @@ class ClientListView(generics.ListAPIView):
         query_params = self.request.query_params
 
         # Initialize the queryset with the base filters
-        queryset = Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company)
+        queryset = Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company, active=True)
 
-        if 'min_price' in query_params:
-            queryset = queryset.filter(price__gte=query_params['min_price'])
-        if 'max_price' in query_params:
-            queryset = queryset.filter(price__lte=query_params['max_price'], price__gt=0)
-        if 'min_year' in query_params:
-            queryset = queryset.filter(year_built__gte=query_params['min_year'])
-        if 'max_year' in query_params:
-            queryset = queryset.filter(year_built__lte=query_params['max_year'], year_built__gt=0)
-        if 'status' in query_params:
-            statuses = []
-            if "For Sale" in query_params['status']:
-                statuses.append("House For Sale")
-            if "Recently Sold" in query_params['status']:
-                statuses.append("House Recently Sold (6)")
-            queryset = queryset.filter(status__in=statuses)
-        if 'equip_install_date_min' in query_params:
-            queryset = queryset.filter(equipmentInstalledDate__gte=query_params['equip_install_date_min'])
-        if 'equip_install_date_max' in query_params:
-            queryset = queryset.filter(equipmentInstalledDate__lte=query_params['equip_install_date_max'])
+        queryset = filter_clients(query_params, queryset)
         #TODO
         # if 'tags' in query_params:
         #     tags = [tag.replace('[', '').replace(']', '').replace(' ', '_') for tag in query_params.get('tags', '').split(',')]
@@ -74,7 +79,7 @@ class ClientListView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         user = CustomUser.objects.get(id=self.kwargs['user'])
-        allClients = Client.objects.filter(company=user.company)
+        allClients = Client.objects.filter(company=user.company, active=True)
         forSale = allClients.filter(status="House For Sale", contacted=False).count()
         recentlySold = allClients.filter(status="House Recently Sold (6)", contacted=False).count()
         allClientUpdates = ClientUpdate.objects.filter(client__company=user.company)
@@ -90,63 +95,53 @@ class ClientListView(generics.ListAPIView):
         serializer = self.get_serializer(queryset, many=True)
         return Response({"forSale": forSale, "forSaleAllTime": forSaleAllTime, "recentlySoldAllTime": recentlySoldAllTime, "recentlySold": recentlySold, "clients": clients})
 
-class FilteredClientListView(generics.ListAPIView):
-    serializer_class = ClientListSerializer
-    pagination_class = CustomPagination
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user = CustomUser.objects.get(id=self.kwargs['user'])
-        if user.company.product.id == "price_1MhxfPAkLES5P4qQbu8O45xy":
-            return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).order_by('name')
-        elif user.status == 'admin':
-            return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).order_by('status')
-        else:
-            return Client.objects.prefetch_related('clientUpdates_client').filter(company=user.company).exclude(status='No Change').order_by('status')
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        user = CustomUser.objects.get(id=self.kwargs['user'])
-        allClients = Client.objects.filter(company=user.company)
-        if user.company.product.id == "price_1MhxfPAkLES5P4qQbu8O45xy":
-            page = self.paginate_queryset(queryset)
-        
 class RecentlySoldView(generics.ListAPIView):
     serializer_class = HomeListingSerializer
     pagination_class = CustomPagination
     permission_classes = [IsAuthenticated]
     def get_queryset(self):
+        query_params = self.request.query_params
         company = Company.objects.get(id=self.kwargs['company'])
         if company.recentlySoldPurchased:
-            zipCode_objects = Client.objects.filter(company=company).values('zipCode')            
-            queryset = HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')
-            query_params = self.request.query_params
-            if 'min_price' in query_params:
-                queryset = queryset.filter(price__gte=query_params['min_price'])
-            if 'max_price' in query_params:
-                queryset = queryset.filter(price__lte=query_params['max_price'], price__gt=0)
-            if 'min_year' in query_params:
-                queryset = queryset.filter(year_built__gte=query_params['min_year'])
-            if 'max_year' in query_params:
-                queryset = queryset.filter(year_built__lte=query_params['max_year'], year_built__gt=0)
-            if 'min_days_ago' in query_params:
-                queryset = queryset.filter(listed__lt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['min_days_ago']))).strftime('%Y-%m-%d'))
-            if 'max_days_ago' in query_params:
-                queryset = queryset.filter(listed__gt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['max_days_ago']))).strftime('%Y-%m-%d'))
-            return queryset
+            zipCode_objects = Client.objects.filter(company=company).values('zipCode')
+            queryset =  HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')            
+            return filter_recentlysold(query_params, queryset)
+            
         else:
             return HomeListing.objects.none()
 
 class AllRecentlySoldView(generics.ListAPIView):
-    serializer_class = HomeListingSerializer
     permission_classes = [IsAuthenticated]
-    def get_queryset(self):
-        company = Company.objects.get(id=self.kwargs['company'])
+
+    def get(self, request, company, format=None):
+        queryset = self.get_queryset(company)
+        # Define the CSV header row
+        header = ['address', 'city', 'state', 'zipCode', 'Listing Price', 'Year Built']
+        # Create a response object with the CSV content
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="HomeListings.csv"'
+        # Create a CSV writer object
+        writer = csv.writer(response)
+        # Write the header row to the CSV file
+        writer.writerow(header)
+        # Write the data rows to the CSV file
+        for homeListing in queryset:
+            row = [homeListing.address, homeListing.city, homeListing.state, homeListing.zipCode.zipCode, homeListing.price, homeListing.year_built]
+            writer.writerow(row)
+        # Return the response
+        return response
+    
+    def get_queryset(self, company):
+        query_params = self.request.query_params
+        company = Company.objects.get(id=company)
         if company.recentlySoldPurchased:
-            zipCode_objects = Client.objects.filter(company=company).values('zipCode')            
-            return HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')
+            zipCode_objects = Client.objects.filter(company=company).values('zipCode')
+            queryset =  HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')            
+            return filter_recentlysold(query_params, queryset)
+            
         else:
             return HomeListing.objects.none()
+        
 
 class UpdateStatusView(APIView):
     permission_classes = [IsAuthenticated]
@@ -156,15 +151,6 @@ class UpdateStatusView(APIView):
         except Exception as e:
             print(f"ERROR: Update Status View: {e}")
         return Response("", status=status.HTTP_201_CREATED, headers="")
-
-class ClientListAndUpdatesView(generics.ListAPIView):
-    serializer_class = ClientListSerializer
-    pagination_class = CustomPagination
-    permission_classes = [IsAuthenticated]
-    def get_queryset(self):
-        company = Company.objects.get(id=self.kwargs['company'])
-        print(Client.objects.filter(company=company).count())
-        return Client.objects.prefetch_related('clientUpdates').filter(company=company).order_by('status')
 
 class UploadFileView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
@@ -216,7 +202,6 @@ class UpdateClientView(APIView):
                         client.delete()
                 return Response({"status": "Client Deleted"}, status=status.HTTP_201_CREATED, headers="")
             else:
-                print(request.data)
                 client = Client.objects.get(id=request.data['clients'])
                 if request.data['note']:
                     client.note = request.data['note']
@@ -224,6 +209,17 @@ class UpdateClientView(APIView):
                 if request.data['contacted'] != "":
                     client.contacted = request.data['contacted']
                     ClientUpdate.objects.create(client=client, contacted=request.data['contacted'])
+                    if request.data['contacted'] and client.servTitanID:
+                        if client.status == "House For Sale" and client.company.serviceTitanForSaleContactedTagID:
+                            add_serviceTitan_contacted_tag.delay(client.id, client.company.serviceTitanForSaleContactedTagID)
+                        elif client.status == "House Recently Sold (6)" and client.company.serviceTitanRecentlySoldContactedTagID:
+                            add_serviceTitan_contacted_tag.delay(client.id, client.company.serviceTitanRecentlySoldContactedTagID)
+                if request.data['errorFlag'] != "":
+                    client.status = "No Change"
+                    client.error_flag = request.data['errorFlag']
+                    ClientUpdate.objects.create(client=client, error_flag=request.data['errorFlag'])
+                    if client.servTitanID:
+                        remove_all_serviceTitan_tags.delay(client=client.id)
                 client.save()
                 return Response({"status": "Client Updated"}, status=status.HTTP_201_CREATED, headers="")
         except Exception as e:
@@ -254,10 +250,11 @@ class ServiceTitanView(APIView):
     def put(self, request, *args, **kwargs):
         try:
             company_id = self.kwargs['company']
+            option = request.data['option']
             try:
                 Company.objects.get(id=company_id)
                 task = Task.objects.create() 
-                get_serviceTitan_clients.delay(company_id, task.id)                          
+                get_serviceTitan_clients.delay(company_id, task.id, option)                          
                 return Response({"status": "Success", "task": task.id}, status=status.HTTP_201_CREATED, headers="")
             except Exception as e:
                 print(e)
@@ -322,33 +319,3 @@ class SalesforceConsumerView(APIView):
             print(e)
             return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
         
-# @api_view(['PUT', 'DELETE'])
-# def update_client(request):
-#     try:
-#         if request.method == 'PUT':
-#             try:
-#                 client = Client.objects.get(id=request.data['clients'])
-#                 if request.data['note']:
-#                     client.note = request.data['note']
-#                     ClientUpdate.objects.create(client=client, note=request.data['note'])
-#                 if request.data['contacted'] != "":
-#                     client.contacted = request.data['contacted']
-#                     ClientUpdate.objects.create(client=client, contacted=request.data['contacted'])
-#                 client.save()
-#             except Exception as e:
-#                 print(e)
-#                 return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-#         elif request.method == 'DELETE':
-#             try:
-#                 if len(request.data['clients']) == 1:
-#                     client = Client.objects.get(id=request.data['clients'][0])
-#                     client.delete()
-#                 else:
-#                     Client.objects.filter(id__in=request.data['clients']).delete()
-#             except Exception as e:
-#                 print(e)
-#                 return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-#         return Response({"status": "Success"}, status=status.HTTP_201_CREATED, headers="")
-#     except Exception as e:
-#         print(e)
-#         return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)

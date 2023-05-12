@@ -41,6 +41,8 @@ export default function ServiceTitanTagsModal({userInfo}) {
     const IntegrateSTSchema = Yup.object().shape({
         forSale: Yup.string("'"),
         recentlySold: Yup.string(""),
+        forSale_contacted: Yup.string(""),
+        recentlySold_contacted: Yup.string(""),
         
     });
 
@@ -49,11 +51,13 @@ export default function ServiceTitanTagsModal({userInfo}) {
         forSale: userInfo.company.serviceTitanForSaleTagID ? userInfo.company.serviceTitanForSaleTagID : "",
         forRent: "",
         recentlySold: userInfo.company.serviceTitanRecentlySoldTagID ? userInfo.company.serviceTitanRecentlySoldTagID : "",
+        forSale_contacted: userInfo.company.serviceTitanForSaleContactedTagID ? userInfo.company.serviceTitanForSaleContactedTagID : "",
+        recentlySold_contacted: userInfo.company.serviceTitanSoldContactedTagID ? userInfo.company.serviceTitanSoldContactedTagID : "",
         },
         validationSchema: IntegrateSTSchema,
         onSubmit: () => {
             setOpen(false);
-            dispatch(companyAsync("", "", "", "", "", values.forSale, values.forRent, values.recentlySold))
+            dispatch(companyAsync("", "", "", "", "", values.forSale, values.forRent, values.recentlySold, values.forSale_contacted, values.recentlySold_contacted, ""))
         },
     });
 
@@ -80,6 +84,7 @@ export default function ServiceTitanTagsModal({userInfo}) {
                                 {...getFieldProps('forSale')}
                                 error={Boolean(touched.forSale && errors.forSale)}
                                 helperText={touched.forSale && errors.forSale}
+                                sx={{ width: 400 }}
                             />
                             {/* <TextField
                                 fullWidth
@@ -96,6 +101,25 @@ export default function ServiceTitanTagsModal({userInfo}) {
                                 {...getFieldProps('recentlySold')}
                                 error={Boolean(touched.recentlySold && errors.recentlySold)}
                                 helperText={touched.recentlySold && errors.recentlySold}
+                                sx={{ width: 400 }}
+                            />
+                            <TextField
+                                fullWidth
+                                label="For Sale and Contacted"
+                                placeholder="1234567890"
+                                {...getFieldProps('forSale_contacted')}
+                                error={Boolean(touched.forSale_contacted && errors.forSale_contacted)}
+                                helperText={touched.forSale_contacted && errors.forSale_contacted}
+                                sx={{ width: 400 }}
+                            />
+                            <TextField
+                                fullWidth
+                                label="Recently Sold and Contacted"
+                                placeholder="1234567890"
+                                {...getFieldProps('recentlySold_contacted')}
+                                error={Boolean(touched.recentlySold_contacted && errors.recentlySold_contacted)}
+                                helperText={touched.recentlySold_contacted && errors.recentlySold_contacted}
+                                sx={{ width: 400 }}
                             />
                         </Stack>
                     </Form>
@@ -125,7 +149,8 @@ export default function ServiceTitanTagsModal({userInfo}) {
                     3. Next choose a color, a name (like "For Sale or Home Listed"), then click save. <br/><br/>
                     4. You then need to scroll the list of tags to find the one you just made. Once found, click the edit button on the row of that tag. <br/><br/>
                     5. Copy the ID number from the URL. It will be a long number like 1234567890. <br/><br/><br/>
-                    Note: You can make 3 different tags for this data or you can make one tag and use the same ID for all 3.<br/>
+                    Note: You can make 2 different tags for this data or you can make one tag and use the same ID for all 2.<br/>
+                    The last two tags are so you can keep track on Service Titan once you have marked a client as contacted within our system and differentiate your marketing campaigns with this data.
                     Click <a href="https://www.loom.com/share/523b171ab81e47f2a050e1b28704c30e" target="_blank" rel="noreferrer">here </a> to see a video walking through this process.
                     </Typography>                    
                 </Box>

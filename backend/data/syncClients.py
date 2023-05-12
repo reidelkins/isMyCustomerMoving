@@ -9,7 +9,7 @@ from django.db.models.functions import Coalesce
 
 from accounts.models import Company
 from .models import Client, Task
-from .utils import saveClientList, updateClientList, doItAll, deleteExtraClients, delVariables
+from .utils import saveClientList, updateClientList, doItAll, deleteExtraClients, delVariables, get_serviceTitan_accessToken
 from simple_salesforce import Salesforce
 
 
@@ -74,16 +74,10 @@ def get_salesforce_clients(company_id, task_id=None):
 
 
 @shared_task
-def get_serviceTitan_clients(company_id, task_id):
+def get_serviceTitan_clients(company_id, task_id, option):
     company = Company.objects.get(id=company_id)
     tenant = company.tenantID
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-    }
-    data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
-    response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)    
-
-    headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
+    headers = get_serviceTitan_accessToken(company_id)
     clients = []
     moreClients = True
     #get client data
@@ -94,6 +88,9 @@ def get_serviceTitan_clients(company_id, task_id):
         clients = response.json()['data']
         if response.json()['hasMore'] == False:
             moreClients = False
+        if option == 'option3':
+            for client in clients:
+                client['name'] = " "
         result = saveClientList.delay(clients, company_id)
         delVariables([clients, response])
     
@@ -107,23 +104,23 @@ def get_serviceTitan_clients(company_id, task_id):
     
     get_servicetitan_equipment.delay(company_id)
     doItAll.delay(company_id)
-
-    frm = ""
-    moreClients = True
-    page = 0
-    while(moreClients):
-        page += 1
-        response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/export/customers/contacts?from={frm}', headers=headers)
-        # for number in response.json()['data']:
-        #     numbers.append(number)
-        numbers = response.json()['data']
-        if response.json()['hasMore'] == True:
-            frm = response.json()['continueFrom']
-        else:
-            moreClients = False        
-        updateClientList.delay(numbers)
-        delVariables([numbers, response])
-    delVariables([frm, moreClients, headers, data, company, tenant])
+    if option == 'option1':
+        frm = ""
+        moreClients = True
+        page = 0
+        while(moreClients):
+            page += 1
+            response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/export/customers/contacts?from={frm}', headers=headers)
+            # for number in response.json()['data']:
+            #     numbers.append(number)
+            numbers = response.json()['data']
+            if response.json()['hasMore'] == True:
+                frm = response.json()['continueFrom']
+            else:
+                moreClients = False        
+            updateClientList.delay(numbers)
+            delVariables([numbers, response])
+    delVariables([frm, moreClients, headers, company, tenant])
 
 
 @shared_task
@@ -154,13 +151,7 @@ def update_clients_with_last_service_date(equipment, company_id):
 def get_servicetitan_equipment(company_id):
     company = Company.objects.get(id=company_id)
     tenant = company.tenantID
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-    }
-    data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
-    response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)    
-
-    headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
+    headers = get_serviceTitan_accessToken(company_id)
     moreEquipment = True
     #get client data
     page = 1

@@ -20,7 +20,7 @@ import {
   TablePagination,
   CircularProgress
 } from '@mui/material';
-import { useAuth0 } from "@auth0/auth0-react";
+
 import { useSelector, useDispatch } from 'react-redux';
 import { DOMAIN } from '../redux/constants';
 
@@ -34,7 +34,7 @@ import Iconify from '../components/Iconify';
 import {RecentlySoldListToolbar} from '../sections/@dashboard/recentlySold';
 
 import RecentlySoldListCall from '../redux/calls/RecentlySoldListCall';
-import { selectRecentlySold, recentlySoldAsync } from '../redux/actions/usersActions';
+import { selectRecentlySold, recentlySoldAsync, getRecentlySoldCSV } from '../redux/actions/usersActions';
 import { logout, showLoginInfo } from '../redux/actions/authActions';
 import { makeDate } from '../utils/makeDate';
  
@@ -113,22 +113,6 @@ export default function RecentlySoldData() {
   const [csvLoading, setCsvLoading] = useState(false);
 
   const [recentlySoldLength, setRecentlySoldLength] = useState(0);
-  const { getAccessTokenSilently } = useAuth0();
-  const [accessToken, setAccessToken] = useState(null);
-
-  useEffect(() => {
-    const fetchAccessToken = async () => {
-      const token = await getAccessTokenSilently();
-      setAccessToken(token);
-    };
-
-    fetchAccessToken();
-
-    // return a cleanup function to cancel any pending async operation and prevent updating the state on an unmounted component
-    return () => {
-      setAccessToken(null);
-    };
-  }, [getAccessTokenSilently]);
 
   useEffect(() => {
     if (RECENTLYSOLDLIST.length < recentlySoldLength) {
@@ -147,7 +131,7 @@ export default function RecentlySoldData() {
   const handleChangePage = (event, newPage) => {
     // fetch new page if two away from needing to see new page
     if ((newPage+2) * rowsPerPage % 1000 === 0) {
-      dispatch(recentlySoldAsync(((newPage+2) * rowsPerPage / 1000)+1, accessToken))
+      dispatch(recentlySoldAsync(((newPage+2) * rowsPerPage / 1000)+1))
     }
     setPage(newPage);
   };
@@ -156,35 +140,54 @@ export default function RecentlySoldData() {
     setPage(0);
   };
 
-  const exportCSV = async () => {
-    if (RECENTLYSOLDLIST.length === 0) { return }
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access}`,
-      },
-    };
-    setCsvLoading(true);
-    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/allrecentlysold/${userInfo.company.id}`, config);
-    let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += 'Sold Date, Address, Zip Code\r\n';
-    data.forEach((n) => {
-      csvContent += `${n.listed.slice(0, 10)}, ${n.address}, ${n.zipCode}\r\n`
-    });
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [minYear, setMinYear] = useState('');
+  const [maxYear, setMaxYear] = useState('');
+  const [minDaysAgo, setMinDaysAgo] = useState('');
+  const [maxDaysAgo, setMaxDaysAgo] = useState('');
+  const [tagFilters, setTagFilters] = useState([]);
+  const handleMinPriceChange = (newMinPrice) => { setMinPrice(newMinPrice)}
+  const handleMaxPriceChange = (newMaxPrice) => {setMaxPrice(newMaxPrice)}
+  const handleMinYearChange = (newMinYear) => {setMinYear(newMinYear)}
+  const handleMaxYearChange = (newMaxYear) => {setMaxYear(newMaxYear)}
+  const handleMinDaysAgoChange = (newMinDaysAgo) => {setMinDaysAgo(newMinDaysAgo)}
+  const handleMaxDaysAgoChange = (newMaxDaysAgo) => {setMaxDaysAgo(newMaxDaysAgo)}
+  const handleTagFiltersChange = (newTagFilters) => {setTagFilters(newTagFilters)}
+  
+  const exportCSV = () => {
+    dispatch(getRecentlySoldCSV( minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters))
+  }
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    // Create a download link for the CSV file
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    const d1 = new Date().toLocaleDateString('en-US')
-    const docName = `isMyCustomerMoving_RecentlySold_${d1}`    
+  // const exportCSV = async () => {
+  //   if (RECENTLYSOLDLIST.length === 0) { return }
+  //   const config = {
+  //     headers: {
+  //       'Content-type': 'application/json',
+  //       Authorization: `Bearer ${userInfo.access}`,
+  //     },
+  //   };
+  //   setCsvLoading(true);
+  //   const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/allrecentlysold/${userInfo.company.id}`, config);
+  //   let csvContent = 'data:text/csv;charset=utf-8,';
+  //   csvContent += 'Sold Date, Address, Zip Code\r\n';
+  //   data.forEach((n) => {
+  //     csvContent += `${n.listed.slice(0, 10)}, ${n.address}, ${n.zipCode}\r\n`
+  //   });
 
-    link.setAttribute('download', `${docName}.csv`);
-    document.body.appendChild(link); // add the link to body
-    link.click();
-    document.body.removeChild(link); // remove the link from body
-    setCsvLoading(false);
-  };
+  //   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  //   // Create a download link for the CSV file
+  //   const link = document.createElement('a');
+  //   link.href = window.URL.createObjectURL(blob);
+  //   const d1 = new Date().toLocaleDateString('en-US')
+  //   const docName = `isMyCustomerMoving_RecentlySold_${d1}`    
+
+  //   link.setAttribute('download', `${docName}.csv`);
+  //   document.body.appendChild(link); // add the link to body
+  //   link.click();
+  //   document.body.removeChild(link); // remove the link from body
+  //   setCsvLoading(false);
+  // };
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - RECENTLYSOLDLIST.length) : 0;
   const filteredRecentlySold = userInfo ? applySortFilter(RECENTLYSOLDLIST, getComparator(order, orderBy)) : [];
@@ -212,7 +215,23 @@ export default function RecentlySoldData() {
               ) : null}
               {userInfo.company.recentlySoldPurchased ? (
                 <Scrollbar>
-                  <RecentlySoldListToolbar product={userInfo.company.product} />
+                  <RecentlySoldListToolbar 
+                    product={userInfo.company.product} 
+                    minPrice={minPrice}
+                    setMinPrice={handleMinPriceChange}
+                    maxPrice={maxPrice}
+                    setMaxPrice={handleMaxPriceChange}
+                    minYear={minYear}
+                    setMinYear={handleMinYearChange}
+                    maxYear={maxYear}
+                    setMaxYear={handleMaxYearChange}
+                    minDaysAgo={minDaysAgo}
+                    setMinDaysAgo={handleMinDaysAgoChange}
+                    maxDaysAgo={maxDaysAgo}
+                    setMaxDaysAgo={handleMaxDaysAgoChange}
+                    tagFilters={tagFilters}
+                    setTagFilters={handleTagFiltersChange}
+                  />
                   <TableContainer sx={{ minWidth: 800 }}>
                     <Table>
                       <ClientListHead
@@ -299,7 +318,7 @@ export default function RecentlySoldData() {
               />
             </Card>
             {/* TODO */}
-            {/* {csvLoading ? (
+            {csvLoading ? (
               (userInfo.status === 'admin') && (
                 <Button variant="contained">
                   <CircularProgress color="secondary"/>
@@ -311,7 +330,7 @@ export default function RecentlySoldData() {
                   Download To CSV
                 </Button>
               )
-            )}        */}
+            )}       
           </>
         )}
       </Container>

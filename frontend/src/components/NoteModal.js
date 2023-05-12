@@ -10,7 +10,7 @@ import {
 import { useFormik, Form, FormikProvider } from 'formik';
 import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
-import { useAuth0 } from "@auth0/auth0-react";
+
 
 import Iconify from './Iconify';
 import { updateClientAsync } from '../redux/actions/usersActions';
@@ -30,22 +30,7 @@ export default function NoteModal({
 }) {
     const [open, setOpen] = useState(false);
     const dispatch = useDispatch();
-    const { getAccessTokenSilently } = useAuth0();
-    const [accessToken, setAccessToken] = useState(null);
 
-    useEffect(() => {
-    const fetchAccessToken = async () => {
-        const token = await getAccessTokenSilently();
-        setAccessToken(token);
-    };
-
-    fetchAccessToken();
-
-    // return a cleanup function to cancel any pending async operation and prevent updating the state on an unmounted component
-    return () => {
-        setAccessToken(null);
-    };
-    }, [getAccessTokenSilently]);
     const handleOpen = () => {
         setOpen(true);
     };
@@ -59,7 +44,7 @@ export default function NoteModal({
         note: passedNote,
         },
         onSubmit: () => {
-            dispatch(updateClientAsync(id, "", values.note, accessToken));
+            dispatch(updateClientAsync(id, "", values.note, ""));
             setOpen(false);
         },
     });

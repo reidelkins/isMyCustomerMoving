@@ -1,18 +1,19 @@
 from django.shortcuts import redirect
 from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
+from django.core.exceptions import ObjectDoesNotExist
 from django.template.loader import get_template
 from django.http import HttpResponse, JsonResponse
 from django.utils.timezone import make_aware
-from rest_framework import permissions, status, generics
+from rest_framework import permissions, status, generics, viewsets
 from rest_framework.decorators import api_view
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
-from rest_framework.generics import RetrieveAPIView
+
+
 
 
 # from .utils import makeCompany
@@ -24,6 +25,7 @@ import datetime
 import jwt
 import pytz
 import pyotp
+import requests
 import uuid
 from functools import wraps
 
@@ -31,7 +33,6 @@ from functools import wraps
 def get_token_auth_header(request):
     """Obtains the Access Token from the Authorization Header
     """
-    print(request.META )
     auth = request.META.get("HTTP_AUTHORIZATION", None)
     parts = auth.split()
     token = parts[1]
@@ -59,8 +60,47 @@ def requires_scope(required_scope):
         return decorated
     return require_scope
 
+class AcceptInvite(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request, *args, **kwargs):
+        # Accept Invite and Make User
+        if InviteToken.objects.filter(id=self.kwargs['invitetoken']).exists():
+            utc = pytz.UTC
+            try:
+                token = InviteToken.objects.get(id=self.kwargs['invitetoken'], email=request.data['email'])
+                if token.expiration > utc.localize(datetime.datetime.utcnow()):
+                    company = token.company
+                    if company:
+                        try:
+                            user = CustomUser.objects.get(
+                                email=request.data['email'],
+                                company=company,
+                                status='pending'
+                            )
+                        except Exception as e:
+                            print(e)
+                            return Response({"status": "Cannot find user"}, status=status.HTTP_400_BAD_REQUEST)
+
+                        user.password = make_password(request.data['password'])
+                        user.status = 'active'
+                        user.first_name = request.data['firstName']
+                        user.last_name = request.data['lastName']
+                        user.phone = request.data['phone']
+                        user.isVerified = True
+                        user.save()                            
+                        token.delete()
+                else:
+                    return Response({"status": "Token Expired"}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                return Response({"status": "Data Error on Invite Token"}, status=status.HTTP_400_BAD_REQUEST)
+            serializer = UserSerializerWithToken(user, many=False)
+            return Response(serializer.data)
+        else:
+            return Response({"status": "Invalid Invite Token"}, status=status.HTTP_400_BAD_REQUEST)
+
 class ManageUserView(APIView):
     permission_classes = [IsAuthenticated]
+    
     #TODO: Currently not checking if user email is already in use
     def post(self, request, *args, **kwargs):
         try:
@@ -93,39 +133,7 @@ class ManageUserView(APIView):
                     return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
                 users = CustomUser.objects.filter(company=user.company)
                 serializer = UserListSerializer(users, many=True)
-                return Response(serializer.data)
-            # Accept Invite and Make User
-            elif InviteToken.objects.filter(id=self.kwargs['id']).exists():
-                utc = pytz.UTC
-                try:
-                    token = InviteToken.objects.get(id=self.kwargs['id'], email=request.data['email'])
-                    if token.expiration > utc.localize(datetime.datetime.utcnow()):
-                        company = token.company
-                        if company:
-                            try:
-                                user = CustomUser.objects.get(
-                                    email=request.data['email'],
-                                    company=company,
-                                    status='pending'
-                                )
-                            except Exception as e:
-                                print(e)
-                                return Response({"status": "Cannot find user"}, status=status.HTTP_400_BAD_REQUEST)
-
-                            user.password = make_password(request.data['password'])
-                            user.status = 'active'
-                            user.first_name = request.data['firstName']
-                            user.last_name = request.data['lastName']
-                            user.phone = request.data['phone']
-                            user.isVerified = True
-                            user.save()                            
-                            token.delete()
-                    else:
-                        return Response({"status": "Token Expired"}, status=status.HTTP_400_BAD_REQUEST)
-                except Exception as e:
-                    return Response({"status": "Data Error on Invite Token"}, status=status.HTTP_400_BAD_REQUEST)
-                serializer = UserSerializerWithToken(user, many=False)
-                return Response(serializer.data)
+                return Response(serializer.data)            
             # Make User an Admin
             elif CustomUser.objects.filter(id=self.kwargs['id']).exists():
                 try:
@@ -172,47 +180,51 @@ class ManageUserView(APIView):
             print(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
 
-# @api_view(['POST', 'PUT'])
-# def company(request):
-#     if request.method == 'POST':
-#         try:
-#             company = request.data['name']
-#             email = request.data['email']
-#             comp = makeCompany(company, email)
-#             if comp == "":
-#                 return Response("", status=status.HTTP_201_CREATED, headers="")
-#             else:
-#                 return Response(comp, status=status.HTTP_400_BAD_REQUEST)
-#         except Exception as e:
-#             print(e)
-#             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
-#     elif request.method == 'PUT':
-#         try:
-#             company = Company.objects.get(id=request.data['company'])
-#             if request.data['email'] != "":
-#                 company.email = request.data['email']
-#             if request.data['phone'] != "":
-#                 company.phone = request.data['phone']
-#             if request.data['tenantID'] != "":
-#                 company.tenantID = request.data['tenantID']
-#             if request.data['clientID'] != "":
-#                 company.clientID = request.data['clientID']
-#                 company.clientSecret = request.data['clientSecret']
-#             if request.data['forSaleTag'] != "":
-#                 company.serviceTitanForSaleTagID = request.data['forSaleTag']
-#             if request.data['forRentTag'] != "":
-#                 company.serviceTitanForRentTagID = request.data['forRentTag']
-#             if request.data['soldTag'] != "":
-#                 company.serviceTitanRecentlySoldTagID = request.data['soldTag']
-#             if request.data['crm'] != "":
-#                 company.crm = request.data['crm']
-#             company.save()
-#             user = CustomUser.objects.get(id=request.data['user'])
-#             serializer = UserSerializerWithToken(user, many=False)
-#             return Response( serializer.data , status=status.HTTP_201_CREATED, headers="")
-#         except Exception as e:
-#             print(e)
-#             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)   
+@api_view(['PUT'])
+def company(request):
+    # if request.method == 'POST':
+    #     try:
+    #         company = request.data['name']
+    #         email = request.data['email']
+    #         comp = makeCompany(company, email)
+    #         if comp == "":
+    #             return Response("", status=status.HTTP_201_CREATED, headers="")
+    #         else:
+    #             return Response(comp, status=status.HTTP_400_BAD_REQUEST)
+    #     except Exception as e:
+    #         print(e)
+    #         return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+    if request.method == 'PUT':
+        try:
+            company = Company.objects.get(id=request.data['company'])
+            if request.data['email'] != "":
+                company.email = request.data['email']
+            if request.data['phone'] != "":
+                company.phone = request.data['phone']
+            if request.data['tenantID'] != "":
+                company.tenantID = request.data['tenantID']
+            if request.data['clientID'] != "":
+                company.clientID = request.data['clientID']
+                company.clientSecret = request.data['clientSecret']
+            if request.data['forSaleTag'] != "":
+                company.serviceTitanForSaleTagID = request.data['forSaleTag']
+            if request.data['forRentTag'] != "":
+                company.serviceTitanForRentTagID = request.data['forRentTag']
+            if request.data['soldTag'] != "":
+                company.serviceTitanRecentlySoldTagID = request.data['soldTag']
+            if request.data['soldContactedTag'] != "":
+                company.serviceTitanRecentlySoldContactedTagID = request.data['soldContactedTag']
+            if request.data['forSaleContactedTag'] != "":
+                company.serviceTitanForSaleContactedTagID = request.data['forSaleContactedTag']
+            if request.data['crm'] != "":
+                company.crm = request.data['crm']
+            company.save()
+            user = CustomUser.objects.get(id=request.data['user'])
+            serializer = UserSerializerWithToken(user, many=False)
+            return Response( serializer.data , status=status.HTTP_201_CREATED, headers="")
+        except Exception as e:
+            print(e)
+            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)   
 
 class VerifyRegistrationView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -249,7 +261,7 @@ class RegisterView(APIView):
         email = data.get('email')
         password = data.get('password')
         company = data.get('company')
-        accessToken = data.get('accessToken')
+        registrationToken = data.get('registrationToken')
         phone = data.get('phone')
         messages = {'errors': []}
         if first_name == None:
@@ -262,8 +274,8 @@ class RegisterView(APIView):
             messages['errors'].append('Password can\'t be empty')
         if company == None:
             messages['errors'].append('Company can\'t be empty')
-        if accessToken == None:
-            messages['errors'].append('Access Token can\'t be empty')
+        if registrationToken == None:
+            messages['errors'].append('Registration Token can\'t be empty')
         
         if CustomUser.objects.filter(email=email).exists():
             messages['errors'].append(
@@ -271,7 +283,7 @@ class RegisterView(APIView):
         if len(messages['errors']) > 0:
             return Response({"detail": messages['errors']}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            company = Company.objects.get(name=company, accessToken=accessToken)
+            company = Company.objects.get(name=company, accessToken=registrationToken)
             noAdmin = CustomUser.objects.filter(company=company, isVerified=True)
             if len(noAdmin) == 0:
                 user = CustomUser.objects.create(
@@ -345,7 +357,7 @@ class AuthenticatedUserView(APIView):
             print(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)      
 
-class UserViewSet(ReadOnlyModelViewSet):
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
     throttle_classes = [UserRateThrottle]
     serializer_class = UserSerializer
     queryset = CustomUser.objects.all()
@@ -453,3 +465,39 @@ class UserListView(generics.ListAPIView):
     serializer_class = UserListSerializer
     def get_queryset(self):
         return CustomUser.objects.filter(company=self.kwargs['company'])
+
+
+class TokenValidate(APIView):
+    def get(self, request, *args, **kwargs):
+        client_id = settings.GOOGLE_CLIENT_ID
+        access_token = request.headers.get("Authorization",None)
+        if access_token is None :
+            return Response({"error" :"Access token missing"}, status=status.HTTP_403_FORBIDDEN)
+        access_token = access_token.split(" ")[1]
+        token_info = requests.get(f"https://www.googleapis.com/oauth2/v3/tokeninfo?access_token={access_token}").json()
+        if int(token_info["expires_in"]) <= 0 :
+            return Response({"error":"access token expired"}, status=status.HTTP_401_UNAUTHORIZED)
+        if token_info["aud"] != client_id :
+            return Response({"error":"wrong access token"}, status=status.HTTP_401_UNAUTHORIZED)
+        user_info = requests.get(f"https://www.googleapis.com/oauth2/v3/userinfo?access_token={access_token}").json()
+        if token_info["sub"] != user_info["sub"]: # to ensure that the user info return belong to the user's token 
+            return Response({"error":"wrong user"}, status=status.HTTP_401_UNAUTHORIZED)
+        user_data = {"email":user_info["email"], "username":user_info["name"],"password":"randompassword"}
+        try :
+            CustomUser.objects.get(email = user_data["email"]) 
+            response = requests.post(f"{settings.BASE_BACKEND_URL}/api/v1/accounts/glogin/", json=user_data).json()
+            return Response(response,status=status.HTTP_200_OK)
+        except ObjectDoesNotExist :
+            return Response("User With Provided Email Does Not Exist",status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class googleLoginViewSet(viewsets.ViewSet):
+    def create(self, request):
+        email= request.data["email"]
+        try :
+            user = CustomUser.objects.get(email = email)
+        except ObjectDoesNotExist:
+            return Response({"error": "Wrong email or password 1 !"}, status= status.HTTP_404_NOT_FOUND)
+        serializer = UserSerializerWithToken(user, many=False)
+        return Response(serializer.data, status=status.HTTP_302_FOUND)

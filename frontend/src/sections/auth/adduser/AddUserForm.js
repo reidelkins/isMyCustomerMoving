@@ -7,7 +7,7 @@ import { Stack, TextField, Alert, AlertTitle, InputAdornment, IconButton } from 
 import { LoadingButton } from '@mui/lab';
 import { useDispatch, useSelector } from 'react-redux';
 import {useNavigate } from 'react-router-dom';
-import { useAuth0 } from "@auth0/auth0-react";
+
 
 import { showRegisterInfo, addUserAsync } from '../../../redux/actions/authActions';
 
@@ -31,22 +31,6 @@ export default function AddUserForm({token}) {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showVerifiedPassword, setShowVerifiedPassword] = useState(false);
-  const { getAccessTokenSilently } = useAuth0();
-  const [accessToken, setAccessToken] = useState(null);
-
-  useEffect(() => {
-    const fetchAccessToken = async () => {
-      const token = await getAccessTokenSilently();
-      setAccessToken(token);
-    };
-
-    fetchAccessToken();
-
-    // return a cleanup function to cancel any pending async operation and prevent updating the state on an unmounted component
-    return () => {
-      setAccessToken(null);
-    };
-  }, [getAccessTokenSilently]);
 
   const AddUserSchema = Yup.object().shape({
     firstName: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('First name required'),
@@ -73,7 +57,7 @@ export default function AddUserForm({token}) {
     },
     validationSchema: AddUserSchema,
     onSubmit: () => {
-      dispatch(addUserAsync(values.firstName, values.lastName, values.email, values.password, values.token, values.phone, accessToken));
+      dispatch(addUserAsync(values.firstName, values.lastName, values.email, values.password, values.token, values.phone));
       navigate('/login', { replace: true });
     },
   });
