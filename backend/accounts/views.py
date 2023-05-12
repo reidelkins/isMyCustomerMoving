@@ -353,7 +353,7 @@ class ZapierToken(TokenObtainPairView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         # Return the validated data
-        return Response(serializer.validated_data['access'], status=status.HTTP_200_OK)
+        return Response({'access':serializer.validated_data['access']}, status=status.HTTP_200_OK)
     
     
 class AuthenticatedUserView(APIView):
