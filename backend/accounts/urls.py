@@ -21,8 +21,8 @@ login_patterns = [
 
 zapier_patterns = [
     path('', views.ZapierToken.as_view(), name='zapier-login'),
-    path('zapier/sold/', views.ZapierSoldSubscribe.as_view(), name='zapier-sold-subscribe'),
-    path('zapier/forSale/', views.ZapierForSaleSubscribe.as_view(), name='zapier-forSale-subscribe'),
+    path('sold/', views.ZapierSoldSubscribe.as_view(), name='zapier-sold-subscribe'),
+    path('forSale/', views.ZapierForSaleSubscribe.as_view(), name='zapier-forSale-subscribe'),
 ]
 
 urlpatterns = [
