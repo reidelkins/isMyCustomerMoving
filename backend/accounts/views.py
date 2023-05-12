@@ -358,9 +358,9 @@ class ZapierToken(TokenObtainPairView):
     
 class AuthenticatedUserView(APIView):
     permission_classes = [IsAuthenticated]   
-    def get(self, request, email=None):  
+    def get(self, request):  
         try:
-            user = CustomUser.objects.get(email=email)
+            user = CustomUser.objects.get(email="reid@ismycustomermoving.com")
             serializer = UserSerializer(user, many=False)
             return Response(serializer.data)
         except Exception as e:
