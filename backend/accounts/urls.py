@@ -16,7 +16,13 @@ router.register(r'glogin',views.googleLoginViewSet,basename='glogin')
 
 login_patterns = [
     path('', views.MyTokenObtainPairView.as_view(), name='login'),
-    path('google/', views.TokenValidate.as_view(), name='google-login')
+    path('google/', views.TokenValidate.as_view(), name='google-login'),
+]
+
+zapier_patterns = [
+    path('', views.ZapierToken.as_view(), name='zapier-login'),
+    path('sold/', views.ZapierSoldSubscribe.as_view(), name='zapier-sold-subscribe'),
+    path('forSale/', views.ZapierForSaleSubscribe.as_view(), name='zapier-forSale-subscribe'),
 ]
 
 urlpatterns = [
@@ -34,7 +40,8 @@ urlpatterns = [
     path('users/<str:company>/', views.UserListView.as_view(), name='user-list'),
     path('register/', views.RegisterView.as_view(), name='register'),
     path('login/', include(login_patterns)),
-    path('authenticated_user/<str:email>/', views.AuthenticatedUserView.as_view(), name='authenticated_user'),
+    path('zapier/', include(zapier_patterns)),
+    path('authenticated_user/', views.AuthenticatedUserView.as_view(), name='authenticated_user'),
     path("", include(router.urls)),
     
 ]
