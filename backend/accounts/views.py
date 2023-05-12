@@ -360,9 +360,9 @@ class AuthenticatedUserView(APIView):
     permission_classes = [IsAuthenticated]   
     def get(self, request):  
         try:
-            user = CustomUser.objects.get(email="reid@ismycustomermoving.com")
+            user = CustomUser.objects.get(email=self.kwargs['email'])
             serializer = UserSerializer(user, many=False)
-            return Response(serializer.data)
+            return Response(serializer.data['first_name'])
         except Exception as e:
             print(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)      
