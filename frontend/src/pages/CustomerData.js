@@ -42,6 +42,7 @@ import SearchNotFound from '../components/SearchNotFound';
 import CounterCard from '../components/CounterCard';
 import ClientEventTable from '../components/ClientEventTable';
 import ClientDetailsTable from '../components/ClientDetailsTable';
+import ServiceTitanSyncModal from '../components/ServiceTitanSyncModal';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
 
 import ClientsListCall from '../redux/calls/ClientsListCall';
@@ -256,9 +257,6 @@ export default function CustomerData() {
   };
   const updateStatus = () => {
     dispatch(update());
-  };
-  const stSync = () => {
-    dispatch(serviceTitanSync());
   };
   const sfSync = () => {
     dispatch(salesForceSync());
@@ -590,9 +588,7 @@ export default function CustomerData() {
                   {userInfo.status === 'admin' && (                 
                     (
                       userInfo.company.crm === 'ServiceTitan' ? (
-                        <Button onClick={stSync} variant="contained">
-                          Sync With Service Titan
-                        </Button>
+                        <ServiceTitanSyncModal />
                       )
                       :
                     (

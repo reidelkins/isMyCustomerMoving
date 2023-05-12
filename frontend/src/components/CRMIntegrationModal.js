@@ -34,7 +34,7 @@ const ServiceTitan = ({open, setOpen, dispatch}) => {
         validationSchema: IntegrateSTSchema,
         onSubmit: () => {
             setOpen(false);
-            dispatch(companyAsync("", "", values.tenantID, "", "", "", "", "", "ServiceTitan"))
+            dispatch(companyAsync("", "", values.tenantID, "", "", "", "", "", "", "", "ServiceTitan"))
         },
     });
 

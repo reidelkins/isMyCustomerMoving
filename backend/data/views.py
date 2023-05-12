@@ -250,10 +250,11 @@ class ServiceTitanView(APIView):
     def put(self, request, *args, **kwargs):
         try:
             company_id = self.kwargs['company']
+            option = request.data['option']
             try:
                 Company.objects.get(id=company_id)
                 task = Task.objects.create() 
-                get_serviceTitan_clients.delay(company_id, task.id)                          
+                get_serviceTitan_clients.delay(company_id, task.id, option)                          
                 return Response({"status": "Success", "task": task.id}, status=status.HTTP_201_CREATED, headers="")
             except Exception as e:
                 print(e)

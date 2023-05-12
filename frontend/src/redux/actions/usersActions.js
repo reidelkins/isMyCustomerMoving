@@ -497,7 +497,7 @@ export const serviceTitanUpdateAsync = (id) => async (dispatch, getState) => {
   }
 };
         
-export const serviceTitanSync = () => async (dispatch, getState) => {
+export const serviceTitanSync = (option) => async (dispatch, getState) => {
   try {
     dispatch(clientsLoading());
     const reduxStore = getState();
@@ -510,7 +510,7 @@ export const serviceTitanSync = () => async (dispatch, getState) => {
         Authorization: `Bearer ${userInfo.accessToken}`,
       },
     };
-    const { data } = await axios.put(`${DOMAIN}/api/v1/data/servicetitan/${company}/`, {}, config);
+    const { data } = await axios.put(`${DOMAIN}/api/v1/data/servicetitan/${company}/`, {option}, config);
     dispatch(serviceTitanUpdateAsync(data.task))
     
   } catch (error) {

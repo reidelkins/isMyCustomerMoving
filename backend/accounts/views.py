@@ -33,7 +33,6 @@ from functools import wraps
 def get_token_auth_header(request):
     """Obtains the Access Token from the Authorization Header
     """
-    print(request.META )
     auth = request.META.get("HTTP_AUTHORIZATION", None)
     parts = auth.split()
     token = parts[1]
@@ -217,6 +216,8 @@ def company(request):
                 company.serviceTitanRecentlySoldContactedTagID = request.data['soldContactedTag']
             if request.data['forSaleContactedTag'] != "":
                 company.serviceTitanForSaleContactedTagID = request.data['forSaleContactedTag']
+            if request.data['crm'] != "":
+                company.crm = request.data['crm']
             company.save()
             user = CustomUser.objects.get(id=request.data['user'])
             serializer = UserSerializerWithToken(user, many=False)
@@ -260,7 +261,7 @@ class RegisterView(APIView):
         email = data.get('email')
         password = data.get('password')
         company = data.get('company')
-        accessToken = data.get('accessToken')
+        registrationToken = data.get('registrationToken')
         phone = data.get('phone')
         messages = {'errors': []}
         if first_name == None:
@@ -273,8 +274,8 @@ class RegisterView(APIView):
             messages['errors'].append('Password can\'t be empty')
         if company == None:
             messages['errors'].append('Company can\'t be empty')
-        if accessToken == None:
-            messages['errors'].append('Access Token can\'t be empty')
+        if registrationToken == None:
+            messages['errors'].append('Registration Token can\'t be empty')
         
         if CustomUser.objects.filter(email=email).exists():
             messages['errors'].append(
@@ -282,7 +283,7 @@ class RegisterView(APIView):
         if len(messages['errors']) > 0:
             return Response({"detail": messages['errors']}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            company = Company.objects.get(name=company, accessToken=accessToken)
+            company = Company.objects.get(name=company, accessToken=registrationToken)
             noAdmin = CustomUser.objects.filter(company=company, isVerified=True)
             if len(noAdmin) == 0:
                 user = CustomUser.objects.create(
