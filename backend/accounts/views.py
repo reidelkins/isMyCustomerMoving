@@ -345,6 +345,16 @@ class MyTokenObtainPairView(TokenObtainPairView):
         # Return the validated data
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
     
+class ZapierToken(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        # Call the serializer class to validate the data
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        # Return the validated data
+        return Response(serializer.validated_data['access'], status=status.HTTP_200_OK)
+    
     
 class AuthenticatedUserView(APIView):
     permission_classes = [IsAuthenticated]   
@@ -466,7 +476,6 @@ class UserListView(generics.ListAPIView):
     def get_queryset(self):
         return CustomUser.objects.filter(company=self.kwargs['company'])
 
-
 class TokenValidate(APIView):
     def get(self, request, *args, **kwargs):
         client_id = settings.GOOGLE_CLIENT_ID
@@ -489,8 +498,6 @@ class TokenValidate(APIView):
             return Response(response,status=status.HTTP_200_OK)
         except ObjectDoesNotExist :
             return Response("User With Provided Email Does Not Exist",status=status.HTTP_400_BAD_REQUEST)
-
-
 
 class googleLoginViewSet(viewsets.ViewSet):
     def create(self, request):

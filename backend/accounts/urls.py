@@ -16,7 +16,8 @@ router.register(r'glogin',views.googleLoginViewSet,basename='glogin')
 
 login_patterns = [
     path('', views.MyTokenObtainPairView.as_view(), name='login'),
-    path('google/', views.TokenValidate.as_view(), name='google-login')
+    path('google/', views.TokenValidate.as_view(), name='google-login'),
+    path('zapier/', views.ZapierToken.as_view(), name='zapier-login')
 ]
 
 urlpatterns = [
