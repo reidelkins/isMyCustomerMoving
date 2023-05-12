@@ -343,29 +343,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         # Return the validated data
-        return Response(serializer.validated_data, status=status.HTTP_200_OK)
-    
-class ZapierToken(TokenObtainPairView):
-    serializer_class = MyTokenObtainPairSerializer
-
-    def post(self, request, *args, **kwargs):
-        # Call the serializer class to validate the data
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        # Return the validated data
-        return Response({'access':serializer.validated_data['access']}, status=status.HTTP_200_OK)
-    
-    
-class AuthenticatedUserView(APIView):
-    permission_classes = [IsAuthenticated]   
-    def get(self, request):  
-        try:
-            user = CustomUser.objects.get(email=request.user)
-            serializer = UserSerializer(user, many=False)
-            return Response(serializer.data['first_name'])
-        except Exception as e:
-            print(e)
-            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)      
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)    
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     throttle_classes = [UserRateThrottle]
@@ -508,3 +486,72 @@ class googleLoginViewSet(viewsets.ViewSet):
             return Response({"error": "Wrong email or password 1 !"}, status= status.HTTP_404_NOT_FOUND)
         serializer = UserSerializerWithToken(user, many=False)
         return Response(serializer.data, status=status.HTTP_302_FOUND)
+
+class ZapierToken(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        # Call the serializer class to validate the data
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        # Return the validated data
+        return Response({'access':serializer.validated_data['access']}, status=status.HTTP_200_OK)
+    
+class AuthenticatedUserView(APIView):
+    permission_classes = [IsAuthenticated]   
+    def get(self, request):  
+        try:
+            user = CustomUser.objects.get(email=request.user)
+            serializer = UserSerializer(user, many=False)
+            return Response(serializer.data['first_name'])
+        except Exception as e:
+            print(e)
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)      
+
+class ZapierSoldSubscribe(APIView):
+    permission_classes = [IsAuthenticated]   
+    def post(self, request):  
+        try:
+            user = CustomUser.objects.get(email=request.user)
+            company = user.company
+            company.zapier_sold = request.data['hookUrl']
+            company.save()
+            return Response({'detail': 'Zapier Sold Subscribe'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    def delete(self, request):  
+        try:
+            user = CustomUser.objects.get(email=request.user)
+            company = user.company
+            company.zapier_sold = None
+            company.save()
+            return Response({'detail': 'Zapier Sold Unsubscribe'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+        
+class ZapierForSaleSubscribe(APIView):
+    permission_classes = [IsAuthenticated]   
+    def post(self, request):  
+        try:
+            user = CustomUser.objects.get(email=request.user)
+            company = user.company
+            company.zapier_forSale = request.data['hookUrl']
+            company.save()
+            return Response({'detail': 'Zapier For Sale Subscribe'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    def delete(self, request):  
+        try:
+            user = CustomUser.objects.get(email=request.user)
+            company = user.company
+            company.zapier_forSale = None
+            company.save()
+            return Response({'detail': 'Zapier For Sale Unsubscribe'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
