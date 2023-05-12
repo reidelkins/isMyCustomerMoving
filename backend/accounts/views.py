@@ -217,6 +217,8 @@ def company(request):
                 company.serviceTitanRecentlySoldContactedTagID = request.data['soldContactedTag']
             if request.data['forSaleContactedTag'] != "":
                 company.serviceTitanForSaleContactedTagID = request.data['forSaleContactedTag']
+            if request.data['crm'] != "":
+                company.crm = request.data['crm']
             company.save()
             user = CustomUser.objects.get(id=request.data['user'])
             serializer = UserSerializerWithToken(user, many=False)

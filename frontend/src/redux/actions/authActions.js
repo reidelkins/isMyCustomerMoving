@@ -204,7 +204,7 @@ export const registerAsync = (company, registrationToken, firstName, lastName, e
   }
 };
 
-export const companyAsync = (email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag, forSaleContactedTag, soldContactedTag) => async (dispatch, getState) => {
+export const companyAsync = (email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag, forSaleContactedTag, soldContactedTag, crm) => async (dispatch, getState) => {
   try {
     dispatch(companyLoading());
     const reduxStore = getState();
@@ -215,15 +215,15 @@ export const companyAsync = (email, phone, tenantID, clientID, clientSecret, for
         Authorization: `Bearer ${userInfo.accessToken}`,
       },
     };
+    const body = { 'company': userInfo.company.id, email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag, forSaleContactedTag, soldContactedTag, crm, 'user': userInfo.id};
     const { data } = await axios.put(
       `${DOMAIN}/api/v1/accounts/company/`,
-      { 'company': userInfo.company.id, email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag, forSaleContactedTag, soldContactedTag, 'user': userInfo.id},
+      body,
       config
     );
     dispatch(company(data));
     localStorage.setItem('userInfo', JSON.stringify(data));
   } catch (err) {
-    console.log(err)
     dispatch(companyError(err.response && err.response.data.detail ? err.response.data.detail : err.message,));
     if (err.response.status === 403) {
       dispatch(getRefreshToken(dispatch, companyAsync(email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag, forSaleContactedTag, soldContactedTag)))

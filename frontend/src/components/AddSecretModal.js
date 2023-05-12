@@ -48,7 +48,7 @@ export default function AddSecretModal() {
         validationSchema: IntegrateSTSchema,
         onSubmit: () => {
             setOpen(false);
-            dispatch(companyAsync("", "", "", values.clientID, values.clientSecret, "", "", "", ""))
+            dispatch(companyAsync("", "", "", values.clientID, values.clientSecret, "", "", "", "", "", ""))
         },
     });
 

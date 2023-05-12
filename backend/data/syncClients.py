@@ -74,7 +74,7 @@ def get_salesforce_clients(company_id, task_id=None):
 
 
 @shared_task
-def get_serviceTitan_clients(company_id, task_id):
+def get_serviceTitan_clients(company_id, task_id, option):
     company = Company.objects.get(id=company_id)
     tenant = company.tenantID
     headers = get_serviceTitan_accessToken(company_id)
@@ -88,6 +88,9 @@ def get_serviceTitan_clients(company_id, task_id):
         clients = response.json()['data']
         if response.json()['hasMore'] == False:
             moreClients = False
+        if option == 'option3':
+            for client in clients:
+                client['name'] = " "
         result = saveClientList.delay(clients, company_id)
         delVariables([clients, response])
     
@@ -101,22 +104,22 @@ def get_serviceTitan_clients(company_id, task_id):
     
     get_servicetitan_equipment.delay(company_id)
     doItAll.delay(company_id)
-
-    frm = ""
-    moreClients = True
-    page = 0
-    while(moreClients):
-        page += 1
-        response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/export/customers/contacts?from={frm}', headers=headers)
-        # for number in response.json()['data']:
-        #     numbers.append(number)
-        numbers = response.json()['data']
-        if response.json()['hasMore'] == True:
-            frm = response.json()['continueFrom']
-        else:
-            moreClients = False        
-        updateClientList.delay(numbers)
-        delVariables([numbers, response])
+    if option == 'option1':
+        frm = ""
+        moreClients = True
+        page = 0
+        while(moreClients):
+            page += 1
+            response = requests.get(f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/export/customers/contacts?from={frm}', headers=headers)
+            # for number in response.json()['data']:
+            #     numbers.append(number)
+            numbers = response.json()['data']
+            if response.json()['hasMore'] == True:
+                frm = response.json()['continueFrom']
+            else:
+                moreClients = False        
+            updateClientList.delay(numbers)
+            delVariables([numbers, response])
     delVariables([frm, moreClients, headers, company, tenant])
 
 

@@ -57,7 +57,7 @@ export default function ServiceTitanTagsModal({userInfo}) {
         validationSchema: IntegrateSTSchema,
         onSubmit: () => {
             setOpen(false);
-            dispatch(companyAsync("", "", "", "", "", values.forSale, values.forRent, values.recentlySold, values.forSale_contacted, values.recentlySold_contacted))
+            dispatch(companyAsync("", "", "", "", "", values.forSale, values.forRent, values.recentlySold, values.forSale_contacted, values.recentlySold_contacted, ""))
         },
     });
 
