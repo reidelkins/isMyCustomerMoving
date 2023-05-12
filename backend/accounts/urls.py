@@ -35,7 +35,7 @@ urlpatterns = [
     path('users/<str:company>/', views.UserListView.as_view(), name='user-list'),
     path('register/', views.RegisterView.as_view(), name='register'),
     path('login/', include(login_patterns)),
-    path('authenticated_user/<str:email>/', views.AuthenticatedUserView.as_view(), name='authenticated_user'),
+    path('authenticated_user/', views.AuthenticatedUserView.as_view(), name='authenticated_user'),
     path("", include(router.urls)),
     
 ]

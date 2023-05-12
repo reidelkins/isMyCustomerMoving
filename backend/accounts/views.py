@@ -360,7 +360,7 @@ class AuthenticatedUserView(APIView):
     permission_classes = [IsAuthenticated]   
     def get(self, request):  
         try:
-            user = CustomUser.objects.get(email=self.kwargs['email'])
+            user = CustomUser.objects.get(email=request.user)
             serializer = UserSerializer(user, many=False)
             return Response(serializer.data['first_name'])
         except Exception as e:
