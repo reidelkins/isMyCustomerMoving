@@ -46,6 +46,23 @@ class ClientListSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status', 'contacted', 'note', 'phoneNumber', 'clientUpdates_client', 'price', 'housingType', 'year_built', 'tags','error_flag', 'equipmentInstalledDate')
         read_only_fields = fields
 
+class ZapierClientSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(max_length=100)
+    address = serializers.CharField(max_length=100)
+    city = serializers.CharField(max_length=100)
+    state = serializers.CharField(max_length=100)
+    zipCode = serializers.SerializerMethodField(read_only=True)
+    phoneNumber = serializers.CharField(max_length=100)
+
+    def get_zipCode(self, obj):
+        return obj.zipCode.zipCode
+    
+    class Meta:
+        model = Client
+        fields = ('name', 'address', 'city', 'state', 'zipCode', 'phoneNumber')
+        read_only_fields = fields
+
+
 class HomeListingSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     address = serializers.CharField(max_length=100)

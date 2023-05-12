@@ -2,6 +2,7 @@ from time import sleep
 from accounts.models import Company, CustomUser
 from config import settings
 from .models import Client, ZipCode, HomeListing, ScrapeResponse, ClientUpdate, Task, HomeListingTags
+from .serializers import ZapierClientSerializer
 
 from bs4 import BeautifulSoup
 from celery import shared_task
@@ -400,6 +401,22 @@ def updateStatus(zip, company, status):
             toList.save()
             for tag in homeListing.tag.all():
                 toList.tag.add(tag)
+
+            if company.zapier_forSale and status == "House For Sale":
+                try:
+                    serializer = ZapierClientSerializer(toList)
+                    serialized_data = serializer.data
+                    requests.post(company.zapier_forSale, data=serialized_data)
+                except Exception as e:
+                    print(e)
+            if company.zapier_sold and status == "House Recently Sold (6)":
+                try:
+                    serializer = ZapierClientSerializer(toList)
+                    serialized_data = serializer.data
+                    requests.post(company.zapier_sold, data=serialized_data)
+                except Exception as e:
+                    print(e)
+
         try:
             listing = HomeListing.objects.filter(zipCode=zipCode_object, address=toList.address, status=status)
             ClientUpdate.objects.get_or_create(client=toList, status=status, listed=listing[0].listed)
