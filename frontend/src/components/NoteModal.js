@@ -44,7 +44,7 @@ export default function NoteModal({
         note: passedNote,
         },
         onSubmit: () => {
-            dispatch(updateClientAsync(id, "", values.note, ""));
+            dispatch(updateClientAsync(id, "", values.note, "", "", ""));
             setOpen(false);
         },
     });

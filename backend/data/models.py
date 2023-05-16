@@ -42,6 +42,8 @@ class Client(models.Model):
     equipmentInstalledDate = models.DateField(blank=True, null=True)
     active = models.BooleanField(default=True)
     error_flag = models.BooleanField(default=False)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
 
     class Meta:
         unique_together = ('company', 'name', 'address')

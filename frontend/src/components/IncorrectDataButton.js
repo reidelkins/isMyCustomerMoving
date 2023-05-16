@@ -23,7 +23,7 @@ function IncorrectDataButton({clientId}) {
         setOpen(false);
     };
     const handleConfirm = () => {
-        dispatch(updateClientAsync(clientId, "", "", true));
+        dispatch(updateClientAsync(clientId, "", "", true, "", ""));
         setOpen(false);
     }
     

@@ -23,7 +23,7 @@ function RemoveErrorFlagButton({clientId}) {
         setOpen(false);
     };
     const handleConfirm = () => {
-        dispatch(updateClientAsync(clientId, "", "", false));
+        dispatch(updateClientAsync(clientId, "", "", false, "", ""));
         setOpen(false);
     }
     

@@ -220,6 +220,10 @@ class UpdateClientView(APIView):
                     ClientUpdate.objects.create(client=client, error_flag=request.data['errorFlag'])
                     if client.servTitanID:
                         remove_all_serviceTitan_tags.delay(client=client.id)
+                if request.data['latitude'] != "":
+                    client.latitude = request.data['latitude']
+                if request.data['longitude'] != "":
+                    client.longitude = request.data['longitude']
                 client.save()
                 return Response({"status": "Client Updated"}, status=status.HTTP_201_CREATED, headers="")
         except Exception as e:

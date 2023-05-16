@@ -256,7 +256,7 @@ export default function CustomerData() {
     setFilterName(event.target.value);
   };
   const updateContacted = (event, id, contacted) => {
-    dispatch(updateClientAsync(id, contacted, "", ""));
+    dispatch(updateClientAsync(id, contacted, "", "", "", ""));
   };
   const updateStatus = () => {
     dispatch(update());

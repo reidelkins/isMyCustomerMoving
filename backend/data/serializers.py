@@ -34,6 +34,8 @@ class ClientListSerializer(serializers.ModelSerializer):
     equipmentInstalledDate = serializers.DateField()
     error_flag = serializers.BooleanField()
     clientUpdates_client = ClientUpdateSerializer(many=True, read_only=True)
+    latitude = serializers.FloatField()
+    longitude = serializers.FloatField()
 
     def get_zipCode(self, obj):
         return obj.zipCode.zipCode
@@ -43,7 +45,7 @@ class ClientListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Client
-        fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status', 'contacted', 'note', 'phoneNumber', 'clientUpdates_client', 'price', 'housingType', 'year_built', 'tags','error_flag', 'equipmentInstalledDate')
+        fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status', 'contacted', 'note', 'phoneNumber', 'clientUpdates_client', 'price', 'housingType', 'year_built', 'tags','error_flag', 'equipmentInstalledDate', 'latitude', 'longitude')
         read_only_fields = fields
 
 class ZapierClientSerializer(serializers.ModelSerializer):

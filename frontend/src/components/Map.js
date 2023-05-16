@@ -1,12 +1,13 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { GoogleMap, Marker, useLoadScript, InfoWindow } from "@react-google-maps/api";
 import { Card } from '@mui/material';
+import { useDispatch } from 'react-redux';
 
-
+import { updateClientAsync } from '../redux/actions/usersActions';
 import "../theme/map.css"
 
 export default function Map({clients}) {
-
+    const dispatch = useDispatch();
     
     const [mapRef, setMapRef] = useState();
     const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +26,7 @@ export default function Map({clients}) {
         setIsOpen(true);
     };
 
-    async function getLatLngFromAddress(address, city, state, zip) {
+    async function getLatLngFromAddress(id, address, city, state, zip) {
         const fullAddress = `${address}, ${city}, ${state} ${zip}`;
         if (!address || !city || !state || !zip) return { lat: 0, lng: 0 };
         
@@ -38,7 +39,8 @@ export default function Map({clients}) {
 
         if (data.results && data.results.length > 0) {
             const { lat, lng } = data.results[0].geometry.location;
-            return { lat, lng };
+            dispatch(updateClientAsync(id, "", "", "", lat, lng))
+            return { latitude: lat, longitude: lng };
         }
         return { lat: 0, lng: 0 };                
     }
@@ -48,10 +50,20 @@ export default function Map({clients}) {
             const clientsWithStatus = clients.filter(client => client.status !== 'No Change');
             // const clientsWithStatus = clients.slice(0, 100);
             const markers = await Promise.all(
-            clientsWithStatus.map(async (client) => {
-                    const { lat, lng } = await getLatLngFromAddress(client.address, client.city, client.state, client.zipCode);                                      
-                    return { ...client, lat, lng };
+                clientsWithStatus.map(async (client) => {
+                    let lat = 0; // initializing with default values
+                    let lng = 0; // initializing with default values
+                    if (!client.latitude || !client.longitude) {
+                        const { latitude, longitude } = await getLatLngFromAddress(client.id, client.address, client.city, client.state, client.zipCode);                        
+                        lat = latitude;
+                        lng = longitude;
+                        dispatch(updateClientAsync(client.id, "", "", "", lat, lng))
+                    } else {
+                        lat = client.latitude;
+                        lng = client.longitude;
+                    }
                     
+                    return { ...client, lat, lng };
                 })
             );
             setMarkers(markers);
