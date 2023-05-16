@@ -25,7 +25,9 @@ export default function Map({clients}) {
         setIsOpen(true);
     };
 
-    async function getLatLngFromAddress(address) {
+    async function getLatLngFromAddress(address, city, state, zip) {
+        if (!address || !city || !state || !zip) return { lat: null, lng: null };
+        const fullAddress = `${address}, ${city}, ${state} ${zip}`;
         const response = await fetch(
             `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
             address
@@ -44,10 +46,12 @@ export default function Map({clients}) {
         const getMarkers = async () => {
             console.log("clients", clients)
             const clientsWithStatus = clients.filter(client => client.status !== 'No Change');
+            // const clientsWithStatus = clients.slice(0, 100);
             console.log("clientsWithStatus", clientsWithStatus)
             const markers = await Promise.all(
             clientsWithStatus.map(async (client) => {
-                    const { lat, lng } = await getLatLngFromAddress(client.address);
+                    const { lat, lng } = await getLatLngFromAddress(client.address, client.city, client.state, client.zip);
+                    if (lat === null || lng === null) return null;
                     return { ...client, lat, lng };
                 })
             );
