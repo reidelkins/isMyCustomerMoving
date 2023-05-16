@@ -43,11 +43,14 @@ import CounterCard from '../components/CounterCard';
 import ClientEventTable from '../components/ClientEventTable';
 import ClientDetailsTable from '../components/ClientDetailsTable';
 import ServiceTitanSyncModal from '../components/ServiceTitanSyncModal';
+import Map from '../components/Map';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
 
 import ClientsListCall from '../redux/calls/ClientsListCall';
 import { selectClients, update, updateClientAsync, serviceTitanSync, salesForceSync, clientsAsync, getClientsCSV } from '../redux/actions/usersActions';
 import { showLoginInfo, logout } from '../redux/actions/authActions';
+
+import "../theme/map.css";
 
 // ----------------------------------------------------------------------
 // change this to sort by status
@@ -200,7 +203,7 @@ export default function CustomerData() {
     setOrderBy(property);
   };
   const handleSelectAllClick = (event) => {
-    
+
     if (event.target.checked) {
 
       const newSelecteds = CLIENTLIST.slice((page * rowsPerPage), ((page+1) * rowsPerPage)).map((n) => n.address);
@@ -262,35 +265,6 @@ export default function CustomerData() {
     dispatch(salesForceSync());
   };
 
-  // const exportCSV = async () => {
-  //   if (CLIENTLIST.length === 0) { return }
-  //   const config = {
-  //     headers: {
-  //       'Content-type': 'application/json',
-  //       Authorization: `Bearer ${userInfo.access}`,
-  //     },
-  //   };
-  //   setCsvLoading(true);
-  //   const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/allClients/${userInfo.id}`, config);
-  //   let csvContent = 'data:text/csv;charset=utf-8,';
-  //   csvContent += 'Name,Address,City,State,ZipCode,Status,Contacted,Note,Phone Number\r\n';
-  //   data.forEach((n) => {
-  //     csvContent += `${n.name}, ${n.address}, ${n.city}, ${n.state}, ${n.zipCode}, ${n.status}, ${n.contacted}, ${n.note}, ${n.phoneNumber}\r\n`
-  //   });
-
-  //   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  //   // Create a download link for the CSV file
-  //   const link = document.createElement('a');
-  //   link.href = window.URL.createObjectURL(blob);
-  //   const d1 = new Date().toLocaleDateString('en-US')
-  //   const docName = `isMyCustomerMoving_${d1}`    
-
-  //   link.setAttribute('download', `${docName}.csv`);
-  //   document.body.appendChild(link); // add the link to body
-  //   link.click();
-  //   document.body.removeChild(link); // remove the link from body
-  //   setCsvLoading(false);
-  // };
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
   
   
@@ -320,6 +294,9 @@ export default function CustomerData() {
   const exportCSV = () => {
     dispatch(getClientsCSV(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax))
   }
+
+  const [listOrMap, setListOrMap] = useState("list");
+  const handleListOrMap = (newListOrMap) => {setListOrMap(newListOrMap)}
   
   
   return (
@@ -381,6 +358,8 @@ export default function CustomerData() {
                   setEquipInstallDateMax={handleEquipInstallDateMax}
                   statusFilters={statusFilters}
                   setStatusFilters={handleStatusFiltersChange}
+                  listOrMap={listOrMap}
+                  setListOrMap={handleListOrMap}
                   
                   />
                 {loading ? (
@@ -388,152 +367,158 @@ export default function CustomerData() {
                     <LinearProgress />
                   </Box>
                 ) : null}
-
-                <Scrollbar>
-                  <TableContainer sx={{ minWidth: 800 }}>
-                    <Table>
-                      <ClientListHead
-                        order={order}
-                        orderBy={orderBy}
-                        headLabel={TABLE_HEAD}
-                        rowCount={rowsPerPage}
-                        numSelected={selected.length}
-                        onRequestSort={handleRequestSort}
-                        onSelectAllClick={handleSelectAllClick}
-                        checkbox={1}
-                      />
-                      <TableBody>
-                        {filteredClients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                          const { id, name, address, city, state, zipCode, status, contacted, note, phoneNumber, clientUpdates_client: clientUpdates, price, year_built: yearBuilt, housingType, equipmentInstalledDate, error_flag: errorFlag} = row;
-                          const isItemSelected = selected.indexOf(address) !== -1;                        
-                          
-                          return (
-                            <React.Fragment key={row.id}>
-                              <Tooltip title="Click For Expanded Details">
-                                <TableRow
-                                  hover
-                                  key={id}
-                                  tabIndex={-1}
-                                  role="checkbox"
-                                  selected={isItemSelected}
-                                  aria-checked={isItemSelected}
-                                  onClick={() => handleRowClick(id)}
-                                >
-                                  <TableCell padding="checkbox">
-                                    <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, address, id)} />
-                                  </TableCell>
-                                  <TableCell component="th" scope="row" padding="none">
-                                    <Stack direction="row" alignItems="center" spacing={2}>
-                                      <Typography variant="subtitle2" noWrap>
-                                        {name}
-                                      </Typography>
-                                    </Stack>
-                                  </TableCell>
-                                  <TableCell align="left">{address}</TableCell>
-                                  <TableCell align="left">{city}</TableCell>
-                                  <TableCell align="left">{state}</TableCell>
-                                  <TableCell align="left">{zipCode}</TableCell>
-                                  <TableCell align="left">
-                                    {userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy' ? (
-                                      <Label variant="ghost" color={(status === 'No Change' && 'warning') || (contacted === 'False' && 'error'  || 'success')}>
-                                        {sentenceCase(status)}
-                                      </Label>
-                                    ) : (
-                                      <Label variant="ghost" color='warning'>
-                                        Free Tier
-                                      </Label>
-                                    )}
-                                    
-                                  </TableCell>
-                                  <TableCell>
-                                    {(() => {
-                                      if (status !== 'No Change' && userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy') {
-                                        if (contacted) {
-                                          return(
-                                            <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, false)}>
-                                              <Iconify icon="bi:check-lg" />
-                                            </IconButton>
-                                          )
-                                        }
-                                        return(
-                                          <IconButton color="error" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, true)}>
-                                            <Iconify icon="ps:check-box-empty" />
-                                          </IconButton>
-                                        )
-                                      }
-                                      return null;                                
-                                    })()}                          
-                                  </TableCell>
-                                  <TableCell>
-                                    <NoteModal 
-                                      passedNote={note}
-                                      id={id}
-                                      name={name}
-                                    />
-                                  </TableCell>
-                                  <TableCell>
-                                    {/* make phone number look like (123) 456-7890 */}
-                                    {phoneNumber ? `(${phoneNumber.slice(0,3)}) ${phoneNumber.slice(3,6)}-${phoneNumber.slice(6,10)}`: "N/A"}
-                                  </TableCell>
-                                  {userInfo.company.franchise && (
+                {listOrMap === "list" ? (
+                  <>
+                  <Scrollbar>
+                    <TableContainer sx={{ minWidth: 800 }}>
+                      <Table>
+                        <ClientListHead
+                          order={order}
+                          orderBy={orderBy}
+                          headLabel={TABLE_HEAD}
+                          rowCount={rowsPerPage}
+                          numSelected={selected.length}
+                          onRequestSort={handleRequestSort}
+                          onSelectAllClick={handleSelectAllClick}
+                          checkbox={1}
+                        />
+                        <TableBody>
+                          {filteredClients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                            const { id, name, address, city, state, zipCode, status, contacted, note, phoneNumber, clientUpdates_client: clientUpdates, price, year_built: yearBuilt, housingType, equipmentInstalledDate, error_flag: errorFlag} = row;
+                            const isItemSelected = selected.indexOf(address) !== -1;                        
+                            
+                            return (
+                              <React.Fragment key={row.id}>
+                                <Tooltip title="Click For Expanded Details">
+                                  <TableRow
+                                    hover
+                                    key={id}
+                                    tabIndex={-1}
+                                    role="checkbox"
+                                    selected={isItemSelected}
+                                    aria-checked={isItemSelected}
+                                    onClick={() => handleRowClick(id)}
+                                  >
+                                    <TableCell padding="checkbox">
+                                      <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, address, id)} />
+                                    </TableCell>
+                                    <TableCell component="th" scope="row" padding="none">
+                                      <Stack direction="row" alignItems="center" spacing={2}>
+                                        <Typography variant="subtitle2" noWrap>
+                                          {name}
+                                        </Typography>
+                                      </Stack>
+                                    </TableCell>
+                                    <TableCell align="left">{address}</TableCell>
+                                    <TableCell align="left">{city}</TableCell>
+                                    <TableCell align="left">{state}</TableCell>
+                                    <TableCell align="left">{zipCode}</TableCell>
+                                    <TableCell align="left">
+                                      {userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy' ? (
+                                        <Label variant="ghost" color={(status === 'No Change' && 'warning') || (contacted === 'False' && 'error'  || 'success')}>
+                                          {sentenceCase(status)}
+                                        </Label>
+                                      ) : (
+                                        <Label variant="ghost" color='warning'>
+                                          Free Tier
+                                        </Label>
+                                      )}
+                                      
+                                    </TableCell>
                                     <TableCell>
                                       {(() => {
-                                        if (status !== 'No Change') {
+                                        if (status !== 'No Change' && userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy') {
+                                          if (contacted) {
+                                            return(
+                                              <IconButton color="success" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, false)}>
+                                                <Iconify icon="bi:check-lg" />
+                                              </IconButton>
+                                            )
+                                          }
                                           return(
-                                            <ReferralModal id={id} alreadyReferred={false}/>
+                                            <IconButton color="error" aria-label="View/Edit Note" component="label" onClick={(event)=>updateContacted(event, id, true)}>
+                                              <Iconify icon="ps:check-box-empty" />
+                                            </IconButton>
                                           )
                                         }
                                         return null;                                
                                       })()}                          
                                     </TableCell>
-                                  )}
-                                  
-                                </TableRow>
-                              </Tooltip>                                                                         
-                              {expandedRow === id && userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy' && (
-                                <TableRow style={{position:'relative', left:'10%'}}>
-                                  <TableCell colSpan={6}>
-                                    <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-                                      <ClientEventTable clientUpdates={clientUpdates}/>                                     
-                                      <ClientDetailsTable price={price} yearBuilt={yearBuilt} housingType={housingType} equipmentInstalledDate={equipmentInstalledDate} />                                    
-                                      {errorFlag ? <RemoveErrorFlagButton clientId={id} /> : <IncorrectDataButton clientId={id}/>}                              
-                                    </Stack>
+                                    <TableCell>
+                                      <NoteModal 
+                                        passedNote={note}
+                                        id={id}
+                                        name={name}
+                                      />
+                                    </TableCell>
+                                    <TableCell>
+                                      {/* make phone number look like (123) 456-7890 */}
+                                      {phoneNumber ? `(${phoneNumber.slice(0,3)}) ${phoneNumber.slice(3,6)}-${phoneNumber.slice(6,10)}`: "N/A"}
+                                    </TableCell>
+                                    {userInfo.company.franchise && (
+                                      <TableCell>
+                                        {(() => {
+                                          if (status !== 'No Change') {
+                                            return(
+                                              <ReferralModal id={id} alreadyReferred={false}/>
+                                            )
+                                          }
+                                          return null;                                
+                                        })()}                          
+                                      </TableCell>
+                                    )}
                                     
-                                  </TableCell>
-                                </TableRow>
-                              )}
-                            </React.Fragment>
-                          );
-                        })}
-                        {emptyRows > 0 && (
-                          <TableRow style={{ height: 53 * emptyRows }}>
-                            <TableCell colSpan={6} />
-                          </TableRow>
-                        )}
-                      </TableBody>
-
-                      {filteredClients.length === 0 && (
-                        <TableBody>
-                          <TableRow>
-                            <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                              <SearchNotFound searchQuery={filterName} tipe="client"/>
-                            </TableCell>
-                          </TableRow>
+                                  </TableRow>
+                                </Tooltip>                                                                         
+                                {expandedRow === id && userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy' && (
+                                  <TableRow style={{position:'relative', left:'10%'}}>
+                                    <TableCell colSpan={6}>
+                                      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+                                        <ClientEventTable clientUpdates={clientUpdates}/>                                     
+                                        <ClientDetailsTable price={price} yearBuilt={yearBuilt} housingType={housingType} equipmentInstalledDate={equipmentInstalledDate} />                                    
+                                        {errorFlag ? <RemoveErrorFlagButton clientId={id} /> : <IncorrectDataButton clientId={id}/>}                              
+                                      </Stack>
+                                      
+                                    </TableCell>
+                                  </TableRow>
+                                )}
+                              </React.Fragment>
+                            );
+                          })}
+                          {emptyRows > 0 && (
+                            <TableRow style={{ height: 53 * emptyRows }}>
+                              <TableCell colSpan={6} />
+                            </TableRow>
+                          )}
                         </TableBody>
-                      )}
-                    </Table>
-                  </TableContainer>
-                </Scrollbar>
 
-                <TablePagination
-                  rowsPerPageOptions={[10, 50, 100]}
-                  component="div"
-                  count={shownClients}
-                  rowsPerPage={rowsPerPage}
-                  page={page}
-                  onPageChange={handleChangePage}
-                  onRowsPerPageChange={handleChangeRowsPerPage}
-                />
+                        {filteredClients.length === 0 && (
+                          <TableBody>
+                            <TableRow>
+                              <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
+                                <SearchNotFound searchQuery={filterName} tipe="client"/>
+                              </TableCell>
+                            </TableRow>
+                          </TableBody>
+                        )}
+                      </Table>
+                    </TableContainer>
+                  </Scrollbar>
+
+                  <TablePagination
+                    rowsPerPageOptions={[10, 50, 100]}
+                    component="div"
+                    count={shownClients}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                  />
+                </>
+                ) : (                 
+                  <Map clients={filteredClients}/>
+                )}
+                
               </Card>
               <Collapse in={deletedAlertOpen}>
                 <Alert
