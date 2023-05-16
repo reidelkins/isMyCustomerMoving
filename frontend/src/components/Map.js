@@ -73,6 +73,7 @@ export default function Map({clients}) {
                     {markers.map(({ address, city, state, zip, name, status, lat, lng }, ind) => (
                         lat !== 0 && lng !== 0 && (
                             <Marker
+                                icon= {status === "House Recently Sold (6)" ? "http://maps.google.com/mapfiles/ms/icons/blue-dot.png" : "http://maps.google.com/mapfiles/ms/icons/red-dot.png"}
                                 key={ind}
                                 position={{ lat, lng }}
                                 onClick={() => {
