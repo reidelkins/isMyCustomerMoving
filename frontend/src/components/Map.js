@@ -26,11 +26,12 @@ export default function Map({clients}) {
     };
 
     async function getLatLngFromAddress(address, city, state, zip) {
-        if (!address || !city || !state || !zip) return { lat: 0, lng: 0 };
         const fullAddress = `${address}, ${city}, ${state} ${zip}`;
+        if (!address || !city || !state || !zip) return { lat: 0, lng: 0 };
+        
         const response = await fetch(
             `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-            address
+            fullAddress
             )}&key=${process.env.REACT_APP_GOOGLE_API_KEY}`
         );
         const data = await response.json();
@@ -44,17 +45,15 @@ export default function Map({clients}) {
 
     useEffect(() => {
         const getMarkers = async () => {
-            console.log("clients", clients)
             const clientsWithStatus = clients.filter(client => client.status !== 'No Change');
             // const clientsWithStatus = clients.slice(0, 100);
-            console.log("clientsWithStatus", clientsWithStatus)
             const markers = await Promise.all(
             clientsWithStatus.map(async (client) => {
-                    const { lat, lng } = await getLatLngFromAddress(client.address, client.city, client.state, client.zip);                    
+                    const { lat, lng } = await getLatLngFromAddress(client.address, client.city, client.state, client.zipCode);                                      
                     return { ...client, lat, lng };
+                    
                 })
             );
-            console.log(markers.length)
             setMarkers(markers);
         };
         getMarkers();
@@ -72,28 +71,30 @@ export default function Map({clients}) {
                     zoom={4.5}
                 >
                     {markers.map(({ address, city, state, zip, name, status, lat, lng }, ind) => (
-                    <Marker
-                        key={ind}
-                        position={{ lat, lng }}
-                        onClick={() => {
-                        handleMarkerClick(ind, lat, lng, address, city, state, zip, name, status);
-                        }}
-                    >
-                        {isOpen && infoWindowData?.id === ind && (
-                        <InfoWindow
-                            onCloseClick={() => {
-                            setIsOpen(false);
-                            console.log(infoWindowData)
-                            }}
-                        >   
-                            <div>
-                                <h2>{infoWindowData.name}</h2>
-                                <h3>{infoWindowData.address}</h3>
-                                <h3>{infoWindowData.city}, {infoWindowData.state} {infoWindowData.zip}</h3>
-                            </div>
-                        </InfoWindow>
-                        )}
-                    </Marker>
+                        lat !== 0 && lng !== 0 && (
+                            <Marker
+                                key={ind}
+                                position={{ lat, lng }}
+                                onClick={() => {
+                                handleMarkerClick(ind, lat, lng, address, city, state, zip, name, status);
+                                }}
+                            >
+                                {isOpen && infoWindowData?.id === ind && (
+                                <InfoWindow
+                                    onCloseClick={() => {
+                                    setIsOpen(false);
+                                    }}
+                                >   
+                                    <div>
+                                        <h2>{infoWindowData.name}</h2>
+                                        <h3>{infoWindowData.address}</h3>
+                                        <h3>{infoWindowData.city}, {infoWindowData.state} {infoWindowData.zip}</h3>
+                                    </div>
+                                </InfoWindow>
+                                )}
+                            </Marker>
+                    )
+                    
                     ))}
                 </GoogleMap>
                 
