@@ -36,9 +36,8 @@ export default function Map({clients}) {
         if (data.results && data.results.length > 0) {
             const { lat, lng } = data.results[0].geometry.location;
             return { lat, lng };
-        } 
-        throw new Error(`Couldn't find the location for address: ${address}`);
-        
+        }
+        return { lat: null, lng: null };                
     }
 
     useEffect(() => {
