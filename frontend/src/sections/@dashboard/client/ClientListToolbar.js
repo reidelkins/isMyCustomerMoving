@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {useDispatch } from 'react-redux';
 // material
 import { styled } from '@mui/material/styles';
-import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment } from '@mui/material';
+import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment, Stack, Button } from '@mui/material';
 
 // component
 import Iconify from '../../../components/Iconify';
@@ -54,16 +54,16 @@ ClientListToolbar.propTypes = {
   equipInstallDateMax: PropTypes.string,
   setEquipInstallDateMax: PropTypes.func,
   statusFilters: PropTypes.array,
-  setStatusFilters: PropTypes.func
-
-  
+  setStatusFilters: PropTypes.func,
+  listOrMap: PropTypes.string,
+  setListOrMap: PropTypes.func,
 
 };
 
 export default function ClientListToolbar({ numSelected, filterName, onFilterName, selectedClients, product, 
                                             minPrice, setMinPrice, maxPrice, setMaxPrice, minYear, setMinYear, maxYear, setMaxYear,
                                             equipInstallDateMin, setEquipInstallDateMin, equipInstallDateMax, setEquipInstallDateMax,
-                                            statusFilters, setStatusFilters }) {
+                                            statusFilters, setStatusFilters, listOrMap, setListOrMap }) {
   const dispatch = useDispatch();
 
 
@@ -74,6 +74,14 @@ export default function ClientListToolbar({ numSelected, filterName, onFilterNam
      window.location.reload();
     }, timer);
 
+  };
+
+  const handleClickList = () => {
+    setListOrMap('list');
+  };
+
+  const handleClickMap = () => {
+    setListOrMap('map');
   };
 
   return (
@@ -90,16 +98,24 @@ export default function ClientListToolbar({ numSelected, filterName, onFilterNam
           {numSelected} selected
         </Typography>
       ) : (
-        <SearchStyle
-          value={filterName}
-          onChange={onFilterName}
-          placeholder="Search user..."
-          startAdornment={
-            <InputAdornment position="start">
-              <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled', width: 20, height: 20 }} />
-            </InputAdornment>
-          }
-        />
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Button onClick={handleClickList} variant={listOrMap === 'list' ? 'contained' : 'outlined'}>
+            List
+          </Button>
+          <Button onClick={handleClickMap} variant={listOrMap === 'map' ? 'contained' : 'outlined'}>
+            Map
+          </Button>
+          <SearchStyle
+            value={filterName}
+            onChange={onFilterName}
+            placeholder="Search user..."
+            startAdornment={
+              <InputAdornment position="start">
+                <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled', width: 20, height: 20 }} />
+              </InputAdornment>
+            }
+          />
+        </Stack>
       )}
 
       {numSelected > 0 ? (
