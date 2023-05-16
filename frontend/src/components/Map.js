@@ -43,13 +43,16 @@ export default function Map({clients}) {
 
     useEffect(() => {
         const getMarkers = async () => {
+            console.log("clients", clients)
             const clientsWithStatus = clients.filter(client => client.status !== 'No Change');
+            console.log("clientsWithStatus", clientsWithStatus)
             const markers = await Promise.all(
             clientsWithStatus.map(async (client) => {
                     const { lat, lng } = await getLatLngFromAddress(client.address);
                     return { ...client, lat, lng };
                 })
             );
+            console.log(markers.length)
             setMarkers(markers);
         };
         getMarkers();
