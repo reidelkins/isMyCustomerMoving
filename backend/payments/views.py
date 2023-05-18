@@ -130,9 +130,14 @@ def completed_checkout(event: djstripe_models.Event):
         plan = subscription.plan
         try:
             company = Company.objects.get(name=companyName, email=email, stripeID=stripeId)
+            company.stripeID = stripeId
+            company.product = plan
+            company.phone = phone
+            company.save()
         except:
             try:
                 company = makeCompany(companyName, email, phone, stripeId)
+                company = Company.objects.get(id=company)
                 company.product = plan
                 company.save()
             except Exception as e:
