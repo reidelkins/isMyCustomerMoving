@@ -18,6 +18,7 @@ import NewUserModal from '../components/NewUserModal';
  
 import TwoFactorAuth from '../components/TwoFactorAuth';
 import CRMIntegrationModal from '../components/CRMIntegrationModal';
+import UpgradeFromFree from '../components/UpgradeFromFree';
 import { applySortFilter, getComparator } from './CustomerData';
 // import ResetPasswordModal from '../components/ResetPasswordModal';
 
@@ -300,11 +301,16 @@ export default function ProfileSettings() {
           <>
             <NewUserModal />
             <br/>
-            <Button variant="contained" color="primary" aria-label="Create Company" component="label">
+            {userInfo.company.product === 'price_1MhxfPAkLES5P4qQbu8O45xy' ? (
+              <UpgradeFromFree />
+            ):(
+              <Button variant="contained" color="primary" aria-label="Create Company" component="label">
                 <Link href={`https://billing.stripe.com/p/login/aEU2aZ4PtbdD9A49AA?prefilled_email=${userInfo.company.email}`} color="secondary" underline="none" target="_blank" rel="noopener noreferrer">
                   Manage Subscription
                 </Link>
-            </Button>
+              </Button>
+            )}
+           
           </>       
         )}
 

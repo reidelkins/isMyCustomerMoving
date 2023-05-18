@@ -8,7 +8,8 @@ const UpgradeFromFree = () => {
 
     const listClient = useSelector(selectClients);
     const { count } = listClient;
-    const [link, setLink] = useState("#");
+    const [monthlyLink, setMonthlyLink] = useState("https://www.ismycustomermoving.com/#contact");
+    const [annualLink, setAnnualLink] = useState("https://www.ismycustomermoving.com/#contact");
     const [planName, setPlanName] = useState("Small Business");
     const [open, setOpen] = useState(false);
     const [monthlyPrice, setMonthlyPrice] = useState("10");
@@ -16,25 +17,42 @@ const UpgradeFromFree = () => {
 
     useEffect(() => {
         if (count < 5000) {
-            setLink("#");
+            setMonthlyLink("https://buy.stripe.com/eVa7tU8cJgDs8UwdR4");
+            setAnnualLink("https://buy.stripe.com/eVa7tU8cJgDs8UwdR4")
             setPlanName("Small Business");
             setMonthlyPrice("150");
             setAnnualPrice("1,620");
         } else if (count < 10000) {
-            setLink("#");
+            setMonthlyLink("https://buy.stripe.com/9AQ4hIcsZdrg9YA7sH");
+            setAnnualLink("https://buy.stripe.com/9AQ4hIcsZdrg9YA7sH");
             setPlanName("Franchise");
             setMonthlyPrice("250");
             setAnnualPrice("2700");
         } else if (count < 20000) {
-            setLink("#");
+            setMonthlyLink("https://buy.stripe.com/9AQaG678F86W3Ac6os");
+            setAnnualLink("https://buy.stripe.com/9AQaG678F86W3Ac6os");
             setPlanName("Large Business");
             setMonthlyPrice("400");
             setAnnualPrice("4,320");
         } else {
-            setLink("https://www.ismycustomermoving.com/#contact");
+            setMonthlyLink("https://www.ismycustomermoving.com/#contact");
+            setAnnualLink("https://www.ismycustomermoving.com/#contact")
             setPlanName("Enterprise");            
         }
     }, [count]);
+
+    const handleMonthly = () => {
+        console.log(monthlyLink)
+        window.open(monthlyLink, '_blank');
+        setOpen(false)
+    }
+
+    const handleAnnual = () => {
+        console.log(annualLink)
+        window.open(annualLink, '_blank');
+        setOpen(false)
+    }
+
     return (
         <>
             <Tooltip title="Upgrade to Premium to get all features" arrow>                
@@ -57,8 +75,8 @@ const UpgradeFromFree = () => {
                             <Stack direction="row" spacing={8}>
                                 <Button variant="contained" color="error" onClick={()=>setOpen(false)}>Cancel</Button>
                                 <Stack direction="row" spacing={1}>
-                                    <Button variant="contained" color="primary" onClick={()=>setOpen(false)}>Upgrade Monthly</Button>
-                                    <Button variant="contained" color="primary" onClick={()=>setOpen(false)}>Upgrade Annually</Button>
+                                    <Button variant="contained" color="primary" onClick={handleMonthly}>Upgrade Monthly</Button>
+                                    <Button variant="contained" color="primary" onClick={handleAnnual}>Upgrade Annually</Button>
                                 </Stack>
                             </Stack>
                         </>
