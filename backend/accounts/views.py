@@ -13,10 +13,10 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 
+from djstripe import models as djstripe_models
 
 
-
-# from .utils import makeCompany
+from .utils import makeCompany
 from .models import CustomUser, Company, InviteToken
 from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, MyTokenObtainPairSerializer
 from config import settings
@@ -180,20 +180,26 @@ class ManageUserView(APIView):
             print(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['PUT'])
+@api_view(['PUT', 'POST'])
 def company(request):
-    # if request.method == 'POST':
-    #     try:
-    #         company = request.data['name']
-    #         email = request.data['email']
-    #         comp = makeCompany(company, email)
-    #         if comp == "":
-    #             return Response("", status=status.HTTP_201_CREATED, headers="")
-    #         else:
-    #             return Response(comp, status=status.HTTP_400_BAD_REQUEST)
-    #     except Exception as e:
-    #         print(e)
-    #         return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
+    if request.method == 'POST':
+        try:
+            email = request.data['email']
+            phone = request.data['phone']
+            companyName = request.data['companyName']
+            comp = makeCompany(companyName, email, phone)
+            try:
+
+                comp = Company.objects.get(id=comp)
+                freePlan = djstripe_models.Plan.objects.get(id='price_1MhxfPAkLES5P4qQbu8O45xy')
+                comp.product = freePlan
+                comp.save()
+                return Response("", status=status.HTTP_201_CREATED, headers="")
+            except:
+                return Response(comp, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(e)
+            return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
     if request.method == 'PUT':
         try:
             company = Company.objects.get(id=request.data['company'])

@@ -13,9 +13,12 @@ import requests
 import jwt
 
 
-def makeCompany(companyName, email, phone, stripeId):
+def makeCompany(companyName, email, phone, stripeId=None):
     try:
-        comp = {'name': companyName, 'phone': phone, 'email': email, 'stripeID': stripeId}
+        if stripeId:
+            comp = {'name': companyName, 'phone': phone, 'email': email, 'stripeID': stripeId}
+        else:
+            comp = {'name': companyName, 'phone': phone, 'email': email}
         serializer = CompanySerializer(data=comp)
         if serializer.is_valid():
             company = serializer.save()
@@ -27,7 +30,7 @@ def makeCompany(companyName, email, phone, stripeId):
                     'company': company.name, 'accessToken': company.accessToken
                 })
                 send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)
-                return company
+                return company.id
             else:
                 return {'Error': "Company with that name already exists"}
         else:
