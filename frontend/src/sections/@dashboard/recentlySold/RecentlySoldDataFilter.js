@@ -106,6 +106,7 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
         { value: 'solar_system', label: 'Solar System' },
         { value: 'swimming_pool', label: 'Swimming Pool' },
         { value: 'new roof', label: 'New Roof' },
+        { value: 'new_construction', label: 'New Construction' },
     ];
 
     const sortedTagOptions = tagOptions.sort((a, b) => {
