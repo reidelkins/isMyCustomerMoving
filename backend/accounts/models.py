@@ -105,6 +105,7 @@ class Company(models.Model):
     # franchise = models.ForeignKey(Franchise, on_delete=models.SET_NULL, blank=True, null=True)
 
     # Service Titan
+    serviceTitanAppVersion = models.IntegerField(blank=True, null=True)
     tenantID = models.IntegerField(blank=True, null=True)
     clientID = models.CharField(max_length=100, blank=True, null=True)
     clientSecret = models.CharField(max_length=100, blank=True, null=True)
