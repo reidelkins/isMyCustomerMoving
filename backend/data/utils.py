@@ -542,12 +542,16 @@ def auto_update(company_id=None, zip=None):
 
 def get_serviceTitan_accessToken(company):
     company = Company.objects.get(id=company)
+    if company.serviceTitanAppVersion == 2:
+        app_key = settings.ST_APP_KEY_2
+    else:
+        app_key = settings.ST_APP_KEY
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
     }
     data = f'grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}'
     response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
-    headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': settings.ST_APP_KEY}
+    headers = {'Authorization': response.json()['access_token'], 'Content-Type': 'application/json', 'ST-App-Key': app_key}
     return headers
     
 
