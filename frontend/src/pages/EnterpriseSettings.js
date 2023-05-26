@@ -55,11 +55,13 @@ export default function EnterpriseSettings() {
         <Stack sx={{ mb: 5 }}>
           <Typography variant="h4">Enterprise Settings</Typography>
         </Stack>
-        <Stack direction="row" alignItems="center" justifyContent="center" mb={5}>
-          <Typography variant="h3" gutterBottom>
-            {userInfo.enterprise.name}
-          </Typography>
-        </Stack>
+        {userInfo && (
+          <Stack direction="row" alignItems="center" justifyContent="center" mb={5}>
+            <Typography variant="h3" gutterBottom>
+              {userInfo.enterprise.name}
+            </Typography>
+          </Stack>
+        )}
         <Card sx={{marginTop:"3%", marginBottom:"3%", padding:'3%'}}>          
           {loading ? (
             <Box sx={{ width: '100%' }}>
