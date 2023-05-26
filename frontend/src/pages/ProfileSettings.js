@@ -33,7 +33,7 @@ import { addUser, selectUsers, makeAdminAsync } from '../redux/actions/usersActi
 const TABLE_HEAD = [
   { id: 'employee', label: 'Name', alignRight: false },
   { id: 'email', label: 'Email', alignRight: false },
-  { id: 'role', label: 'Status', alignRight: false },
+  { id: 'status', label: 'Status', alignRight: false },
   // { id: 'status', label: 'Account Created', alignRight: false },
 ];
 
@@ -82,6 +82,7 @@ export default function ProfileSettings() {
     firstName: Yup.string().required('Name is required'),
     lastName: Yup.string().required('Name is required'),
     email: Yup.string().email('Email must be a valid email address').required('Email is required'),
+    phone: Yup.string(),
   });
 
   const formik = useFormik({
@@ -89,11 +90,12 @@ export default function ProfileSettings() {
       firstName: userInfo ? userInfo.first_name: '',
       lastName: userInfo ? userInfo.last_name: '',
       email: userInfo ? userInfo.email: '',
+      phone: userInfo ? userInfo.phone: '',
     },
     validationSchema: SettingsSchema,
     onSubmit: () => {
       setEditting(false);
-      dispatch(editUserAsync(values.email, values.firstName, values.lastName, values.servTitan));
+      dispatch(editUserAsync(values.email, values.firstName, values.lastName, values.servTitan, values.phone));
     },
   });
 
@@ -175,6 +177,15 @@ export default function ProfileSettings() {
                         error={Boolean(touched.email && errors.email)}
                         helperText={touched.email && errors.email}
                       />
+                      <br />
+                      <h3>Phone:</h3>
+                      <TextField
+                        fullWidth                    
+                        type="phone"
+                        {...getFieldProps('phone')}
+                        error={Boolean(touched.phone && errors.phone)}
+                        helperText={touched.phone && errors.phone}
+                      />
                       <br />                      
                       <br />
                       <Button
@@ -195,7 +206,10 @@ export default function ProfileSettings() {
                   <p>{userInfo && userInfo.first_name} {userInfo && userInfo.last_name}</p>
                   <br />
                   <h3>Email:</h3>
-                  <p>{userInfo ? userInfo.email : ''}</p>
+                  <p>{userInfo && userInfo.email ? userInfo.email : 'None'}</p>
+                  <br />
+                  <h3>Phone Number:</h3>
+                  <p>{userInfo && userInfo.phone ? userInfo.phone : "None"}</p>
                   <br />            
                   <Button 
                     fullWidth
@@ -233,7 +247,7 @@ export default function ProfileSettings() {
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, first_name, last_name, email, status } = row;
+                    const { id, first_name, last_name, email, status, is_enterprise_owner } = row;
                     const isItemSelected = selected.indexOf(id) !== -1;
                     if (email !== 'reid@gmail.com' && email !== 'reidelkins3@gmail.com') {
                       return (
@@ -242,9 +256,13 @@ export default function ProfileSettings() {
                           key={id}
                           tabIndex={-1}>
                           {adminBool ? (
-                            <TableCell padding="checkbox">
-                              <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, id)}/>
-                            </TableCell>    
+                            is_enterprise_owner ? (
+                                <div/>
+                            ) : (
+                              <TableCell padding="checkbox">
+                                <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, id)}/>
+                              </TableCell>
+                            )                                
                             ) : null
                           }
                                           
@@ -257,7 +275,7 @@ export default function ProfileSettings() {
                           </TableCell>
                           <TableCell align="left">{email}</TableCell>
                           <TableCell align="left">
-                            {status}{}                          
+                            {is_enterprise_owner ? "Enterprise Admin" : status}                         
                           </TableCell>
                           <TableCell align="left">
                             {(() => {

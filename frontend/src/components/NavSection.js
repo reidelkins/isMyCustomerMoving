@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { NavLink as RouterLink, matchPath, useLocation } from 'react-router-dom';
 // material
@@ -148,7 +148,16 @@ export default function NavSection({ navConfig, ...other }) {
     <Box {...other}>
       <List disablePadding sx={{ p: 1 }}>
         {navConfig.map((item) => (
-          <NavItem key={item.title} item={item} active={match} />
+          <React.Fragment key={item.title}>
+            <NavItem item={item} active={match} />
+            {item.subOptions && (
+              <List disablePadding>
+                {item.subOptions.map((subOption) => (
+                  <NavItem key={subOption.title} item={subOption} active={match} nested />
+                ))}
+              </List>
+            )}
+          </React.Fragment>
         ))}
       </List>
     </Box>

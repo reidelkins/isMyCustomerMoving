@@ -107,7 +107,7 @@ class Task(models.Model):
 class Referral(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
-    franchise = models.ForeignKey("accounts.Franchise", on_delete=models.CASCADE)
+    enterprise = models.ForeignKey("accounts.Enterprise", on_delete=models.CASCADE, blank=True, null=True)
     referredFrom = models.ForeignKey("accounts.Company", on_delete=models.SET_NULL, related_name='referredFrom', blank=True, null=True)
     referredTo = models.ForeignKey("accounts.Company", on_delete=models.SET_NULL, related_name='referredTo', blank=True, null=True)
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='referralClient', blank=True, null=True)
@@ -117,10 +117,10 @@ class Referral(models.Model):
     def save(self, *args, **kwargs):
         if self.referredFrom == self.referredTo:
             raise ValidationError("Referred From and Referred To cannot be the same")
-        if self.referredFrom.franchise != self.franchise or self.referredTo.franchise != self.franchise:
-            raise ValidationError("Both Referred From and Referred To must be part of the franchise")
-        if self.client.company.franchise != self.franchise:
-            raise ValidationError("Client must be part of the franchise")
+        if self.referredFrom.enterprise != self.enterprise or self.referredTo.enterprise != self.enterprise:
+            raise ValidationError("Both Referred From and Referred To must be part of the enterprise")
+        if self.client.company.enterprise != self.enterprise:
+            raise ValidationError("Client must be part of the enterprise")
         if self.client.company != self.referredFrom:
             raise ValidationError("Client must have the same company as Referred From")
             

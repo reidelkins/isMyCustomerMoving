@@ -80,10 +80,9 @@ class CustomUserManager(BaseUserManager):
 
         return self._create_user(email, password, **extra_fields)
 
-class Franchise(models.Model):
+class Enterprise(models.Model):
     id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100)
-    mainCompany = models.OneToOneField('Company', on_delete=models.CASCADE, blank=True, null=True, related_name='mainCompany')
+    name = models.CharField(max_length=100)    
 
     def __str__(self):
         return self.name
@@ -102,7 +101,7 @@ class Company(models.Model):
     email = models.EmailField(max_length=100, blank=True, null=True)
     stripeID = models.CharField(max_length=100, blank=True, null=True)
     crm = models.CharField(max_length=100, choices=CRM, default='None')
-    # franchise = models.ForeignKey(Franchise, on_delete=models.SET_NULL, blank=True, null=True)
+    enterprise = models.ForeignKey(Enterprise, on_delete=models.CASCADE, blank=True, null=True, related_name='companies')
 
     # Service Titan
     serviceTitanAppVersion = models.IntegerField(blank=True, null=True)
@@ -144,6 +143,8 @@ class CustomUser(AbstractUser):
         max_length=100, choices=STATUS_CHOICES, default='active')
     phone = models.CharField(max_length=100, blank=True, null=True)
     company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE)
+    enterprise = models.ForeignKey(Enterprise, blank=True, null=True, on_delete=models.CASCADE, related_name='users')
+    is_enterprise_owner = models.BooleanField(default=False)
     otp_enabled = models.BooleanField(default=False)
     otp_verified = models.BooleanField(default=False)
     otp_base32 = models.CharField(max_length=255, null=True, blank=True)
@@ -155,6 +156,12 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.email
+    
+    def save(self, *args, **kwargs):
+        # Automatically set the enterprise based on the associated company
+        if self.company and not self.enterprise:
+            self.enterprise = self.company.enterprise
+        super().save(*args, **kwargs)
     
     @transaction.atomic
     def delete_with_tokens(self):

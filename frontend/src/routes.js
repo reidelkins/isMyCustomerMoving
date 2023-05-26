@@ -15,7 +15,7 @@ import NotFound from './pages/Page404';
 import Register from './pages/Register';
 import AddUser from './pages/AddUser';
 import Referrals from './pages/Referrals';
-
+import EnterpriseSettings from './pages/EnterpriseSettings';
 import ProfileSettings from './pages/ProfileSettings';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
@@ -30,7 +30,8 @@ export default function Router() {
       children: [
         // { path: '', element:<PrivateRoute path="/dashboard/customers" component={<Navigate to="/dashboard/customers" />} />},
         { path: '', element: <Navigate to="/dashboard/customers" /> },
-        { path: 'settings', element: <ProfileSettings />} ,
+        { path: 'settings/user', element: <ProfileSettings />} ,
+        { path: 'settings/enterprise', element: <EnterpriseSettings />} ,
         { path: 'customers', element: <CustomerData /> },
         { path: 'recentlysold', element: <RecentlySoldData />},
         { path: 'referrals', element: <Referrals />},

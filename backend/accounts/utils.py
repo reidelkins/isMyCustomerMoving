@@ -1,5 +1,5 @@
 import traceback
-from .models import Company, Franchise, CustomUser
+from .models import Company, Enterprise, CustomUser
 from .serializers import CompanySerializer
 
 from django.conf import settings
@@ -41,12 +41,12 @@ def makeCompany(companyName, email, phone, stripeId=None):
         return {'Error': f'{e}'}
             
 # find franchise that is the closest to the area provided for the referral
-def find_franchise(area, franchise, referredFrom):
+def find_enterprise(area, enterprise, referredFrom):
     try:
-        franchise = Franchise.objects.get(id=franchise)
+        enterprise = Enterprise.objects.get(id=enterprise)
         
         if area:
-            companies = list(Company.objects.filter(franchise=franchise).exclude(id=referredFrom).values_list('id', flat=True))
+            companies = list(Company.objects.filter(enterprise=enterprise).exclude(id=referredFrom).values_list('id', flat=True))
             return companies[0]
         else:
             return None

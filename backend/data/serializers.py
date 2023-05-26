@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from accounts.serializers import FranchiseSerializer, BasicCompanySerializer
+from accounts.serializers import EnterpriseSerializer, BasicCompanySerializer
 from .models import Client, ClientUpdate, HomeListing, Referral
 
 class ClientUpdateSerializer(serializers.ModelSerializer):
@@ -89,7 +89,7 @@ class HomeListingSerializer(serializers.ModelSerializer):
 
 class ReferralSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
-    franchise = FranchiseSerializer(required=False)
+    enterprise = EnterpriseSerializer(required=False)
     referredFrom = BasicCompanySerializer(required=True)
     referredTo = BasicCompanySerializer(required=True)
     client = ClientListSerializer(read_only=True)
@@ -97,5 +97,5 @@ class ReferralSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Referral
-        fields = ['id', 'franchise', 'referredFrom', 'referredTo', 'client', 'contacted']
+        fields = ['id', 'enterprise', 'referredFrom', 'referredTo', 'client', 'contacted']
 

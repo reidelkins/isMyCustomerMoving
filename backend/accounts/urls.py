@@ -42,6 +42,7 @@ urlpatterns = [
     path('login/', include(login_patterns)),
     path('zapier/', include(zapier_patterns)),
     path('authenticated_user/', views.AuthenticatedUserView.as_view(), name='authenticated_user'),
+    path('enterprise/', views.UserEnterpriseView.as_view(), name='enterprise'),
     path("", include(router.urls)),
     
 ]
