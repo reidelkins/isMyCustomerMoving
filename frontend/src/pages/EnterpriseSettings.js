@@ -62,7 +62,6 @@ export default function EnterpriseSettings() {
             </Typography>
           </Stack>
         )}
-        
         <Card sx={{marginTop:"3%", marginBottom:"3%", padding:'3%'}}>          
           {loading ? (
             <Box sx={{ width: '100%' }}>
