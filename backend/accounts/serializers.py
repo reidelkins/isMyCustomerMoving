@@ -62,7 +62,7 @@ class CompanySerializer(serializers.ModelSerializer):
         return Client.objects.filter(company=obj).count()
     class Meta:
         model = Company
-        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'serviceTitanForSaleContactedTagID', 'serviceTitanSoldContactedTagID', 'product', 'users_count', 'leads_count']
+        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'serviceTitanForSaleContactedTagID', 'serviceTitanSoldContactedTagID', 'product', 'users_count', 'leads_count', 'clients_count']
 
 class EnterpriseSerializer(serializers.ModelSerializer):
     companies = CompanySerializer(many=True, read_only=True)
