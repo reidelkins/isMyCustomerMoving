@@ -366,6 +366,7 @@ def create_home_listings(results, status, resp=None):
 
         except Exception as e:
             print(f"Listing: {listing['location']['address']}")
+            print(e)
     delVariables([zip_object, created, listType, homeListing, currTag, results])
 
 @shared_task
