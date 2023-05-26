@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.0.1",
+    "@babel/runtime": "^7.22.0",
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
     "@faker-js/faker": "^6.1.2",
