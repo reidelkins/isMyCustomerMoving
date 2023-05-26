@@ -58,7 +58,7 @@ export default function EnterpriseSettings() {
         {userInfo && (
           <Stack direction="row" alignItems="center" justifyContent="center" mb={5}>
             <Typography variant="h3" gutterBottom>
-              {userInfo.enterprise.name}
+              {name}
             </Typography>
           </Stack>
         )}
