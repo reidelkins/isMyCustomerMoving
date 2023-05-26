@@ -1,11 +1,10 @@
 from rest_framework import serializers
 from .models import CustomUser, Company, Enterprise
-from data.models import ClientUpdate
+from data.models import ClientUpdate, Client
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.utils.crypto import get_random_string
 from django.contrib.auth.models import update_last_login
-from django.db.models import Count, Q
 
 
 
@@ -39,6 +38,7 @@ class CompanySerializer(serializers.ModelSerializer):
 
     users_count = serializers.SerializerMethodField()
     leads_count = serializers.SerializerMethodField()
+    clients_count = serializers.SerializerMethodField()
     
 
     def create(self, validated_data):
@@ -57,6 +57,9 @@ class CompanySerializer(serializers.ModelSerializer):
 
     def get_leads_count(self, obj):
         return ClientUpdate.objects.filter(client__company=obj).exclude(status="No Change").count()
+    
+    def get_clients_count(self, obj):
+        return Client.objects.filter(company=obj).count()
     class Meta:
         model = Company
         fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'serviceTitanForSaleContactedTagID', 'serviceTitanSoldContactedTagID', 'product', 'users_count', 'leads_count']

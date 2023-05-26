@@ -43,6 +43,7 @@ export default function EnterpriseSettings() {
   { id: 'email', label: 'Email', alignRight: false },
   { id: 'phone', label: 'Phone', alignRight: false },
   { id: 'accounts', label: 'Accounts', alignRight: false },
+  { id: 'customers', label: 'Customers', alignRight: false},
   { id: 'leads', label: 'Leads Generated', alignRight: false },
   { id: 'revenue', label: 'Revenue (Coming Soon)', alignRight: false },
   // { id: 'status', label: 'Account Created', alignRight: false },
@@ -53,6 +54,11 @@ export default function EnterpriseSettings() {
         {userInfo ? <EnterpriseCall /> : null}
         <Stack sx={{ mb: 5 }}>
           <Typography variant="h4">Enterprise Settings</Typography>
+        </Stack>
+        <Stack direction="row" alignItems="center" justifyContent="center" mb={5}>
+          <Typography variant="h3" gutterBottom>
+            {userInfo.enterprise.name}
+          </Typography>
         </Stack>
         <Card sx={{marginTop:"3%", marginBottom:"3%", padding:'3%'}}>          
           {loading ? (
@@ -77,7 +83,7 @@ export default function EnterpriseSettings() {
                 </TableHead>
                 <TableBody>
                   {companies.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, phone, email, users_count: usersCount, leads_count: leadsCount} = row;
+                    const { id, name, phone, email, users_count: usersCount, leads_count: leadsCount, clients_count: customersCount} = row;
                     const isChecked = userInfo.company.name === name;
                     if (email !== 'reidelkins3@gmail.com') {
                       return (
@@ -110,6 +116,9 @@ export default function EnterpriseSettings() {
                           </TableCell>
                           <TableCell align="left">
                             {usersCount}
+                          </TableCell>
+                          <TableCell align="left">
+                            {customersCount}
                           </TableCell>
                           <TableCell align="left">
                             {leadsCount}
