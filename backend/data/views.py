@@ -68,12 +68,15 @@ class ClientListView(generics.ListAPIView):
         # if 'tags' in query_params:
         #     tags = [tag.replace('[', '').replace(']', '').replace(' ', '_') for tag in query_params.get('tags', '').split(',')]
         #     queryset = queryset.filter(tag__tag__in=tags)
-        if user.company.product.id == "price_1MhxfPAkLES5P4qQbu8O45xy":
-            queryset = queryset.order_by('name')
-        elif user.status == 'admin':
+        try:
+            if user.company.product.id == "price_1MhxfPAkLES5P4qQbu8O45xy":
+                queryset = queryset.order_by('name')
+            elif user.status == 'admin':
+                queryset = queryset.order_by('status')
+            else:
+                queryset = queryset.exclude(status='No Change').order_by('status')
+        except:
             queryset = queryset.order_by('status')
-        else:
-            queryset = queryset.exclude(status='No Change').order_by('status')
         return queryset
 
     def list(self, request, *args, **kwargs):

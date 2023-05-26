@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext as _
-from .models import CustomUser, Company, InviteToken, Franchise
+from .models import CustomUser, Company, InviteToken, Enterprise
 
 
 class CustomUserAdmin(UserAdmin):
@@ -19,7 +19,9 @@ class CustomUserAdmin(UserAdmin):
                            'isVerified',
                            'otp_enabled',
                             'otp_base32',
-                            'otp_auth_url',  
+                            'otp_auth_url',
+                            'enterprise',
+                            'is_enterprise_owner'  
                                                   
                            )}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff',
@@ -29,12 +31,12 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('first_name', 'last_name', 'is_staff', 'password1', 'password2'),
+            'fields': ('first_name', 'last_name', 'is_staff', 'password1', 'password2', 'company', 'email', 'phone'),
         }),
     )
 
     list_display = ('first_name', 'last_name', 'email',
-                    'isVerified', 'company__name')
+                    'isVerified', 'company__name', 'enterprise')
     search_fields = ('id', 'first_name', 'last_name', 'email')
     ordering = ('id',)
     list_filter = ('is_staff', 'isVerified',)
@@ -43,17 +45,17 @@ class CustomUserAdmin(UserAdmin):
         return obj.company.name
 
 class CompanyAdmin(admin.ModelAdmin):
-    list_display = ('name', 'accessToken', 'product')
+    list_display = ('name', 'crm', 'product', 'recentlySoldPurchased', 'enterprise')
 
 class InviteTokenAdmin(admin.ModelAdmin):
     list_display = ('id', 'email', 'company')
     search_fields = ['id', 'email', 'company']
 
-class FranchiseAdmin(admin.ModelAdmin):
-    list_display = ('name', 'mainCompany')
-    search_fields = ['name', 'mainCompany']
+class EnterpriseAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+    search_fields = ['id', 'name']
 
 admin.site.register(Company, CompanyAdmin)
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(InviteToken, InviteTokenAdmin)
-admin.site.register(Franchise, FranchiseAdmin)
+admin.site.register(Enterprise, EnterpriseAdmin)

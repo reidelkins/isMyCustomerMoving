@@ -166,7 +166,7 @@ export const googleLoginAsync = (accessToken) => async (dispatch) => {
     }
 };
 
-export const editUserAsync = (email, firstName, lastName, serviceTitan) => async (dispatch, getState) => {
+export const editUserAsync = (email, firstName, lastName, serviceTitan, phone) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -177,13 +177,13 @@ export const editUserAsync = (email, firstName, lastName, serviceTitan) => async
       },
     };
     dispatch(loginLoading());
-    const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/manageuser/${userInfo.id}/`, { email, firstName, lastName, serviceTitan }, config);
+    const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/manageuser/${userInfo.id}/`, { email, firstName, lastName, serviceTitan, phone }, config);
     dispatch(login(data));
     localStorage.setItem('userInfo', JSON.stringify(data));
   } catch (error) {
     dispatch(loginError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
     if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, editUserAsync(email, firstName, lastName, serviceTitan)))
+      dispatch(getRefreshToken(dispatch, editUserAsync(email, firstName, lastName, serviceTitan, phone)))
     }
   }
 };

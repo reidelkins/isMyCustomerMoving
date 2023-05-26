@@ -310,11 +310,12 @@ export default function CustomerData() {
               <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
                 <Typography variant="h4" gutterBottom>
                   Welcome {(userInfo.first_name).charAt(0).toUpperCase()+(userInfo.first_name).slice(1)} {(userInfo.last_name).charAt(0).toUpperCase()+(userInfo.last_name).slice(1)} 👋
-                </Typography>              
-                {/* {(userInfo.email === 'reid@gmail.com' || userInfo.email === 'jb@aquaclearws.com' || userInfo.email === 'reidelkins3@gmail.com') && (
-                  // <Button variant="contained" component={RouterLink} to="/dashboard/adduser" startIcon={<Iconify icon="eva:plus-fill" />}>
-                  <NewCompanyModal/>
-                )} */}
+                </Typography>
+              </Stack>
+              <Stack direction="row" alignItems="center" justifyContent="center" mb={5}>
+                <Typography variant="h3" gutterBottom>
+                  {userInfo.company.name}
+                </Typography>
               </Stack>
               <Stack direction="row" alignItems="center" justifyContent="space-around" mb={5} mx={10}>
                 <Stack direction="column" alignItems="center" justifyContent="center">

@@ -3,7 +3,7 @@ from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from django.core.exceptions import ObjectDoesNotExist
 from django.template.loader import get_template
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, Http404
 from django.utils.timezone import make_aware
 from rest_framework import permissions, status, generics, viewsets
 from rest_framework.decorators import api_view
@@ -17,8 +17,8 @@ from djstripe import models as djstripe_models
 
 
 from .utils import makeCompany
-from .models import CustomUser, Company, InviteToken
-from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, MyTokenObtainPairSerializer
+from .models import CustomUser, Company, InviteToken, Enterprise
+from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, MyTokenObtainPairSerializer, EnterpriseSerializer
 from config import settings
 
 import datetime
@@ -158,6 +158,8 @@ class ManageUserView(APIView):
                     user.first_name = request.data['firstName']
                     user.last_name = request.data['lastName']
                     user.email = request.data['email']
+                    if request.data['phone']:
+                        user.phone = request.data['phone']
                     user.save()
                 serializer = UserSerializerWithToken(user, many=False)
                 return Response(serializer.data)
@@ -591,3 +593,36 @@ class ZapierForSaleSubscribe(APIView):
         except Exception as e:
             print(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+        
+class UserEnterpriseView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, enterprise_id):
+        try:
+            return Enterprise.objects.get(id=enterprise_id)
+        except Enterprise.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        if not request.user.enterprise:
+            return Response({"error": "User not part of any Enterprise"}, status=status.HTTP_400_BAD_REQUEST)
+        enterprise = self.get_object(request.user.enterprise.id)
+        serializer = EnterpriseSerializer(enterprise)
+        return Response(serializer.data)
+    
+    def put(self, request, format=None):
+        if not request.user.is_enterprise_owner:
+            return Response({"error": "User is not an enterprise owner"}, status=status.HTTP_403_FORBIDDEN)
+
+        company_id = request.data.get('company')
+        print(company_id)
+        try:
+            company = Company.objects.get(id=company_id)
+        except Company.DoesNotExist:
+            return Response({"error": "Company not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        request.user.company = company
+        request.user.save()
+
+        serializer = UserSerializerWithToken(request.user)
+        return Response(serializer.data)
