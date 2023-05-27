@@ -343,10 +343,7 @@ def confirmation(request, pk, uid):
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
-    def post(self, request, *args, **kwargs):
-        # Log/print information
-        print("Logging information here")
-        print(request.data)
+    def post(self, request, *args, **kwargs):        
         # Call the serializer class to validate the data
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

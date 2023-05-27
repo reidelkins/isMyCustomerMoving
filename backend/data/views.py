@@ -241,7 +241,7 @@ class ServiceTitanView(APIView):
                 task = Task.objects.get(id=self.kwargs['company'])
                 if task.completed:
                     deleted = task.deletedClients
-                    # task.delete()
+                    task.delete()
                     return Response({"status": "SUCCESS", "data": "Clients Synced! Come back in about an hour to see your results.", "deleted": deleted}, status=status.HTTP_201_CREATED, headers="")
                 else:
                     # clients = Company.objects.get(id="faee8ca7-e5de-4c60-8578-0ac6bc576930").client_set.all()
