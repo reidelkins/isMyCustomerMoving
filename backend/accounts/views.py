@@ -517,14 +517,14 @@ class ZapierSoldSubscribe(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
-            testClient = {
+            testClient = [{
                 "Name": "Test Data",
                 "Address": "123 Main St",
                 "City": "New York",
                 "State": "NY",
                 "Zip Code": 10001,
                 "Phone Number": "212-555-1234",
-            }
+            }]
             return Response(testClient, status=status.HTTP_200_OK)
         except Exception as e:
             print(e)
@@ -556,14 +556,14 @@ class ZapierForSaleSubscribe(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
-            testClient = {
+            testClient = [{
                 "Name": "Test Data",
                 "Address": "123 Main St",
                 "City": "New York",
                 "State": "NY",
                 "Zip Code": 10001,
                 "Phone Number": "212-555-1234",
-            }
+            }]
             return Response(testClient, status=status.HTTP_200_OK)
         except Exception as e:
             print(e)
