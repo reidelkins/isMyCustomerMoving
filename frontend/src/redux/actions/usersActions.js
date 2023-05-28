@@ -214,7 +214,6 @@ export const getRefreshToken = (dispatch, func) => {
       },
     };
     const data = { refresh: userInfo.refresh };
-
     try {
       const response = await axios.post(`${DOMAIN}/api/v1/accounts/refresh/`, data, config);
       const newUserInfo = {
@@ -226,6 +225,7 @@ export const getRefreshToken = (dispatch, func) => {
       dispatch(func);
     } catch (error) {
       console.log("error", error);
+      dispatch(logout());
     }
   }
 };
