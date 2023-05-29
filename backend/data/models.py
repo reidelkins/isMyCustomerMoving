@@ -44,6 +44,7 @@ class Client(models.Model):
     error_flag = models.BooleanField(default=False)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
+    revenue = models.IntegerField(default=0, blank=True, null=True)
 
     class Meta:
         unique_together = ('company', 'name', 'address')
