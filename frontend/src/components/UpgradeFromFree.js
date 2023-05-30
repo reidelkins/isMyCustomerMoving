@@ -11,7 +11,7 @@ const UpgradeFromFree = () => {
     const [monthlyLink, setMonthlyLink] = useState("https://www.ismycustomermoving.com/#contact");
     const [annualLink, setAnnualLink] = useState("https://www.ismycustomermoving.com/#contact");
     const [planName, setPlanName] = useState("Small Business");
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(true);
     const [monthlyPrice, setMonthlyPrice] = useState("10");
     const [annualPrice, setAnnualPrice] = useState("100");
 
