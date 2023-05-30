@@ -71,7 +71,11 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
                                                     minYear, setMinYear: handleChangeMinYear, maxYear, setMaxYear: handleChangeMaxYear,
                                                     equipInstallDateMin, setEquipInstallDateMin: handleEquipInstallDateMin,
                                                     equipInstallDateMax, setEquipInstallDateMax: handleEquipInstallDateMax,
-                                                    statusFilters, setStatusFilters: handleStatusFiltersChange } ) {
+                                                    statusFilters, setStatusFilters: handleStatusFiltersChange,
+                                                    tagFilters, setTagFilters: handleTagFiltersChange,
+                                                    zipCode, setZipCode:  handleZipCodeChange,
+                                                    city, setCity: handleCityChange,
+                                                    state, setState: handleStateChange} ) {
     const classes = useStyles();
     const [showFilters, setShowFilters] = useState(false);    
     const [showClearFilters, setShowClearFilters] = useState(false);
@@ -97,12 +101,12 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
     // }, [statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax]);
 
     useEffect(() => {
-        if ( minPrice || maxPrice || minYear || maxYear || equipInstallDateMin || equipInstallDateMax ) {
+        if ( minPrice || maxPrice || minYear || maxYear || equipInstallDateMin || equipInstallDateMax || tagFilters.length > 0 || statusFilters.length > 0 || zipCode || city || state ) {
             setShowClearFilters(true);
         } else {
             setShowClearFilters(false);
         }
-    }, [minPrice, maxPrice, minYear, maxYear, equipInstallDateMin, equipInstallDateMax]);
+    }, [minPrice, maxPrice, minYear, maxYear, equipInstallDateMin, equipInstallDateMax, tagFilters, statusFilters, zipCode, city, state]);
 
     const tagOptions = [
         { value: 'Solar', label: 'Solar' },
@@ -134,7 +138,7 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
     const handleFilterSubmit = (event) => {
         event.preventDefault();
         // Filter data based on selected filters
-        dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, "", equipInstallDateMin, equipInstallDateMax))
+        dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, "", equipInstallDateMin, equipInstallDateMax, tagFilters, zipCode, city, state))
         setShowFilters(false);
     };
 
@@ -152,7 +156,10 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
         handleChangeMaxPrice('');
         handleChangeMinYear('');
         handleChangeMaxYear('');
-        // setTagFilters([]);
+        handleTagFiltersChange([]);
+        handleCityChange('');
+        handleStateChange('');
+        handleZipCodeChange('');
         handleEquipInstallDateMax('');
         handleEquipInstallDateMin('');
         dispatch(clientsAsync(1));
@@ -205,6 +212,39 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
                                 ))}
                             </Grid>
                         </Tooltip>
+                        <Grid item xs={12}>
+                            <Tooltip title="This will filter for the city state and zip of the home">
+                                <Box mt={2}>
+                                    <Typography variant="h6" mb={2}>Location</Typography>
+                                    <Stack direction="row" spacing={2} alignItems="center">
+                                        <FormControl fullWidth>
+                                            <InputLabel>Zip Code</InputLabel>
+                                            <Input
+                                                type="number"
+                                                value={zipCode}
+                                                onChange={(event) => handleZipCodeChange(event.target.value)}
+                                            />
+                                        </FormControl>
+                                        <FormControl fullWidth>
+                                            <InputLabel>City</InputLabel>
+                                            <Input
+                                                type="text"
+                                                value={city}
+                                                onChange={(event) => handleCityChange(event.target.value)}
+                                            />
+                                        </FormControl>
+                                        <FormControl fullWidth>
+                                            <InputLabel>State</InputLabel>
+                                            <Input
+                                                type="text"
+                                                value={state}
+                                                onChange={(event) => handleStateChange(event.target.value)}
+                                            />
+                                        </FormControl>
+                                    </Stack>
+                                </Box>
+                            </Tooltip>
+                        </Grid> 
                         <Grid item xs={12}>
                             <Tooltip title="This will filter for the price that the house was either sold or listed for">
                                 <Box mt={2}>

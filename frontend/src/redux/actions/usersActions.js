@@ -422,7 +422,7 @@ export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
   }
 };
 
-export const filterClientsAsync = (statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax) => async (dispatch, getState) => {
+export const filterClientsAsync = (statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, city, state, zipCode) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -433,36 +433,23 @@ export const filterClientsAsync = (statusFilters, minPrice, maxPrice, minYear, m
       },
     };
     let filters = ""
-    if (statusFilters.length > 0) {
-      filters += `&status=${statusFilters.join(',')}`
-    }
-    if (minPrice) {
-      filters += `&min_price=${minPrice}`
-    }
-    if (maxPrice) {
-      filters += `&max_price=${maxPrice}`
-    }
-    if (minYear) {
-      filters += `&min_year=${minYear}`
-    }
-    if (maxYear) {
-      filters += `&max_year=${maxYear}`
-    }
-    if (tagFilters.length > 0) {
-      filters += `&tags=${tagFilters.join('&tags=')}`
-    }
-    if (equipInstallDateMin) {
-      filters += `&equip_install_date_min=${equipInstallDateMin}`
-    }
-    if (equipInstallDateMax) {
-      filters += `&equip_install_date_max=${equipInstallDateMax}`
-    }
+    if (statusFilters.length > 0) {filters += `&status=${statusFilters.join(',')}`}
+    if (minPrice) {filters += `&min_price=${minPrice}` }
+    if (maxPrice) {filters += `&max_price=${maxPrice}` }
+    if (minYear) {filters += `&min_year=${minYear}` }
+    if (maxYear) {filters += `&max_year=${maxYear}` }
+    if (tagFilters.length > 0) {filters += `&tags=${tagFilters.join('&tags=')}` }
+    if (equipInstallDateMin) {filters += `&equip_install_date_min=${equipInstallDateMin}` }
+    if (equipInstallDateMax) {filters += `&equip_install_date_max=${equipInstallDateMax}` }
+    if (city) {filters += `&city=${city}` }
+    if (state) {filters += `&state=${state}` }
+    if (zipCode) {filters += `&zip_code=${zipCode}` }
     const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/${userInfo.id}/?page=1${filters}`, config);
     dispatch(clients(data));
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
     if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax)));
+      dispatch(getRefreshToken(dispatch, filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, city, state, zipCode)));
     }
   }
 };
@@ -665,7 +652,7 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
   }
 }
 
-export const filterRecentlySoldAsync = (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters) => async (dispatch, getState) => {
+export const filterRecentlySoldAsync = (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -677,33 +664,22 @@ export const filterRecentlySoldAsync = (minPrice, maxPrice, minYear, maxYear, mi
     };
     dispatch(recentlySoldLoading());
     let filters = ""
-    if (minPrice) {
-      filters += `&min_price=${minPrice}`
-    }
-    if (maxPrice) {
-      filters += `&max_price=${maxPrice}`
-    }
-    if (minYear) {
-      filters += `&min_year=${minYear}`
-    }
-    if (maxYear) {
-      filters += `&max_year=${maxYear}`
-    }
-    if (minDaysAgo) {
-      filters += `&min_days_ago=${minDaysAgo}`
-    }
-    if (maxDaysAgo) {
-      filters += `&max_days_ago=${maxDaysAgo}`
-    }
-    if (tagFilters) {
-      filters += `&tags=${tagFilters.join(',')}`
-    }
+    if (minPrice) { filters += `&min_price=${minPrice}` }  
+    if (maxPrice) { filters += `&max_price=${maxPrice}` }
+    if (minYear) { filters += `&min_year=${minYear}` }
+    if (maxYear) { filters += `&max_year=${maxYear}` }
+    if (minDaysAgo) { filters += `&min_days_ago=${minDaysAgo}` }
+    if (maxDaysAgo) { filters += `&max_days_ago=${maxDaysAgo}` }
+    if (tagFilters) { filters += `&tags=${tagFilters.join(',')}` }
+    if (city) { filters += `&city=${city}` }
+    if (state) { filters += `&state=${state}` }
+    if (zipCode) { filters += `&zip_code=${zipCode}` }
     const { data } = await axios.get(`${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}/?page=1${filters}`, config);
     dispatch(recentlySold(data));   
   } catch (error) {
     dispatch(recentlySoldError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
     if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, filterRecentlySoldAsync(minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters)));
+      dispatch(getRefreshToken(dispatch, filterRecentlySoldAsync(minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode)));
     }
   }
 };

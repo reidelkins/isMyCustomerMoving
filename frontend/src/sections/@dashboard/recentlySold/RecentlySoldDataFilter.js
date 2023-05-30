@@ -56,7 +56,10 @@ const useStyles = makeStyles((theme) => ({
 export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleChangeMinPrice, maxPrice, setMaxPrice: handleChangeMaxPrice,
                                                     minYear, setMinYear: handleChangeMinYear, maxYear, setMaxYear: handleChangeMaxYear,
                                                     minDaysAgo, setMinDaysAgo: handleChangeMinDaysAgo, maxDaysAgo, setMaxDaysAgo: handleChangeMaxDaysAgo,
-                                                    tagFilters, setTagFilters: handleChangeTagFilters}) {
+                                                    tagFilters, setTagFilters: handleChangeTagFilters,
+                                                    zipCode, setZipCode: handleChangeZipCode,
+                                                    city, setCity: handleChangeCity,
+                                                    state, setState: handleChangeState,}) {
     const classes = useStyles();
     const [showFilters, setShowFilters] = useState(false);
     const [showClearFilters, setShowClearFilters] = useState(false);
@@ -75,12 +78,12 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
     };
 
     useEffect(() => {
-        if (minPrice || maxPrice || minYear || maxYear || minDaysAgo !== 0 || maxDaysAgo !== 30 || tagFilters.length > 0) {
+        if (minPrice || maxPrice || minYear || maxYear || minDaysAgo !== 0 || maxDaysAgo !== 30 || tagFilters.length > 0 || zipCode || city || state) {
             setShowClearFilters(true);
         } else {
             setShowClearFilters(false);
         }
-    }, [minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters]);
+    }, [minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, zipCode, city, state]);
 
 
     const handleClearFilters = () => {
@@ -91,6 +94,9 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
         handleChangeMinDaysAgo('0');
         handleChangeMaxDaysAgo('30');
         handleChangeTagFilters([]);
+        handleChangeZipCode('');
+        handleChangeCity('');
+        handleChangeState('');
         setError('');
         dispatch(recentlySoldAsync(1));
     };
@@ -151,7 +157,7 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
         if( minDaysAgo > maxDaysAgo || maxDaysAgo < minDaysAgo) {
             setError('Min days ago sold must be less than max days ago sold')
         } else {
-            dispatch(filterRecentlySoldAsync(minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters))
+            dispatch(filterRecentlySoldAsync(minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, zipCode, city, state))
             setShowFilters(false);
         }
     };
@@ -182,6 +188,39 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
                         <Typography variant="h5">Select Filters</Typography>                        
                     </Box>
                     <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                            <Tooltip title="This will filter for the city state and zip of the home">
+                                <Box mt={2}>
+                                    <Typography variant="h6" mb={2}>Location</Typography>
+                                    <Stack direction="row" spacing={2} alignItems="center">
+                                        <FormControl fullWidth>
+                                            <InputLabel>Zip Code</InputLabel>
+                                            <Input
+                                                type="number"
+                                                value={zipCode}
+                                                onChange={(event) => handleChangeZipCode(event.target.value)}
+                                            />
+                                        </FormControl>
+                                        <FormControl fullWidth>
+                                            <InputLabel>City</InputLabel>
+                                            <Input
+                                                type="text"
+                                                value={city}
+                                                onChange={(event) => handleChangeCity(event.target.value)}
+                                            />
+                                        </FormControl>
+                                        <FormControl fullWidth>
+                                            <InputLabel>State</InputLabel>
+                                            <Input
+                                                type="text"
+                                                value={state}
+                                                onChange={(event) => handleChangeState(event.target.value)}
+                                            />
+                                        </FormControl>
+                                    </Stack>
+                                </Box>
+                            </Tooltip>
+                        </Grid>                                                
                         <Grid item xs={12}>
                             <Tooltip title="This will filter for the price that the house was either sold or listed for">
                                 <Box mt={2}>

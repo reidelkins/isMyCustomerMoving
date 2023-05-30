@@ -63,7 +63,8 @@ ClientListToolbar.propTypes = {
 export default function ClientListToolbar({ numSelected, filterName, onFilterName, selectedClients, product, 
                                             minPrice, setMinPrice, maxPrice, setMaxPrice, minYear, setMinYear, maxYear, setMaxYear,
                                             equipInstallDateMin, setEquipInstallDateMin, equipInstallDateMax, setEquipInstallDateMax,
-                                            statusFilters, setStatusFilters, listOrMap, setListOrMap }) {
+                                            statusFilters, setStatusFilters, listOrMap, setListOrMap,
+                                            tagFilters, setTagFilters, zipCode, setZipCode, city, setCity, state, setState }) {
   const dispatch = useDispatch();
   const [showAlert, setShowAlert] = useState(false);
 
@@ -147,6 +148,14 @@ export default function ClientListToolbar({ numSelected, filterName, onFilterNam
           setEquipInstallDateMax={setEquipInstallDateMax}
           statusFilters={statusFilters}
           setStatusFilters={setStatusFilters}
+          tagFilters={tagFilters}
+          setTagFilters={setTagFilters}
+          zipCode={zipCode}
+          setZipCode={setZipCode}
+          city={city}
+          setCity={setCity}
+          state={state}
+          setState={setState}
         />
       )}
       {showAlert && (      
