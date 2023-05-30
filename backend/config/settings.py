@@ -62,7 +62,7 @@ if IS_HEROKU or IS_GITHUB:
     BASE_FRONTEND_URL = 'https://app.ismycustomermoving.com'
     BASE_BACKEND_URL = 'https://is-my-customer-moving.herokuapp.com'
     CLIENT_ORIGIN_URL="https://app.ismycustomermoving.com"
-    CLIENT_FRONEND_URL="https://www.ismycustomermoving.com/pricing"
+    CLIENT_FRONEND_URL="https://www.ismycustomermoving.com"
     if IS_HEROKU:
         DATABASES["default"] = dj_database_url.config(
             conn_max_age=MAX_CONN_AGE, ssl_require=True)
