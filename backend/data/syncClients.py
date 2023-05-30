@@ -3,13 +3,13 @@ import requests
 import gc
 from time import sleep
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.conf import settings
 from django.db.models import Min
 from django.db.models.functions import Coalesce
 
 from accounts.models import Company, CustomUser
-from .models import Client, Task
+from .models import Client
 from .utils import saveClientList, updateClientList, doItAll, deleteExtraClients, delVariables, get_serviceTitan_accessToken
 from simple_salesforce import Salesforce
 
@@ -104,7 +104,7 @@ def get_serviceTitan_clients(company_id, task_id, option):
     deleteExtraClients.delay(company_id, task_id)
     
     get_servicetitan_equipment.delay(company_id)
-    doItAll.delay(company_id)
+    # doItAll.delay(company_id)
     if option == 'option1':
         frm = ""
         moreClients = True
@@ -201,6 +201,15 @@ def update_clients_with_revenue(invoices, company_id):
                 client_dict[invoice['customer']['id']] += float(invoice['total'])
             else:
                 client_dict[invoice['customer']['id']] = float(invoice['total'])
+
+    headers = get_serviceTitan_accessToken(company_id)
+    tenant = company.tenantID
+    for client in client_dict:
+        url = f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/customers/{client}'
+        response = requests.get(url, headers=headers)
+        data = response.json()
+        if data['createdOn'] > datetime.today()-timedelta(days=180):
+            client_dict.pop(client)
 
     client_ids = client_dict.keys()
 
