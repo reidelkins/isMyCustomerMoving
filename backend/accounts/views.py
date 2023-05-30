@@ -16,7 +16,7 @@ from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 from djstripe import models as djstripe_models
 
 
-from .utils import makeCompany
+from .utils import makeCompany, create_keap_user
 from .models import CustomUser, Company, InviteToken, Enterprise
 from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, MyTokenObtainPairSerializer, EnterpriseSerializer
 from config import settings
@@ -161,6 +161,7 @@ class ManageUserView(APIView):
                     if request.data['phone']:
                         user.phone = request.data['phone']
                     user.save()
+                    create_keap_user(user.id)
                 serializer = UserSerializerWithToken(user, many=False)
                 return Response(serializer.data)
             else:
