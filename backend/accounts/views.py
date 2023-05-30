@@ -16,7 +16,7 @@ from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 from djstripe import models as djstripe_models
 
 
-from .utils import makeCompany, create_keap_user
+from .utils import makeCompany, create_keap_user, create_keap_company
 from .models import CustomUser, Company, InviteToken, Enterprise
 from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, MyTokenObtainPairSerializer, EnterpriseSerializer
 from config import settings
@@ -197,6 +197,7 @@ def company(request):
                 freePlan = djstripe_models.Plan.objects.get(id='price_1MhxfPAkLES5P4qQbu8O45xy')
                 comp.product = freePlan
                 comp.save()
+                create_keap_company(company.id)
                 return Response("", status=status.HTTP_201_CREATED, headers="")
             except:
                 return Response(comp, status=status.HTTP_400_BAD_REQUEST)

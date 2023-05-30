@@ -29,8 +29,7 @@ def makeCompany(companyName, email, phone, stripeId=None):
                 message = get_template("registration.html").render({
                     'company': company.name, 'accessToken': company.accessToken
                 })
-                send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)
-                create_keap_company(company.id)
+                send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)                
                 return company.id
             else:
                 return {'Error': "Company with that name already exists"}

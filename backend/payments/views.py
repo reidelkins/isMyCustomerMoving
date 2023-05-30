@@ -2,7 +2,7 @@ from django.conf import settings
 from django.template.loader import get_template
 from django.core.mail import send_mail
 from accounts.models import Company, CustomUser
-from accounts.utils import makeCompany
+from accounts.utils import makeCompany, create_keap_company
 from data.utils import deleteExtraClients, reactivateClients
 from datetime import datetime, timedelta
 
@@ -134,12 +134,14 @@ def completed_checkout(event: djstripe_models.Event):
             company.product = plan
             company.phone = phone
             company.save()
+            create_keap_company(company.id)
         except:
             try:
                 company = makeCompany(companyName, email, phone, stripeId)
                 company = Company.objects.get(id=company)
                 company.product = plan
                 company.save()
+                create_keap_company(company.id)
             except Exception as e:
                 print(f"error: {e}")
                 
