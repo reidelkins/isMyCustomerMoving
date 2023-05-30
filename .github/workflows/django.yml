@@ -32,12 +32,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
       - name: Run Tests
-        env:          
+        env:
           DJANGO_SECRET_KEY: ${{secrets.DJANGO_SECRET_KEY}}
           EMAIL: ${{secrets.EMAIL}}
           EMAIL_PASSWD: ${{secrets.EMAIL_PASSWD}}
           GOOGLE_CLIENT_ID: ${{secrets.GOOGLE_CLIENT_ID}}
           GOOGLE_CLIENT_SECRET: ${{secrets.GOOGLE_CLIENT_SECRET}}
+          KEAP_API_KEY: ${{secrets.KEAP_API_KEY}}
           REDIS_URL: ${{secrets.REDIS_URL}}
           SALESFORCE_CONSUMER_KEY: ${{secrets.SALESFORCE_CONSUMER_KEY}}
           SALESFORCE_CONSUMER_SECRET: ${{secrets.SALESFORCE_CONSUMER_SECRET}}
@@ -49,7 +50,7 @@ jobs:
           STRIPE_PUBLIC_KEY: ${{secrets.STRIPE_PUBLIC_KEY }}
           STRIPE_PUBLIC_KEY_TEST: ${{secrets.STRIPE_PUBLIC_KEY_TEST }}
           IS_GITHUB: True
-          
+
         run: |
           cd backend
           python manage.py makemigrations
