@@ -738,13 +738,22 @@ def filter_recentlysold(query_params, queryset):
     if 'max_year' in query_params:
         queryset = queryset.filter(year_built__lte=query_params['max_year'], year_built__gt=0)
     if 'min_days_ago' in query_params:
-        queryset = queryset.filter(listed__lt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['min_days_ago']))).strftime('%Y-%m-%d'))
+        queryset = queryset.filter(listed__lt=(datetime.today()-timedelta(days=int(query_params['min_days_ago']))).strftime('%Y-%m-%d'))
     if 'max_days_ago' in query_params:
-        queryset = queryset.filter(listed__gt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['max_days_ago']))).strftime('%Y-%m-%d'))
+        queryset = queryset.filter(listed__gt=(datetime.today()-timedelta(days=int(query_params['max_days_ago']))).strftime('%Y-%m-%d'))
     if 'tags' in query_params:
         tags = query_params['tags'].split(',')
-        matching_tags = HomeListingTags.objects.filter(tag__in=tags)
-        queryset = queryset.filter(tag__in=matching_tags)
+        if tags != ['']:
+            matching_tags = HomeListingTags.objects.filter(tag__in=tags)
+            queryset = queryset.filter(tag__in=matching_tags)
+    if 'state' in query_params:
+        queryset = queryset.filter(state=query_params['state'].upper())
+    if 'city' in query_params:
+        queryset = queryset.filter(city=query_params['city'].capitalize())
+    if 'zip_code' in query_params:
+        zipCode = ZipCode.objects.filter(zipCode=query_params['zip_code'])
+        if len(zipCode) > 0:
+            queryset = queryset.filter(zipCode=zipCode[0])
     return queryset
 
 def filter_clients(query_params, queryset):
@@ -756,6 +765,18 @@ def filter_clients(query_params, queryset):
         queryset = queryset.filter(year_built__gte=query_params['min_year'])
     if 'max_year' in query_params:
         queryset = queryset.filter(year_built__lte=query_params['max_year'], year_built__gt=0)
+    if 'state' in query_params:
+        queryset = queryset.filter(state=query_params['state'].upper())
+    if 'city' in query_params:
+        queryset = queryset.filter(city=query_params['city'].capitalize())
+    if 'zip_code' in query_params:
+        zipCode = ZipCode.objects.filter(zipCode=query_params['zip_code'])
+        if len(zipCode) > 0:
+            queryset = queryset.filter(zipCode=zipCode[0])
+    if 'tags' in query_params:
+        tags = query_params['tags'].split(',')
+        matching_tags = HomeListingTags.objects.filter(tag__in=tags)
+        queryset = queryset.filter(tag__in=matching_tags)
     if 'status' in query_params:
         statuses = []
         if "For Sale" in query_params['status']:

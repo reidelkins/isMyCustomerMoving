@@ -178,6 +178,8 @@ export default function CustomerData() {
   useEffect(() => {
     if (CLIENTLIST.length > 0) {
       setFilteredClients(applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName, userInfo.status));
+    } else {
+      setFilteredClients([]);
     }
   }, [CLIENTLIST, order, orderBy, filterName, userInfo]);
 
@@ -284,6 +286,9 @@ export default function CustomerData() {
   const [tagFilters, setTagFilters] = useState([]);
   const [equipInstallDateMin, setEquipInstallDateMin] = useState('');
   const [equipInstallDateMax, setEquipInstallDateMax] = useState('');
+  const [zipCode, setZipCode] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
   const handleStatusFiltersChange = (newFilters) => {setStatusFilters(newFilters)}
   const handleMinPriceChange = (newMinPrice) => { setMinPrice(newMinPrice)}
   const handleMaxPriceChange = (newMaxPrice) => {setMaxPrice(newMaxPrice)}
@@ -291,6 +296,11 @@ export default function CustomerData() {
   const handleMaxYearChange = (newMaxYear) => {setMaxYear(newMaxYear)}
   const handleEquipInstallDateMin = (newEquipInstallDateMin) => {setEquipInstallDateMin(newEquipInstallDateMin)}
   const handleEquipInstallDateMax = (newEquipInstallDateMax) => {setEquipInstallDateMax(newEquipInstallDateMax)}
+  const handleZipCodeChange = (newZipCode) => {setZipCode(newZipCode)}
+  const handleCityChange = (newCity) => {setCity(newCity)}
+  const handleStateChange = (newState) => {setState(newState)}
+  const handleTagFiltersChange = (newTagFilters) => {setTagFilters(newTagFilters)}
+
   const exportCSV = () => {
     dispatch(getClientsCSV(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax))
   }
@@ -361,6 +371,15 @@ export default function CustomerData() {
                   setStatusFilters={handleStatusFiltersChange}
                   listOrMap={listOrMap}
                   setListOrMap={handleListOrMap}
+                  tagFilters={tagFilters}
+                  setTagFilters={handleTagFiltersChange}
+                  zipCode={zipCode}
+                  setZipCode={handleZipCodeChange}
+                  city={city}
+                  setCity={handleCityChange}
+                  state={state}
+                  setState={handleStateChange}
+                  
                   
                   />
                 {loading ? (

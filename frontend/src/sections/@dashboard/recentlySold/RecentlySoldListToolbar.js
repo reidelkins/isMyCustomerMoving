@@ -33,7 +33,9 @@ RecentlySoldListToolbar.propTypes = {
 };
 
 // ----------------------------------------------------------------------
-export default function RecentlySoldListToolbar({product, minPrice, setMinPrice, maxPrice, setMaxPrice, minYear, setMinYear, maxYear, setMaxYear, minDaysAgo, setMinDaysAgo, maxDaysAgo, setMaxDaysAgo, tagFilters, setTagFilters}) {
+export default function RecentlySoldListToolbar({product, minPrice, setMinPrice, maxPrice, setMaxPrice, 
+  minYear, setMinYear, maxYear, setMaxYear, minDaysAgo, setMinDaysAgo, maxDaysAgo, setMaxDaysAgo, 
+  tagFilters, setTagFilters, zipCode, setZipCode, city, setCity, state, setState}) {
 
   return (
     <RootStyle>      
@@ -53,6 +55,13 @@ export default function RecentlySoldListToolbar({product, minPrice, setMinPrice,
           setMaxDaysAgo={setMaxDaysAgo}
           tagFilters={tagFilters}
           setTagFilters={setTagFilters}
+          zipCode={zipCode}
+          setZipCode={setZipCode}
+          city={city}
+          setCity={setCity}
+          state={state}
+          setState={setState}
+
         />
     </RootStyle>
   );

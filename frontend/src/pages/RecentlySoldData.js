@@ -147,6 +147,9 @@ export default function RecentlySoldData() {
   const [minDaysAgo, setMinDaysAgo] = useState('');
   const [maxDaysAgo, setMaxDaysAgo] = useState('');
   const [tagFilters, setTagFilters] = useState([]);
+  const [zipCode, setZipCode] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
   const handleMinPriceChange = (newMinPrice) => { setMinPrice(newMinPrice)}
   const handleMaxPriceChange = (newMaxPrice) => {setMaxPrice(newMaxPrice)}
   const handleMinYearChange = (newMinYear) => {setMinYear(newMinYear)}
@@ -154,6 +157,9 @@ export default function RecentlySoldData() {
   const handleMinDaysAgoChange = (newMinDaysAgo) => {setMinDaysAgo(newMinDaysAgo)}
   const handleMaxDaysAgoChange = (newMaxDaysAgo) => {setMaxDaysAgo(newMaxDaysAgo)}
   const handleTagFiltersChange = (newTagFilters) => {setTagFilters(newTagFilters)}
+  const handleZipCodeChange = (newZipCode) => {setZipCode(newZipCode)}
+  const handleCityChange = (newCity) => {setCity(newCity)}
+  const handleStateChange = (newState) => {setState(newState)}
   
   const exportCSV = () => {
     dispatch(getRecentlySoldCSV( minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters))
@@ -231,6 +237,12 @@ export default function RecentlySoldData() {
                     setMaxDaysAgo={handleMaxDaysAgoChange}
                     tagFilters={tagFilters}
                     setTagFilters={handleTagFiltersChange}
+                    zipCode={zipCode}
+                    setZipCode={handleZipCodeChange}
+                    city={city}
+                    setCity={handleCityChange}
+                    state={state}
+                    setState={handleStateChange}
                   />
                   <TableContainer sx={{ minWidth: 800 }}>
                     <Table>

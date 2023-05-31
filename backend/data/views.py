@@ -96,6 +96,7 @@ class ClientListView(generics.ListAPIView):
             return self.get_paginated_response({"forSale": forSale, "forSaleAllTime": forSaleAllTime, "recentlySoldAllTime": recentlySoldAllTime, "recentlySold": recentlySold, "clients": clients})
 
         serializer = self.get_serializer(queryset, many=True)
+        clients = serializer.data
         return Response({"forSale": forSale, "forSaleAllTime": forSaleAllTime, "recentlySoldAllTime": recentlySoldAllTime, "recentlySold": recentlySold, "clients": clients})
 
 class RecentlySoldView(generics.ListAPIView):

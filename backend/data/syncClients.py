@@ -104,7 +104,7 @@ def get_serviceTitan_clients(company_id, task_id, option):
     deleteExtraClients.delay(company_id, task_id)
     
     get_servicetitan_equipment.delay(company_id)
-    # doItAll.delay(company_id)
+    doItAll.delay(company_id)
     if option == 'option1':
         frm = ""
         moreClients = True
@@ -205,10 +205,12 @@ def update_clients_with_revenue(invoices, company_id):
     headers = get_serviceTitan_accessToken(company_id)
     tenant = company.tenantID
     for client in client_dict:
+        print(client)
         url = f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/customers/{client}'
         response = requests.get(url, headers=headers)
         data = response.json()
-        if data['createdOn'] > datetime.today()-timedelta(days=180):
+        created_on = datetime.fromisoformat(data['createdOn'][:19])
+        if created_on > datetime.today()-timedelta(days=180):
             client_dict.pop(client)
 
     client_ids = client_dict.keys()
