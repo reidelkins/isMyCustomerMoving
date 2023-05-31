@@ -138,7 +138,7 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
     const handleFilterSubmit = (event) => {
         event.preventDefault();
         // Filter data based on selected filters
-        dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, "", equipInstallDateMin, equipInstallDateMax, tagFilters, zipCode, city, state))
+        dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, city, state, zipCode))
         setShowFilters(false);
     };
 

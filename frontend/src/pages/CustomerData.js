@@ -178,6 +178,8 @@ export default function CustomerData() {
   useEffect(() => {
     if (CLIENTLIST.length > 0) {
       setFilteredClients(applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName, userInfo.status));
+    } else {
+      setFilteredClients([]);
     }
   }, [CLIENTLIST, order, orderBy, filterName, userInfo]);
 
