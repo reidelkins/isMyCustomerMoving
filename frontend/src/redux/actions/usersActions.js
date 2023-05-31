@@ -654,7 +654,6 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
 
 export const filterRecentlySoldAsync = (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode) => async (dispatch, getState) => {
   try {
-    console.log(minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode)
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
     const config = {
