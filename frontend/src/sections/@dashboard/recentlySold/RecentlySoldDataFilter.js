@@ -157,7 +157,7 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
         if( minDaysAgo > maxDaysAgo || maxDaysAgo < minDaysAgo) {
             setError('Min days ago sold must be less than max days ago sold')
         } else {
-            dispatch(filterRecentlySoldAsync(minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, zipCode, city, state))
+            dispatch(filterRecentlySoldAsync(minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode))
             setShowFilters(false);
         }
     };
