@@ -197,7 +197,7 @@ def company(request):
                 freePlan = djstripe_models.Plan.objects.get(id='price_1MhxfPAkLES5P4qQbu8O45xy')
                 comp.product = freePlan
                 comp.save()
-                create_keap_company(company.id)
+                create_keap_company(comp.id)
                 return Response("", status=status.HTTP_201_CREATED, headers="")
             except:
                 return Response(comp, status=status.HTTP_400_BAD_REQUEST)
