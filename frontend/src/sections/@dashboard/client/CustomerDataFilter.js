@@ -81,24 +81,16 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
     const [showClearFilters, setShowClearFilters] = useState(false);
     const dispatch = useDispatch();    
 
-    // const handleTagFilterChange = (event) => {
-    //     const { value } = event.target;
-    //     setTagFilters((prevFilters) => {
-    //     if (prevFilters.includes(value)) {
-    //         return prevFilters.filter((filter) => filter !== value);
-    //     } 
-    //     return [...prevFilters, value];
+    const handleChangeTagFilter = (event) => {
+        const { value } = event.target;
+        handleTagFiltersChange((prevFilters) => {
+        if (prevFilters.includes(value)) {
+            return prevFilters.filter((filter) => filter !== value);
+        } 
+        return [...prevFilters, value];
         
-    //     });
-    // };
-
-    // useEffect(() => {
-    //     if (statusFilters.length > 0 || minPrice || maxPrice || minYear || maxYear || tagFilters.length > 0 || equipInstallDateMin || equipInstallDateMax) {
-    //         setShowClearFilters(true);
-    //     } else {
-    //         setShowClearFilters(false);
-    //     }
-    // }, [statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax]);
+        });
+    };
 
     useEffect(() => {
         if ( minPrice || maxPrice || minYear || maxYear || equipInstallDateMin || equipInstallDateMax || tagFilters.length > 0 || statusFilters.length > 0 || zipCode || city || state ) {
@@ -109,13 +101,42 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
     }, [minPrice, maxPrice, minYear, maxYear, equipInstallDateMin, equipInstallDateMax, tagFilters, statusFilters, zipCode, city, state]);
 
     const tagOptions = [
-        { value: 'Solar', label: 'Solar' },
-        { value: 'Well Water', label: 'Well Water' },
-        { value: 'Residential', label: 'Residential' },
-        { value: 'Pool', label: 'Pool' },
-        { value: 'Commercial', label: 'Commercial' },
-        { value: 'Fixer Upper', label: 'Fixer Upper' },
+        { value: 'garage_3_or_more', label: 'Garage 3+' },
+        { value: 'well_water', label: 'Well Water' },
+        { value: 'garage_1_or_more', label: 'Garage 1+' },
+        { value: 'central_heat', label: 'Central Heat' },
+        { value: 'central_air', label: 'Central Air' },
+        { value: 'forced_air', label: 'Forced Air' },
+        { value: 'solar_panels', label: 'Solar Panels' },
+        { value: 'solar_system', label: 'Solar System' },
+        { value: 'swimming_pool', label: 'Swimming Pool' },
+        { value: 'new roof', label: 'New Roof' },
+        { value: 'new_construction', label: 'New Construction' },
+        { value: 'fixer_upper', label: 'Fixer Upper' },
+        { value: 'fireplace', label: 'Fireplace' },
+        { value: 'energy_efficient', label: 'Energy Efficient' },
+        { value: 'ocean_view', label: 'Ocean View' },
+        { value: 'efficient', label: 'Efficient' },
+        { value: 'smart_homes', label: 'Smart Homes' },
+        { value: 'guest_house', label: 'Guest House' },
+        { value: 'rental_property', label: 'Rental Property' },
+        { value: 'no_hoa', label: 'No HOA' },
+        { value: 'hoa', label: 'HOA' },
+        { value: 'beach', label: 'Beach' },
+
     ];
+
+    const sortedTagOptions = tagOptions.sort((a, b) => {
+        const labelA = a.label.toUpperCase();
+        const labelB = b.label.toUpperCase();
+        if (labelA < labelB) {
+            return -1;
+        }
+        if (labelA > labelB) {
+            return 1;
+        }
+        return 0;
+    });
 
     const handleStatusFilterChange = (event) => {
         const { value } = event.target;
@@ -330,27 +351,26 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
                                 </Box>
                             </Tooltip>
                         </Grid>
-                    {/* <Grid item xs={12}>
-                        <FormControl component="fieldset">
-                        <FormLabel component="legend">Tags</FormLabel>
-                        <Grid container spacing={1}>
-                            {tagOptions.map((option) => (
-                                <FormControlLabel
-                                key={option.value}
-                                control={
-                                    <Checkbox
-                                    checked={tagFilters.includes(option.value)}
-                                    onChange={handleTagFilterChange}
-                                    value={option.value}
+                        <Grid item xs={12}>
+                            <FormControl component="fieldset">
+                            <FormLabel component="legend">Tags</FormLabel>
+                            <Grid container spacing={1}>
+                                {sortedTagOptions.map((option) => (
+                                    <FormControlLabel
+                                    key={option.value}
+                                    control={
+                                        <Checkbox
+                                        checked={tagFilters.includes(option.value)}
+                                        onChange={handleChangeTagFilter}
+                                        value={option.value}
+                                        />
+                                    }
+                                    label={option.label}
                                     />
-                                }
-                                label={option.label}
-                                />
-                            ))}
-                           
+                                ))}                        
+                            </Grid>
+                            </FormControl>
                         </Grid>
-                        </FormControl>
-                    </Grid> */}
                     </Grid>
                     <Box mt={2}>
                         <Button type="submit" variant="contained" color="primary">
