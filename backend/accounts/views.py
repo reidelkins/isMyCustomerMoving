@@ -316,6 +316,7 @@ class RegisterView(APIView):
                 # })
                 # send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)
                 serializer = UserSerializerWithToken(user, many=False)
+                create_keap_user(user.id)
             else:
                 return Response({'detail': f'Access Token Already Used. Ask an admin to login and create profile for you.'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
