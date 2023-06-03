@@ -197,7 +197,7 @@ def company(request):
                 freePlan = djstripe_models.Plan.objects.get(id='price_1MhxfPAkLES5P4qQbu8O45xy')
                 comp.product = freePlan
                 comp.save()
-                create_keap_company(company.id)
+                create_keap_company(comp.id)
                 return Response("", status=status.HTTP_201_CREATED, headers="")
             except:
                 return Response(comp, status=status.HTTP_400_BAD_REQUEST)
@@ -316,6 +316,7 @@ class RegisterView(APIView):
                 # })
                 # send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)
                 serializer = UserSerializerWithToken(user, many=False)
+                create_keap_user(user.id)
             else:
                 return Response({'detail': f'Access Token Already Used. Ask an admin to login and create profile for you.'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:

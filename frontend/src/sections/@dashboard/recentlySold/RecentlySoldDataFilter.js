@@ -113,6 +113,18 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
         { value: 'swimming_pool', label: 'Swimming Pool' },
         { value: 'new roof', label: 'New Roof' },
         { value: 'new_construction', label: 'New Construction' },
+        { value: 'fixer_upper', label: 'Fixer Upper' },
+        { value: 'fireplace', label: 'Fireplace' },
+        { value: 'energy_efficient', label: 'Energy Efficient' },
+        { value: 'ocean_view', label: 'Ocean View' },
+        { value: 'efficient', label: 'Efficient' },
+        { value: 'smart_homes', label: 'Smart Homes' },
+        { value: 'guest_house', label: 'Guest House' },
+        { value: 'rental_property', label: 'Rental Property' },
+        { value: 'no_hoa', label: 'No HOA' },
+        { value: 'hoa', label: 'HOA' },
+        { value: 'beach', label: 'Beach' },
+
     ];
 
     const sortedTagOptions = tagOptions.sort((a, b) => {
