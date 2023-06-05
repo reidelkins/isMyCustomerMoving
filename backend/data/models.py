@@ -45,6 +45,7 @@ class Client(models.Model):
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
     revenue = models.IntegerField(default=0, blank=True, null=True)
+    serviceTitanCustomerSince = models.DateField(blank=True, null=True)
 
     class Meta:
         unique_together = ('company', 'name', 'address')
@@ -84,6 +85,7 @@ class HomeListing(models.Model):
     housingType = models.CharField(max_length=100, default=" ")
     year_built = models.IntegerField(default=0)
     tag = models.ManyToManyField("HomeListingTags", blank=True, related_name='homeListing_tag')
+    # tags = JSONField(default=list)     this is how to greatly reduce the amount of data in the table
     city = models.CharField(max_length=40, blank=True, null=True)
     state = models.CharField(max_length=31, blank=True, null=True)
 

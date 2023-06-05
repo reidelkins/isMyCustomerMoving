@@ -75,7 +75,9 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
                                                     tagFilters, setTagFilters: handleTagFiltersChange,
                                                     zipCode, setZipCode:  handleZipCodeChange,
                                                     city, setCity: handleCityChange,
-                                                    state, setState: handleStateChange} ) {
+                                                    state, setState: handleStateChange,
+                                                    customerSinceMin, setCustomerSinceMin: handleCustomerSinceMin,
+                                                    customerSinceMax, setCustomerSinceMax: handleCustomerSinceMax } ) {
     const classes = useStyles();
     const [showFilters, setShowFilters] = useState(false);    
     const [showClearFilters, setShowClearFilters] = useState(false);
@@ -159,7 +161,7 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
     const handleFilterSubmit = (event) => {
         event.preventDefault();
         // Filter data based on selected filters
-        dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, city, state, zipCode))
+        dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, city, state, zipCode, customerSinceMin, customerSinceMax))
         setShowFilters(false);
     };
 
@@ -183,6 +185,8 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
         handleZipCodeChange('');
         handleEquipInstallDateMax('');
         handleEquipInstallDateMin('');
+        handleCustomerSinceMin('');
+        handleCustomerSinceMax('');
         dispatch(clientsAsync(1));
     };
 
@@ -285,6 +289,31 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
                                             type="number"
                                             value={maxPrice}
                                             onChange={(event) => handleChangeMaxPrice(event.target.value)}
+                                        />
+                                        </FormControl>
+                                    </Stack>
+                                </Box>
+                            </Tooltip>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Tooltip title="How long have they been one of your customers">
+                                <Box mt={2}>
+                                    <Typography variant="h6" mb={2}>Customer Since</Typography>
+                                    <Stack direction="row" spacing={2} alignItems="space-between">
+                                        <FormControl fullWidth>
+                                            <InputLabel>Min Year</InputLabel>
+                                            <Input
+                                                type="number"
+                                                value={customerSinceMin}
+                                                onChange={(event) => handleCustomerSinceMax(event.target.value)}
+                                            />
+                                        </FormControl>
+                                        <FormControl fullWidth>
+                                        <InputLabel>Max Year</InputLabel>
+                                        <Input
+                                            type="number"
+                                            value={customerSinceMax}
+                                            onChange={(event) => handleCustomerSinceMax(event.target.value)}
                                         />
                                         </FormControl>
                                     </Stack>
