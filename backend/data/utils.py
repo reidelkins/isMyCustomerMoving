@@ -18,7 +18,7 @@ from typing_extensions import TypedDict
 
 from django.template.loader import get_template
 from django.core.mail import EmailMessage, send_mail
-from db.models.functions import Coalesce
+from django.db.models.functions import Coalesce
 
 scrapflies = []
 for i in range(1, 21):
