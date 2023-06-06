@@ -162,25 +162,6 @@ def saveClientList(clients, company_id, task=None):
             print(e)
     Client.objects.bulk_create(clientsToAdd, ignore_conflicts=True)
     
-    client_dict = {}
-    for i in range(len(clients)):
-        if clients[i]['createdOn'] != None:
-            try:
-                year, month, day = map(int, clients[i]['createdOn'][:10].split("-"))
-                date_object = date(year, month, day)
-                client_dict[clients[i]['customerId']] = date_object 
-            except Exception as e:
-                print(f"date error {e}")
-
-    client_ids = client_dict.keys()
-
-    # Use select_related to fetch related objects in a single query
-    clients = Client.objects.filter(servTitanID__in=client_ids, company=company).select_related('company')
-    print(f"clients: len{clients}")
-    # Use bulk_update to update multiple objects at once
-    for client in clients:
-        client.serviceTitanCustomerSince = Coalesce(client_dict.get(client.servTitanID), client.serviceTitanCustomerSince)
-        client.save(update_fields=['serviceTitanCustomerSince'])
     
     if task:
         deleteExtraClients.delay(company_id, task)
