@@ -167,30 +167,30 @@ def update_clients_with_first_invoice_date(company_id):
         if response.json()['hasMore'] == False:
             moreInvoices = False
 
-    client_dict = {}
-    for invoice in invoices:
-        if invoice['createdOn'] != None:
-            try:
-                tmpClient = Client.objects.get(servTitanID=invoice['customerId'], company=company)
-                year, month, day = map(int, invoice['createdOn'][:10].split("-"))
-                date_object = date(year, month, day)
-                if tmpClient.serviceTitanCustomerSince == None or tmpClient.serviceTitanCustomerSince > date_object or tmpClient.serviceTitanCustomerSince == date(1, 1, 1):
-                    if invoice['customerId'] in client_dict:
-                        if client_dict[invoice['customerId']] > date_object:
-                            client_dict[invoice['customerId']] = date_object
-                    else:
-                        client_dict[invoice['customerId']] = date_object 
-            except Exception as e:
-                print(f"date error {e}")
+        client_dict = {}
+        for invoice in invoices:
+            if invoice['createdOn'] != None:
+                try:
+                    tmpClient = Client.objects.get(servTitanID=invoice['customer']['id'], company=company)
+                    year, month, day = map(int, invoice['createdOn'][:10].split("-"))
+                    date_object = date(year, month, day)
+                    if tmpClient.serviceTitanCustomerSince == None or tmpClient.serviceTitanCustomerSince > date_object or tmpClient.serviceTitanCustomerSince == date(1, 1, 1):
+                        if invoice['customer']['id'] in client_dict:
+                            if client_dict[invoice['customer']['id']] > date_object:
+                                client_dict[invoice['customer']['id']] = date_object
+                        else:
+                            client_dict[invoice['customer']['id']] = date_object 
+                except Exception as e:
+                    print(f"date error {e}")
 
-    client_ids = client_dict.keys()
+        client_ids = client_dict.keys()
 
-    # Use select_related to fetch related objects in a single query
-    clients = Client.objects.filter(servTitanID__in=client_ids, company=company).select_related('company')
-    # Use bulk_update to update multiple objects at once
-    for client in clients:
-        client.serviceTitanCustomerSince = Coalesce(client_dict.get(client.servTitanID), client.serviceTitanCustomerSince)
-        client.save(update_fields=['serviceTitanCustomerSince'])
+        # Use select_related to fetch related objects in a single query
+        clients = Client.objects.filter(servTitanID__in=client_ids, company=company).select_related('company')
+        # Use bulk_update to update multiple objects at once
+        for client in clients:
+            client.serviceTitanCustomerSince = Coalesce(client_dict.get(client.servTitanID), client.serviceTitanCustomerSince)
+            client.save(update_fields=['serviceTitanCustomerSince'])
 
 @shared_task
 def get_servicetitan_equipment(company_id):
