@@ -174,6 +174,19 @@ def create_keap_user(user_id):
                 print(f"ERROR: {response.text}")
                 print("Could not create user in Keap")
 
+            if float(company.product.amount) == 0:
+                url = "https://api.infusionsoft.com/crm/rest/v1/tags/127/contacts"
+                body = {
+                    'ids': [
+                        response.json()['id']
+                    ]
+                }
+                response = requests.post(url, headers=headers, json=body)
+                if response.status_code != 200:
+                    print(f"ERROR: {response.text}")
+                    print("Could not add user to tag in Keap")
+
+
     except Exception as e:
         print(f"ERROR: {e}")
         print("Could not create company in Keap")
