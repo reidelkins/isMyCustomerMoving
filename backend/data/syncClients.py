@@ -5,6 +5,7 @@ from time import sleep
 
 from datetime import datetime, timedelta, date
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Min
 from django.db.models.functions import Coalesce
 
@@ -155,42 +156,54 @@ def update_clients_with_first_invoice_date(company_id):
     tenant = company.tenantID
     headers = get_serviceTitan_accessToken(company_id)
     moreInvoices = True
-    #get client data
     page = 1
-    while(moreInvoices):
+
+    while moreInvoices:
         url = f'https://api.servicetitan.io/accounting/v2/tenant/{tenant}/invoices?page={page}&pageSize=2500'
         response = requests.get(url, headers=headers)
         page += 1
-        # invoices = response.json()['data']
-        invoices = response.json()['data']
+        data = response.json()['data']
+        process_invoices(data, company)
             
-        if response.json()['hasMore'] == False:
+        if not response.json()['hasMore']:
             moreInvoices = False
+    
 
-        client_dict = {}
-        for invoice in invoices:
-            if invoice['createdOn'] != None:
-                try:
-                    tmpClient = Client.objects.get(servTitanID=invoice['customer']['id'], company=company)
-                    year, month, day = map(int, invoice['createdOn'][:10].split("-"))
-                    date_object = date(year, month, day)
-                    if tmpClient.serviceTitanCustomerSince == None or tmpClient.serviceTitanCustomerSince > date_object or tmpClient.serviceTitanCustomerSince == date(1, 1, 1):
+@shared_task
+def process_invoices(invoices, company):
+    company = Company.objects.get(id=company)
+    client_dict = {}
+    for invoice in invoices:
+        # on the same line as the last statement, print another .
+        if invoice['createdOn'] is not None:
+            try:
+                tmpClient = Client.objects.filter(servTitanID=invoice['customer']['id'], company=company).first()
+                year, month, day = map(int, invoice['createdOn'][:10].split("-"))
+                invoice_date = date(year, month, day)
+                if tmpClient is not None:
+                    if tmpClient.serviceTitanCustomerSince is None or tmpClient.serviceTitanCustomerSince > invoice_date or tmpClient.serviceTitanCustomerSince == date(1, 1, 1):
                         if invoice['customer']['id'] in client_dict:
-                            if client_dict[invoice['customer']['id']] > date_object:
-                                client_dict[invoice['customer']['id']] = date_object
+                            if client_dict[invoice['customer']['id']] > invoice_date:
+                                client_dict[invoice['customer']['id']] = invoice_date
                         else:
-                            client_dict[invoice['customer']['id']] = date_object 
-                except Exception as e:
-                    print(f"date error {e}")
+                            client_dict[invoice['customer']['id']] = invoice_date 
+            except Exception as e:
+                print(f"date error {e}")
+    update_clients(client_dict, company)  # Update the clients' serviceTitanCustomerSince field
+    return client_dict
 
-        client_ids = client_dict.keys()
+def update_clients(client_dict, company):
+    client_ids = client_dict.keys()
+    company = Company.objects.get(id=company.id)
 
-        # Use select_related to fetch related objects in a single query
-        clients = Client.objects.filter(servTitanID__in=client_ids, company=company).select_related('company')
-        # Use bulk_update to update multiple objects at once
-        for client in clients:
-            client.serviceTitanCustomerSince = Coalesce(client_dict.get(client.servTitanID), client.serviceTitanCustomerSince)
-            client.save(update_fields=['serviceTitanCustomerSince'])
+    clients = Client.objects.filter(servTitanID__in=client_ids, company=company).select_related('company')
+
+    updated_clients = []
+    for client in clients:
+        client.serviceTitanCustomerSince = client_dict.get(client.servTitanID, client.serviceTitanCustomerSince)
+        updated_clients.append(client)
+    with transaction.atomic():
+        Client.objects.bulk_update(updated_clients, ['serviceTitanCustomerSince'])
 
 @shared_task
 def get_servicetitan_equipment(company_id):
