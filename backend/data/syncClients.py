@@ -254,10 +254,10 @@ def update_clients_with_revenue(invoices, company_id):
     client_dict = {}
     for invoice in invoices:
         if float(invoice['total']) > 0:
-            if invoice['customer']['id'] in client_dict:
-                client_dict[invoice['customer']['id']] += float(invoice['total'])
+            if invoice['id'] in client_dict:
+                client_dict[invoice['id']] += float(invoice['total'])
             else:
-                client_dict[invoice['customer']['id']] = float(invoice['total'])
+                client_dict[invoice['id']] = float(invoice['total'])
     del invoices
     tmpDict = client_dict.copy()
     for client in tmpDict:
