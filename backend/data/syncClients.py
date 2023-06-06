@@ -242,7 +242,7 @@ def get_serviceTitan_invoices(company_id):
         response = requests.get(url, headers=headers)
         page += 1
         for invoice in response.json()['data']:
-            invoices.append(invoice)
+            invoices.append({'id': invoice['customer']['id'], 'total': invoice['total']})
         if response.json()['hasMore'] == False:
             moreInvoices = False
     update_clients_with_revenue.delay(invoices, company_id)
@@ -258,12 +258,14 @@ def update_clients_with_revenue(invoices, company_id):
                 client_dict[invoice['customer']['id']] += float(invoice['total'])
             else:
                 client_dict[invoice['customer']['id']] = float(invoice['total'])
+    del invoices
     tmpDict = client_dict.copy()
     for client in tmpDict:
         tmpClient = Client.objects.filter(servTitanID=client, company=company).order_by('address').first()
         if tmpClient is not None:
             if tmpClient.serviceTitanCustomerSince is not None and tmpClient.serviceTitanCustomerSince > date.today() - timedelta(days=180):
                 client_dict.pop(client)
+    del tmpDict
     client_ids = client_dict.keys()
 
     clients = Client.objects.filter(servTitanID__in=client_ids, company=company, status__in=['House For Sale', 'House Recently Sold (6)'])
