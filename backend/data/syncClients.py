@@ -104,7 +104,7 @@ def get_serviceTitan_clients(company_id, task_id, option):
     deleteExtraClients.delay(company_id, task_id)
     
     get_servicetitan_equipment.delay(company_id)
-    get_serviceTitan_invoices.delay(company_id)
+    # get_serviceTitan_invoices.delay(company_id)
     # doItAll.delay(company_id)
     if option == 'option1':
         frm = ""
