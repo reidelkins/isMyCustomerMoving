@@ -174,7 +174,7 @@ def saveClientList(clients, company_id, task=None):
 
     # Use select_related to fetch related objects in a single query
     clients = Client.objects.filter(servTitanID__in=client_ids, company=company).select_related('company')
-
+    print(f"clients: len{clients}")
     # Use bulk_update to update multiple objects at once
     for client in clients:
         client.serviceTitanCustomerSince = Coalesce(client_dict.get(client.servTitanID), client.serviceTitanCustomerSince)
