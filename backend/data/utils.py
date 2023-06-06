@@ -6,7 +6,7 @@ from .serializers import ZapierClientSerializer
 
 from bs4 import BeautifulSoup
 from celery import shared_task
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import gc
 import json
 import math
@@ -132,9 +132,10 @@ def saveClientList(clients, company_id, task=None):
                     city= city[0]            
                     state=clients[i]['address']['state']
                     name=clients[i]['name']
+                    serviceTitanCustomerSince = clients[i]['createdOn'][:10]
                     if clients[i]['address']['zip'] == None or not street or not zip or not city or not state or not name or zip == 0:
                         continue
-                    clientsToAdd.append(Client(address=street, zipCode=zipCode, city=city, state=state, name=name, company=company, servTitanID=clients[i]['customerId']))                   
+                    clientsToAdd.append(Client(address=street, zipCode=zipCode, city=city, state=state, name=name, company=company, servTitanID=clients[i]['customerId'], serviceTitanCustomerSince=serviceTitanCustomerSince))                   
             #file upload
             else:
                 street = parseStreets((str(clients[i]['address'])).title())
@@ -788,6 +789,12 @@ def filter_clients(query_params, queryset):
         queryset = queryset.filter(equipmentInstalledDate__gte=query_params['equip_install_date_min'])
     if 'equip_install_date_max' in query_params:
         queryset = queryset.filter(equipmentInstalledDate__lte=query_params['equip_install_date_max'])
+    if 'customer_since_min' in query_params:
+        start_date = date(query_params['customer_since_min'], 1, 1)
+        queryset = queryset.filter(serviceTitanCustomerSince__gte=start_date)
+    if 'customer_since_max' in query_params:
+        end_date = date(query_params['customer_since_max'], 12, 31)
+        queryset = queryset.filter(serviceTitanCustomerSince__lte=end_date)
     return queryset
 
 @shared_task

@@ -4,7 +4,7 @@ from .models import Client, ClientUpdate, ZipCode, HomeListing, Task, ScrapeResp
 
 # Register your models here.
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ('name', 'address', 'status', 'city', 'state', 'contacted', 'note', 'zipCode__zip', 'company__name', 'servTitanID', 'phoneNumber', 'price', 'year_built', 'equipmentInstalledDate')
+    list_display = ('name', 'address', 'status', 'city', 'state', 'contacted', 'note', 'zipCode__zip', 'company__name', 'servTitanID', 'phoneNumber', 'price', 'year_built', 'equipmentInstalledDate', 'serviceTitanCustomerSince')
     search_fields = ('name', 'address', 'status', 'city', 'state', 'servTitanID', 'zipCode__zipCode', 'company__name')
 
     def zipCode__zip(self, obj):

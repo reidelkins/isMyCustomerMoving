@@ -10,6 +10,7 @@ const Page = forwardRef(({ children, userInfo = null, title = '', meta, ...other
   <>
     <Helmet>
       <title>{`${title} | Did My Customer Move`}</title>
+      <link rel="icon" href="/favicon.ico" />
       {meta}
     </Helmet>
 
