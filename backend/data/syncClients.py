@@ -3,7 +3,7 @@ import requests
 import gc
 from time import sleep
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from django.conf import settings
 from django.db.models import Min
 from django.db.models.functions import Coalesce
@@ -104,7 +104,8 @@ def get_serviceTitan_clients(company_id, task_id, option):
     deleteExtraClients.delay(company_id, task_id)
     
     get_servicetitan_equipment.delay(company_id)
-    doItAll.delay(company_id)
+    get_serviceTitan_invoices.delay(company_id)
+    # doItAll.delay(company_id)
     if option == 'option1':
         frm = ""
         moreClients = True
@@ -179,19 +180,21 @@ def get_serviceTitan_invoices(company_id):
     moreInvoices = True
     #get client data
     page = 1
+    invoices = []
     while(moreInvoices):
         url = f'https://api.servicetitan.io/accounting/v2/tenant/{tenant}/invoices?page={page}&pageSize=2500&invoicedOnOrAfter={rfc3339}'
         response = requests.get(url, headers=headers)
         page += 1
-        invoices = response.json()['data']
+        # invoices = response.json()['data']
+        for invoice in response.json()['data']:
+            invoices.append(invoice)
         if response.json()['hasMore'] == False:
             moreInvoices = False
         # with open('equipment.json', 'a') as f:
         #     json.dump(equipment, f, indent=4)
-        update_clients_with_revenue.delay(invoices, company_id)
-        delVariables([invoices, response])
+    update_clients_with_revenue(invoices, company_id)
+    delVariables([invoices, response])
 
-@shared_task
 def update_clients_with_revenue(invoices, company_id):
     company = Company.objects.get(id=company_id)
     client_dict = {}
@@ -200,19 +203,14 @@ def update_clients_with_revenue(invoices, company_id):
             if invoice['customer']['id'] in client_dict:
                 client_dict[invoice['customer']['id']] += float(invoice['total'])
             else:
-                client_dict[invoice['customer']['id']] = float(invoice['total'])
-
-    headers = get_serviceTitan_accessToken(company_id)
-    tenant = company.tenantID
-    for client in client_dict:
-        print(client)
-        url = f'https://api.servicetitan.io/crm/v2/tenant/{tenant}/customers/{client}'
-        response = requests.get(url, headers=headers)
-        data = response.json()
-        created_on = datetime.fromisoformat(data['createdOn'][:19])
-        if created_on > datetime.today()-timedelta(days=180):
-            client_dict.pop(client)
-
+                client_dict[invoice['customer']['id']] = float(invoice['total'])  
+    tmpDict = client_dict.copy()
+    for client in tmpDict:
+        tmpClient = Client.objects.filter(servTitanID=client, company=company).order_by('address')
+        if len(tmpClient) > 0:
+            tmpClient = tmpClient[0]           
+            if tmpClient.serviceTitanCustomerSince > date.today()-timedelta(days=180):
+                client_dict.pop(client)
     client_ids = client_dict.keys()
 
     # Use select_related to fetch related objects in a single query
