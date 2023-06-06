@@ -3,7 +3,7 @@ import 'simplebar/src/simplebar.css';
 
 import ReactDOM from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
-import { HelmetProvider } from 'react-helmet-async';
+import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 
@@ -27,6 +27,21 @@ const { REACT_APP_GOOGLE_CLIENT_ID } = process.env
 ReactDOM.render(
   
   <HelmetProvider>
+    <Helmet>
+      <title>Is My Customer Moving</title>
+      <meta name="description" content="Is My Customer Moving" />
+      <script dangerouslySetInnerHTML={{
+        __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-N6RJ2R7');`
+      }}/>      
+    </Helmet>
+    <noscript dangerouslySetInnerHTML={{
+      __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N6RJ2R7"
+      height="0" width="0" style="display:none;visibility:hidden"></iframe>`
+    }} />
     <BrowserRouter>
         <GoogleOAuthProvider clientId={REACT_APP_GOOGLE_CLIENT_ID}>
           <Provider store={store}>

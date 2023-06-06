@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 // material
 import { styled } from '@mui/material/styles';
 import { Box, Drawer } from '@mui/material';
@@ -12,8 +13,9 @@ import useResponsive from '../../hooks/useResponsive';
 import Logo from '../../components/Logo';
 import Scrollbar from '../../components/Scrollbar';
 import NavSection from '../../components/NavSection';
+import { showLoginInfo } from '../../redux/actions/authActions';
 //
-import navConfig from './NavConfig';
+import {navConfig, enterpriseNavConfig} from './NavConfig';
 
 // ----------------------------------------------------------------------
 
@@ -38,6 +40,9 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
 
   const isDesktop = useResponsive('up', 'lg');
 
+  const userLogin = useSelector(showLoginInfo);
+  const { userInfo } = userLogin;
+
   useEffect(() => {
     if (isOpenSidebar) {
       onCloseSidebar();
@@ -55,27 +60,12 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
       <Box sx={{ px: 2.5, py: 3, display: 'inline-flex' }}>
         <Logo />
       </Box>
-
-      {/* <Box sx={{ mb: 5, mx: 2.5 }}>
-        <Link underline="none" component={RouterLink} to="#">
-          <AccountStyle>
-            <Avatar src={userInfo ? userInfo.avatar : BlankPofile} alt="photoURL" />
-            <Box sx={{ ml: 2 }}>
-              <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
-                {userInfo ? (
-                  <>
-                    {userInfo.name} 
-                  </>
-                ) : (
-                  'John Doe'
-                )}
-              </Typography>
-            </Box>
-          </AccountStyle>
-        </Link>
-      </Box> */}
-
-      <NavSection navConfig={navConfig} />
+      {userInfo && userInfo.is_enterprise_owner ? (
+        <NavSection navConfig={enterpriseNavConfig} />
+      ):(
+        <NavSection navConfig={navConfig} />
+      )}
+      
 
       <Box sx={{ flexGrow: 1 }} />
     </Scrollbar>

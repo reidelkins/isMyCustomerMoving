@@ -1,16 +1,12 @@
 from rest_framework import serializers
-from .models import CustomUser, Company, Franchise
+from .models import CustomUser, Company, Enterprise
+from data.models import ClientUpdate, Client
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.utils.crypto import get_random_string
 from django.contrib.auth.models import update_last_login
 
-class FranchiseSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(max_length=100)
 
-    class Meta:
-        model = Franchise
-        fields = ['name']
 
 class BasicCompanySerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
@@ -28,7 +24,6 @@ class CompanySerializer(serializers.ModelSerializer):
     stripeID = serializers.CharField(max_length=100, required=False)
     recentlySoldPurchased = serializers.BooleanField(default=False)
     crm = serializers.CharField(max_length=100, required=False)
-    # franchise = FranchiseSerializer(required=False)
     product = serializers.SerializerMethodField('get_product', read_only=True)
 
 
@@ -40,6 +35,10 @@ class CompanySerializer(serializers.ModelSerializer):
     serviceTitanRecentlySoldTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanForSaleContactedTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanSoldContactedTagID = serializers.CharField(max_length=100, required=False)
+
+    users_count = serializers.SerializerMethodField()
+    leads_count = serializers.SerializerMethodField()
+    clients_count = serializers.SerializerMethodField()
     
 
     def create(self, validated_data):
@@ -52,10 +51,25 @@ class CompanySerializer(serializers.ModelSerializer):
             return obj.product.id
         else:
             return "No product"
+        
+    def get_users_count(self, obj):
+        return CustomUser.objects.filter(company=obj).count()
+
+    def get_leads_count(self, obj):
+        return ClientUpdate.objects.filter(client__company=obj).exclude(status="No Change").count()
+    
+    def get_clients_count(self, obj):
+        return Client.objects.filter(company=obj).count()
     class Meta:
         model = Company
-        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'serviceTitanForSaleContactedTagID', 'serviceTitanSoldContactedTagID', 'product']
+        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'serviceTitanForSaleContactedTagID', 'serviceTitanSoldContactedTagID', 'product', 'users_count', 'leads_count', 'clients_count']
 
+class EnterpriseSerializer(serializers.ModelSerializer):
+    companies = CompanySerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Enterprise
+        fields = ['id', 'name', 'companies']
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -81,7 +95,7 @@ class UserSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
     first_name = serializers.CharField(read_only=True)
     last_name = serializers.CharField(read_only=True)
-    
+    phone = serializers.CharField(max_length=20)
     email = serializers.EmailField(max_length=100)
     isVerified = serializers.BooleanField(read_only=True)
     status = serializers.CharField(read_only=True)
@@ -91,6 +105,7 @@ class UserSerializer(serializers.Serializer):
     otp_enabled = serializers.BooleanField(read_only=True)
     otp_base32 = serializers.CharField(read_only=True)
     otp_auth_url = serializers.CharField(read_only=True)
+    is_enterprise_owner = serializers.BooleanField(read_only=True)
 
     #service titan
     finishedSTIntegration = serializers.SerializerMethodField(read_only=True)
@@ -115,5 +130,7 @@ class UserSerializerWithToken(UserSerializer):
 class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ('id', 'first_name', 'last_name', 'email', 'status')
+        fields = ('id', 'first_name', 'last_name', 'email', 'status', 'is_enterprise_owner')
+
+
 

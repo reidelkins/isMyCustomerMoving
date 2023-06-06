@@ -1,5 +1,5 @@
 import traceback
-from .models import Company, Franchise, CustomUser
+from .models import Company, Enterprise, CustomUser
 from .serializers import CompanySerializer
 
 from django.conf import settings
@@ -29,7 +29,7 @@ def makeCompany(companyName, email, phone, stripeId=None):
                 message = get_template("registration.html").render({
                     'company': company.name, 'accessToken': company.accessToken
                 })
-                send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)
+                send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)                
                 return company.id
             else:
                 return {'Error': "Company with that name already exists"}
@@ -41,12 +41,12 @@ def makeCompany(companyName, email, phone, stripeId=None):
         return {'Error': f'{e}'}
             
 # find franchise that is the closest to the area provided for the referral
-def find_franchise(area, franchise, referredFrom):
+def find_enterprise(area, enterprise, referredFrom):
     try:
-        franchise = Franchise.objects.get(id=franchise)
+        enterprise = Enterprise.objects.get(id=enterprise)
         
         if area:
-            companies = list(Company.objects.filter(franchise=franchise).exclude(id=referredFrom).values_list('id', flat=True))
+            companies = list(Company.objects.filter(enterprise=enterprise).exclude(id=referredFrom).values_list('id', flat=True))
             return companies[0]
         else:
             return None
@@ -100,5 +100,94 @@ class CustomAuthentication(BaseAuthentication):
         
         return user, None
 
+def create_keap_company(company_id):
+    try:
+        company = Company.objects.get(id=company_id)
+        url = 'https://api.infusionsoft.com/crm/rest/v1/companies'
+        headers = {
+            'X-Keap-API-Key': settings.KEAP_API_KEY,
+            'Content-Type': 'application/json'
+        }
+        body = {
+            'company_name': company.name,
+            'email_address': company.email,
+            'phone_number': {
+                'number': company.phone,
+            },
+            'notes': float(company.product.amount)
+        }
+        response = requests.post(url, headers=headers, json=body)
+        if response.status_code != 201:
+            print(f"ERROR: {response.text}")
+            print("Could not create company in Keap")
 
+    except Exception as e:
+        print(f"ERROR: {e}")
+        print("Could not create company in Keap")
+
+
+def create_keap_user(user_id):
+    try:
+        user = CustomUser.objects.get(id=user_id)
+        company = user.company
+        url = 'https://api.infusionsoft.com/crm/rest/v1/companies'
+        headers = {
+            'X-Keap-API-Key': settings.KEAP_API_KEY
+        }        
+        response = requests.get(url, headers=headers)
+        if response.status_code != 200:
+            print(f"ERROR: {response.text}")
+            print("Could not get companies in Keap")
+        else:
+            company_id = ""
+            companies = response.json()
+            for comp in companies['companies']:
+                if comp['company_name'] == company.name:
+                    company_id = comp['id']
+                    break
+            url = 'https://api.infusionsoft.com/crm/rest/v1/contacts'
+            headers = {
+                'X-Keap-API-Key': settings.KEAP_API_KEY,
+                'Content-Type': 'application/json'
+            }
+            body = {
+                'given_name': user.first_name,
+                'family_name': user.last_name,
+                'email_addresses': [
+                    {
+                        'email': user.email,
+                        'field': 'EMAIL1'
+                    }
+                ],
+                'phone_numbers': [
+                    {
+                        'number': user.phone,
+                        'field': 'PHONE1'
+                    }
+                ],
+                'company': {
+                    'id': company_id
+                }
+            }
+            response = requests.post(url, headers=headers, json=body)
+            if response.status_code != 201:
+                print(f"ERROR: {response.text}")
+                print("Could not create user in Keap")
+
+            if float(company.product.amount) == 0:
+                url = "https://api.infusionsoft.com/crm/rest/v1/tags/127/contacts"
+                body = {
+                    'ids': [
+                        response.json()['id']
+                    ]
+                }
+                response = requests.post(url, headers=headers, json=body)
+                if response.status_code != 200:
+                    print(f"ERROR: {response.text}")
+                    print("Could not add user to tag in Keap")
+
+
+    except Exception as e:
+        print(f"ERROR: {e}")
+        print("Could not create company in Keap")
 

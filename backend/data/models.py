@@ -44,6 +44,8 @@ class Client(models.Model):
     error_flag = models.BooleanField(default=False)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
+    revenue = models.IntegerField(default=0, blank=True, null=True)
+    serviceTitanCustomerSince = models.DateField(blank=True, null=True)
 
     class Meta:
         unique_together = ('company', 'name', 'address')
@@ -83,6 +85,7 @@ class HomeListing(models.Model):
     housingType = models.CharField(max_length=100, default=" ")
     year_built = models.IntegerField(default=0)
     tag = models.ManyToManyField("HomeListingTags", blank=True, related_name='homeListing_tag')
+    # tags = JSONField(default=list)     this is how to greatly reduce the amount of data in the table
     city = models.CharField(max_length=40, blank=True, null=True)
     state = models.CharField(max_length=31, blank=True, null=True)
 
@@ -107,7 +110,7 @@ class Task(models.Model):
 class Referral(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
-    franchise = models.ForeignKey("accounts.Franchise", on_delete=models.CASCADE)
+    enterprise = models.ForeignKey("accounts.Enterprise", on_delete=models.CASCADE, blank=True, null=True)
     referredFrom = models.ForeignKey("accounts.Company", on_delete=models.SET_NULL, related_name='referredFrom', blank=True, null=True)
     referredTo = models.ForeignKey("accounts.Company", on_delete=models.SET_NULL, related_name='referredTo', blank=True, null=True)
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='referralClient', blank=True, null=True)
@@ -117,10 +120,10 @@ class Referral(models.Model):
     def save(self, *args, **kwargs):
         if self.referredFrom == self.referredTo:
             raise ValidationError("Referred From and Referred To cannot be the same")
-        if self.referredFrom.franchise != self.franchise or self.referredTo.franchise != self.franchise:
-            raise ValidationError("Both Referred From and Referred To must be part of the franchise")
-        if self.client.company.franchise != self.franchise:
-            raise ValidationError("Client must be part of the franchise")
+        if self.referredFrom.enterprise != self.enterprise or self.referredTo.enterprise != self.enterprise:
+            raise ValidationError("Both Referred From and Referred To must be part of the enterprise")
+        if self.client.company.enterprise != self.enterprise:
+            raise ValidationError("Client must be part of the enterprise")
         if self.client.company != self.referredFrom:
             raise ValidationError("Client must have the same company as Referred From")
             

@@ -68,12 +68,15 @@ class ClientListView(generics.ListAPIView):
         # if 'tags' in query_params:
         #     tags = [tag.replace('[', '').replace(']', '').replace(' ', '_') for tag in query_params.get('tags', '').split(',')]
         #     queryset = queryset.filter(tag__tag__in=tags)
-        if user.company.product.id == "price_1MhxfPAkLES5P4qQbu8O45xy":
-            queryset = queryset.order_by('name')
-        elif user.status == 'admin':
+        try:
+            if user.company.product.id == "price_1MhxfPAkLES5P4qQbu8O45xy":
+                queryset = queryset.order_by('name')
+            elif user.status == 'admin':
+                queryset = queryset.order_by('status')
+            else:
+                queryset = queryset.exclude(status='No Change').order_by('status')
+        except:
             queryset = queryset.order_by('status')
-        else:
-            queryset = queryset.exclude(status='No Change').order_by('status')
         return queryset
 
     def list(self, request, *args, **kwargs):
@@ -93,6 +96,7 @@ class ClientListView(generics.ListAPIView):
             return self.get_paginated_response({"forSale": forSale, "forSaleAllTime": forSaleAllTime, "recentlySoldAllTime": recentlySoldAllTime, "recentlySold": recentlySold, "clients": clients})
 
         serializer = self.get_serializer(queryset, many=True)
+        clients = serializer.data
         return Response({"forSale": forSale, "forSaleAllTime": forSaleAllTime, "recentlySoldAllTime": recentlySoldAllTime, "recentlySold": recentlySold, "clients": clients})
 
 class RecentlySoldView(generics.ListAPIView):
@@ -238,7 +242,7 @@ class ServiceTitanView(APIView):
                 task = Task.objects.get(id=self.kwargs['company'])
                 if task.completed:
                     deleted = task.deletedClients
-                    # task.delete()
+                    task.delete()
                     return Response({"status": "SUCCESS", "data": "Clients Synced! Come back in about an hour to see your results.", "deleted": deleted}, status=status.HTTP_201_CREATED, headers="")
                 else:
                     # clients = Company.objects.get(id="faee8ca7-e5de-4c60-8578-0ac6bc576930").client_set.all()

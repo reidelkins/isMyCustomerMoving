@@ -10,6 +10,7 @@ const Page = forwardRef(({ children, userInfo = null, title = '', meta, ...other
   <>
     <Helmet>
       <title>{`${title} | Did My Customer Move`}</title>
+      <link rel="icon" href="/favicon.ico" />
       {meta}
     </Helmet>
 
@@ -20,7 +21,7 @@ const Page = forwardRef(({ children, userInfo = null, title = '', meta, ...other
             variant="filled"
             severity="info"
           >
-            You do not get access to which customers are moving or have recently moved or any of our other premium features because you are signed up for the free tier. <br/><strong>Click the Upgrade button on the home page to never lose a customer again!</strong>
+            You do not get access to which customers are moving or have recently moved or any of our other premium features because you are signed up for the free tier. <br/><strong><em>Click the Upgrade button on the home page to never lose a customer again!</em></strong>
           </Alert>
         )}
       {children}

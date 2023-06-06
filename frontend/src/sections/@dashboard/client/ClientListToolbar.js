@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {useDispatch } from 'react-redux';
 // material
 import { styled } from '@mui/material/styles';
-import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment, Stack, Button } from '@mui/material';
+import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment, Stack, Button, Alert } from '@mui/material';
 
 // component
 import Iconify from '../../../components/Iconify';
@@ -63,8 +63,11 @@ ClientListToolbar.propTypes = {
 export default function ClientListToolbar({ numSelected, filterName, onFilterName, selectedClients, product, 
                                             minPrice, setMinPrice, maxPrice, setMaxPrice, minYear, setMinYear, maxYear, setMaxYear,
                                             equipInstallDateMin, setEquipInstallDateMin, equipInstallDateMax, setEquipInstallDateMax,
-                                            statusFilters, setStatusFilters, listOrMap, setListOrMap }) {
+                                            statusFilters, setStatusFilters, listOrMap, setListOrMap,
+                                            tagFilters, setTagFilters, zipCode, setZipCode, city, setCity, state, setState,
+                                            customerSinceMin, setCustomerSinceMin, customerSinceMax, setCustomerSinceMax, }) {
   const dispatch = useDispatch();
+  const [showAlert, setShowAlert] = useState(false);
 
 
   const clickDelete = (event, clients) => {
@@ -81,7 +84,12 @@ export default function ClientListToolbar({ numSelected, filterName, onFilterNam
   };
 
   const handleClickMap = () => {
-    setListOrMap('map');
+    if (product === "price_1MhxfPAkLES5P4qQbu8O45xy") {
+      setShowAlert(true);
+    } else {
+      setListOrMap('map');
+    }
+    
   };
 
   return (
@@ -141,7 +149,29 @@ export default function ClientListToolbar({ numSelected, filterName, onFilterNam
           setEquipInstallDateMax={setEquipInstallDateMax}
           statusFilters={statusFilters}
           setStatusFilters={setStatusFilters}
+          tagFilters={tagFilters}
+          setTagFilters={setTagFilters}
+          zipCode={zipCode}
+          setZipCode={setZipCode}
+          city={city}
+          setCity={setCity}
+          state={state}
+          setState={setState}
+          customerSinceMin={customerSinceMin}
+          setCustomerSinceMin={setCustomerSinceMin}
+          customerSinceMax={customerSinceMax}
+          setCustomerSinceMax={setCustomerSinceMax}
         />
+      )}
+      {showAlert && (      
+        <Alert            
+          sx={{ mb: 2, mx: 'auto', width: '100%' }}
+          variant="filled"
+          severity="error"
+          onClose={() => setShowAlert(false)}
+        >
+          Our customer map is a premium feature, please upgrade to access it.
+        </Alert>
       )}
     </RootStyle>
   );

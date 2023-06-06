@@ -54,6 +54,7 @@ ST_APP_KEY_2 = get_env_var('ST_APP_KEY_2')
 SALESFORCE_CONSUMER_KEY = get_env_var('SALESFORCE_CONSUMER_KEY')
 SALESFORCE_CONSUMER_SECRET = get_env_var('SALESFORCE_CONSUMER_SECRET')
 GOOGLE_CLIENT_ID=get_env_var('GOOGLE_CLIENT_ID')
+KEAP_API_KEY=get_env_var('KEAP_API_KEY')
 # Celery Configuration
 # REDIS_URL = os.environ.get('REDIS_URL')
 if IS_HEROKU or IS_GITHUB:
@@ -62,6 +63,7 @@ if IS_HEROKU or IS_GITHUB:
     BASE_FRONTEND_URL = 'https://app.ismycustomermoving.com'
     BASE_BACKEND_URL = 'https://is-my-customer-moving.herokuapp.com'
     CLIENT_ORIGIN_URL="https://app.ismycustomermoving.com"
+    CLIENT_FRONEND_URL="https://www.ismycustomermoving.com"
     if IS_HEROKU:
         DATABASES["default"] = dj_database_url.config(
             conn_max_age=MAX_CONN_AGE, ssl_require=True)
@@ -77,6 +79,7 @@ else:
     BASE_FRONTEND_URL = 'http://localhost:3000'
     BASE_BACKEND_URL = 'http://localhost:8000'
     CLIENT_ORIGIN_URL="http://localhost:3000"
+    CLIENT_FRONEND_URL="http://localhost:3000"
     
 ALLOWED_HOSTS = ['*']
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = get_env_var('GOOGLE_CLIENT_ID')
@@ -129,7 +132,7 @@ ROOT_URLCONF = 'config.urls'
 # CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     CLIENT_ORIGIN_URL,
-
+    CLIENT_FRONEND_URL,
     # STRIPE
     "https://3.18.12.63",
     "https://3.130.192.231",

@@ -3,7 +3,7 @@ from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from django.core.exceptions import ObjectDoesNotExist
 from django.template.loader import get_template
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, Http404
 from django.utils.timezone import make_aware
 from rest_framework import permissions, status, generics, viewsets
 from rest_framework.decorators import api_view
@@ -16,9 +16,9 @@ from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 from djstripe import models as djstripe_models
 
 
-from .utils import makeCompany
-from .models import CustomUser, Company, InviteToken
-from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, MyTokenObtainPairSerializer
+from .utils import makeCompany, create_keap_user, create_keap_company
+from .models import CustomUser, Company, InviteToken, Enterprise
+from .serializers import UserSerializer, UserSerializerWithToken, UserListSerializer, MyTokenObtainPairSerializer, EnterpriseSerializer
 from config import settings
 
 import datetime
@@ -158,7 +158,10 @@ class ManageUserView(APIView):
                     user.first_name = request.data['firstName']
                     user.last_name = request.data['lastName']
                     user.email = request.data['email']
+                    if request.data['phone']:
+                        user.phone = request.data['phone']
                     user.save()
+                    create_keap_user(user.id)
                 serializer = UserSerializerWithToken(user, many=False)
                 return Response(serializer.data)
             else:
@@ -194,6 +197,7 @@ def company(request):
                 freePlan = djstripe_models.Plan.objects.get(id='price_1MhxfPAkLES5P4qQbu8O45xy')
                 comp.product = freePlan
                 comp.save()
+                create_keap_company(comp.id)
                 return Response("", status=status.HTTP_201_CREATED, headers="")
             except:
                 return Response(comp, status=status.HTTP_400_BAD_REQUEST)
@@ -312,6 +316,7 @@ class RegisterView(APIView):
                 # })
                 # send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)
                 serializer = UserSerializerWithToken(user, many=False)
+                create_keap_user(user.id)
             else:
                 return Response({'detail': f'Access Token Already Used. Ask an admin to login and create profile for you.'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
@@ -341,10 +346,7 @@ def confirmation(request, pk, uid):
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
-    def post(self, request, *args, **kwargs):
-        # Log/print information
-        print("Logging information here")
-        print(request.data)
+    def post(self, request, *args, **kwargs):        
         # Call the serializer class to validate the data
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -518,14 +520,14 @@ class ZapierSoldSubscribe(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
-            testClient = {
+            testClient = [{
                 "Name": "Test Data",
                 "Address": "123 Main St",
                 "City": "New York",
                 "State": "NY",
                 "Zip Code": 10001,
                 "Phone Number": "212-555-1234",
-            }
+            }]
             return Response(testClient, status=status.HTTP_200_OK)
         except Exception as e:
             print(e)
@@ -557,14 +559,14 @@ class ZapierForSaleSubscribe(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
-            testClient = {
+            testClient = [{
                 "Name": "Test Data",
                 "Address": "123 Main St",
                 "City": "New York",
                 "State": "NY",
                 "Zip Code": 10001,
                 "Phone Number": "212-555-1234",
-            }
+            }]
             return Response(testClient, status=status.HTTP_200_OK)
         except Exception as e:
             print(e)
@@ -591,3 +593,36 @@ class ZapierForSaleSubscribe(APIView):
         except Exception as e:
             print(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+        
+class UserEnterpriseView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, enterprise_id):
+        try:
+            return Enterprise.objects.get(id=enterprise_id)
+        except Enterprise.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        if not request.user.enterprise:
+            return Response({"error": "User not part of any Enterprise"}, status=status.HTTP_400_BAD_REQUEST)
+        enterprise = self.get_object(request.user.enterprise.id)
+        serializer = EnterpriseSerializer(enterprise)
+        return Response(serializer.data)
+    
+    def put(self, request, format=None):
+        if not request.user.is_enterprise_owner:
+            return Response({"error": "User is not an enterprise owner"}, status=status.HTTP_403_FORBIDDEN)
+
+        company_id = request.data.get('company')
+        print(company_id)
+        try:
+            company = Company.objects.get(id=company_id)
+        except Company.DoesNotExist:
+            return Response({"error": "Company not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        request.user.company = company
+        request.user.save()
+
+        serializer = UserSerializerWithToken(request.user)
+        return Response(serializer.data)

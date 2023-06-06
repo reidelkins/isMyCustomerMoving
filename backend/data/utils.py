@@ -6,7 +6,7 @@ from .serializers import ZapierClientSerializer
 
 from bs4 import BeautifulSoup
 from celery import shared_task
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import gc
 import json
 import math
@@ -132,9 +132,10 @@ def saveClientList(clients, company_id, task=None):
                     city= city[0]            
                     state=clients[i]['address']['state']
                     name=clients[i]['name']
+                    serviceTitanCustomerSince = clients[i]['createdOn'][:10]
                     if clients[i]['address']['zip'] == None or not street or not zip or not city or not state or not name or zip == 0:
                         continue
-                    clientsToAdd.append(Client(address=street, zipCode=zipCode, city=city, state=state, name=name, company=company, servTitanID=clients[i]['customerId']))                   
+                    clientsToAdd.append(Client(address=street, zipCode=zipCode, city=city, state=state, name=name, company=company, servTitanID=clients[i]['customerId'], serviceTitanCustomerSince=serviceTitanCustomerSince))                   
             #file upload
             else:
                 street = parseStreets((str(clients[i]['address'])).title())
@@ -366,6 +367,7 @@ def create_home_listings(results, status, resp=None):
 
         except Exception as e:
             print(f"Listing: {listing['location']['address']}")
+            print(e)
     delVariables([zip_object, created, listType, homeListing, currTag, results])
 
 @shared_task
@@ -737,13 +739,22 @@ def filter_recentlysold(query_params, queryset):
     if 'max_year' in query_params:
         queryset = queryset.filter(year_built__lte=query_params['max_year'], year_built__gt=0)
     if 'min_days_ago' in query_params:
-        queryset = queryset.filter(listed__lt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['min_days_ago']))).strftime('%Y-%m-%d'))
+        queryset = queryset.filter(listed__lt=(datetime.today()-timedelta(days=int(query_params['min_days_ago']))).strftime('%Y-%m-%d'))
     if 'max_days_ago' in query_params:
-        queryset = queryset.filter(listed__gt=(datetime.datetime.today()-datetime.timedelta(days=int(query_params['max_days_ago']))).strftime('%Y-%m-%d'))
+        queryset = queryset.filter(listed__gt=(datetime.today()-timedelta(days=int(query_params['max_days_ago']))).strftime('%Y-%m-%d'))
     if 'tags' in query_params:
         tags = query_params['tags'].split(',')
-        matching_tags = HomeListingTags.objects.filter(tag__in=tags)
-        queryset = queryset.filter(tag__in=matching_tags)
+        if tags != ['']:
+            matching_tags = HomeListingTags.objects.filter(tag__in=tags)
+            queryset = queryset.filter(tag__in=matching_tags)
+    if 'state' in query_params:
+        queryset = queryset.filter(state=query_params['state'].upper())
+    if 'city' in query_params:
+        queryset = queryset.filter(city=query_params['city'].capitalize())
+    if 'zip_code' in query_params:
+        zipCode = ZipCode.objects.filter(zipCode=query_params['zip_code'])
+        if len(zipCode) > 0:
+            queryset = queryset.filter(zipCode=zipCode[0])
     return queryset
 
 def filter_clients(query_params, queryset):
@@ -755,6 +766,18 @@ def filter_clients(query_params, queryset):
         queryset = queryset.filter(year_built__gte=query_params['min_year'])
     if 'max_year' in query_params:
         queryset = queryset.filter(year_built__lte=query_params['max_year'], year_built__gt=0)
+    if 'state' in query_params:
+        queryset = queryset.filter(state=query_params['state'].upper())
+    if 'city' in query_params:
+        queryset = queryset.filter(city=query_params['city'].capitalize())
+    if 'zip_code' in query_params:
+        zipCode = ZipCode.objects.filter(zipCode=query_params['zip_code'])
+        if len(zipCode) > 0:
+            queryset = queryset.filter(zipCode=zipCode[0])
+    if 'tags' in query_params:
+        tags = query_params['tags'].split(',')
+        matching_tags = HomeListingTags.objects.filter(tag__in=tags)
+        queryset = queryset.filter(tag__in=matching_tags)
     if 'status' in query_params:
         statuses = []
         if "For Sale" in query_params['status']:
@@ -766,6 +789,12 @@ def filter_clients(query_params, queryset):
         queryset = queryset.filter(equipmentInstalledDate__gte=query_params['equip_install_date_min'])
     if 'equip_install_date_max' in query_params:
         queryset = queryset.filter(equipmentInstalledDate__lte=query_params['equip_install_date_max'])
+    if 'customer_since_min' in query_params:
+        start_date = date(int(query_params['customer_since_min']), 1, 1)
+        queryset = queryset.filter(serviceTitanCustomerSince__gte=start_date)
+    if 'customer_since_max' in query_params:
+        end_date = date(int(query_params['customer_since_max']), 12, 31)
+        queryset = queryset.filter(serviceTitanCustomerSince__lte=end_date)
     return queryset
 
 @shared_task
