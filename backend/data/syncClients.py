@@ -156,7 +156,7 @@ def update_clients_with_first_invoice_date(company_id):
     tenant = company.tenantID
     headers = get_serviceTitan_accessToken(company_id)
     moreInvoices = True
-    page = 44
+    page = 37
 
     while moreInvoices:
         url = f'https://api.servicetitan.io/accounting/v2/tenant/{tenant}/invoices?page={page}&pageSize=2500'
@@ -189,8 +189,7 @@ def process_invoices(invoices, company):
                             client_dict[invoice['customer']['id']] = invoice_date 
             except Exception as e:
                 print(f"date error {e}")
-    update_clients(client_dict, company)  # Update the clients' serviceTitanCustomerSince field
-    return client_dict
+    update_clients(client_dict, company)  # Update the clients' serviceTitanCustomerSince field    
 
 def update_clients(client_dict, company):
     client_ids = client_dict.keys()
