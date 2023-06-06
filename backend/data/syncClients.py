@@ -156,7 +156,7 @@ def update_clients_with_first_invoice_date(company_id):
     tenant = company.tenantID
     headers = get_serviceTitan_accessToken(company_id)
     moreInvoices = True
-    page = 1
+    page = 44
 
     while moreInvoices:
         url = f'https://api.servicetitan.io/accounting/v2/tenant/{tenant}/invoices?page={page}&pageSize=2500'
