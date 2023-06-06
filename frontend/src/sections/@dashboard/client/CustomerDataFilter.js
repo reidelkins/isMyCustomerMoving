@@ -305,7 +305,7 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
                                             <Input
                                                 type="number"
                                                 value={customerSinceMin}
-                                                onChange={(event) => handleCustomerSinceMax(event.target.value)}
+                                                onChange={(event) => handleCustomerSinceMin(event.target.value)}
                                             />
                                         </FormControl>
                                         <FormControl fullWidth>

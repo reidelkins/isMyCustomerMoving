@@ -790,10 +790,10 @@ def filter_clients(query_params, queryset):
     if 'equip_install_date_max' in query_params:
         queryset = queryset.filter(equipmentInstalledDate__lte=query_params['equip_install_date_max'])
     if 'customer_since_min' in query_params:
-        start_date = date(query_params['customer_since_min'], 1, 1)
+        start_date = date(int(query_params['customer_since_min']), 1, 1)
         queryset = queryset.filter(serviceTitanCustomerSince__gte=start_date)
     if 'customer_since_max' in query_params:
-        end_date = date(query_params['customer_since_max'], 12, 31)
+        end_date = date(int(query_params['customer_since_max']), 12, 31)
         queryset = queryset.filter(serviceTitanCustomerSince__lte=end_date)
     return queryset
 
