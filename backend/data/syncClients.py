@@ -76,7 +76,7 @@ def get_salesforce_clients(company_id, task_id=None):
 
 
 @shared_task
-def get_serviceTitan_clients(company_id, task_id, option):
+def get_serviceTitan_clients(company_id, task_id, option, automated=False):
     company = Company.objects.get(id=company_id)
     tenant = company.tenantID
     headers = get_serviceTitan_accessToken(company_id)
@@ -104,8 +104,9 @@ def get_serviceTitan_clients(company_id, task_id, option):
 
     deleteExtraClients.delay(company_id, task_id)
     
-    get_servicetitan_equipment.delay(company_id)    
-    # doItAll.delay(company_id)
+    get_servicetitan_equipment.delay(company_id)
+    if not automated:
+        doItAll.delay(company_id)
     if option == 'option1':
         frm = ""
         moreClients = True
@@ -222,8 +223,7 @@ def get_servicetitan_equipment(company_id):
         equipment = response.json()['data']
         if response.json()['hasMore'] == False:
             moreEquipment = False
-        # with open('equipment.json', 'a') as f:
-        #     json.dump(equipment, f, indent=4)
+
         update_clients_with_last_service_date.delay(equipment, company_id)
         delVariables([equipment, response])
 

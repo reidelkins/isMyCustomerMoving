@@ -6,7 +6,7 @@ from data.syncClients import get_serviceTitan_clients
 
 
 class Command(BaseCommand):
-    help = 'Scrape data from realtor.com and update the database for a single zip code'
+    help = 'Get Client List From Service Titan'
 
     def add_arguments(self , parser):
         parser.add_argument('-c', '--company')
@@ -14,7 +14,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         company = options['company']
         if company:
-            get_serviceTitan_clients.delay(company_id=company)
+            get_serviceTitan_clients.delay(company_id=company, task_id=None, option='option3')
         else:
             daysToRun = [0, 1, 2, 3, 4]
             dt = datetime.now()
@@ -23,4 +23,4 @@ class Command(BaseCommand):
                 companies = Company.objects.all()
                 for company in companies:
                     if company.crm == 'ServiceTitan':
-                        get_serviceTitan_clients.delay(company.id, task_id=None, option='option3')
+                        get_serviceTitan_clients.delay(company.id, task_id=None, option='option3', automated=True)

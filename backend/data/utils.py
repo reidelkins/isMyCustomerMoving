@@ -164,7 +164,7 @@ def saveClientList(clients, company_id, task=None):
     
     if task:
         deleteExtraClients.delay(company_id, task)
-        # doItAll.delay(company_id)
+        doItAll.delay(company_id)
     delVariables([clientsToAdd, clients, company, company_id, badStreets])
 
 
