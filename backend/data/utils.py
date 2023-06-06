@@ -166,7 +166,9 @@ def saveClientList(clients, company_id, task=None):
     for i in range(len(clients)):
         if clients[i]['createdOn'] != None:
             try:
-                client_dict[clients[i]['customerId']] = (clients[i]['createdOn'][:10]).date() 
+                year, month, day = map(int, clients[i]['createdOn'][:10].split("-"))
+                date_object = date(year, month, day)
+                client_dict[clients[i]['customerId']] = date_object 
             except Exception as e:
                 print(f"date error {e}")
 
