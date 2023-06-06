@@ -208,8 +208,8 @@ def update_clients_with_revenue(invoices, company_id):
     for client in tmpDict:
         tmpClient = Client.objects.filter(servTitanID=client, company=company).order_by('address')
         if len(tmpClient) > 0:
-            tmpClient = tmpClient[0]           
-            if tmpClient.serviceTitanCustomerSince > date.today()-timedelta(days=180):
+            tmpClient = tmpClient[0]         
+            if tmpClient.serviceTitanCustomerSince and tmpClient.serviceTitanCustomerSince > date.today()-timedelta(days=180):
                 client_dict.pop(client)
     client_ids = client_dict.keys()
 

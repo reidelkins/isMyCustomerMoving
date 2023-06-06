@@ -18,6 +18,7 @@ from typing_extensions import TypedDict
 
 from django.template.loader import get_template
 from django.core.mail import EmailMessage, send_mail
+from db.models.functions import Coalesce
 
 scrapflies = []
 for i in range(1, 21):
@@ -160,7 +161,25 @@ def saveClientList(clients, company_id, task=None):
             print("create error")
             print(e)
     Client.objects.bulk_create(clientsToAdd, ignore_conflicts=True)
+    
+    client_dict = {}
+    for i in range(len(clients)):
+        if clients[i]['createdOn'] != None:
+            try:
+                client_dict[clients[i]['customerId']] = date.strptime(clients[i]['createdOn'][:10], '%Y-%m-%d').date() 
+            except Exception as e:
+                pass
 
+    client_ids = client_dict.keys()
+
+    # Use select_related to fetch related objects in a single query
+    clients = Client.objects.filter(servTitanID__in=client_ids, company=company).select_related('company')
+
+    # Use bulk_update to update multiple objects at once
+    for client in clients:
+        client.serviceTitanCustomerSince = Coalesce(client_dict.get(client.servTitanID), client.serviceTitanCustomerSince)
+        client.save(update_fields=['serviceTitanCustomerSince'])
+    
     if task:
         deleteExtraClients.delay(company_id, task)
         # doItAll.delay(company_id)
