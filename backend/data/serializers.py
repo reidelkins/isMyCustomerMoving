@@ -45,6 +45,8 @@ class ClientListSerializer(serializers.ModelSerializer):
         return obj.tag.all().values_list('tag', flat=True)
     
     def get_serviceTitanCustomerSinceYear(self, obj):
+        if obj.serviceTitanCustomerSince is None:
+            return 1900
         return obj.serviceTitanCustomerSince.year
 
     class Meta:

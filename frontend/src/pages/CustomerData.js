@@ -446,7 +446,7 @@ export default function CustomerData() {
                                     {userInfo.company.crm === 'ServiceTitan' && (
                                       <TableCell component="th" scope="row" padding="none">
                                         <Label variant="ghost" color='info'>
-                                          {serviceTitanCustomerSinceYear !== 1 ? serviceTitanCustomerSinceYear : '2000'}
+                                          {serviceTitanCustomerSinceYear !== 1 ? serviceTitanCustomerSinceYear : '1900'}
                                         </Label>
                                       </TableCell>
                                     )}                                    
