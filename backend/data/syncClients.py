@@ -156,14 +156,16 @@ def update_clients_with_first_invoice_date(company_id):
     tenant = company.tenantID
     headers = get_serviceTitan_accessToken(company_id)
     moreInvoices = True
-    page = 37
+    page = 44
 
     while moreInvoices:
+        invoices = []
         url = f'https://api.servicetitan.io/accounting/v2/tenant/{tenant}/invoices?page={page}&pageSize=2500'
         response = requests.get(url, headers=headers)
         page += 1
-        data = response.json()['data']
-        process_invoices.delay(data, company_id)
+        for invoice in response.json()['data']:
+            invoices.append({ 'createdOn': invoice['createdOn'], 'id': invoice['customer']['id']})
+        process_invoices.delay(invoices, company_id)
             
         if not response.json()['hasMore']:
             moreInvoices = False
@@ -177,16 +179,16 @@ def process_invoices(invoices, company):
         # on the same line as the last statement, print another .
         if invoice['createdOn'] is not None:
             try:
-                tmpClient = Client.objects.filter(servTitanID=invoice['customer']['id'], company=company).first()
+                tmpClient = Client.objects.filter(servTitanID=invoice['id'], company=company).first()
                 year, month, day = map(int, invoice['createdOn'][:10].split("-"))
                 invoice_date = date(year, month, day)
                 if tmpClient is not None:
                     if tmpClient.serviceTitanCustomerSince is None or tmpClient.serviceTitanCustomerSince > invoice_date or tmpClient.serviceTitanCustomerSince == date(1, 1, 1):
-                        if invoice['customer']['id'] in client_dict:
-                            if client_dict[invoice['customer']['id']] > invoice_date:
-                                client_dict[invoice['customer']['id']] = invoice_date
+                        if invoice['id'] in client_dict:
+                            if client_dict[invoice['id']] > invoice_date:
+                                client_dict[invoice['id']] = invoice_date
                         else:
-                            client_dict[invoice['customer']['id']] = invoice_date 
+                            client_dict[invoice['id']] = invoice_date 
             except Exception as e:
                 print(f"date error {e}")
     update_clients(client_dict, company)  # Update the clients' serviceTitanCustomerSince field    
