@@ -168,7 +168,7 @@ def saveClientList(clients, company_id, task=None):
             try:
                 client_dict[clients[i]['customerId']] = date.strptime(clients[i]['createdOn'][:10], '%Y-%m-%d').date() 
             except Exception as e:
-                pass
+                print(f"date error {e}")
 
     client_ids = client_dict.keys()
 
