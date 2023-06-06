@@ -163,7 +163,7 @@ def update_clients_with_first_invoice_date(company_id):
         response = requests.get(url, headers=headers)
         page += 1
         data = response.json()['data']
-        process_invoices(data, company_id)
+        process_invoices.delay(data, company_id)
             
         if not response.json()['hasMore']:
             moreInvoices = False
