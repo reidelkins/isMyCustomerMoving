@@ -156,7 +156,7 @@ def update_clients_with_first_invoice_date(company_id):
     tenant = company.tenantID
     headers = get_serviceTitan_accessToken(company_id)
     moreInvoices = True
-    page = 44
+    page = 1
 
     while moreInvoices:
         invoices = []
@@ -179,16 +179,17 @@ def process_invoices(invoices, company):
         # on the same line as the last statement, print another .
         if invoice['createdOn'] is not None:
             try:
-                tmpClient = Client.objects.filter(servTitanID=invoice['id'], company=company).first()
+                tmpClients = Client.objects.filter(servTitanID=invoice['id'], company=company)
                 year, month, day = map(int, invoice['createdOn'][:10].split("-"))
                 invoice_date = date(year, month, day)
-                if tmpClient is not None:
-                    if tmpClient.serviceTitanCustomerSince is None or tmpClient.serviceTitanCustomerSince > invoice_date or tmpClient.serviceTitanCustomerSince == date(1, 1, 1):
-                        if invoice['id'] in client_dict:
-                            if client_dict[invoice['id']] > invoice_date:
-                                client_dict[invoice['id']] = invoice_date
-                        else:
-                            client_dict[invoice['id']] = invoice_date 
+                for tmpClient in tmpClients:
+                    if tmpClient is not None:
+                        if tmpClient.serviceTitanCustomerSince is None or tmpClient.serviceTitanCustomerSince > invoice_date or tmpClient.serviceTitanCustomerSince == date(1, 1, 1):
+                            if invoice['id'] in client_dict:
+                                if client_dict[invoice['id']] > invoice_date:
+                                    client_dict[invoice['id']] = invoice_date
+                            else:
+                                client_dict[invoice['id']] = invoice_date 
             except Exception as e:
                 print(f"date error {e}")
     update_clients(client_dict, company)  # Update the clients' serviceTitanCustomerSince field    
