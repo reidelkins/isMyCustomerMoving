@@ -136,10 +136,9 @@ def saveClientList(clients, company_id, task=None):
                     city= city[0]            
                     state=clients[i]['address']['state']
                     name=clients[i]['name']
-                    serviceTitanCustomerSince = clients[i]['createdOn'][:10]
                     if clients[i]['address']['zip'] == None or not street or not zip or not city or not state or not name or zip == 0:
                         continue
-                    clientsToAdd.append(Client(address=street, zipCode=zipCode, city=city, state=state, name=name, company=company, servTitanID=clients[i]['customerId'], serviceTitanCustomerSince=serviceTitanCustomerSince))                   
+                    clientsToAdd.append(Client(address=street, zipCode=zipCode, city=city, state=state, name=name, company=company, servTitanID=clients[i]['customerId']))                   
             #file upload
             else:
                 street = parseStreets((str(clients[i]['address'])).title())
