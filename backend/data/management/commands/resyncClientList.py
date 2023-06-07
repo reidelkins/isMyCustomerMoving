@@ -14,7 +14,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         company = options['company']
         if company:
-            get_serviceTitan_clients.delay(company_id=company, task_id=None, option='option3')
+            get_serviceTitan_clients.delay(company_id=company, task_id=None)
         else:
             daysToRun = [0, 1, 2, 3, 4]
             dt = datetime.now()
@@ -23,4 +23,4 @@ class Command(BaseCommand):
                 companies = Company.objects.all()
                 for company in companies:
                     if company.crm == 'ServiceTitan':
-                        get_serviceTitan_clients.delay(company.id, task_id=None, option='option3', automated=True)
+                        get_serviceTitan_clients.delay(company.id, task_id=None, automated=True)

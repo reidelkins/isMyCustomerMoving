@@ -76,8 +76,13 @@ def get_salesforce_clients(company_id, task_id=None):
 
 
 @shared_task
-def get_serviceTitan_clients(company_id, task_id, option, automated=False):
+def get_serviceTitan_clients(company_id, task_id, option=None, automated=False):    
     company = Company.objects.get(id=company_id)
+    if not option:
+        option=company.clientOption
+    else:
+        company.clientOption = option
+        company.save()
     tenant = company.tenantID
     headers = get_serviceTitan_accessToken(company_id)
     clients = []
