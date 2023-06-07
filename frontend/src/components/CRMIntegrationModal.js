@@ -17,7 +17,7 @@ import { companyAsync, showSTInfo, } from '../redux/actions/authActions';
 // create a modal that shows different CRM options/buttons in a grid and has an input field for suggestions they don't see
 // this modal will be shown when the user clicks on the CRM button in the header
 
-// Dialog for Service Titan Integration
+// Dialog for Service Titan Integration 
 const ServiceTitan = ({open, setOpen, dispatch}) => {
     const [integrateInfo, setIntegrateInfo] = useState(false);
     const handleClose = () => {
