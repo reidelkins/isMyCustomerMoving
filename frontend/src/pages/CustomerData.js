@@ -621,7 +621,8 @@ export default function CustomerData() {
                   {userInfo.status === 'admin' && (                 
                     (
                       userInfo.company.crm === 'ServiceTitan' ? (
-                        <ServiceTitanSyncModal clientOption={userInfo.company.clientOption}/>
+                        // <ServiceTitanSyncModal clientOption={userInfo.company.clientOption}/>
+                        <ServiceTitanSyncModal />
                       )
                       :
                     (
