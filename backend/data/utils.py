@@ -18,6 +18,7 @@ from typing_extensions import TypedDict
 
 from django.template.loader import get_template
 from django.core.mail import EmailMessage, send_mail
+from django.db.models.functions import Coalesce
 
 scrapflies = []
 for i in range(1, 21):
@@ -64,17 +65,20 @@ def reactivateClients(companyID):
     
 @shared_task
 def deleteExtraClients(companyID, taskID=None):
-    company = Company.objects.get(id=companyID)
-    clients = Client.objects.filter(company=company, active=True)
-    deletedClients = findClientsToDelete(clients.count(), company.product.product.name)
-    if deletedClients > 0:
-        Client.objects.filter(id__in=list(clients.values_list('id', flat=True)[:deletedClients])).update(active=False)
-        admins = CustomUser.objects.filter(company=company, status="admin")
-        mail_subject = "IMCM Clients Deleted"
-        messagePlain = "Your company has exceeded the number of clients allowed for your subscription. The oldest clients have been deleted. You can upgrade your subscription at any time to increase the number of clients you can have."
-        message = get_template("clientsDeleted.html").render({"deletedClients": deletedClients})
-        for admin in admins:
-            send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[admin.email], html_message=message, fail_silently=False)
+    try:
+        company = Company.objects.get(id=companyID)
+        clients = Client.objects.filter(company=company, active=True)
+        deletedClients = findClientsToDelete(clients.count(), company.product.product.name)
+        if deletedClients > 0:
+            Client.objects.filter(id__in=list(clients.values_list('id', flat=True)[:deletedClients])).update(active=False)
+            admins = CustomUser.objects.filter(company=company, status="admin")
+            mail_subject = "IMCM Clients Deleted"
+            messagePlain = "Your company has exceeded the number of clients allowed for your subscription. The oldest clients have been deleted. You can upgrade your subscription at any time to increase the number of clients you can have."
+            message = get_template("clientsDeleted.html").render({"deletedClients": deletedClients})
+            for admin in admins:
+                send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[admin.email], html_message=message, fail_silently=False)
+    except:
+        deletedClients = 0
     if taskID:
         task = Task.objects.get(id=taskID)
         task.deletedClients = deletedClients
@@ -132,10 +136,9 @@ def saveClientList(clients, company_id, task=None):
                     city= city[0]            
                     state=clients[i]['address']['state']
                     name=clients[i]['name']
-                    serviceTitanCustomerSince = clients[i]['createdOn'][:10]
                     if clients[i]['address']['zip'] == None or not street or not zip or not city or not state or not name or zip == 0:
                         continue
-                    clientsToAdd.append(Client(address=street, zipCode=zipCode, city=city, state=state, name=name, company=company, servTitanID=clients[i]['customerId'], serviceTitanCustomerSince=serviceTitanCustomerSince))                   
+                    clientsToAdd.append(Client(address=street, zipCode=zipCode, city=city, state=state, name=name, company=company, servTitanID=clients[i]['customerId']))                   
             #file upload
             else:
                 street = parseStreets((str(clients[i]['address'])).title())
@@ -157,7 +160,8 @@ def saveClientList(clients, company_id, task=None):
             print("create error")
             print(e)
     Client.objects.bulk_create(clientsToAdd, ignore_conflicts=True)
-
+    
+    
     if task:
         deleteExtraClients.delay(company_id, task)
         doItAll.delay(company_id)
