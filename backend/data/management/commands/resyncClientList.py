@@ -4,6 +4,8 @@ from datetime import datetime
 from accounts.models import Company
 from data.syncClients import get_serviceTitan_clients
 
+from djstripe import models as djstripe_models
+
 
 class Command(BaseCommand):
     help = 'Get Client List From Service Titan'
@@ -20,7 +22,7 @@ class Command(BaseCommand):
             dt = datetime.now()
             weekday = dt.weekday()
             if weekday in daysToRun:
-                companies = Company.objects.all()
-                for company in companies:
-                    if company.crm == 'ServiceTitan':
-                        get_serviceTitan_clients.delay(company.id, task_id=None, automated=True)
+                freePlan = djstripe_models.Plan.objects.get(id='price_1MhxfPAkLES5P4qQbu8O45xy')                
+                companies = Company.objects.filter(crm='ServiceTitan').exclude(product=freePlan)
+                for company in companies:                    
+                    get_serviceTitan_clients.delay(company.id, task_id=None, automated=True)
