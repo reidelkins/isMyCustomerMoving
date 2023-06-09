@@ -37,13 +37,13 @@ const StyledListItem = styled.li`
 
 
 ServiceTitanSyncModal.propTypes = {
-    clientOption: PropTypes.string,
+    serviceTitanCustomerSyncOption: PropTypes.string,
 }
 
 
-export default function ServiceTitanSyncModal(clientOption) {
+export default function ServiceTitanSyncModal(serviceTitanCustomerSyncOption) {
     const [open, setOpen] = useState(false);
-    const [selectedOption, setSelectedOption] = useState(clientOption.clientOption ?? 'option1');
+    const [selectedOption, setSelectedOption] = useState(serviceTitanCustomerSyncOption.serviceTitanCustomerSyncOption ?? 'option1');
 
 
     const dispatch = useDispatch();

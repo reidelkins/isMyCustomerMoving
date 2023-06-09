@@ -35,6 +35,7 @@ class CompanySerializer(serializers.ModelSerializer):
     serviceTitanRecentlySoldTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanForSaleContactedTagID = serializers.CharField(max_length=100, required=False)
     serviceTitanSoldContactedTagID = serializers.CharField(max_length=100, required=False)
+    serviceTitanCustomerSyncOption = serializers.CharField(max_length=100, required=False)
 
     users_count = serializers.SerializerMethodField()
     leads_count = serializers.SerializerMethodField()
@@ -62,7 +63,7 @@ class CompanySerializer(serializers.ModelSerializer):
         return Client.objects.filter(company=obj).count()
     class Meta:
         model = Company
-        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'serviceTitanForSaleContactedTagID', 'serviceTitanSoldContactedTagID', 'product', 'users_count', 'leads_count', 'clients_count']
+        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'serviceTitanForSaleContactedTagID', 'serviceTitanSoldContactedTagID', 'users_count', 'leads_count', 'clients_count', 'product', 'serviceTitanCustomerSyncOption']
 
 class EnterpriseSerializer(serializers.ModelSerializer):
     companies = CompanySerializer(many=True, read_only=True)

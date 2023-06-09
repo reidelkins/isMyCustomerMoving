@@ -50,6 +50,12 @@ CRM = [
     ('None', 'None')
 ]
 
+CLIENT_OPTIONS = [
+    ('option1', 'option1'),
+    ('option2', 'option2'),
+    ('option3', 'option3'),
+]
+
 
 class CustomUserManager(BaseUserManager):
     """Define a model manager for User model with no username field."""
@@ -96,7 +102,7 @@ class Company(models.Model):
                           default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     accessToken = models.CharField(default=create_access_token, max_length=100)
-    product = models.ForeignKey("djstripe.Plan", blank=True, null=True, on_delete=models.SET_NULL, default=None)
+    # product = models.ForeignKey("djstripe.Plan", blank=True, null=True, on_delete=models.SET_NULL, default=None)
     phone = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(max_length=100, blank=True, null=True)
     stripeID = models.CharField(max_length=100, blank=True, null=True)
@@ -114,6 +120,7 @@ class Company(models.Model):
     serviceTitanForSaleContactedTagID = models.IntegerField(blank=True, null=True)
     serviceTitanRecentlySoldContactedTagID = models.IntegerField(blank=True, null=True)
     recentlySoldPurchased = models.BooleanField(default=False)
+    serviceTitanCustomerSyncOption = models.CharField(max_length=100, choices=CLIENT_OPTIONS, default='option1')
 
     # Salesforce
     sfAccessToken = models.CharField(max_length=100, blank=True, null=True)
