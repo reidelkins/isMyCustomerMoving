@@ -10,6 +10,7 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Q
 from django.db import transaction
 import json
+import logging
 import math
 from scrapfly import ScrapeApiResponse, ScrapeConfig, ScrapflyClient
 from typing import List, Optional
@@ -110,8 +111,8 @@ def find_data(zip, i, status, url, extra):
             # create_home_listings(results, status, resp.id)  
             create_home_listings(results, status)
     except Exception as e:
-        print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
-        print(f"URL: {url}")
+        logging.error(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
+        logging.error(f"URL: {url}")
     vars = [scrapfly, first_page, first_result, content, soup, first_data, results, total, count, url, extra, new_results, parsed, page_url, total]
     delVariables(vars)
 
@@ -218,8 +219,8 @@ def create_home_listings(results, status, resp=None):
                     homeListing.save()
 
         except Exception as e:
-            print(f"Listing: {listing['location']['address']}")
-            print(e)
+            logging.error(f"Listing: {listing['location']['address']}")
+            logging.error(e)
     delVariables([zip_object, created, listType, homeListing, currTag, results])
 
 
@@ -247,7 +248,7 @@ class SearchResults(TypedDict):
 def parse_search(result: ScrapeApiResponse, searchType: str) -> SearchResults:
     data = result.selector.css("script#__NEXT_DATA__::text").get()
     if not data:
-        print(f"page {result.context['url']} is not a property listing page: Not Data")
+        logging.error(f"page {result.context['url']} is not a property listing page: Not Data")
         return
     
     data = dict(json.loads(data))
@@ -258,7 +259,7 @@ def parse_search(result: ScrapeApiResponse, searchType: str) -> SearchResults:
             data = data["props"]["pageProps"]["searchResults"]["home_search"]
         return data
     except KeyError:
-        print(f"page {result.context['url']} is not a property listing page: KeyError")
+        logging.error(f"page {result.context['url']} is not a property listing page: KeyError")
         return False
 
 
@@ -270,11 +271,9 @@ def get_realtor_property_records(address, city, state):
     scrapfly = ScrapflyClient( key=settings.SCRAPFLY_KEY, max_concurrency=1)
     allProps = []
     pages, props = get_realtor_property_records_loop(city, state, street, 1, scrapfly)
-    print(len(props))
     allProps.extend(props)
     for page in range(2, pages+1):
         pages, props = get_realtor_property_records_loop(city, state, street, page, scrapfly)
-        print(len(props))
         allProps.extend(props)
     with transaction.atomic():
         for property in allProps:
@@ -298,7 +297,7 @@ def get_realtor_property_records(address, city, state):
                     zipCode=zip_code,  # Use the ZipCode instance
                 ).update(permalink=property['permalink'])
 
-                print(f"ERROR: Multiple objects returned for {property['streetAddress']}, {property['city']}, {property['state']}, {property['zipCode']}")
+                logging.error(f"ERROR: Multiple objects returned for {property['streetAddress']}, {property['city']}, {property['state']}, {property['zipCode']}")
 
 def get_realtor_property_records_loop(city, state, street, page, scrapfly):
     url = f"https://www.realtor.com/propertyrecord-search/{city}_{state}/{street}/pg-{page}"
@@ -310,7 +309,6 @@ def get_realtor_property_records_loop(city, state, street, page, scrapfly):
     pages = math.ceil(total / 106)
     try:
         data = data['props']['pageProps']['geo']['homeValuesListDetails']['results']
-        print("Data", len(data))
         props = []
         for prop in data:
             property = {}
@@ -322,63 +320,70 @@ def get_realtor_property_records_loop(city, state, street, page, scrapfly):
             props.append(property)
         return pages, props
     except Exception as e:
-        print(e)
+        logging.error(e)
         return 0, []
     
 def get_realtor_property_details(listingId, scrapfly):
     listing = HomeListing.objects.get(id=listingId)
     url = f"https://www.realtor.com/realestateandhomes-detail/{listing.permalink}"
     result = scrapfly.scrape(ScrapeConfig(url, country="US", asp=False, proxy_pool="public_datacenter_pool"))
-    result = scrapfly.scrape(ScrapeConfig(url, country="US", asp=False, proxy_pool="public_datacenter_pool"))
     data = result.selector.css("script#__NEXT_DATA__::text").get()
     data = dict(json.loads(data))
     data = data['props']['pageProps']['initialReduxState']['propertyDetails']
     try:
-        listing.year_built = data['description']['year_built']
-        listing.year_renovated = data['description']['year_renovated']
-        listing.housingType = data['description']['type']
-        listing.bedrooms = data['description']['beds']
-        listing.bathrooms = data['description']['baths']
-        listing.sqft = data['description']['sqft']
-        listing.lot_sqft = data['description']['lot_sqft']
-        listing.roofing = data['description']['roofing']
-        listing.garage_type = data['description']['garage_type']
-        listing.garage = data['description']['garage']
-        listing.pool = data['description']['pool']
-        listing.fireplace = data['description']['fireplace']
-        listing.heating = data['description']['heating']
-        listing.cooling = data['description']['cooling']
-        listing.exterior = data['description']['exterior']
-        if data['description']['text']:
-            listing.description = data['description']['text']
-        elif data['property_history']:
-            listing.description = data['property_history'][0]['listing']['description']['text']
-        listing.latitude = data['location']['address']['coordinate']['lat']
-        listing.longitude = data['location']['address']['coordinate']['lon']
-        for tag in listing["tags"]:
-            currTag = HomeListingTags.objects.get_or_create(tag=tag)
-            listing.tag.add(currTag[0])
-        extras = []
-        for extra in data['description']['details']:
-            if extra["category"] == "Interior Features" or extra["category"] == "Heating and Cooling" :
-                extras.extend(extra["text"])
+        # Check if fields exist before assigning
+        description = data.get('description', {})
+        if description:
+            listing.year_built = description.get('year_built')
+            listing.year_renovated = description.get('year_renovated')
+            listing.housingType = description.get('type')
+            listing.bedrooms = description.get('beds')
+            listing.bathrooms = description.get('baths')
+            listing.sqft = description.get('sqft')
+            listing.lot_sqft = description.get('lot_sqft')
+            listing.roofing = description.get('roofing')
+            listing.garage_type = description.get('garage_type')
+            listing.garage = description.get('garage')
+            listing.pool = description.get('pool')
+            listing.fireplace = description.get('fireplace')
+            listing.heating = description.get('heating')
+            listing.cooling = description.get('cooling')
+            listing.exterior = description.get('exterior')
+
+            listing.description = description.get('text')
+            
+            if not listing.description and data.get('property_history'):
+                listing.description = data['property_history'][0]['listing']['description'].get('text')
         
-        if data["advertisers"]:
-            realtor, updated = Realtor.objects.update_or_create(
-                company = data["advertisers"][0]["broker"]["name"],
-                email = data["advertisers"][0]["email"],
-                url = data["advertisers"][0]["href"],
-                name = data["advertisers"][0]["name"],
-                phone = data["advertisers"][0]["phones"][0]["number"]
+        listing.latitude = data['location']['address']['coordinate'].get('lat')
+        listing.longitude = data['location']['address']['coordinate'].get('lon')
+        
+        if listing.get("tags"):
+            for tag in listing["tags"]:
+                currTag, _ = HomeListingTags.objects.get_or_create(tag=tag)
+                if currTag not in listing.tag.all():
+                    listing.tag.add(currTag)
+
+        extras = []
+        for extra in description.get('details', []):
+            if extra.get("category") in ["Interior Features", "Heating and Cooling"]:
+                extras.extend(extra.get("text", []))
+        
+        if data.get("advertisers"):
+            advertiser = data["advertisers"][0]
+            realtor, _ = Realtor.objects.get_or_create(
+                company = advertiser.get("broker", {}).get("name"),
+                email = advertiser.get("email"),
+                url = advertiser.get("href"),
+                name = advertiser.get("name"),
+                phone = advertiser.get("phones", [{}])[0].get("number")
             )
             listing.realtor = realtor
         listing.save()
 
-
     except Exception as e:
-        print(e)
-        print(data)
-        print(f"ERROR: {listing.permalink}")
-        pass
+        logging.error(e)
+        logging.error(data)
+        logging.error(f"ERROR: {listing.permalink}")
 
     

@@ -6,6 +6,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.utils.crypto import get_random_string
 from django.contrib.auth.models import update_last_login
 
+import logging
+
 
 
 class BasicCompanySerializer(serializers.ModelSerializer):
@@ -80,7 +82,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         for k, v in serializer.items():
             data[k] = v
         if not self.user.isVerified:
-            print("User is not verified")
+            logging.error("User is not verified")
             raise serializers.ValidationError("User is not verified")
         return data
     @classmethod
@@ -89,7 +91,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         if user.isVerified:
             return token
         else:
-            print("User is not verified 2")
+            logging.error("User is not verified 2")
             raise serializers.ValidationError("User is not verified. Either you have not verified your email or your account has been disabled. Accounts are disabled if you have not paid for the service. Please contact us reid@ismycustomermoving.com if you have any questions.")
 
 class UserSerializer(serializers.Serializer):

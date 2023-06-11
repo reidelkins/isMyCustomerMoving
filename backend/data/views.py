@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 import datetime
+import logging
 import requests
 
 from accounts.models import CustomUser, Company
@@ -154,7 +155,7 @@ class UpdateStatusView(APIView):
         try:
             getAllZipcodes.delay(self.kwargs['company'])
         except Exception as e:
-            print(f"ERROR: Update Status View: {e}")
+            logging.error(f"ERROR: Update Status View: {e}")
         return Response("", status=status.HTTP_201_CREATED, headers="")
 
 class UploadFileView(generics.ListAPIView):
@@ -170,10 +171,10 @@ class UploadFileView(generics.ListAPIView):
                 else:
                     return Response({"status": "UNFINISHED", "clients": []}, status=status.HTTP_201_CREATED)
             except Exception as e:
-                print(e)
+                logging.error(e)
                 return Response({"status": "Task Error"}, status=status.HTTP_400_BAD_REQUEST)          
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
         
     def put(self, request, *args, **kwargs):
@@ -181,13 +182,13 @@ class UploadFileView(generics.ListAPIView):
         try:
             company = Company.objects.get(id=company_id)
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             task = Task.objects.create()
             saveClientList.delay(request.data, company_id, task=task.id)
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"data": "Clients Uploaded! Come back in about an hour to see your results", "task": task.id}, status=status.HTTP_201_CREATED, headers="")
 
@@ -198,7 +199,6 @@ class UpdateClientView(APIView):
         try:
             if request.data['type'] == 'delete':
                 if len(request.data['clients']) == 1:
-                    print(request.data['clients'][0])
                     client = Client.objects.get(id=request.data['clients'][0])
                     client.delete()
                 else:
@@ -232,7 +232,7 @@ class UpdateClientView(APIView):
                 client.save()
                 return Response({"status": "Client Updated"}, status=status.HTTP_201_CREATED, headers="")
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
             
 class ServiceTitanView(APIView):
@@ -251,10 +251,10 @@ class ServiceTitanView(APIView):
                     #     return Response({"status": "UNFINISHED", "clients": ClientListSerializer(clients[:1000], many=True).data}, status=status.HTTP_201_CREATED)
                     return Response({"status": "UNFINISHED", "clients": []}, status=status.HTTP_201_CREATED)
             except Exception as e:
-                print(e)
+                logging.error(e)
                 return Response({"status": "Task Error"}, status=status.HTTP_400_BAD_REQUEST)          
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
     def put(self, request, *args, **kwargs):
         try:
@@ -266,10 +266,10 @@ class ServiceTitanView(APIView):
                 get_serviceTitan_clients.delay(company_id, task.id, option)                          
                 return Response({"status": "Success", "task": task.id}, status=status.HTTP_201_CREATED, headers="")
             except Exception as e:
-                print(e)
+                logging.error(e)
                 return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)            
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
 
 class SalesforceConsumerView(APIView):
@@ -280,7 +280,7 @@ class SalesforceConsumerView(APIView):
         try:
             return Response({"consumer_key": settings.SALESFORCE_CONSUMER_KEY, "consumer_secret": settings.SALESFORCE_CONSUMER_SECRET}, status=status.HTTP_201_CREATED, headers="")
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, *args, **kwargs):
@@ -308,10 +308,10 @@ class SalesforceConsumerView(APIView):
                 serializer = UserSerializerWithToken(user, many=False)
                 return Response(serializer.data)
             except Exception as e:
-                print(e)
+                logging.error(e)
                 return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)            
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, *args, **kwargs):
@@ -322,9 +322,9 @@ class SalesforceConsumerView(APIView):
                 get_salesforce_clients(company_id)
                 return Response({"status": "Success"}, status=status.HTTP_201_CREATED, headers="")
             except Exception as e:
-                print(e)
+                logging.error(e)
                 return Response({"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST)            
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
         

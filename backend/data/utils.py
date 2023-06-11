@@ -8,6 +8,7 @@ from celery import shared_task
 from datetime import datetime, timedelta, date
 import gc
 import json
+import logging
 import requests
 
 import traceback
@@ -150,8 +151,8 @@ def saveClientList(clients, company_id, task=None):
                         continue
                 clientsToAdd.append(Client(address=street, zipCode=zipCode, city=city, state=state, name=name, company=company, phoneNumber=phoneNumber))
         except Exception as e:
-            print("create error")
-            print(e)
+            logging.error("create error")
+            logging.error(e)
     Client.objects.bulk_create(clientsToAdd, ignore_conflicts=True)
     
     
@@ -185,7 +186,7 @@ def updateStatus(zip, company, status):
     try:
         zipCode_object = ZipCode.objects.get(zipCode=zip)
     except Exception as e:
-        print(f"ERROR during updateStatus: {e} with zipCode {zip}")
+        logging.error(f"ERROR during updateStatus: {e} with zipCode {zip}")
         return
     #addresses from all home listings with the provided zip code and status
     listedAddresses = HomeListing.objects.filter(zipCode=zipCode_object, status=status).values('address')
@@ -201,7 +202,7 @@ def updateStatus(zip, company, status):
                 if listing.listed > HomeListing.objects.filter(address=toList.address, status=status)[0].listed:
                     update = False
         except Exception as e:
-            print(e)
+            logging.error(e)
         if update:
             homeListing = HomeListing.objects.get(address=toList.address, status=status)
             toList.status = status
@@ -218,21 +219,21 @@ def updateStatus(zip, company, status):
                     serialized_data = serializer.data
                     requests.post(company.zapier_forSale, data=serialized_data)
                 except Exception as e:
-                    print(e)
+                    logging.error(e)
             if company.zapier_sold and status == "House Recently Sold (6)":
                 try:
                     serializer = ZapierClientSerializer(toList)
                     serialized_data = serializer.data
                     requests.post(company.zapier_sold, data=serialized_data)
                 except Exception as e:
-                    print(e)
+                    logging.error(e)
 
         try:
             listing = HomeListing.objects.filter(zipCode=zipCode_object, address=toList.address, status=status)
             ClientUpdate.objects.get_or_create(client=toList, status=status, listed=listing[0].listed)
         except Exception as e:
-            print("Cant find listing to list")
-            print("This should not be the case")
+            logging.error("Cant find listing to list")
+            logging.error("This should not be the case")
     # TODO There is an issue where clients uploaded with wrong zip code and are being marked to be unlisted when they should not be
     # unlisted = previousListed.difference(clientsToUpdate)
     # for toUnlist in unlisted:
@@ -271,8 +272,8 @@ def update_clients_statuses(company_id=None):
                     zip = zip['zipCode']
                     updateStatus.delay(zip, company.id, "House Recently Sold (6)")
         except Exception as e:
-            print(f"ERROR during update_clients_statuses: {e} with company {company}")
-            print(traceback.format_exc())
+            logging.error(f"ERROR during update_clients_statuses: {e} with company {company}")
+            logging.error(traceback.format_exc())
                 
     delVariables([companies, company, zipCode_objects, zipCodes, zips, zip])
                  
@@ -308,8 +309,8 @@ def sendDailyEmail(company_id=None):
                         msg.content_subtype ="html"
                         msg.send()
         except Exception as e:
-            print(f"ERROR during sendDailyEmail: {e} with company {company}")
-            print(traceback.format_exc())
+            logging.error(f"ERROR during sendDailyEmail: {e} with company {company}")
+            logging.error(traceback.format_exc())
     # if not company_id:
     #     HomeListing.objects.all().delete()
     ZipCode.objects.filter(lastUpdated__lt = datetime.today() - timedelta(days=3)).delete()
@@ -318,6 +319,7 @@ def sendDailyEmail(company_id=None):
 
 @shared_task
 def auto_update(company_id=None, zip=None):
+    from .realtor import getAllZipcodes
     company = ""
     if company_id:
         try:
@@ -325,7 +327,7 @@ def auto_update(company_id=None, zip=None):
             getAllZipcodes(company_id)
 
         except:
-            print("Company does not exist")
+            logging.error("Company does not exist")
             return
         delVariables([company_id, company])
     elif zip:
@@ -333,21 +335,21 @@ def auto_update(company_id=None, zip=None):
             ZipCode.objects.get_or_create(zipCode=zip)
             getAllZipcodes("", zip=zip)
         except:
-            print("Zip does not exist")
+            logging.error("Zip does not exist")
             return
     else:
         company, companies = "", ""
         companies = Company.objects.all()
         for company in companies:
             try:
-                print(f"Auto Update: {company.product} {company.name}")
+                logging.error(f"Auto Update: {company.product} {company.name}")
                 if company.product.id != "price_1MhxfPAkLES5P4qQbu8O45xy":
-                    print("In the if statement")
+                    logging.error("In the if statement")
                     getAllZipcodes(company.id)
                 else:
-                    print("free tier")
+                    logging.error("free tier")
             except Exception as e:
-                print(f"Auto Update Error: {e}")
+                logging.error(f"Auto Update Error: {e}")
         delVariables([company, companies])
 
 def get_serviceTitan_accessToken(company):
@@ -391,9 +393,8 @@ def update_serviceTitan_client_tags(forSale, company, status):
                                 forSaleToRemove.remove(word)
                     payload={'customerIds': forSaleToRemove, 'tagTypeIds': tagType}
                     response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
-                    print(response.status_code)
                     if response.status_code != 200:
-                        print(response.json())
+                        logging.error(response.json())
             payload={'customerIds': forSale, 'tagTypeIds': tagType}
             response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
             if response.status_code != 200:
@@ -412,9 +413,9 @@ def update_serviceTitan_client_tags(forSale, company, status):
                 payload={'customerIds': forSale, 'tagTypeIds': tagType}
                 response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
     except Exception as e:
-        print("updating service titan clients failed")
-        print(f"ERROR: {e}")
-        print(traceback.format_exc())
+        logging.error("updating service titan clients failed")
+        logging.error(f"ERROR: {e}")
+        logging.error(traceback.format_exc())
     delVariables([headers, data, response, payload, company, status, tagType, forSale, resp, error, word])
 
 @shared_task
@@ -442,7 +443,6 @@ def remove_all_serviceTitan_tags(company=None, client=None):
                         if time < datetime.now()-timedelta(minutes=15):
                             headers = get_serviceTitan_accessToken(company.id)
                             time = datetime.now()
-                        print(i)
                         x = clients[i*250:(i+1)*250]
                         payload={'customerIds': x, 'tagTypeIds': tag}
                         response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
@@ -460,17 +460,13 @@ def remove_all_serviceTitan_tags(company=None, client=None):
                             if x:
                                 payload={'customerIds': x, 'tagTypeIds': tag}
                                 response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags', headers=headers, json=payload)
-                                print(x)
-                                print(response.status_code)
                                 if response.status_code != 200:
-                                    print(response.json())
-                            else:
-                                print("no clients to remove")
+                                    logging.error(response.json())                            
                 Client.objects.filter(company=company).update(status="No Change")          
         except Exception as e:
-            print("updating service titan clients failed")
-            print(f"ERROR: {e}")
-            print(traceback.format_exc())
+            logging.error("updating service titan clients failed")
+            logging.error(f"ERROR: {e}")
+            logging.error(traceback.format_exc())
     if client:
         try:
             client = CustomUser.objects.get(id=client)
@@ -480,7 +476,7 @@ def remove_all_serviceTitan_tags(company=None, client=None):
                 payload={'customerIds': [str(client.servTitanID)], 'tagTypeIds': tag}
                 response = requests.delete(f'https://api.servicetitan.io/crm/v2/tenant/{str(client.company.tenantID)}/tags', headers=headers, json=payload)
         except Exception as e:
-            print(e)
+            logging.error(e)
 
 
 def update_serviceTitan_tasks(clients, company, status):
@@ -502,9 +498,9 @@ def update_serviceTitan_tasks(clients, company, status):
             #     payload={'customerIds': forSale, 'taskTypeId': str(company.serviceTitanTaskID)}
             #     response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tasks', headers=headers, json=payload)
         except Exception as e:
-            print("updating service titan tasks failed")
-            print(f"ERROR: {e}")
-            print(traceback.format_exc())
+            logging.error("updating service titan tasks failed")
+            logging.error(f"ERROR: {e}")
+            logging.error(traceback.format_exc())
     delVariables([headers, data, response, company, status])
 
 
@@ -518,9 +514,9 @@ def send_update_email(templateName):
         for user in users:            
             send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[user], html_message=message, fail_silently=False)
     except Exception as e:
-        print("sending update email failed")
-        print(f"ERROR: {e}")
-        print(traceback.format_exc())
+        logging.error("sending update email failed")
+        logging.error(f"ERROR: {e}")
+        logging.error(traceback.format_exc())
 
 @shared_task(rate_limit='1/s')
 def doItAll(company):
@@ -532,9 +528,9 @@ def doItAll(company):
         sleep(360)
         result.then(sendDailyEmail.apply_async, args=[company.id])
     except Exception as e:
-        print("doItAll failed")
-        print(f"ERROR: {e}")
-        print(traceback.format_exc())
+        logging.error("doItAll failed")
+        logging.error(f"ERROR: {e}")
+        logging.error(traceback.format_exc())
 
 
 def filter_recentlysold(query_params, queryset):
