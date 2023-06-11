@@ -10,10 +10,11 @@ import requests
 from accounts.models import CustomUser, Company
 from accounts.serializers import UserSerializerWithToken
 from config import settings
-from .models import Client, ClientUpdate, HomeListing, Task, HomeListingTags
+from .models import Client, ClientUpdate, HomeListing, Task
 from .serializers import ClientListSerializer, HomeListingSerializer
 from .syncClients import get_salesforce_clients, get_serviceTitan_clients
-from .utils import getAllZipcodes, saveClientList, add_serviceTitan_contacted_tag, filter_recentlysold, filter_clients, remove_all_serviceTitan_tags
+from .realtor import getAllZipcodes
+from .utils import saveClientList, add_serviceTitan_contacted_tag, filter_recentlysold, filter_clients, remove_all_serviceTitan_tags
 
 from django.http import HttpResponse
 import csv

@@ -88,6 +88,13 @@ class HomeListing(models.Model):
     # tags = JSONField(default=list)     this is how to greatly reduce the amount of data in the table
     city = models.CharField(max_length=40, blank=True, null=True)
     state = models.CharField(max_length=31, blank=True, null=True)
+    bedrooms = models.IntegerField(default=0)
+    bathrooms = models.IntegerField(default=0)
+    sqft = models.IntegerField(default=0)
+    lot_sqft = models.IntegerField(default=0)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+    permalink = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         unique_together = ('address', 'status', 'city', 'state')

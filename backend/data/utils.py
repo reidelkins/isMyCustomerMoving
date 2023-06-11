@@ -1,29 +1,22 @@
 from time import sleep
 from accounts.models import Company, CustomUser
 from config import settings
-from .models import Client, ZipCode, HomeListing, ScrapeResponse, ClientUpdate, Task, HomeListingTags
+from .models import Client, ZipCode, HomeListing, ClientUpdate, Task, HomeListingTags
 from .serializers import ZapierClientSerializer
 
-from bs4 import BeautifulSoup
 from celery import shared_task
 from datetime import datetime, timedelta, date
 import gc
 import json
-import math
 import requests
-from scrapfly import ScrapeApiResponse, ScrapeConfig, ScrapflyClient
+
 import traceback
-from typing import List, Optional
-from typing_extensions import TypedDict
 
 from django.template.loader import get_template
 from django.core.mail import EmailMessage, send_mail
 from django.db.models.functions import Coalesce
 
-scrapflies = []
-for i in range(1, 21):
-    scrapfly = ScrapflyClient( key=settings.SCRAPFLY_KEY, max_concurrency=1)
-    scrapflies.append(scrapfly)
+
 
 def delVariables(vars):
     for var in vars:
@@ -184,195 +177,6 @@ def updateClientList(numbers):
     delVariables([phoneNumbers, clients, numbers])
 
 
-@shared_task
-def getAllZipcodes(company, zip=None):
-    company_object, zipCode_objects, zipCodes, zips = "", "", "", ""
-    try:
-        company_object = Company.objects.get(id=company)
-        zipCode_objects = Client.objects.filter(company=company_object, active=True).values('zipCode')
-        zipCodes = zipCode_objects.distinct()
-        zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
-        zips = list(zipCodes.order_by('zipCode').values('zipCode'))
-        zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
-         # zips = [{'zipCode': '37919'}]
-    except:
-        if zip:
-            zips = [{'zipCode': str(zip)}]
-    for i in range(len(zips) * 2):
-    # for i in range(len(zips)):
-        extra = ""
-        if i % 2 == 0:
-            status = "House For Sale"
-            url = "https://www.realtor.com/realestateandhomes-search"
-        elif i % 2 == 1:
-            status = "House Recently Sold (6)"
-            url = "https://www.realtor.com/realestateandhomes-search"
-            extra = "show-recently-sold/"
-        # elif i % 3 == 2:
-        #     status = "For Rent"
-        #     url = "https://www.realtor.com/apartments"
-        find_data.delay(str(zips[i//2]['zipCode']), i, status, url, extra)
-    delVariables([company_object, zipCode_objects, zipCodes, zips, company])
-
-@shared_task
-def find_data(zip, i, status, url, extra):
-    scrapfly, first_page, first_result, content, soup, first_data, results, total, count, new_results, parsed, page_url, total = "", "", "", "", "", "", "", "", "", "", "", "", ""
-    scrapfly = scrapflies[i % 20]    
-    try:
-        first_page = f"{url}/{zip}/{extra}"
-        first_result = scrapfly.scrape(ScrapeConfig(first_page, country="US", asp=False, proxy_pool="public_datacenter_pool"))        
-        if first_result.status_code >= 400:
-            scrapfly = scrapflies[i+5 % 20]
-            first_result = scrapfly.scrape(ScrapeConfig(first_page, country="US", asp=False, proxy_pool="public_datacenter_pool"))
-        content = first_result.scrape_result['content']
-        soup = BeautifulSoup(content, features='html.parser')
-        # resp = ScrapeResponse.objects.create(response=str(content), zip=zip, status=status, url=first_page)
-        if "pg-1" not in first_result.context["url"]:
-            url = first_result.context["url"] + "/pg-1"
-        else:
-            url = first_result.context["url"]
-        first_data = parse_search(first_result, status)
-        if not first_data:
-            return
-        if status == "For Rent":
-            results = first_data["properties"]
-            total = int(soup.find('div', {'data-testid': 'total-results'}).text)
-            count = len(results)
-            url += "/pg-1"
-        else:
-            results = first_data["results"]
-            total = soup.find('span', {'class': 'result-count'}).text
-            total = int(total.split(' ')[0])
-            count = first_data["count"]
-        # create_home_listings(results, status, resp.id)
-        create_home_listings(results, status)
-        if count == 0 or total == 0:
-            return
-        if count < 20: #I believe this can be 10
-            total_pages = 1
-        else:
-            total_pages = math.ceil(total / count)
-        for page in range(2, total_pages+1):
-            assert "pg-1" in url  # make sure we don't accidently scrape duplicate pages
-            page_url = url.replace("pg-1", f"pg-{page}")
-            new_results = scrapfly.scrape(ScrapeConfig(url=page_url, country="US", asp=False, proxy_pool="public_datacenter_pool"))
-            if first_result.status_code >= 400:
-                scrapfly = scrapflies[i+5 % 20]
-                new_results = scrapfly.scrape(ScrapeConfig(url=page_url, country="US", asp=False, proxy_pool="public_datacenter_pool"))
-            content = new_results.scrape_result['content']
-            # resp = ScrapeResponse.objects.create(response=str(content), zip=zip, status=status, url=page_url)
-            parsed = parse_search(new_results, status)            
-            if status == "For Rent":
-                results = parsed["properties"]
-            else:
-                results = parsed["results"]
-            # create_home_listings(results, status, resp.id)  
-            create_home_listings(results, status)
-    except Exception as e:
-        print(f"ERROR during getHomesForSale: {e} with zipCode {zip}")
-        print(f"URL: {url}")
-    vars = [scrapfly, first_page, first_result, content, soup, first_data, results, total, count, url, extra, new_results, parsed, page_url, total]
-    delVariables(vars)
-
-
-class PropertyPreviewResult(TypedDict):
-    property_id: str
-    listing_id: str
-    permalink: str
-    list_price: int
-    price_reduces_amount: Optional[int]
-    description: dict
-    location: dict
-    photos: List[dict]
-    list_date: str
-    last_update_date: str
-    tags: List[str]
-
-class SearchResults(TypedDict):
-    count: int
-    total: int
-    results: List[PropertyPreviewResult]
-
-def parse_search(result: ScrapeApiResponse, searchType: str) -> SearchResults:
-    data = result.selector.css("script#__NEXT_DATA__::text").get()
-    if not data:
-        print(f"page {result.context['url']} is not a property listing page: Not Data")
-        return
-    
-    data = dict(json.loads(data))
-    try:
-        if(searchType == "For Rent"):
-            data = data["props"]["pageProps"]
-        else:
-            data = data["props"]["pageProps"]["searchResults"]["home_search"]
-        return data
-    except KeyError:
-        print(f"page {result.context['url']} is not a property listing page: KeyError")
-        return False
-
-def create_home_listings(results, status, resp=None):
-    zip_object, created, listType, homeListing, currTag = "", "", "", "", ""
-    two_years_ago = datetime.now() - timedelta(days=365*2)
-    for listing in results:
-        zip_object, created = ZipCode.objects.get_or_create(zipCode = listing['location']['address']['postal_code'])
-        try:
-            if status == "House Recently Sold (6)":
-                listType = listing["last_update_date"]
-                if listType != None:
-                    try:
-                        dateCompare = datetime.strptime(listType, "%Y-%m-%dT%H:%M:%SZ")
-                    except:
-                        dateCompare = datetime.strptime(listType, "%Y-%m-%d")
-                    if dateCompare < two_years_ago:
-                        continue
-                else:
-                    listType = listing["description"]["sold_date"]
-                    if listType != None:
-                        try:
-                            dateCompare = datetime.strptime(listType, "%Y-%m-%dT%H:%M:%SZ")
-                        except:
-                            dateCompare = datetime.strptime(listType, "%Y-%m-%d")
-                        if dateCompare < two_years_ago:
-                            continue
-
-            else:
-                listType = listing["list_date"]
-            if listType == None:
-                listType = "2022-01-01"
-            if listing['list_price']:
-                price = listing['list_price']
-            elif listing['description']['sold_price']:
-                price = listing['description']['sold_price']
-            else:
-                price = 0
-            if listing['description']['year_built']:
-                year_built = listing['description']['year_built']
-            else:
-                year_built = 0
-            homeListing = HomeListing.objects.get_or_create(
-                        zipCode= zip_object,
-                        address= parseStreets((listing['location']['address']['line']).title()),
-                        status= status,
-                        listed= listType[:10],
-                        price = price,
-                        housingType = listing['description']['type'],
-                        year_built = year_built,
-                        state = listing['location']['address']['state_code'],
-                        city = listing['location']['address']['city'],
-                        )
-            if resp:
-                homeListing[0].ScrapeResponse = ScrapeResponse.objects.get(id=resp)
-                homeListing[0].save()
-            if listing["tags"]:
-                for tag in listing["tags"]:
-                    currTag = HomeListingTags.objects.get_or_create(tag=tag)
-                    homeListing[0].tag.add(currTag[0])
-
-
-        except Exception as e:
-            print(f"Listing: {listing['location']['address']}")
-            print(e)
-    delVariables([zip_object, created, listType, homeListing, currTag, results])
 
 @shared_task
 def updateStatus(zip, company, status):
