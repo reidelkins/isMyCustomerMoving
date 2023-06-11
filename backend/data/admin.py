@@ -49,8 +49,8 @@ class HomeListingTagsAdmin(admin.ModelAdmin):
     search_fields = ['id', 'tag']
 
 class RealtorAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'phoneNumber', 'email', 'company')
-    search_fields = ['id', 'name', 'phoneNumber', 'email', 'company']
+    list_display = ('id', 'name', 'phone', 'email', 'company')
+    search_fields = ['id', 'name', 'phone', 'email', 'company']
 
     def company__name(self, obj):
         return obj.name
