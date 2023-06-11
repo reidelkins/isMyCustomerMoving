@@ -123,7 +123,7 @@ def create_home_listings(results, status, resp=None):
         try:
             if status == "House Recently Sold (6)":
                 listType = listing["last_update_date"]
-                if listType != None:
+                if listType is not None:
                     try:
                         dateCompare = datetime.strptime(listType, "%Y-%m-%dT%H:%M:%SZ")
                     except:
@@ -132,52 +132,98 @@ def create_home_listings(results, status, resp=None):
                         continue
                 else:
                     listType = listing["description"]["sold_date"]
-                    if listType != None:
+                    if listType is not None:
                         try:
                             dateCompare = datetime.strptime(listType, "%Y-%m-%dT%H:%M:%SZ")
                         except:
                             dateCompare = datetime.strptime(listType, "%Y-%m-%d")
                         if dateCompare < two_years_ago:
                             continue
-
             else:
                 listType = listing["list_date"]
             if listType == None:
                 listType = "2022-01-01"
-            if listing['list_price']:
-                price = listing['list_price']
-            elif listing['description']['sold_price']:
-                price = listing['description']['sold_price']
-            else:
-                price = 0
-            if listing['description']['year_built']:
-                year_built = listing['description']['year_built']
-            else:
-                year_built = 0
-            homeListing = HomeListing.objects.get_or_create(
-                        zipCode= zip_object,
-                        address= parseStreets((listing['location']['address']['line']).title()),
-                        status= status,
-                        listed= listType[:10],
-                        price = price,
-                        housingType = listing['description']['type'],
-                        year_built = year_built,
-                        state = listing['location']['address']['state_code'],
-                        city = listing['location']['address']['city'],
-                        )
+
+            price = listing['list_price'] if listing['list_price'] else listing['description'].get('sold_price', 0)
+            year_built = listing['description'].get('year_built', 0)
+
+            # Assume the values are in the 'description' dictionary
+            beds = listing['description'].get('beds', 0)
+            baths = listing['description'].get('baths', 0)
+            cooling = listing['description'].get('cooling', '')
+            heating = listing['description'].get('heating', '')
+            sqft = listing['description'].get('sqft', 0)
+
+            # Check if the HomeListing already exists
+            try:
+                homeListing = HomeListing.objects.get(
+                    zipCode=zip_object,
+                    address=parseStreets((listing['location']['address']['line']).title()),
+                    city=listing['location']['address']['city'],
+                    state=listing['location']['address']['state_code'],
+                )
+                # Update all the fields if it already exists
+                homeListing.status = status
+                homeListing.listed = listType[:10]
+                homeListing.price = price
+                homeListing.housingType = listing['description']['type']
+                homeListing.year_built = year_built
+                homeListing.latitude = listing['location']['coordinate']['lat']
+                homeListing.longitude = listing['location']['coordinate']['lon']
+                homeListing.permalink = listing['permalink']
+                homeListing.lot_sqft = listing['description'].get('lot_sqft', 0)
+                homeListing.bedrooms = beds
+                homeListing.bathrooms = baths
+                homeListing.cooling = cooling
+                homeListing.heating = heating
+                homeListing.sqft = sqft
+                homeListing.save()
+                
+            except HomeListing.DoesNotExist:
+                # Create a new HomeListing if it doesn't exist
+                homeListing = HomeListing.objects.create(
+                    zipCode=zip_object,
+                    address=parseStreets((listing['location']['address']['line']).title()),
+                    status=status,
+                    listed=listType[:10],
+                    price=price,
+                    housingType=listing['description']['type'],
+                    year_built=year_built,
+                    state=listing['location']['address']['state_code'],
+                    city=listing['location']['address']['city'],
+                    latitude=listing['location']['coordinate']['lat'],
+                    longitude=listing['location']['coordinate']['lon'],
+                    permalink=listing['permalink'],
+                    lot_sqft=listing['description'].get('lot_sqft', 0),
+                    bedrooms=beds,
+                    bathrooms=baths,
+                    cooling=cooling,
+                    heating=heating,
+                    sqft=sqft
+                )
+            # Uncomment this if you want to link the HomeListing with a ScrapeResponse
             # if resp:
-            #     homeListing[0].ScrapeResponse = ScrapeResponse.objects.get(id=resp)
-            #     homeListing[0].save()
+            #     homeListing.ScrapeResponse = ScrapeResponse.objects.get(id=resp)
+            #     homeListing.save()
+
             if listing["tags"]:
                 for tag in listing["tags"]:
-                    currTag = HomeListingTags.objects.get_or_create(tag=tag)
-                    homeListing[0].tag.add(currTag[0])
+                    currTag, _ = HomeListingTags.objects.get_or_create(tag=tag)
+                    homeListing.tag.add(currTag)
 
+            if listing["branding"]:
+                for brand in listing["branding"]:
+                    realtor, _ = Realtor.objects.get_or_create(name=brand['name'])
+                    homeListing.realtor = realtor
+                    homeListing.save()
 
         except Exception as e:
             print(f"Listing: {listing['location']['address']}")
             print(e)
     delVariables([zip_object, created, listType, homeListing, currTag, results])
+
+
+
 
 
 class PropertyPreviewResult(TypedDict):
