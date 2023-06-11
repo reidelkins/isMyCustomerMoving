@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Client, ClientUpdate, ZipCode, HomeListing, Task, ScrapeResponse, HomeListingTags
+from .models import Client, ClientUpdate, ZipCode, HomeListing, Task, ScrapeResponse, HomeListingTags, Realtor
 
 # Register your models here.
 class ClientAdmin(admin.ModelAdmin):
@@ -48,6 +48,13 @@ class HomeListingTagsAdmin(admin.ModelAdmin):
     list_display = ('id',  'tag')
     search_fields = ['id', 'tag']
 
+class RealtorAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'phoneNumber', 'email', 'company')
+    search_fields = ['id', 'name', 'phoneNumber', 'email', 'company']
+
+    def company__name(self, obj):
+        return obj.name
+
 
 admin.site.register(HomeListing, HomeListingAdmin)
 admin.site.register(ZipCode, ZipcodeAdmin)
@@ -56,3 +63,4 @@ admin.site.register(Task, TaskAdmin)
 admin.site.register(ScrapeResponse, ScrapeResponseAdmin)
 admin.site.register(ClientUpdate, ClientUpdateAdmin)
 admin.site.register(HomeListingTags, HomeListingTagsAdmin)
+admin.site.register(Realtor, RealtorAdmin)

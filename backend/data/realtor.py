@@ -1,6 +1,6 @@
 from accounts.models import Company
 from config import settings
-from .models import Client, HomeListing, ZipCode, HomeListingTags
+from .models import Client, HomeListing, ZipCode, HomeListingTags, Realtor
 from .utils import delVariables, parseStreets
 
 from bs4 import BeautifulSoup
@@ -278,4 +278,61 @@ def get_realtor_property_records_loop(city, state, street, page, scrapfly):
     except Exception as e:
         print(e)
         return 0, []
+    
+def get_realtor_property_details(listingId, scrapfly):
+    listing = HomeListing.objects.get(id=listingId)
+    url = f"https://www.realtor.com/realestateandhomes-detail/{listing.permalink}"
+    result = scrapfly.scrape(ScrapeConfig(url, country="US", asp=False, proxy_pool="public_datacenter_pool"))
+    result = scrapfly.scrape(ScrapeConfig(url, country="US", asp=False, proxy_pool="public_datacenter_pool"))
+    data = result.selector.css("script#__NEXT_DATA__::text").get()
+    data = dict(json.loads(data))
+    data = data['props']['pageProps']['initialReduxState']['propertyDetails']
+    try:
+        listing.year_built = data['description']['year_built']
+        listing.year_renovated = data['description']['year_renovated']
+        listing.housingType = data['description']['type']
+        listing.bedrooms = data['description']['beds']
+        listing.bathrooms = data['description']['baths']
+        listing.sqft = data['description']['sqft']
+        listing.lot_sqft = data['description']['lot_sqft']
+        listing.roofing = data['description']['roofing']
+        listing.garage_type = data['description']['garage_type']
+        listing.garage = data['description']['garage']
+        listing.pool = data['description']['pool']
+        listing.fireplace = data['description']['fireplace']
+        listing.heating = data['description']['heating']
+        listing.cooling = data['description']['cooling']
+        listing.exterior = data['description']['exterior']
+        if data['description']['text']:
+            listing.description = data['description']['text']
+        elif data['property_history']:
+            listing.description = data['property_history'][0]['listing']['description']['text']
+        listing.latitude = data['location']['address']['coordinate']['lat']
+        listing.longitude = data['location']['address']['coordinate']['lon']
+        for tag in listing["tags"]:
+            currTag = HomeListingTags.objects.get_or_create(tag=tag)
+            listing.tag.add(currTag[0])
+        extras = []
+        for extra in data['description']['details']:
+            if extra["category"] == "Interior Features" or extra["category"] == "Heating and Cooling" :
+                extras.extend(extra["text"])
+        
+        if data["advertisers"]:
+            realtor, updated = Realtor.objects.update_or_create(
+                company = data["advertisers"][0]["broker"]["name"],
+                email = data["advertisers"][0]["email"],
+                url = data["advertisers"][0]["href"],
+                name = data["advertisers"][0]["name"],
+                phone = data["advertisers"][0]["phones"][0]["number"]
+            )
+            listing.realtor = realtor
+        listing.save()
+
+
+    except Exception as e:
+        print(e)
+        print(data)
+        print(f"ERROR: {listing.permalink}")
+        pass
+
     
