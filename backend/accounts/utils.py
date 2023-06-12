@@ -11,6 +11,7 @@ from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 import requests
 import jwt
+import logging
 
 
 def makeCompany(companyName, email, phone, stripeId=None):
@@ -34,10 +35,10 @@ def makeCompany(companyName, email, phone, stripeId=None):
             else:
                 return {'Error': "Company with that name already exists"}
         else:
-            print(serializer.errors)
+            logging.error(serializer.errors)
             return {'Error': 'Serializer not valid'}
     except Exception as e:
-        print(e)
+        logging.error(e)
         return {'Error': f'{e}'}
             
 # find franchise that is the closest to the area provided for the referral
@@ -51,9 +52,9 @@ def find_enterprise(area, enterprise, referredFrom):
         else:
             return None
     except Exception as e:
-        print("finding franchise failed")
-        print(f"ERROR: {e}")
-        print(traceback.format_exc())
+        logging.error("finding franchise failed")
+        logging.error(f"ERROR: {e}")
+        logging.error(traceback.format_exc())
 
 def verify_token(token):
     try:
@@ -75,7 +76,7 @@ class CustomAuthentication(BaseAuthentication):
         except AuthenticationFailed:
             return None
         except Exception as e:
-            print(f"Non Authentication Error: {e}")
+            logging.error(f"Non Authentication Error: {e}")
             
         # Try to authenticate using Google OAuth
         access_token = request.headers.get("Authorization", None)
@@ -118,12 +119,12 @@ def create_keap_company(company_id):
         }
         response = requests.post(url, headers=headers, json=body)
         if response.status_code != 201:
-            print(f"ERROR: {response.text}")
-            print("Could not create company in Keap")
+            logging.error(f"ERROR: {response.text}")
+            logging.error("Could not create company in Keap")
 
     except Exception as e:
-        print(f"ERROR: {e}")
-        print("Could not create company in Keap")
+        logging.error(f"ERROR: {e}")
+        logging.error("Could not create company in Keap")
 
 
 def create_keap_user(user_id):
@@ -136,8 +137,8 @@ def create_keap_user(user_id):
         }        
         response = requests.get(url, headers=headers)
         if response.status_code != 200:
-            print(f"ERROR: {response.text}")
-            print("Could not get companies in Keap")
+            logging.error(f"ERROR: {response.text}")
+            logging.error("Could not get companies in Keap")
         else:
             company_id = ""
             companies = response.json()
@@ -171,8 +172,8 @@ def create_keap_user(user_id):
             }
             response = requests.post(url, headers=headers, json=body)
             if response.status_code != 201:
-                print(f"ERROR: {response.text}")
-                print("Could not create user in Keap")
+                logging.error(f"ERROR: {response.text}")
+                logging.error("Could not create user in Keap")
 
             if float(company.product.amount) == 0:
                 url = "https://api.infusionsoft.com/crm/rest/v1/tags/127/contacts"
@@ -183,11 +184,11 @@ def create_keap_user(user_id):
                 }
                 response = requests.post(url, headers=headers, json=body)
                 if response.status_code != 200:
-                    print(f"ERROR: {response.text}")
-                    print("Could not add user to tag in Keap")
+                    logging.error(f"ERROR: {response.text}")
+                    logging.error("Could not add user to tag in Keap")
 
 
     except Exception as e:
-        print(f"ERROR: {e}")
-        print("Could not create company in Keap")
+        logging.error(f"ERROR: {e}")
+        logging.error("Could not create company in Keap")
 

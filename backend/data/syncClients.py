@@ -1,6 +1,6 @@
 from celery import shared_task
 import requests
-import gc
+import logging
 from time import sleep
 
 from datetime import datetime, timedelta, date
@@ -197,7 +197,7 @@ def process_invoices(invoices, company):
                             else:
                                 client_dict[invoice['id']] = invoice_date 
             except Exception as e:
-                print(f"date error {e}")
+                logging.error(f"date error {e}")
     update_clients(client_dict, company)  # Update the clients' serviceTitanCustomerSince field    
 
 def update_clients(client_dict, company):

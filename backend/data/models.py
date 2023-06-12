@@ -73,6 +73,15 @@ class ScrapeResponse(models.Model):
     status = models.CharField(max_length=25, choices=STATUS, default='No Change', blank=True, null=True)
     url = models.CharField(max_length=100, blank=True, null=True)
 
+class Realtor(models.Model):
+    id = models.UUIDField(primary_key=True, unique=True,
+                          default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100)
+    company = models.CharField(max_length=100)
+    phone = models.CharField(max_length=100)
+    email = models.CharField(max_length=100)
+    url = models.CharField(max_length=100)
+
 class HomeListing(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
@@ -88,6 +97,24 @@ class HomeListing(models.Model):
     # tags = JSONField(default=list)     this is how to greatly reduce the amount of data in the table
     city = models.CharField(max_length=40, blank=True, null=True)
     state = models.CharField(max_length=31, blank=True, null=True)
+    bedrooms = models.IntegerField(default=0)
+    bathrooms = models.IntegerField(default=0)
+    sqft = models.IntegerField(default=0)
+    lot_sqft = models.IntegerField(default=0)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+    permalink = models.CharField(max_length=100, blank=True, null=True)
+    year_renovated = models.IntegerField(default=0, blank=True, null=True)
+    roofing = models.CharField(max_length=100, default=" ", blank=True, null=True)
+    garage_type = models.CharField(max_length=100, default=" ", blank=True, null=True)
+    garage = models.IntegerField(default=0, blank=True, null=True)
+    heating = models.CharField(max_length=100, default=" ", blank=True, null=True)
+    cooling = models.CharField(max_length=100, default=" ", blank=True, null=True)
+    exterior = models.CharField(max_length=100, default=" ", blank=True, null=True)
+    pool = models.CharField(max_length=100, default=" ", blank=True, null=True)
+    fireplace = models.CharField(max_length=100, default=" ", blank=True, null=True)
+    description = models.TextField(default=" ", blank=True, null=True)
+    realtor = models.ForeignKey(Realtor, blank=True, null=True, on_delete=models.SET_NULL, related_name='homeListing_realtor')
 
     class Meta:
         unique_together = ('address', 'status', 'city', 'state')
@@ -128,3 +155,4 @@ class Referral(models.Model):
             raise ValidationError("Client must have the same company as Referred From")
             
         super(Referral, self).save(*args, **kwargs)
+
