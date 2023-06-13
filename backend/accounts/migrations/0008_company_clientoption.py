@@ -10,9 +10,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
+        migrations.RemoveField(
             model_name='company',
-            name='clientOption',
-            field=models.CharField(blank=True, max_length=100, null=True),
+            name='clientOption'
         ),
     ]
