@@ -121,7 +121,6 @@ class Company(models.Model):
     serviceTitanRecentlySoldContactedTagID = models.IntegerField(blank=True, null=True)
     recentlySoldPurchased = models.BooleanField(default=False)
     serviceTitanCustomerSyncOption = models.CharField(max_length=100, choices=CLIENT_OPTIONS, default='option1')
-    clientOption = models.CharField(max_length=100, blank=True, null=True)
 
     # Salesforce
     sfAccessToken = models.CharField(max_length=100, blank=True, null=True)
