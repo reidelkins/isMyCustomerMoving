@@ -26,7 +26,7 @@ class CompanySerializer(serializers.ModelSerializer):
     stripeID = serializers.CharField(max_length=100, required=False)
     recentlySoldPurchased = serializers.BooleanField(default=False)
     crm = serializers.CharField(max_length=100, required=False)
-    # product = serializers.SerializerMethodField('get_product', read_only=True)
+    product = serializers.SerializerMethodField('get_product', read_only=True)
 
 
     # service titan
@@ -65,7 +65,7 @@ class CompanySerializer(serializers.ModelSerializer):
         return Client.objects.filter(company=obj).count()
     class Meta:
         model = Company
-        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'serviceTitanForSaleContactedTagID', 'serviceTitanSoldContactedTagID', 'users_count', 'leads_count', 'clients_count', 'serviceTitanCustomerSyncOption']
+        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'serviceTitanForSaleContactedTagID', 'serviceTitanSoldContactedTagID', 'users_count', 'leads_count', 'clients_count', 'serviceTitanCustomerSyncOption', 'product']
 
 class EnterpriseSerializer(serializers.ModelSerializer):
     companies = CompanySerializer(many=True, read_only=True)
