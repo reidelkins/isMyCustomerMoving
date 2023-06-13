@@ -156,3 +156,16 @@ class Referral(models.Model):
             
         super(Referral, self).save(*args, **kwargs)
 
+class SavedFilter(models.Model):
+    id = models.UUIDField(primary_key=True, unique=True,
+                            default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100)
+    company = models.ForeignKey("accounts.Company", on_delete=models.CASCADE, blank=True, null=True)
+    forExistingClient = models.BooleanField(default=False)
+    query = models.CharField(max_length=1000, blank=True, null=True)
+    serviceTitanTag = models.IntegerField(blank=True, null=True)
+    forZapier = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('name', 'company')    
+

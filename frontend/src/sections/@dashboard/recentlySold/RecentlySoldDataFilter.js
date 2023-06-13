@@ -26,7 +26,7 @@ import {
 
 
 import Iconify from '../../../components/Iconify';
-import { filterRecentlySoldAsync, recentlySoldAsync } from '../../../redux/actions/usersActions'
+import { filterRecentlySoldAsync, recentlySoldAsync, saveFilterAsync } from '../../../redux/actions/usersActions'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -62,9 +62,23 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
                                                     state, setState: handleChangeState,}) {
     const classes = useStyles();
     const [showFilters, setShowFilters] = useState(false);
+    const [showSaveFilter, setShowSaveFilter] = useState(false);
+    const [filterName, setFilterName] = useState('');
     const [showClearFilters, setShowClearFilters] = useState(false);
     const [error, setError] = useState('');
+    const [yesChecked, setYesChecked] = useState(false);
+    const [noChecked, setNoChecked] = useState(false);
     const dispatch = useDispatch();
+
+    const handleYesChange = (event) => {
+        setYesChecked(event.target.checked);
+        setNoChecked(false);
+    };
+
+    const handleNoChange = (event) => {
+        setNoChecked(event.target.checked);
+        setYesChecked(false);
+    };
 
     const handleTagFilterChange = (event) => {
         const { value } = event.target;
@@ -174,6 +188,21 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
         }
     };
 
+    const handleOpenSaveFilter = () => {
+        setShowFilters(false);
+        setShowSaveFilter(true);
+    }
+
+    const handleSaveFilter = (event) => {
+        event.preventDefault();
+        if (filterName === '') {
+            setError('Please enter a filter name');
+            return;
+        }
+        setError('');
+        dispatch(saveFilterAsync(filterName, minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode));
+    }
+
     return (
         <div className={classes.root}>
             <Stack direction="row" spacing={2} alignItems="space-between">
@@ -191,159 +220,217 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
                 )}
             </Stack>
             {showFilters && (
-            <Dialog sx={{padding:"200px"}} className={classes.filterBox} open={showFilters} onClose={()=>(setShowFilters(false))} >
-                <DialogTitle>Filter List</DialogTitle>
-                <Divider />
-                <DialogContent>
-                <form onSubmit={handleFilterSubmit}>
-                    <Box mb={2}>
-                        <Typography variant="h5">Select Filters</Typography>                        
-                    </Box>
-                    <Grid container spacing={2}>
+                <Dialog sx={{padding:"200px"}} className={classes.filterBox} open={showFilters} onClose={()=>(setShowFilters(false))} >
+                    <DialogTitle>Filter List</DialogTitle>
+                    <Divider />
+                    <DialogContent>
+                    <form onSubmit={handleFilterSubmit}>
+                        <Box mb={2}>
+                            <Typography variant="h5">Select Filters</Typography>                        
+                        </Box>
+                        <Grid container spacing={2}>
+                            <Grid item xs={12}>
+                                <Tooltip title="This will filter for the city state and zip of the home">
+                                    <Box mt={2}>
+                                        <Typography variant="h6" mb={2}>Location</Typography>
+                                        <Stack direction="row" spacing={2} alignItems="center">
+                                            <FormControl fullWidth>
+                                                <InputLabel>Zip Code</InputLabel>
+                                                <Input
+                                                    type="number"
+                                                    value={zipCode}
+                                                    onChange={(event) => handleChangeZipCode(event.target.value)}
+                                                />
+                                            </FormControl>
+                                            <FormControl fullWidth>
+                                                <InputLabel>City</InputLabel>
+                                                <Input
+                                                    type="text"
+                                                    value={city}
+                                                    onChange={(event) => handleChangeCity(event.target.value)}
+                                                />
+                                            </FormControl>
+                                            <FormControl fullWidth>
+                                                <InputLabel>State</InputLabel>
+                                                <Input
+                                                    type="text"
+                                                    value={state}
+                                                    onChange={(event) => handleChangeState(event.target.value)}
+                                                />
+                                            </FormControl>
+                                        </Stack>
+                                    </Box>
+                                </Tooltip>
+                            </Grid>                                                
+                            <Grid item xs={12}>
+                                <Tooltip title="This will filter for the price that the house was either sold or listed for">
+                                    <Box mt={2}>
+                                        <Typography variant="h6" mb={2}>Housing Price</Typography>
+                                        <Stack direction="row" spacing={2} alignItems="center">
+                                            <FormControl fullWidth>
+                                                <InputLabel>Min Price</InputLabel>
+                                                <Input
+                                                    type="number"
+                                                    value={minPrice}
+                                                    onChange={(event) => handleChangeMinPrice(event.target.value)}
+                                                />
+                                            </FormControl>
+                                            <FormControl fullWidth>
+                                                <InputLabel>Max Price</InputLabel>
+                                                <Input
+                                                    type="number"
+                                                    value={maxPrice}
+                                                    onChange={(event) => handleChangeMaxPrice(event.target.value)}
+                                                />
+                                            </FormControl>
+                                        </Stack>
+                                    </Box>
+                                </Tooltip>
+                            </Grid>                        
+                            <Grid item xs={12}>
+                                <Tooltip title="How long ago was the house sold, this data only goes back 30 days">
+                                    <Box mt={2}>
+                                        <Typography variant="h6" mb={2}>Days Ago Sold</Typography>
+                                        {error && (
+                                            <Grid item xs={12}>
+                                                <Typography color="error">{error}</Typography>
+                                            </Grid>
+                                        )}
+                                        <Stack direction="row" spacing={2} alignItems="center">
+                                            <FormControl fullWidth>
+                                                <InputLabel>Minimum</InputLabel>
+                                                <Input
+                                                    type="number"
+                                                    value={minDaysAgo}
+                                                    onChange={(event) => handleDaysAgoChange(event, 'min')}
+                                                />
+                                            </FormControl>
+                                            <FormControl fullWidth>
+                                                <InputLabel>Maximum</InputLabel>
+                                                <Input
+                                                    type="number"
+                                                    value={maxDaysAgo}
+                                                    onChange={(event) => handleDaysAgoChange(event, 'max')}
+                                                />
+                                            </FormControl>
+                                        </Stack>
+                                    </Box>
+                                </Tooltip>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Tooltip title="Year the house was built">
+                                    <Box mt={2}>
+                                        <Typography variant="h6" mb={2}>Year Built</Typography>                                    
+                                        <Stack direction="row" spacing={2} alignItems="center">
+                                            <FormControl fullWidth>
+                                                <InputLabel>Min Year Built</InputLabel>
+                                                <Input
+                                                    type="number"
+                                                    value={minYear}
+                                                    onChange={(event) => handleChangeMinYear(event.target.value)}
+                                                />
+                                            </FormControl>
+                                            <FormControl fullWidth>
+                                                <InputLabel>Max Year Built</InputLabel>
+                                                <Input
+                                                    type="number"
+                                                    value={maxYear}
+                                                    onChange={(event) => handleChangeMaxYear(event.target.value)}
+                                                />
+                                            </FormControl>
+                                        </Stack>
+                                    </Box>
+                                </Tooltip>
+                            </Grid>                                                
                         <Grid item xs={12}>
-                            <Tooltip title="This will filter for the city state and zip of the home">
-                                <Box mt={2}>
-                                    <Typography variant="h6" mb={2}>Location</Typography>
-                                    <Stack direction="row" spacing={2} alignItems="center">
-                                        <FormControl fullWidth>
-                                            <InputLabel>Zip Code</InputLabel>
-                                            <Input
-                                                type="number"
-                                                value={zipCode}
-                                                onChange={(event) => handleChangeZipCode(event.target.value)}
-                                            />
-                                        </FormControl>
-                                        <FormControl fullWidth>
-                                            <InputLabel>City</InputLabel>
-                                            <Input
-                                                type="text"
-                                                value={city}
-                                                onChange={(event) => handleChangeCity(event.target.value)}
-                                            />
-                                        </FormControl>
-                                        <FormControl fullWidth>
-                                            <InputLabel>State</InputLabel>
-                                            <Input
-                                                type="text"
-                                                value={state}
-                                                onChange={(event) => handleChangeState(event.target.value)}
-                                            />
-                                        </FormControl>
-                                    </Stack>
-                                </Box>
-                            </Tooltip>
-                        </Grid>                                                
-                        <Grid item xs={12}>
-                            <Tooltip title="This will filter for the price that the house was either sold or listed for">
-                                <Box mt={2}>
-                                    <Typography variant="h6" mb={2}>Housing Price</Typography>
-                                    <Stack direction="row" spacing={2} alignItems="center">
-                                        <FormControl fullWidth>
-                                            <InputLabel>Min Price</InputLabel>
-                                            <Input
-                                                type="number"
-                                                value={minPrice}
-                                                onChange={(event) => handleChangeMinPrice(event.target.value)}
-                                            />
-                                        </FormControl>
-                                        <FormControl fullWidth>
-                                            <InputLabel>Max Price</InputLabel>
-                                            <Input
-                                                type="number"
-                                                value={maxPrice}
-                                                onChange={(event) => handleChangeMaxPrice(event.target.value)}
-                                            />
-                                        </FormControl>
-                                    </Stack>
-                                </Box>
-                            </Tooltip>
-                        </Grid>                        
-                        <Grid item xs={12}>
-                            <Tooltip title="How long ago was the house sold, this data only goes back 30 days">
-                                <Box mt={2}>
-                                    <Typography variant="h6" mb={2}>Days Ago Sold</Typography>
-                                    {error && (
-                                        <Grid item xs={12}>
-                                            <Typography color="error">{error}</Typography>
-                                        </Grid>
-                                    )}
-                                    <Stack direction="row" spacing={2} alignItems="center">
-                                        <FormControl fullWidth>
-                                            <InputLabel>Minimum</InputLabel>
-                                            <Input
-                                                type="number"
-                                                value={minDaysAgo}
-                                                onChange={(event) => handleDaysAgoChange(event, 'min')}
-                                            />
-                                        </FormControl>
-                                        <FormControl fullWidth>
-                                            <InputLabel>Maximum</InputLabel>
-                                            <Input
-                                                type="number"
-                                                value={maxDaysAgo}
-                                                onChange={(event) => handleDaysAgoChange(event, 'max')}
-                                            />
-                                        </FormControl>
-                                    </Stack>
-                                </Box>
-                            </Tooltip>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Tooltip title="Year the house was built">
-                                <Box mt={2}>
-                                    <Typography variant="h6" mb={2}>Year Built</Typography>                                    
-                                    <Stack direction="row" spacing={2} alignItems="center">
-                                        <FormControl fullWidth>
-                                            <InputLabel>Min Year Built</InputLabel>
-                                            <Input
-                                                type="number"
-                                                value={minYear}
-                                                onChange={(event) => handleChangeMinYear(event.target.value)}
-                                            />
-                                        </FormControl>
-                                        <FormControl fullWidth>
-                                            <InputLabel>Max Year Built</InputLabel>
-                                            <Input
-                                                type="number"
-                                                value={maxYear}
-                                                onChange={(event) => handleChangeMaxYear(event.target.value)}
-                                            />
-                                        </FormControl>
-                                    </Stack>
-                                </Box>
-                            </Tooltip>
-                        </Grid>                                                
-                    <Grid item xs={12}>
-                        <FormControl component="fieldset">
-                        <FormLabel component="legend">Tags</FormLabel>
-                        <Grid container spacing={1}>
-                            {sortedTagOptions.map((option) => (
-                                <FormControlLabel
-                                key={option.value}
-                                control={
-                                    <Checkbox
-                                    checked={tagFilters.includes(option.value)}
-                                    onChange={handleTagFilterChange}
-                                    value={option.value}
+                            <FormControl component="fieldset">
+                            <FormLabel component="legend">Tags</FormLabel>
+                            <Grid container spacing={1}>
+                                {sortedTagOptions.map((option) => (
+                                    <FormControlLabel
+                                    key={option.value}
+                                    control={
+                                        <Checkbox
+                                        checked={tagFilters.includes(option.value)}
+                                        onChange={handleTagFilterChange}
+                                        value={option.value}
+                                        />
+                                    }
+                                    label={option.label}
                                     />
-                                }
-                                label={option.label}
-                                />
-                            ))}
-                           
+                                ))}
+                            
+                            </Grid>
+                            </FormControl>
                         </Grid>
-                        </FormControl>
                     </Grid>
-                </Grid>
-                <Box mt={2}>
-                    <Button type="submit" variant="contained" color="primary">
-                        Apply Filters
-                    </Button>
-                </Box>
-                </form>
-                </DialogContent>
-            </Dialog>
-        )}
+                    <Box mt={2} alignItems="center" display="flex" justifyContent="space-between">
+                        <Button onClick={handleOpenSaveFilter} variant="contained" color="primary">
+                            Save Filter
+                        </Button>
+                        <Box ml={2}>
+                            <Button type="submit" variant="contained" color="primary">
+                            Apply Filters
+                            </Button>
+                        </Box>
+                        </Box>
+                    </form>
+                    </DialogContent>
+                </Dialog>
+            )}
+            {showSaveFilter && (
+                <Dialog sx={{padding:"200px"}} className={classes.filterBox} open={showSaveFilter} onClose={()=>(setShowSaveFilter(false))} >
+                    <DialogTitle>Save Filter</DialogTitle>
+                    <Divider />
+                    <DialogContent>
+                    <form onSubmit={handleSaveFilter}>                        
+                        <Grid container spacing={2}>
+                            <Grid item xs={12}>
+                                <Tooltip title="What Do You Want To Name The Filter">
+                                    <Box mt={2}>
+                                        <Typography variant="h6" mb={2}>Filter Name</Typography>
+                                        {error && (
+                                            <Grid item xs={12}>
+                                                <Typography color="error">{error}</Typography>
+                                            </Grid>
+                                        )}                                    
+                                        <FormControl fullWidth>
+                                            <InputLabel>Name</InputLabel>
+                                            <Input
+                                                type="number"
+                                                value={filterName}
+                                                onChange={(event) => setFilterName(event.target.value)}
+                                            />
+                                        </FormControl>                                            
+                                    </Box>
+                                </Tooltip>
+                            </Grid>                                                
+                            <Grid item xs={12}>
+                                <Tooltip title="Do you want new listing instances that match this filter to be sent to Zapier?">
+                                    <Box mt={2}>
+                                        <Typography variant="h6" mb={2}>Trigger Zapier Automation</Typography>
+                                        <FormControlLabel
+                                            control={<Checkbox checked={yesChecked} onChange={handleYesChange} />}
+                                            label="Yes"
+                                        />
+                                        <FormControlLabel
+                                            control={<Checkbox checked={noChecked} onChange={handleNoChange} />}
+                                            label="No"
+                                        />
+                                    </Box>
+                                </Tooltip>
+                            </Grid>                                                                     
+                        
+                    </Grid>
+                    <Box mt={2} alignItems="center" display="flex" justifyContent="space-between">
+                        <Button onClick={handleSaveFilter} variant="contained" color="primary">
+                            Save Filter
+                        </Button>                       
+                        </Box>
+                    </form>
+                    </DialogContent>
+                </Dialog>
+            )}
             
 
 
