@@ -46,6 +46,8 @@ class Client(models.Model):
     longitude = models.FloatField(blank=True, null=True)
     revenue = models.IntegerField(default=0, blank=True, null=True)
     serviceTitanCustomerSince = models.DateField(blank=True, null=True)
+    usps_address = models.CharField(max_length=100, blank=True, null=True)
+    usps_different = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('company', 'name', 'address')

@@ -10,8 +10,9 @@ import gc
 import json
 import logging
 import requests
-
 import traceback
+import xml.etree.ElementTree as ET
+
 
 from django.template.loader import get_template
 from django.core.mail import EmailMessage, send_mail
@@ -608,3 +609,50 @@ def remove_error_flag():
         client = update.client
         client.error_flag = False
         client.save()
+
+@shared_task
+def verify_address(client_id):
+    client = Client.objects.get(id=client_id)
+    zip_code = client.zipCode.zipCode
+    base_url = "http://production.shippingapis.com/ShippingAPI.dll"
+    user_id = settings.USPS_USER_ID
+    api = "Verify"
+
+    xml_request = f"""
+    <AddressValidateRequest USERID="{user_id}">
+        <Address ID="1">
+            <Address1></Address1>
+            <Address2>{client.address}</Address2>
+            <City>{client.city}</City>
+            <State>{client.state}</State>
+            <Zip5>{zip_code}</Zip5>
+            <Zip4/>
+        </Address>
+    </AddressValidateRequest>
+    """
+
+    params = {
+        "API": api,
+        "XML": xml_request
+    }
+
+    response = requests.get(base_url, params=params)
+    response_xml = response.text
+
+    parsed_response = ET.fromstring(response_xml)  
+    address_element = parsed_response.find("Address")
+    error = address_element.find("Error")
+    if error:
+        usps_address = "Error"
+
+    else:
+        address2 = address_element.find("Address2").text.title()
+        city = address_element.find("City").text.title()
+        state = address_element.find("State").text
+        zip5 = address_element.find("Zip5").text
+        if address2 != client.address or state != client.state or zip5 != zip_code:
+            client.usps_different = True
+        usps_address = f"{address2}, {city}, {state} {zip5}"
+    
+    client.usps_address = usps_address
+    client.save()    
