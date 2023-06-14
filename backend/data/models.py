@@ -3,6 +3,8 @@ from django.core.exceptions import ValidationError
 import uuid
 from datetime import datetime, timedelta
 
+from django.forms import JSONField
+
 
 # from accounts.models import Company
 STATUS = [
@@ -164,10 +166,10 @@ class SavedFilter(models.Model):
     name = models.CharField(max_length=100)
     company = models.ForeignKey("accounts.Company", on_delete=models.CASCADE, blank=True, null=True)
     forExistingClient = models.BooleanField(default=False)
-    query = models.CharField(max_length=1000, blank=True, null=True)
+    savedFilters = models.CharField(max_length=1000, blank=True, null=True)
     serviceTitanTag = models.IntegerField(blank=True, null=True)
     forZapier = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ('name', 'company')    
+        unique_together = ('name', 'company', 'forExistingClient')    
 

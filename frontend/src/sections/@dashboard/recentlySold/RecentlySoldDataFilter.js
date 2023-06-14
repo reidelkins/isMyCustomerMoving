@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { makeStyles } from '@mui/styles';
 import {
+  Alert,
   Box,
   Button,
   Checkbox,
@@ -26,7 +27,7 @@ import {
 
 
 import Iconify from '../../../components/Iconify';
-import { filterRecentlySoldAsync, recentlySoldAsync, saveFilterAsync } from '../../../redux/actions/usersActions'
+import { filterRecentlySoldAsync, recentlySoldAsync, saveFilterAsync, saveFilterSuccess } from '../../../redux/actions/usersActions'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -66,18 +67,18 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
     const [filterName, setFilterName] = useState('');
     const [showClearFilters, setShowClearFilters] = useState(false);
     const [error, setError] = useState('');
-    const [yesChecked, setYesChecked] = useState(false);
-    const [noChecked, setNoChecked] = useState(false);
+    const [forZapier, setForZapier] = useState(false);
+    const [alertOpen, setAlertOpen] = useState(false);
     const dispatch = useDispatch();
 
-    const handleYesChange = (event) => {
-        setYesChecked(event.target.checked);
-        setNoChecked(false);
+    const filterSuccess = useSelector(saveFilterSuccess);
+
+    const handleYesChange = () => {
+        setForZapier(true);
     };
 
-    const handleNoChange = (event) => {
-        setNoChecked(event.target.checked);
-        setYesChecked(false);
+    const handleNoChange = () => {
+        setForZapier(false);
     };
 
     const handleTagFilterChange = (event) => {
@@ -200,7 +201,9 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
             return;
         }
         setError('');
-        dispatch(saveFilterAsync(filterName, minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode));
+        setAlertOpen(true);
+        setShowSaveFilter(false);
+        dispatch(saveFilterAsync(filterName, minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, forZapier));
     }
 
     return (
@@ -388,7 +391,7 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
                             <Grid item xs={12}>
                                 <Tooltip title="What Do You Want To Name The Filter">
                                     <Box mt={2}>
-                                        <Typography variant="h6" mb={2}>Filter Name</Typography>
+                                        <Typography variant="h6" mb={2}>Filter Name<span style={{color:"red"}}> *</span></Typography>
                                         {error && (
                                             <Grid item xs={12}>
                                                 <Typography color="error">{error}</Typography>
@@ -397,7 +400,7 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
                                         <FormControl fullWidth>
                                             <InputLabel>Name</InputLabel>
                                             <Input
-                                                type="number"
+                                                type="string"
                                                 value={filterName}
                                                 onChange={(event) => setFilterName(event.target.value)}
                                             />
@@ -410,11 +413,11 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
                                     <Box mt={2}>
                                         <Typography variant="h6" mb={2}>Trigger Zapier Automation</Typography>
                                         <FormControlLabel
-                                            control={<Checkbox checked={yesChecked} onChange={handleYesChange} />}
+                                            control={<Checkbox checked={forZapier} onChange={handleYesChange} />}
                                             label="Yes"
                                         />
                                         <FormControlLabel
-                                            control={<Checkbox checked={noChecked} onChange={handleNoChange} />}
+                                            control={<Checkbox checked={!forZapier} onChange={handleNoChange} />}
                                             label="No"
                                         />
                                     </Box>
@@ -430,6 +433,11 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
                     </form>
                     </DialogContent>
                 </Dialog>
+            )}
+            {alertOpen && filterSuccess && (
+                <Alert severity="success" onClose={() => setAlertOpen(false)}>
+                    Filter Saved!
+                </Alert>
             )}
             
 

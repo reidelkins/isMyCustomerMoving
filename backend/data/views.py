@@ -6,12 +6,13 @@ from rest_framework.views import APIView
 
 import datetime
 import logging
+import json
 import requests
 
 from accounts.models import CustomUser, Company
 from accounts.serializers import UserSerializerWithToken
 from config import settings
-from .models import Client, ClientUpdate, HomeListing, Task
+from .models import Client, ClientUpdate, HomeListing, Task, SavedFilter
 from .serializers import ClientListSerializer, HomeListingSerializer
 from .syncClients import get_salesforce_clients, get_serviceTitan_clients
 from .realtor import getAllZipcodes
@@ -115,6 +116,42 @@ class RecentlySoldView(generics.ListAPIView):
             
         else:
             return HomeListing.objects.none()
+        
+    def post(self, request, company, format=None):
+        data = request.data
+        company = Company.objects.get(id=company)        
+
+        filterName = data['filterName']
+        
+        if SavedFilter.objects.filter(name=filterName, company=company, forExistingClient=True).exists():
+            return Response({"error": "A filter with that name already exists"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            filters = {
+                "minPrice" : data['minPrice'],
+                "maxPrice" : data['maxPrice'],
+                "minYear" : data['minYear'],
+                "maxYear" : data['maxYear'],
+                "minDaysAgo" : data['minDaysAgo'],
+                "maxDaysAgo" : data['maxDaysAgo'],
+                "tagFilters" : data['tagFilters'],
+                "city" : data['city'],
+                "state" : data['state'],
+                "zipCode" : data['zipCode'],
+            }
+            
+            forZapier = data['forZapier']
+            SavedFilter.objects.create(name=filterName, company=company, savedFilters=json.dumps(filters), forZapier=forZapier)
+            return Response({"success": "Filter created successfully"}, status=status.HTTP_200_OK)
+    
+    def delete(self, request, company, format=None):
+        data = request.data
+        filterName = data['filterName']
+        company = Company.objects.get(id=company)
+        SavedFilter.objects.filter(name=filterName, company=company).delete()
+        return Response({"success": "Filter deleted successfully"}, status=status.HTTP_200_OK)
+
+    class Meta:
+        unique_together = ('name', 'company')    
 
 class AllRecentlySoldView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]

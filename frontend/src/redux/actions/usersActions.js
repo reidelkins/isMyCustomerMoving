@@ -43,6 +43,11 @@ export const userSlice = createSlice({
       error: null,
       REFERRALLIST: [],
       highestPage: 0,
+    },
+    saveFilter: {
+      success: false,
+      error: null,
+      
     }
   },
   reducers: {
@@ -179,14 +184,15 @@ export const userSlice = createSlice({
     },
 
 
-    // TODO
-    sendNewUserEmail: (state) => {
-      state.clientsInfo.loading = false;
-      state.clientsInfo.error = null;
+    saveFilter: (state) => {
+      state.saveFilter.success = true;
     },
-    updateNote: (state) => {
-      state.clientsInfo.loading = false;
-      state.clientsInfo.error = null;
+    saveFilterLoading: (state) => {
+      state.saveFilter.success = false;
+    },
+    saveFilterError: (state, action) => {
+      state.saveFilter.error = action.payload;
+      state.saveFilter.success = false;
     }
 
   },
@@ -196,12 +202,14 @@ export const { clientsNotAdded, clients, moreClients, newPage, clientsUpload, cl
    users, usersLoading, usersError,
    recentlySold, recentlySoldLoading, recentlySoldError, newRecentlySoldPage, moreRecentlySold,
    referrals, referralsLoading, referralsError, moreReferrals, newReferralsPage,
-   logoutClients
+   logoutClients,
+   saveFilter, saveFilterLoading, saveFilterError
   } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
 export const selectRecentlySold = (state) => state.user.recentlySoldInfo;
 export const selectUsers = (state) => state.user.usersInfo;
 export const selectReferrals = (state) => state.user.referralInfo;
+export const saveFilterSuccess = (state) => state.user.saveFilter.success;
 export default userSlice.reducer;
 
 export const getRefreshToken = (dispatch, func) => {
@@ -809,3 +817,22 @@ export const getRecentlySoldCSV = (minPrice, maxPrice, minYear, maxYear, minDays
   }
 }
 
+export const saveFilterAsync = (filterName, minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, forZapier) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.accessToken}`,
+      },
+    };
+    const body = {filterName, minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, forZapier}
+    console.log(body)
+    dispatch(saveFilterLoading());    
+    await axios.post(`${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}/`, body, config);
+    dispatch(saveFilter());
+  } catch (error) {
+    dispatch(saveFilterError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+}
