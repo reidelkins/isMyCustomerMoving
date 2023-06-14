@@ -13,6 +13,7 @@ import requests
 import traceback
 import xml.etree.ElementTree as ET
 
+
 from django.template.loader import get_template
 from django.core.mail import EmailMessage, send_mail
 from django.db.models.functions import Coalesce
