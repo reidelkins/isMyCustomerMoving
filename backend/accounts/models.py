@@ -50,6 +50,12 @@ CRM = [
     ('None', 'None')
 ]
 
+CLIENT_OPTIONS = [
+    ('option1', 'option1'),
+    ('option2', 'option2'),
+    ('option3', 'option3'),
+]
+
 
 class CustomUserManager(BaseUserManager):
     """Define a model manager for User model with no username field."""
@@ -114,6 +120,7 @@ class Company(models.Model):
     serviceTitanForSaleContactedTagID = models.IntegerField(blank=True, null=True)
     serviceTitanRecentlySoldContactedTagID = models.IntegerField(blank=True, null=True)
     recentlySoldPurchased = models.BooleanField(default=False)
+    serviceTitanCustomerSyncOption = models.CharField(max_length=100, choices=CLIENT_OPTIONS, default='option1')
 
     # Salesforce
     sfAccessToken = models.CharField(max_length=100, blank=True, null=True)

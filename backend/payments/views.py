@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 
 from djstripe import webhooks, models as djstripe_models
 
+import logging
 import stripe
 
 stripe.api_key = settings.STRIPE_LIVE_SECRET_KEY
@@ -143,7 +144,7 @@ def completed_checkout(event: djstripe_models.Event):
                 company.save()
                 create_keap_company(company.id)
             except Exception as e:
-                print(f"error: {e}")
+                logging.error(f"error: {e}")
                 
         users = CustomUser.objects.filter(company=company)
         for user in users:
@@ -151,7 +152,7 @@ def completed_checkout(event: djstripe_models.Event):
             user.save()
         deleteExtraClients(company.id)
     except Exception as e:
-                print(f"error: {e}")
+                logging.error(f"error: {e}")
             
 
 
@@ -175,8 +176,8 @@ def cancel_subscription(event: djstripe_models.Event):
             message = get_template("endedSubscription.html").render({'email': user.email})
             send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[user.email], html_message=message, fail_silently=False)    
     except Exception as e:
-        print(e)
-        print("error")
+        logging.error(e)
+        logging.error("error")
 
 @webhooks.handler('customer.subscription.updated')
 def update_subscription(event: djstripe_models.Event):
@@ -195,8 +196,8 @@ def update_subscription(event: djstripe_models.Event):
             deleteExtraClients(company.id)
             reactivateClients(company.id)
     except Exception as e:
-        print(e)
-        print("error")
+        logging.error(e)
+        logging.error("error")
     
 
 # @webhooks.handler('payment_method.detached')

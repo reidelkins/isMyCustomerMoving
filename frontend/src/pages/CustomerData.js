@@ -107,7 +107,8 @@ export default function CustomerData() {
 
   }, [userInfo, dispatch, navigate]);
   
-  const [TABLE_HEAD, setTABLE_HEAD] = useState([{ id: 'name', label: 'Name', alignRight: false },
+  const [TABLE_HEAD, setTABLE_HEAD] = useState([
+        { id: 'name', label: 'Name', alignRight: false },
         { id: 'address', label: 'Address', alignRight: false },
         { id: 'city', label: 'City', alignRight: false },
         { id: 'state', label: 'State', alignRight: false },
@@ -119,6 +120,7 @@ export default function CustomerData() {
   useEffect(() => {
     if (userInfo && userInfo.company.franchise) {
       setTABLE_HEAD([
+        { id: 'serviceTitanCustomerSinceYear', label: 'Customer Since', alignRight: false },
         { id: 'name', label: 'Name', alignRight: false },
         { id: 'address', label: 'Address', alignRight: false },
         { id: 'city', label: 'City', alignRight: false },
@@ -130,6 +132,18 @@ export default function CustomerData() {
         { id: 'phone', label: 'Phone Number', alignRight: false },
         { id: 'referral', label: 'Refer', alignRight: false }
       ]);
+    } else if (userInfo && userInfo.company.crm === 'ServiceTitan') {
+      setTABLE_HEAD([
+        { id: 'serviceTitanCustomerSinceYear', label: 'Customer Since', alignRight: false },
+        { id: 'name', label: 'Name', alignRight: false },
+        { id: 'address', label: 'Address', alignRight: false },
+        { id: 'city', label: 'City', alignRight: false },
+        { id: 'state', label: 'State', alignRight: false },
+        { id: 'zipCode', label: 'Zip Code', alignRight: false },
+        { id: 'status', label: 'Status', alignRight: false },
+        { id: 'contacted', label: 'Contacted', alignRight: false },
+        { id: 'note', label: 'Note', alignRight: false },
+        { id: 'phone', label: 'Phone Number', alignRight: false }]);      
     }
   }, [userInfo]);
 
@@ -289,6 +303,8 @@ export default function CustomerData() {
   const [zipCode, setZipCode] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
+  const [customerSinceMin, setCustomerSinceMin] = useState('');
+  const [customerSinceMax, setCustomerSinceMax] = useState(''); 
   const handleStatusFiltersChange = (newFilters) => {setStatusFilters(newFilters)}
   const handleMinPriceChange = (newMinPrice) => { setMinPrice(newMinPrice)}
   const handleMaxPriceChange = (newMaxPrice) => {setMaxPrice(newMaxPrice)}
@@ -300,6 +316,8 @@ export default function CustomerData() {
   const handleCityChange = (newCity) => {setCity(newCity)}
   const handleStateChange = (newState) => {setState(newState)}
   const handleTagFiltersChange = (newTagFilters) => {setTagFilters(newTagFilters)}
+  const handleCustomerSinceMin = (newCustomerSinceMin) => {setCustomerSinceMin(newCustomerSinceMin)}
+  const handleCustomerSinceMax = (newCustomerSinceMax) => {setCustomerSinceMax(newCustomerSinceMax)}
 
   const exportCSV = () => {
     dispatch(getClientsCSV(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax))
@@ -379,7 +397,10 @@ export default function CustomerData() {
                   setCity={handleCityChange}
                   state={state}
                   setState={handleStateChange}
-                  
+                  customerSinceMin={customerSinceMin}
+                  setCustomerSinceMin={handleCustomerSinceMin}
+                  customerSinceMax={customerSinceMax}
+                  setCustomerSinceMax={handleCustomerSinceMax}
                   
                   />
                 {loading ? (
@@ -404,7 +425,7 @@ export default function CustomerData() {
                         />
                         <TableBody>
                           {filteredClients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                            const { id, name, address, city, state, zipCode, status, contacted, note, phoneNumber, clientUpdates_client: clientUpdates, price, year_built: yearBuilt, housingType, equipmentInstalledDate, error_flag: errorFlag} = row;
+                            const { id, name, address, city, state, zipCode, status, contacted, note, phoneNumber, clientUpdates_client: clientUpdates, price, year_built: yearBuilt, housingType, equipmentInstalledDate, error_flag: errorFlag, serviceTitanCustomerSinceYear} = row;
                             const isItemSelected = selected.indexOf(address) !== -1;                        
                             
                             return (
@@ -422,6 +443,13 @@ export default function CustomerData() {
                                     <TableCell padding="checkbox">
                                       <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, address, id)} />
                                     </TableCell>
+                                    {userInfo.company.crm === 'ServiceTitan' && (
+                                      <TableCell component="th" scope="row" padding="none">
+                                        <Label variant="ghost" color='info'>
+                                          {serviceTitanCustomerSinceYear !== 1 ? serviceTitanCustomerSinceYear : '1900'}
+                                        </Label>
+                                      </TableCell>
+                                    )}                                    
                                     <TableCell component="th" scope="row" padding="none">
                                       <Stack direction="row" alignItems="center" spacing={2}>
                                         <Typography variant="subtitle2" noWrap>
@@ -593,7 +621,7 @@ export default function CustomerData() {
                   {userInfo.status === 'admin' && (                 
                     (
                       userInfo.company.crm === 'ServiceTitan' ? (
-                        <ServiceTitanSyncModal />
+                        <ServiceTitanSyncModal serviceTitanCustomerSyncOption={userInfo.company.serviceTitanCustomerSyncOption}/>
                       )
                       :
                     (

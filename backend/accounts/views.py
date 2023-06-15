@@ -23,6 +23,7 @@ from config import settings
 
 import datetime
 import jwt
+import logging
 import pytz
 import pyotp
 import requests
@@ -78,7 +79,7 @@ class AcceptInvite(APIView):
                                 status='pending'
                             )
                         except Exception as e:
-                            print(e)
+                            logging.error(e)
                             return Response({"status": "Cannot find user"}, status=status.HTTP_400_BAD_REQUEST)
 
                         user.password = make_password(request.data['password'])
@@ -129,7 +130,7 @@ class ManageUserView(APIView):
                         })
                         send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[request.data['email']], html_message=message, fail_silently=False)    
                 except Exception as e:
-                    print(e)
+                    logging.error(e)
                     return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
                 users = CustomUser.objects.filter(company=user.company)
                 serializer = UserListSerializer(users, many=True)
@@ -167,7 +168,7 @@ class ManageUserView(APIView):
             else:
                 return Response({"status": "User Not Found"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)        
     def delete(self, request, *args, **kwargs):
         try:
@@ -180,7 +181,7 @@ class ManageUserView(APIView):
             serializer = UserListSerializer(users, many=True)
             return Response(serializer.data)
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['PUT', 'POST'])
@@ -202,7 +203,7 @@ def company(request):
             except:
                 return Response(comp, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)
     if request.method == 'PUT':
         try:
@@ -233,7 +234,7 @@ def company(request):
             serializer = UserSerializerWithToken(user, many=False)
             return Response( serializer.data , status=status.HTTP_201_CREATED, headers="")
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST)   
 
 class VerifyRegistrationView(APIView):
@@ -255,7 +256,7 @@ class VerifyRegistrationView(APIView):
             except jwt.exceptions.DecodeError as identifier:
                 return Response({'detail': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({'detail': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
         return Response({'detail': 'Successfully activated'}, status=status.HTTP_200_OK)
 
@@ -320,7 +321,7 @@ class RegisterView(APIView):
             else:
                 return Response({'detail': f'Access Token Already Used. Ask an admin to login and create profile for you.'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data)
 
@@ -380,7 +381,7 @@ class OTPGenerateView(generics.GenericAPIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
             
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 
 class OTPVerifyView(generics.GenericAPIView):
@@ -403,11 +404,11 @@ class OTPVerifyView(generics.GenericAPIView):
                 serializer = UserSerializerWithToken(user, many=False)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                print("verification failed")
+                logging.error("verification failed")
                 return Response({'detail': f'OTP verification failed'}, status=status.HTTP_400_BAD_REQUEST)
             
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)       
 
 class OTPValidateView(generics.GenericAPIView):
@@ -433,7 +434,7 @@ class OTPValidateView(generics.GenericAPIView):
             else:
                 return Response({'detail': f'OTP verification failed'}, status=status.HTTP_400_BAD_REQUEST)            
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 
 class OTPDisableView(generics.GenericAPIView):
@@ -453,7 +454,7 @@ class OTPDisableView(generics.GenericAPIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
             
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserListView(generics.ListAPIView):
@@ -513,7 +514,7 @@ class AuthenticatedUserView(APIView):
             serializer = UserSerializer(user, many=False)
             return Response(serializer.data['first_name'])
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)      
 
 class ZapierSoldSubscribe(APIView):
@@ -530,7 +531,7 @@ class ZapierSoldSubscribe(APIView):
             }]
             return Response(testClient, status=status.HTTP_200_OK)
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
    
     def post(self, request):  
@@ -541,7 +542,7 @@ class ZapierSoldSubscribe(APIView):
             company.save()
             return Response({'detail': 'Zapier Sold Subscribe'}, status=status.HTTP_200_OK)
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
         
     def delete(self, request):  
@@ -552,7 +553,7 @@ class ZapierSoldSubscribe(APIView):
             company.save()
             return Response({'detail': 'Zapier Sold Unsubscribe'}, status=status.HTTP_200_OK)
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
         
 class ZapierForSaleSubscribe(APIView):
@@ -569,7 +570,7 @@ class ZapierForSaleSubscribe(APIView):
             }]
             return Response(testClient, status=status.HTTP_200_OK)
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):  
@@ -580,7 +581,7 @@ class ZapierForSaleSubscribe(APIView):
             company.save()
             return Response({'detail': 'Zapier For Sale Subscribe'}, status=status.HTTP_200_OK)
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
         
     def delete(self, request):  
@@ -591,7 +592,7 @@ class ZapierForSaleSubscribe(APIView):
             company.save()
             return Response({'detail': 'Zapier For Sale Unsubscribe'}, status=status.HTTP_200_OK)
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
         
 class UserEnterpriseView(APIView):
@@ -615,7 +616,6 @@ class UserEnterpriseView(APIView):
             return Response({"error": "User is not an enterprise owner"}, status=status.HTTP_403_FORBIDDEN)
 
         company_id = request.data.get('company')
-        print(company_id)
         try:
             company = Company.objects.get(id=company_id)
         except Company.DoesNotExist:
