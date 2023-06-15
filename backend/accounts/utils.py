@@ -174,7 +174,6 @@ def create_keap_user(user_id):
             if response.status_code != 201:
                 logging.error(f"ERROR: {response.text}")
                 logging.error("Could not create user in Keap")
-
             if float(company.product.amount) == 0:
                 url = "https://api.infusionsoft.com/crm/rest/v1/tags/127/contacts"
                 body = {
@@ -186,19 +185,6 @@ def create_keap_user(user_id):
                 if response.status_code != 200:
                     logging.error(f"ERROR: {response.text}")
                     logging.error("Could not add user to tag in Keap")
-
-
-            if float(company.product.amount) == 0:
-                url = "https://api.infusionsoft.com/crm/rest/v1/tags/127/contacts"
-                body = {
-                    'ids': [
-                        response.json()['id']
-                    ]
-                }
-                response = requests.post(url, headers=headers, json=body)
-                if response.status_code != 200:
-                    print(f"ERROR: {response.text}")
-                    print("Could not add user to tag in Keap")
 
 
     except Exception as e:
