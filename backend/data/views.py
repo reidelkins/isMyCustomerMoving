@@ -111,12 +111,25 @@ class RecentlySoldView(generics.ListAPIView):
         company = Company.objects.get(id=self.kwargs['company'])
         if company.recentlySoldPurchased:
             zipCode_objects = Client.objects.filter(company=company).values('zipCode')
-            queryset =  HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')            
-            return filter_recentlysold(query_params, queryset)
+            queryset =  HomeListing.objects.filter(zipCode__in=zipCode_objects, status="House Recently Sold (6)", listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')                        
+            return filter_recentlysold(query_params, queryset, company.id)
             
         else:
             return HomeListing.objects.none()
-        
+
+    def get(self, request, company, format=None):
+        queryset = self.get_queryset()
+        savedFilters = list(SavedFilter.objects.filter(company=company, forExistingClient=False).values_list('name', flat=True))
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            recentlySold = serializer.data
+            return self.get_paginated_response({"data": recentlySold, "savedFilters": savedFilters})
+
+        serializer = self.get_serializer(queryset, many=True)
+        recentlySold = serializer.data
+        return Response({"data": recentlySold, "savedFilters": savedFilters})    
+    
     def post(self, request, company, format=None):
         data = request.data
         company = Company.objects.get(id=company)        
@@ -127,16 +140,16 @@ class RecentlySoldView(generics.ListAPIView):
             return Response({"error": "A filter with that name already exists"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             filters = {
-                "minPrice" : data['minPrice'],
-                "maxPrice" : data['maxPrice'],
-                "minYear" : data['minYear'],
-                "maxYear" : data['maxYear'],
-                "minDaysAgo" : data['minDaysAgo'],
-                "maxDaysAgo" : data['maxDaysAgo'],
-                "tagFilters" : data['tagFilters'],
+                "min_price" : data['minPrice'],
+                "max_price" : data['maxPrice'],
+                "min_year" : data['minYear'],
+                "max_year" : data['maxYear'],
+                "min_days_ago" : data['minDaysAgo'],
+                "max_days_ago" : data['maxDaysAgo'],
+                "tags" : data['tagFilters'],
                 "city" : data['city'],
                 "state" : data['state'],
-                "zipCode" : data['zipCode'],
+                "zip_code" : data['zipCode'],
             }
             
             forZapier = data['forZapier']

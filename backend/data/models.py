@@ -23,6 +23,9 @@ class ZipCode(models.Model):
     zipCode = models.CharField(max_length=5, primary_key=True, unique=True)
     lastUpdated = models.DateField(default=zipTime)
 
+    def __str__(self):
+        return self.zipCode
+
 class Client(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)

@@ -60,7 +60,9 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
                                                     tagFilters, setTagFilters: handleChangeTagFilters,
                                                     zipCode, setZipCode: handleChangeZipCode,
                                                     city, setCity: handleChangeCity,
-                                                    state, setState: handleChangeState,}) {
+                                                    state, setState: handleChangeState,
+                                                    savedFilter, setSavedFilter: handleChangeSavedFilter,
+                                                    recentlySoldFilters}) {
     const classes = useStyles();
     const [showFilters, setShowFilters] = useState(false);
     const [showSaveFilter, setShowSaveFilter] = useState(false);
@@ -93,12 +95,12 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
     };
 
     useEffect(() => {
-        if (minPrice || maxPrice || minYear || maxYear || minDaysAgo !== 0 || maxDaysAgo !== 30 || tagFilters.length > 0 || zipCode || city || state) {
+        if (minPrice || maxPrice || minYear || maxYear || minDaysAgo !== 0 || maxDaysAgo !== 30 || tagFilters.length > 0 || zipCode || city || state || savedFilter) {
             setShowClearFilters(true);
         } else {
             setShowClearFilters(false);
         }
-    }, [minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, zipCode, city, state]);
+    }, [minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, zipCode, city, state, savedFilter]);
 
 
     const handleClearFilters = () => {
@@ -112,8 +114,22 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
         handleChangeZipCode('');
         handleChangeCity('');
         handleChangeState('');
+        
+    };
+
+    const handleClearFilterButtonPressed = () => {
+        handleClearFilters();
+        handleChangeSavedFilter('');
         setError('');
         dispatch(recentlySoldAsync(1));
+    };
+
+    const handleSavedFilterChange = (event) => {
+        // First clear all filters
+        handleClearFilters();
+
+        // Then update the saved filter
+        handleChangeSavedFilter(event.target.value);
     };
 
     const tagOptions = [
@@ -184,7 +200,7 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
         if( minDaysAgo > maxDaysAgo || maxDaysAgo < minDaysAgo) {
             setError('Min days ago sold must be less than max days ago sold')
         } else {
-            dispatch(filterRecentlySoldAsync(minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode))
+            dispatch(filterRecentlySoldAsync(minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, savedFilter))
             setShowFilters(false);
         }
     };
@@ -203,9 +219,8 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
         setError('');
         setAlertOpen(true);
         setShowSaveFilter(false);
-        dispatch(saveFilterAsync(filterName, minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, forZapier));
+        dispatch(saveFilterAsync(filterName, minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, forZapier, ));
     }
-
     return (
         <div className={classes.root}>
             <Stack direction="row" spacing={2} alignItems="space-between">
@@ -216,7 +231,7 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
                 </Tooltip>
                 {showClearFilters && (
                     <Tooltip title="Clear filters">
-                        <IconButton onClick={handleClearFilters}>
+                        <IconButton onClick={handleClearFilterButtonPressed}>
                             <Iconify icon="ic:baseline-clear" />
                         </IconButton>
                     </Tooltip>
@@ -228,10 +243,33 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
                     <Divider />
                     <DialogContent>
                     <form onSubmit={handleFilterSubmit}>
-                        <Box mb={2}>
+                        {/* <Box mb={2}>
                             <Typography variant="h5">Select Filters</Typography>                        
-                        </Box>
+                        </Box> */}
                         <Grid container spacing={2}>
+                            {recentlySoldFilters && (
+                                <Grid item xs={12}>
+                                    <FormControl component="fieldset">
+                                    <Typography variant="h6" mb={2}>Saved Filters</Typography> 
+                                    <Grid container spacing={1}>
+                                        {recentlySoldFilters.map((option) => (
+                                            <FormControlLabel
+                                            key={option}
+                                            control={
+                                                <Checkbox
+                                                    checked={savedFilter === option}
+                                                    onChange={handleSavedFilterChange}
+                                                    value={option}
+                                                />
+                                            }
+                                            label={option}
+                                            />
+                                        ))}
+                                    
+                                    </Grid>
+                                    </FormControl>
+                                </Grid>
+                            )}
                             <Grid item xs={12}>
                                 <Tooltip title="This will filter for the city state and zip of the home">
                                     <Box mt={2}>
@@ -345,27 +383,26 @@ export default function RecentlySoldDataFilter({minPrice, setMinPrice: handleCha
                                     </Box>
                                 </Tooltip>
                             </Grid>                                                
-                        <Grid item xs={12}>
-                            <FormControl component="fieldset">
-                            <FormLabel component="legend">Tags</FormLabel>
-                            <Grid container spacing={1}>
-                                {sortedTagOptions.map((option) => (
-                                    <FormControlLabel
-                                    key={option.value}
-                                    control={
-                                        <Checkbox
-                                        checked={tagFilters.includes(option.value)}
-                                        onChange={handleTagFilterChange}
-                                        value={option.value}
+                            <Grid item xs={12}>
+                                <FormControl component="fieldset">
+                                <Typography variant="h6" mb={2}>Tags</Typography> 
+                                <Grid container spacing={1}>
+                                    {sortedTagOptions.map((option) => (
+                                        <FormControlLabel
+                                        key={option.value}
+                                        control={
+                                            <Checkbox
+                                            checked={tagFilters.includes(option.value)}
+                                            onChange={handleTagFilterChange}
+                                            value={option.value}
+                                            />
+                                        }
+                                        label={option.label}
                                         />
-                                    }
-                                    label={option.label}
-                                    />
-                                ))}
-                            
+                                    ))}
+                                </Grid>
+                                </FormControl>
                             </Grid>
-                            </FormControl>
-                        </Grid>
                     </Grid>
                     <Box mt={2} alignItems="center" display="flex" justifyContent="space-between">
                         <Button onClick={handleOpenSaveFilter} variant="contained" color="primary">
