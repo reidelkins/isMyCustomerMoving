@@ -6,12 +6,13 @@ from rest_framework.views import APIView
 
 import datetime
 import logging
+import json
 import requests
 
 from accounts.models import CustomUser, Company
 from accounts.serializers import UserSerializerWithToken
 from config import settings
-from .models import Client, ClientUpdate, HomeListing, Task
+from .models import Client, ClientUpdate, HomeListing, Task, SavedFilter
 from .serializers import ClientListSerializer, HomeListingSerializer
 from .syncClients import get_salesforce_clients, get_serviceTitan_clients
 from .realtor import getAllZipcodes
@@ -110,11 +111,60 @@ class RecentlySoldView(generics.ListAPIView):
         company = Company.objects.get(id=self.kwargs['company'])
         if company.recentlySoldPurchased:
             zipCode_objects = Client.objects.filter(company=company).values('zipCode')
-            queryset =  HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')            
-            return filter_recentlysold(query_params, queryset)
+            queryset =  HomeListing.objects.filter(zipCode__in=zipCode_objects, status="House Recently Sold (6)", listed__gt=(datetime.datetime.today()-datetime.timedelta(days=30)).strftime('%Y-%m-%d')).order_by('listed')                        
+            return filter_recentlysold(query_params, queryset, company.id)
             
         else:
             return HomeListing.objects.none()
+
+    def get(self, request, company, format=None):
+        queryset = self.get_queryset()
+        savedFilters = list(SavedFilter.objects.filter(company=company, forExistingClient=False).values_list('name', flat=True))
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            recentlySold = serializer.data
+            return self.get_paginated_response({"data": recentlySold, "savedFilters": savedFilters})
+
+        serializer = self.get_serializer(queryset, many=True)
+        recentlySold = serializer.data
+        return Response({"data": recentlySold, "savedFilters": savedFilters})    
+    
+    def post(self, request, company, format=None):
+        data = request.data
+        company = Company.objects.get(id=company)        
+
+        filterName = data['filterName']
+        
+        if SavedFilter.objects.filter(name=filterName, company=company, forExistingClient=True).exists():
+            return Response({"error": "A filter with that name already exists"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            filters = {
+                "min_price" : data['minPrice'],
+                "max_price" : data['maxPrice'],
+                "min_year" : data['minYear'],
+                "max_year" : data['maxYear'],
+                "min_days_ago" : data['minDaysAgo'],
+                "max_days_ago" : data['maxDaysAgo'],
+                "tags" : data['tagFilters'],
+                "city" : data['city'],
+                "state" : data['state'],
+                "zip_code" : data['zipCode'],
+            }
+            
+            forZapier = data['forZapier']
+            SavedFilter.objects.create(name=filterName, company=company, savedFilters=json.dumps(filters), forZapier=forZapier)
+            return Response({"success": "Filter created successfully"}, status=status.HTTP_200_OK)
+    
+    def delete(self, request, company, format=None):
+        data = request.data
+        filterName = data['filterName']
+        company = Company.objects.get(id=company)
+        SavedFilter.objects.filter(name=filterName, company=company).delete()
+        return Response({"success": "Filter deleted successfully"}, status=status.HTTP_200_OK)
+
+    class Meta:
+        unique_together = ('name', 'company')    
 
 class AllRecentlySoldView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]

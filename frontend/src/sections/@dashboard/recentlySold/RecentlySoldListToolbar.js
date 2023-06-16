@@ -17,6 +17,7 @@ const RootStyle = styled(Toolbar)(({ theme }) => ({
 
 RecentlySoldListToolbar.propTypes = {
   product: PropTypes.string,
+  recentlySoldFilters: PropTypes.array,
   minPrice: PropTypes.string,
   setMinPrice: PropTypes.func,
   maxPrice: PropTypes.string,
@@ -28,18 +29,22 @@ RecentlySoldListToolbar.propTypes = {
   minDaysAgo: PropTypes.string,
   setMinDaysAgo: PropTypes.func,
   maxDaysAgo: PropTypes.string,
-  setMaxDaysAgo: PropTypes.func
+  setMaxDaysAgo: PropTypes.func,
+  savedFilter: PropTypes.string,
+  setSavedFilter: PropTypes.func,
 
 };
 
 // ----------------------------------------------------------------------
-export default function RecentlySoldListToolbar({product, minPrice, setMinPrice, maxPrice, setMaxPrice, 
+export default function RecentlySoldListToolbar({recentlySoldFilters, product, minPrice, setMinPrice, maxPrice, setMaxPrice, 
   minYear, setMinYear, maxYear, setMaxYear, minDaysAgo, setMinDaysAgo, maxDaysAgo, setMaxDaysAgo, 
-  tagFilters, setTagFilters, zipCode, setZipCode, city, setCity, state, setState}) {
+  tagFilters, setTagFilters, zipCode, setZipCode, city, setCity, state, setState,
+  savedFilter, setSavedFilter}) {
 
   return (
     <RootStyle>      
-        <RecentlySoldDataFilter 
+        <RecentlySoldDataFilter
+          recentlySoldFilters={recentlySoldFilters}
           product={product}
           minPrice={minPrice}
           setMinPrice={setMinPrice}
@@ -61,6 +66,8 @@ export default function RecentlySoldListToolbar({product, minPrice, setMinPrice,
           setCity={setCity}
           state={state}
           setState={setState}
+          savedFilter={savedFilter}
+          setSavedFilter={setSavedFilter}
 
         />
     </RootStyle>

@@ -35,6 +35,7 @@ export const userSlice = createSlice({
       loading: false,
       error: null,
       RECENTLYSOLDLIST: [],
+      recentlySoldFilters: [],
       highestPage: 0,
       count: 0,
     },
@@ -43,6 +44,11 @@ export const userSlice = createSlice({
       error: null,
       REFERRALLIST: [],
       highestPage: 0,
+    },
+    saveFilter: {
+      success: false,
+      error: null,
+      
     }
   },
   reducers: {
@@ -103,10 +109,11 @@ export const userSlice = createSlice({
 
     // -----------------  RECENTLY SOLD  -----------------
     recentlySold: (state, action) => {
-      state.recentlySoldInfo.RECENTLYSOLDLIST = action.payload.results;
+      state.recentlySoldInfo.RECENTLYSOLDLIST = action.payload.results.data;
       state.recentlySoldInfo.loading = false;
       state.recentlySoldInfo.error = null;
       state.recentlySoldInfo.count = action.payload.count;
+      state.recentlySoldInfo.recentlySoldFilters = action.payload.results.savedFilters;
     },
     recentlySoldError: (state, action) => {
       state.recentlySoldInfo.error = action.payload;
@@ -119,7 +126,7 @@ export const userSlice = createSlice({
       state.recentlySoldInfo.highestPage = 0;
     },
     moreRecentlySold: (state, action) => {
-      state.recentlySoldInfo.RECENTLYSOLDLIST = [...state.recentlySoldInfo.RECENTLYSOLDLIST, ...action.payload.results];
+      state.recentlySoldInfo.RECENTLYSOLDLIST = [...state.recentlySoldInfo.RECENTLYSOLDLIST, ...action.payload.results.data];
       state.recentlySoldInfo.loading = false;
       state.recentlySoldInfo.error = null;
       state.recentlySoldInfo.count = action.payload.count;
@@ -179,14 +186,15 @@ export const userSlice = createSlice({
     },
 
 
-    // TODO
-    sendNewUserEmail: (state) => {
-      state.clientsInfo.loading = false;
-      state.clientsInfo.error = null;
+    saveFilter: (state) => {
+      state.saveFilter.success = true;
     },
-    updateNote: (state) => {
-      state.clientsInfo.loading = false;
-      state.clientsInfo.error = null;
+    saveFilterLoading: (state) => {
+      state.saveFilter.success = false;
+    },
+    saveFilterError: (state, action) => {
+      state.saveFilter.error = action.payload;
+      state.saveFilter.success = false;
     }
 
   },
@@ -196,12 +204,14 @@ export const { clientsNotAdded, clients, moreClients, newPage, clientsUpload, cl
    users, usersLoading, usersError,
    recentlySold, recentlySoldLoading, recentlySoldError, newRecentlySoldPage, moreRecentlySold,
    referrals, referralsLoading, referralsError, moreReferrals, newReferralsPage,
-   logoutClients
+   logoutClients,
+   saveFilter, saveFilterLoading, saveFilterError
   } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
 export const selectRecentlySold = (state) => state.user.recentlySoldInfo;
 export const selectUsers = (state) => state.user.usersInfo;
 export const selectReferrals = (state) => state.user.referralInfo;
+export const saveFilterSuccess = (state) => state.user.saveFilter.success;
 export default userSlice.reducer;
 
 export const getRefreshToken = (dispatch, func) => {
@@ -654,7 +664,7 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
   }
 }
 
-export const filterRecentlySoldAsync = (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode) => async (dispatch, getState) => {
+export const filterRecentlySoldAsync = (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, savedFilter) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -676,12 +686,13 @@ export const filterRecentlySoldAsync = (minPrice, maxPrice, minYear, maxYear, mi
     if (city) { filters += `&city=${city}` }
     if (state) { filters += `&state=${state}` }
     if (zipCode) { filters += `&zip_code=${zipCode}` }
+    if (savedFilter) { filters += `&saved_filter=${savedFilter}` }
     const { data } = await axios.get(`${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}/?page=1${filters}`, config);
     dispatch(recentlySold(data));   
   } catch (error) {
     dispatch(recentlySoldError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
     if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, filterRecentlySoldAsync(minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode)));
+      dispatch(getRefreshToken(dispatch, filterRecentlySoldAsync(minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, savedFilter)));
     }
   }
 };
@@ -809,3 +820,22 @@ export const getRecentlySoldCSV = (minPrice, maxPrice, minYear, maxYear, minDays
   }
 }
 
+export const saveFilterAsync = (filterName, minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, forZapier) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const {userInfo} = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.accessToken}`,
+      },
+    };
+    const body = {filterName, minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, forZapier}
+    console.log(body)
+    dispatch(saveFilterLoading());    
+    await axios.post(`${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}/`, body, config);
+    dispatch(saveFilter());
+  } catch (error) {
+    dispatch(saveFilterError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+}

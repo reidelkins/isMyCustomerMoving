@@ -522,12 +522,12 @@ class ZapierSoldSubscribe(APIView):
     def get(self, request):
         try:
             testClient = [{
-                "Name": "Test Data",
-                "Address": "123 Main St",
-                "City": "New York",
-                "State": "NY",
-                "Zip Code": 10001,
-                "Phone Number": "212-555-1234",
+                "name": "new Test Data",
+                "address": "123 Main St",
+                "city": "New York",
+                "state": "NY",
+                "zipCode": 10001,
+                "phoneNumber": "212-555-1234",
             }]
             return Response(testClient, status=status.HTTP_200_OK)
         except Exception as e:
@@ -561,12 +561,12 @@ class ZapierForSaleSubscribe(APIView):
     def get(self, request):
         try:
             testClient = [{
-                "Name": "Test Data",
-                "Address": "123 Main St",
-                "City": "New York",
-                "State": "NY",
-                "Zip Code": 10001,
-                "Phone Number": "212-555-1234",
+                "name": "really new Test Data",
+                "address": "123 Main St",
+                "city": "New York",
+                "state": "NY",
+                "zipCode": 10001,
+                "phoneNumber": "212-555-1234",
             }]
             return Response(testClient, status=status.HTTP_200_OK)
         except Exception as e:
@@ -591,6 +591,60 @@ class ZapierForSaleSubscribe(APIView):
             company.zapier_forSale = None
             company.save()
             return Response({'detail': 'Zapier For Sale Unsubscribe'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logging.error(e)
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+        
+class ZapierRecentlySoldSubscribe(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        try:
+            testRecenltySoldHomeListing = [{
+                "address": "123 Main St",
+                "city": "New York",
+                "state": "NY",
+                "zipCode": 10001,
+                "price": 1000000,
+                "housingType": "Single Family",
+                "bedrooms": 3,
+                "bathrooms": 2,
+                "yearBuilt": 1990,
+                "sqft": 2000,
+                "lot_sqft": 5000,
+                "roofing": "Shingle",
+                "garage_type": "Attached",
+                "garage": 2,
+                "heating": "Forced Air",
+                "cooling": "Central",
+                "exterior": "Brick",
+                "pool": "Inground",
+                "fireplace": "Yes",
+                "tags": ["New", "Pool", "Fireplace"],
+                "filterName": "Test Filter"
+            }]
+            return Response(testRecenltySoldHomeListing, status=status.HTTP_200_OK)
+        except Exception as e:
+            logging.error(e)
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):  
+        try:
+            user = CustomUser.objects.get(email=request.user)
+            company = user.company
+            company.zapier_recentlySold = request.data['hookUrl']
+            company.save()
+            return Response({'detail': 'Zapier Recently Sold Subscribe'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logging.error(e)
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    def delete(self, request):  
+        try:
+            user = CustomUser.objects.get(email=request.user)
+            company = user.company
+            company.zapier_recentlySold = None
+            company.save()
+            return Response({'detail': 'Zapier Recently Sold Unsubscribe'}, status=status.HTTP_200_OK)
         except Exception as e:
             logging.error(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
