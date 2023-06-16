@@ -18,7 +18,7 @@ class ClientListSerializer(serializers.ModelSerializer):
     def get_zipCode(self, obj):
         return obj.zipCode.zipCode
 
-    def get_tags(self, obj):
+    def get_tag(self, obj):
         return [tag.tag for tag in obj.tag.all()]
     
     def get_serviceTitanCustomerSinceYear(self, obj):
