@@ -107,44 +107,35 @@ export default function CustomerData() {
 
   }, [userInfo, dispatch, navigate]);
   
-  const [TABLE_HEAD, setTABLE_HEAD] = useState([
-        { id: 'name', label: 'Name', alignRight: false },
-        { id: 'address', label: 'Address', alignRight: false },
-        { id: 'city', label: 'City', alignRight: false },
-        { id: 'state', label: 'State', alignRight: false },
-        { id: 'zipCode', label: 'Zip Code', alignRight: false },
-        { id: 'status', label: 'Status', alignRight: false },
-        { id: 'contacted', label: 'Contacted', alignRight: false },
-        { id: 'note', label: 'Note', alignRight: false },
-        { id: 'phone', label: 'Phone Number', alignRight: false }]);
+  const commonFields = [
+    { id: 'name', label: 'Name', alignRight: false },
+    { id: 'address', label: 'Address', alignRight: false },
+    { id: 'city', label: 'City', alignRight: false },
+    { id: 'state', label: 'State', alignRight: false },
+    { id: 'zipCode', label: 'Zip Code', alignRight: false },
+    { id: 'status', label: 'Status', alignRight: false },
+    { id: 'contacted', label: 'Contacted', alignRight: false },
+    { id: 'note', label: 'Note', alignRight: false },
+    { id: 'phone', label: 'Phone Number', alignRight: false },
+    { id: 'usps_flag', label: 'USPS Flag', alignRight: false },
+    { id: 'usps_address', label: 'USPS Address', alignRight: false }
+  ];
+
+  const [TABLE_HEAD, setTABLE_HEAD] = useState(commonFields);
+
   useEffect(() => {
-    if (userInfo && userInfo.company.franchise) {
-      setTABLE_HEAD([
-        { id: 'serviceTitanCustomerSinceYear', label: 'Customer Since', alignRight: false },
-        { id: 'name', label: 'Name', alignRight: false },
-        { id: 'address', label: 'Address', alignRight: false },
-        { id: 'city', label: 'City', alignRight: false },
-        { id: 'state', label: 'State', alignRight: false },
-        { id: 'zipCode', label: 'Zip Code', alignRight: false },
-        { id: 'status', label: 'Status', alignRight: false },
-        { id: 'contacted', label: 'Contacted', alignRight: false },
-        { id: 'note', label: 'Note', alignRight: false },
-        { id: 'phone', label: 'Phone Number', alignRight: false },
-        { id: 'referral', label: 'Refer', alignRight: false }
-      ]);
-    } else if (userInfo && userInfo.company.crm === 'ServiceTitan') {
-      setTABLE_HEAD([
-        { id: 'serviceTitanCustomerSinceYear', label: 'Customer Since', alignRight: false },
-        { id: 'name', label: 'Name', alignRight: false },
-        { id: 'address', label: 'Address', alignRight: false },
-        { id: 'city', label: 'City', alignRight: false },
-        { id: 'state', label: 'State', alignRight: false },
-        { id: 'zipCode', label: 'Zip Code', alignRight: false },
-        { id: 'status', label: 'Status', alignRight: false },
-        { id: 'contacted', label: 'Contacted', alignRight: false },
-        { id: 'note', label: 'Note', alignRight: false },
-        { id: 'phone', label: 'Phone Number', alignRight: false }]);      
+    const updatedFields = [...commonFields];
+    
+    if (userInfo && (userInfo.company.franchise || userInfo.company.crm === 'ServiceTitan')) {
+      updatedFields.unshift({ id: 'serviceTitanCustomerSinceYear', label: 'Customer Since', alignRight: false });
     }
+    
+    if (userInfo && userInfo.company.franchise) {
+      updatedFields.push({ id: 'referral', label: 'Refer', alignRight: false });
+    }
+    
+    setTABLE_HEAD(updatedFields);
+    
   }, [userInfo]);
 
   const listClient = useSelector(selectClients);
@@ -304,7 +295,8 @@ export default function CustomerData() {
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [customerSinceMin, setCustomerSinceMin] = useState('');
-  const [customerSinceMax, setCustomerSinceMax] = useState(''); 
+  const [customerSinceMax, setCustomerSinceMax] = useState('');
+  const [uspsChanged, setUspsChanged] = useState(false);
   const handleStatusFiltersChange = (newFilters) => {setStatusFilters(newFilters)}
   const handleMinPriceChange = (newMinPrice) => { setMinPrice(newMinPrice)}
   const handleMaxPriceChange = (newMaxPrice) => {setMaxPrice(newMaxPrice)}
@@ -318,6 +310,7 @@ export default function CustomerData() {
   const handleTagFiltersChange = (newTagFilters) => {setTagFilters(newTagFilters)}
   const handleCustomerSinceMin = (newCustomerSinceMin) => {setCustomerSinceMin(newCustomerSinceMin)}
   const handleCustomerSinceMax = (newCustomerSinceMax) => {setCustomerSinceMax(newCustomerSinceMax)}
+  const handleUspsChanged = () => {setUspsChanged(!uspsChanged)}
 
   const exportCSV = () => {
     dispatch(getClientsCSV(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax))
@@ -401,6 +394,8 @@ export default function CustomerData() {
                   setCustomerSinceMin={handleCustomerSinceMin}
                   customerSinceMax={customerSinceMax}
                   setCustomerSinceMax={handleCustomerSinceMax}
+                  uspsChanged={uspsChanged}
+                  setUspsChanged={handleUspsChanged}
                   
                   />
                 {loading ? (
@@ -425,7 +420,7 @@ export default function CustomerData() {
                         />
                         <TableBody>
                           {filteredClients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                            const { id, name, address, city, state, zipCode, status, contacted, note, phoneNumber, clientUpdates_client: clientUpdates, price, year_built: yearBuilt, housingType, equipmentInstalledDate, error_flag: errorFlag, serviceTitanCustomerSinceYear} = row;
+                            const { id, name, address, city, state, zipCode, status, contacted, note, phoneNumber, clientUpdates_client: clientUpdates, price, year_built: yearBuilt, housingType, equipmentInstalledDate, error_flag: errorFlag, serviceTitanCustomerSinceYear, usps_address, usps_different} = row;
                             const isItemSelected = selected.indexOf(address) !== -1;                        
                             
                             return (
@@ -502,6 +497,12 @@ export default function CustomerData() {
                                     <TableCell>
                                       {/* make phone number look like (123) 456-7890 */}
                                       {phoneNumber ? `(${phoneNumber.slice(0,3)}) ${phoneNumber.slice(3,6)}-${phoneNumber.slice(6,10)}`: "N/A"}
+                                    </TableCell>
+                                    <TableCell>
+                                      {usps_different}
+                                    </TableCell>
+                                    <TableCell>
+                                      {usps_address}
                                     </TableCell>
                                     {userInfo.company.franchise && (
                                       <TableCell>

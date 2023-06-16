@@ -64,7 +64,9 @@ CustomerDataFilter.propTypes = {
   equipInstallDateMax: PropTypes.string,
   setEquipInstallDateMax: PropTypes.func,
   statusFilters: PropTypes.array,
-  setStatusFilters: PropTypes.func
+  setStatusFilters: PropTypes.func,
+  uspsChanged: PropTypes.bool,
+    setUspsChanged: PropTypes.func,
 }
 
 export default function CustomerDataFilter({ product, minPrice, setMinPrice: handleChangeMinPrice, maxPrice, setMaxPrice: handleChangeMaxPrice,
@@ -77,7 +79,8 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
                                                     city, setCity: handleCityChange,
                                                     state, setState: handleStateChange,
                                                     customerSinceMin, setCustomerSinceMin: handleCustomerSinceMin,
-                                                    customerSinceMax, setCustomerSinceMax: handleCustomerSinceMax } ) {
+                                                    customerSinceMax, setCustomerSinceMax: handleCustomerSinceMax,
+                                                    uspsChanged, setUspsChanged: handleUspsChanged } ) {
     const classes = useStyles();
     const [showFilters, setShowFilters] = useState(false);    
     const [showClearFilters, setShowClearFilters] = useState(false);
@@ -95,7 +98,7 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
     };
 
     useEffect(() => {
-        if ( minPrice || maxPrice || minYear || maxYear || equipInstallDateMin || equipInstallDateMax || tagFilters.length > 0 || statusFilters.length > 0 || zipCode || city || state ) {
+        if ( minPrice || maxPrice || minYear || maxYear || equipInstallDateMin || equipInstallDateMax || tagFilters.length > 0 || statusFilters.length > 0 || zipCode || city || state || uspsChanged ) {
             setShowClearFilters(true);
         } else {
             setShowClearFilters(false);
@@ -161,7 +164,7 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
     const handleFilterSubmit = (event) => {
         event.preventDefault();
         // Filter data based on selected filters
-        dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, city, state, zipCode, customerSinceMin, customerSinceMax))
+        dispatch(filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, city, state, zipCode, customerSinceMin, customerSinceMax, uspsChanged))
         setShowFilters(false);
     };
 
@@ -187,6 +190,7 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
         handleEquipInstallDateMin('');
         handleCustomerSinceMin('');
         handleCustomerSinceMax('');
+        handleUspsChanged(false);
         dispatch(clientsAsync(1));
     };
 
@@ -382,7 +386,7 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
                         </Grid>
                         <Grid item xs={12}>
                             <FormControl component="fieldset">
-                            <FormLabel component="legend">Tags</FormLabel>
+                            <Typography variant="h6" mb={2}>Tags</Typography>
                             <Grid container spacing={1}>
                                 {sortedTagOptions.map((option) => (
                                     <FormControlLabel
@@ -399,6 +403,20 @@ export default function CustomerDataFilter({ product, minPrice, setMinPrice: han
                                 ))}                        
                             </Grid>
                             </FormControl>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Tooltip title="Click this to see all the addresses which have been verified as incorrect by USPS">
+                                <Box mt={2}>
+                                    <Typography variant="h6" mb={2}>USPS Verified</Typography>
+                                    <Stack direction="row" spacing={2} alignItems="space-between">
+                                        <Checkbox
+                                            checked={uspsChanged}
+                                            onChange={handleUspsChanged}
+                                            value={uspsChanged}
+                                        />
+                                    </Stack>
+                                </Box>
+                            </Tooltip>
                         </Grid>
                     </Grid>
                     <Box mt={2}>

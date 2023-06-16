@@ -432,7 +432,7 @@ export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
   }
 };
 
-export const filterClientsAsync = (statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, city, state, zipCode, customerSinceMin, customerSinceMax) => async (dispatch, getState) => {
+export const filterClientsAsync = (statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, city, state, zipCode, customerSinceMin, customerSinceMax, uspsChanged) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const {userInfo} = reduxStore.auth.userInfo;
@@ -456,12 +456,13 @@ export const filterClientsAsync = (statusFilters, minPrice, maxPrice, minYear, m
     if (zipCode) {filters += `&zip_code=${zipCode}` }
     if (customerSinceMin) {filters += `&customer_since_min=${customerSinceMin}` }
     if (customerSinceMax) {filters += `&customer_since_max=${customerSinceMax}` }
+    if (uspsChanged) {filters += `&usps_changed=${uspsChanged}` }
     const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/${userInfo.id}/?page=1${filters}`, config);
     dispatch(clients(data));
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
     if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, city, state, zipCode, customerSinceMin, customerSinceMax)));
+      dispatch(getRefreshToken(dispatch, filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, city, state, zipCode, customerSinceMin, customerSinceMax, uspsChanged)));
     }
   }
 };

@@ -57,6 +57,8 @@ ClientListToolbar.propTypes = {
   setStatusFilters: PropTypes.func,
   listOrMap: PropTypes.string,
   setListOrMap: PropTypes.func,
+  uspsChanged: PropTypes.bool,
+  setUspsChanged: PropTypes.func,
 
 };
 
@@ -65,7 +67,8 @@ export default function ClientListToolbar({ numSelected, filterName, onFilterNam
                                             equipInstallDateMin, setEquipInstallDateMin, equipInstallDateMax, setEquipInstallDateMax,
                                             statusFilters, setStatusFilters, listOrMap, setListOrMap,
                                             tagFilters, setTagFilters, zipCode, setZipCode, city, setCity, state, setState,
-                                            customerSinceMin, setCustomerSinceMin, customerSinceMax, setCustomerSinceMax, }) {
+                                            customerSinceMin, setCustomerSinceMin, customerSinceMax, setCustomerSinceMax,
+                                            uspsChanged, setUspsChanged }) {
   const dispatch = useDispatch();
   const [showAlert, setShowAlert] = useState(false);
 
@@ -161,6 +164,8 @@ export default function ClientListToolbar({ numSelected, filterName, onFilterNam
           setCustomerSinceMin={setCustomerSinceMin}
           customerSinceMax={customerSinceMax}
           setCustomerSinceMax={setCustomerSinceMax}
+          uspsChanged={uspsChanged}
+          setUspsChanged={setUspsChanged}
         />
       )}
       {showAlert && (      

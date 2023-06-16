@@ -30,7 +30,8 @@ class ClientListSerializer(serializers.ModelSerializer):
         model = Client
         fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status', 'contacted', 'note', 
                   'phoneNumber', 'clientUpdates_client', 'price', 'housingType', 'year_built', 'tag',
-                  'error_flag', 'equipmentInstalledDate', 'latitude', 'longitude', 'serviceTitanCustomerSinceYear')
+                  'error_flag', 'equipmentInstalledDate', 'latitude', 'longitude', 'serviceTitanCustomerSinceYear',
+                  'usps_address', 'usps_different')
         read_only_fields = fields
 
 class ZapierClientSerializer(serializers.ModelSerializer):

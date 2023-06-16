@@ -6,6 +6,7 @@ from .serializers import ZapierClientSerializer, HomeListingSerializer
 
 from celery import shared_task
 from datetime import datetime, timedelta, date
+from django.db.models import Q
 import gc
 import json
 import logging
@@ -608,6 +609,8 @@ def filter_clients(query_params, queryset):
     if 'customer_since_max' in query_params:
         end_date = date(int(query_params['customer_since_max']), 12, 31)
         queryset = queryset.filter(serviceTitanCustomerSince__lte=end_date)
+    if 'usps_changed' in query_params:
+        queryset = queryset.filter(Q(usps_different=True) | Q(usps_address="Error"))
     return queryset
 
 @shared_task
@@ -655,6 +658,7 @@ def verify_address(client_id):
 
     else:
         address2 = address_element.find("Address2").text.title()
+        address2 = parseStreets(address2)
         city = address_element.find("City").text.title()
         state = address_element.find("State").text
         zip5 = address_element.find("Zip5").text
