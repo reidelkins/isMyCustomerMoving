@@ -23,6 +23,7 @@ zapier_patterns = [
     path('', views.ZapierToken.as_view(), name='zapier-login'),
     path('sold/', views.ZapierSoldSubscribe.as_view(), name='zapier-sold-subscribe'),
     path('forSale/', views.ZapierForSaleSubscribe.as_view(), name='zapier-forSale-subscribe'),
+    path('recentlySold/', views.ZapierRecentlySoldSubscribe.as_view(), name='zapier-recentlySold-subscribe'),
 ]
 
 urlpatterns = [

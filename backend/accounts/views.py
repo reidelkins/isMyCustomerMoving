@@ -595,6 +595,59 @@ class ZapierForSaleSubscribe(APIView):
             logging.error(e)
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
         
+class ZapierRecentlySoldSubscribe(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        try:
+            testRecenltySoldHomeListing = [{
+                "address": "123 Main St",
+                "city": "New York",
+                "state": "NY",
+                "zipCode": 10001,
+                "price": 1000000,
+                "houstingType": "Single Family",
+                "bedrooms": 3,
+                "bathrooms": 2,
+                "yearBuilt": 1990,
+                "sqft": 2000,
+                "lot_sqft": 5000,
+                "roofing": "Shingle",
+                "garage_type": "Attached",
+                "garage": 2,
+                "heating": "Forced Air",
+                "cooling": "Central",
+                "exterior": "Brick",
+                "pool": "Inground",
+                "fireplace": "Yes",
+                "description": "This is a test description"
+            }]
+            return Response(testRecenltySoldHomeListing, status=status.HTTP_200_OK)
+        except Exception as e:
+            logging.error(e)
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):  
+        try:
+            user = CustomUser.objects.get(email=request.user)
+            company = user.company
+            company.zapier_recentlySold = request.data['hookUrl']
+            company.save()
+            return Response({'detail': 'Zapier Recently Sold Subscribe'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logging.error(e)
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    def delete(self, request):  
+        try:
+            user = CustomUser.objects.get(email=request.user)
+            company = user.company
+            company.zapier_recentlySold = None
+            company.save()
+            return Response({'detail': 'Zapier Recently Sold Unsubscribe'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logging.error(e)
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+        
 class UserEnterpriseView(APIView):
     permission_classes = [IsAuthenticated]
 
