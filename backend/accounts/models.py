@@ -129,6 +129,7 @@ class Company(models.Model):
     # Zapier
     zapier_forSale = models.CharField(max_length=100, blank=True, null=True)
     zapier_sold = models.CharField(max_length=100, blank=True, null=True)
+    zapier_recentlySold = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return self.name
