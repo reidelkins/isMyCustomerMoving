@@ -32,16 +32,6 @@ class ClientListSerializer(serializers.ModelSerializer):
                   'phoneNumber', 'clientUpdates_client', 'price', 'housingType', 'year_built', 'tag',
                   'error_flag', 'equipmentInstalledDate', 'latitude', 'longitude', 'serviceTitanCustomerSinceYear')
         read_only_fields = fields
-    
-    def get_serviceTitanCustomerSinceYear(self, obj):
-        if obj.serviceTitanCustomerSince is None:
-            return 1900
-        return obj.serviceTitanCustomerSince.year
-
-    class Meta:
-        model = Client
-        fields = ('id', 'name', 'address', 'city', 'state', 'zipCode', 'status', 'contacted', 'note', 'phoneNumber', 'clientUpdates_client', 'price', 'housingType', 'year_built', 'tags','error_flag', 'equipmentInstalledDate', 'latitude', 'longitude', 'serviceTitanCustomerSinceYear')
-        read_only_fields = fields
 
 class ZapierClientSerializer(serializers.ModelSerializer):
     zipCode = serializers.SerializerMethodField()
