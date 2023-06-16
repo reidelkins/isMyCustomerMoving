@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from datetime import datetime
 
 from data.utils import update_clients_statuses
+from accounts.models import Company
 
 class Command(BaseCommand):
     help = 'Sends the email to each user with their data'
@@ -12,7 +13,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         company = options['company']
         if company:
-            update_clients_statuses.delay(company)
+            
+            update_clients_statuses.delay(Company.objects.get(name=company).id)
         else:
             daysToRun = [0, 1, 2, 3, 4]
             dt = datetime.now()

@@ -98,7 +98,7 @@ export default function RecentlySoldData() {
   }, [userInfo, dispatch, navigate]);
 
   const listRecentlySold = useSelector(selectRecentlySold);
-  const {loading, RECENTLYSOLDLIST, count } = listRecentlySold;
+  const {loading, RECENTLYSOLDLIST, count, recentlySoldFilters } = listRecentlySold;
 
   const [page, setPage] = useState(0);
   
@@ -150,50 +150,52 @@ export default function RecentlySoldData() {
   const [zipCode, setZipCode] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
-  const handleMinPriceChange = (newMinPrice) => { setMinPrice(newMinPrice)}
-  const handleMaxPriceChange = (newMaxPrice) => {setMaxPrice(newMaxPrice)}
-  const handleMinYearChange = (newMinYear) => {setMinYear(newMinYear)}
-  const handleMaxYearChange = (newMaxYear) => {setMaxYear(newMaxYear)}
-  const handleMinDaysAgoChange = (newMinDaysAgo) => {setMinDaysAgo(newMinDaysAgo)}
-  const handleMaxDaysAgoChange = (newMaxDaysAgo) => {setMaxDaysAgo(newMaxDaysAgo)}
-  const handleTagFiltersChange = (newTagFilters) => {setTagFilters(newTagFilters)}
-  const handleZipCodeChange = (newZipCode) => {setZipCode(newZipCode)}
-  const handleCityChange = (newCity) => {setCity(newCity)}
-  const handleStateChange = (newState) => {setState(newState)}
+  const [savedFilter, setSavedFilter] = useState('');
+  const handleMinPriceChange = (newMinPrice) => { 
+    setMinPrice(newMinPrice);
+    setSavedFilter('');
+  }
+  const handleMaxPriceChange = (newMaxPrice) => {
+    setMaxPrice(newMaxPrice);
+    setSavedFilter('');
+  }
+  const handleMinYearChange = (newMinYear) => {
+    setMinYear(newMinYear);
+    setSavedFilter('');
+  }
+  const handleMaxYearChange = (newMaxYear) => {
+    setMaxYear(newMaxYear)
+    setSavedFilter('');
+  }
+  const handleMinDaysAgoChange = (newMinDaysAgo) => {
+    setMinDaysAgo(newMinDaysAgo)
+    setSavedFilter('');
+  }
+  const handleMaxDaysAgoChange = (newMaxDaysAgo) => {
+    setMaxDaysAgo(newMaxDaysAgo)
+    setSavedFilter('');
+  }
+  const handleTagFiltersChange = (newTagFilters) => {
+    setTagFilters(newTagFilters)
+    setSavedFilter('');
+  }
+  const handleZipCodeChange = (newZipCode) => {
+    setZipCode(newZipCode)
+    setSavedFilter('');
+  }
+  const handleCityChange = (newCity) => {
+    setCity(newCity)
+    setSavedFilter('');
+  }
+  const handleStateChange = (newState) => {
+    setState(newState)
+    setSavedFilter('');
+  }
+  const handleSavedFilterChange = (newSavedFilter) => {setSavedFilter(newSavedFilter)}
   
   const exportCSV = () => {
     dispatch(getRecentlySoldCSV( minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters))
   }
-
-  // const exportCSV = async () => {
-  //   if (RECENTLYSOLDLIST.length === 0) { return }
-  //   const config = {
-  //     headers: {
-  //       'Content-type': 'application/json',
-  //       Authorization: `Bearer ${userInfo.access}`,
-  //     },
-  //   };
-  //   setCsvLoading(true);
-  //   const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/allrecentlysold/${userInfo.company.id}`, config);
-  //   let csvContent = 'data:text/csv;charset=utf-8,';
-  //   csvContent += 'Sold Date, Address, Zip Code\r\n';
-  //   data.forEach((n) => {
-  //     csvContent += `${n.listed.slice(0, 10)}, ${n.address}, ${n.zipCode}\r\n`
-  //   });
-
-  //   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  //   // Create a download link for the CSV file
-  //   const link = document.createElement('a');
-  //   link.href = window.URL.createObjectURL(blob);
-  //   const d1 = new Date().toLocaleDateString('en-US')
-  //   const docName = `isMyCustomerMoving_RecentlySold_${d1}`    
-
-  //   link.setAttribute('download', `${docName}.csv`);
-  //   document.body.appendChild(link); // add the link to body
-  //   link.click();
-  //   document.body.removeChild(link); // remove the link from body
-  //   setCsvLoading(false);
-  // };
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - RECENTLYSOLDLIST.length) : 0;
   const filteredRecentlySold = userInfo ? applySortFilter(RECENTLYSOLDLIST, getComparator(order, orderBy)) : [];
@@ -221,7 +223,8 @@ export default function RecentlySoldData() {
               ) : null}
               {userInfo.company.recentlySoldPurchased ? (
                 <Scrollbar>
-                  <RecentlySoldListToolbar 
+                  <RecentlySoldListToolbar
+                    recentlySoldFilters={recentlySoldFilters}
                     product={userInfo.company.product} 
                     minPrice={minPrice}
                     setMinPrice={handleMinPriceChange}
@@ -243,6 +246,8 @@ export default function RecentlySoldData() {
                     setCity={handleCityChange}
                     state={state}
                     setState={handleStateChange}
+                    savedFilter={savedFilter}
+                    setSavedFilter={handleSavedFilterChange}
                   />
                   <TableContainer sx={{ minWidth: 800 }}>
                     <Table>

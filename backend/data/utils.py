@@ -1,8 +1,8 @@
 from time import sleep
 from accounts.models import Company, CustomUser
 from config import settings
-from .models import Client, ZipCode, HomeListing, ClientUpdate, Task, HomeListingTags
-from .serializers import ZapierClientSerializer
+from .models import Client, ZipCode, HomeListing, ClientUpdate, Task, HomeListingTags, SavedFilter
+from .serializers import ZapierClientSerializer, HomeListingSerializer
 
 from celery import shared_task
 from datetime import datetime, timedelta, date
@@ -227,7 +227,7 @@ def updateStatus(zip, company, status):
                     serialized_data = serializer.data
                     requests.post(company.zapier_sold, data=serialized_data)
                 except Exception as e:
-                    logging.error(e)
+                    logging.error(f"Zapier Sold: {e}")
 
         try:
             listing = HomeListing.objects.filter(zipCode=zipCode_object, address=toList.address, status=status)
@@ -534,7 +534,12 @@ def doItAll(company):
         logging.error(traceback.format_exc())
 
 
-def filter_recentlysold(query_params, queryset):
+def filter_recentlysold(query_params, queryset, company):
+    if 'saved_filter' in query_params:
+        company = Company.objects.get(id=company)
+        query_params = SavedFilter.objects.get(name=query_params['saved_filter'], company=company, forExistingClient=False).savedFilters        
+        query_params = json.loads(query_params)
+        query_params = {k: v for k, v in query_params.items() if v != ''}     
     if 'min_price' in query_params:
         queryset = queryset.filter(price__gte=query_params['min_price'])
     if 'max_price' in query_params:
@@ -548,7 +553,10 @@ def filter_recentlysold(query_params, queryset):
     if 'max_days_ago' in query_params:
         queryset = queryset.filter(listed__gt=(datetime.today()-timedelta(days=int(query_params['max_days_ago']))).strftime('%Y-%m-%d'))
     if 'tags' in query_params:
-        tags = query_params['tags'].split(',')
+        try:
+            tags = query_params['tags'].split(',')
+        except:
+            tags = query_params['tags']
         if tags != ['']:
             matching_tags = HomeListingTags.objects.filter(tag__in=tags)
             queryset = queryset.filter(tag__in=matching_tags)
@@ -655,4 +663,30 @@ def verify_address(client_id):
         usps_address = f"{address2}, {city}, {state} {zip5}"
     
     client.usps_address = usps_address
-    client.save()    
+    client.save()
+
+@shared_task
+def send_zapier_recentlySold(company_id):
+    company = Company.objects.get(id=company_id)
+    if company.zapier_recentlySold:                
+        zipCode_objects = Client.objects.filter(company=company).values('zipCode')
+        queryset =  HomeListing.objects.filter(zipCode__in=zipCode_objects, listed__gt=(datetime.today()-timedelta(days=7)).strftime('%Y-%m-%d')).order_by('listed')
+        savedFilters = SavedFilter.objects.filter(company=company, forExistingClient=False, forZapier=True)
+        for savedFilter in savedFilters:            
+            query_params = json.loads(savedFilter.savedFilters)
+            query_params = {k: v for k, v in query_params.items() if v != ''}
+            queryset = filter_recentlysold(query_params, queryset, company_id)
+            if len(queryset) > 0:
+                try:
+                    if len(queryset) == 1:
+                        serializer = HomeListingSerializer(queryset[0])
+                        serialized_data = serializer.data
+                        serialized_data['filter_name'] = savedFilter.name
+                    else:
+                        serializer = HomeListingSerializer(queryset, many=True)
+                        serialized_data = serializer.data
+                        for data in serialized_data:  # Add savedFilter.name to each item in the list
+                            data['filterName'] = savedFilter.name
+                    requests.post(company.zapier_recentlySold, data=serialized_data)
+                except Exception as e:
+                    logging.error(e)

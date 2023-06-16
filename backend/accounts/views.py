@@ -605,7 +605,7 @@ class ZapierRecentlySoldSubscribe(APIView):
                 "state": "NY",
                 "zipCode": 10001,
                 "price": 1000000,
-                "houstingType": "Single Family",
+                "housingType": "Single Family",
                 "bedrooms": 3,
                 "bathrooms": 2,
                 "yearBuilt": 1990,
@@ -619,7 +619,8 @@ class ZapierRecentlySoldSubscribe(APIView):
                 "exterior": "Brick",
                 "pool": "Inground",
                 "fireplace": "Yes",
-                "description": "This is a test description"
+                "tags": ["New", "Pool", "Fireplace"],
+                "filterName": "Test Filter"
             }]
             return Response(testRecenltySoldHomeListing, status=status.HTTP_200_OK)
         except Exception as e:
