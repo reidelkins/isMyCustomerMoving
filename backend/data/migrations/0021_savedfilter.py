@@ -8,7 +8,6 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0008_company_zapier_recentlysold'),
         ('data', '0020_client_usps_different'),
     ]
 

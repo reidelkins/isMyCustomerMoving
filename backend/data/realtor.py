@@ -36,7 +36,7 @@ def getAllZipcodes(company, zip=None):
         zipCodes = ZipCode.objects.filter(zipCode__in=zipCode_objects, lastUpdated__lt=(datetime.today()).strftime('%Y-%m-%d'))
         zips = list(zipCodes.order_by('zipCode').values('zipCode'))
         zipCodes.update(lastUpdated=datetime.today().strftime('%Y-%m-%d'))
-         # zips = [{'zipCode': '37919'}]
+        # zips = [{'zipCode': '78217'}]
     except:
         if zip:
             zips = [{'zipCode': str(zip)}]
@@ -169,8 +169,9 @@ def create_home_listings(results, status, resp=None):
                 homeListing.price = price
                 homeListing.housingType = listing['description']['type']
                 homeListing.year_built = year_built
-                homeListing.latitude = listing['location']['coordinate']['lat']
-                homeListing.longitude = listing['location']['coordinate']['lon']
+                if listing['location']['address']['coordinate']:
+                    homeListing.latitude = listing['location']['address']['coordinate']['lat']
+                    homeListing.longitude = listing['location']['address']['coordinate']['lon']
                 homeListing.permalink = listing['permalink']
                 homeListing.lot_sqft = listing['description'].get('lot_sqft', 0)
                 homeListing.bedrooms = beds
@@ -182,6 +183,12 @@ def create_home_listings(results, status, resp=None):
                 
             except HomeListing.DoesNotExist:
                 # Create a new HomeListing if it doesn't exist
+                if listing['location']['address']['coordinate']:
+                    latitude=listing['location']['address']['coordinate']['lat']
+                    longitude=listing['location']['address']['coordinate']['lon']
+                else:
+                    latitude=0
+                    longitude=0
                 homeListing = HomeListing.objects.create(
                     zipCode=zip_object,
                     address=parseStreets((listing['location']['address']['line']).title()),
@@ -192,8 +199,8 @@ def create_home_listings(results, status, resp=None):
                     year_built=year_built,
                     state=listing['location']['address']['state_code'],
                     city=listing['location']['address']['city'],
-                    latitude=listing['location']['coordinate']['lat'],
-                    longitude=listing['location']['coordinate']['lon'],
+                    latitude=latitude,
+                    longitude=longitude,
                     permalink=listing['permalink'],
                     lot_sqft=listing['description'].get('lot_sqft', 0),
                     bedrooms=beds,
@@ -222,10 +229,6 @@ def create_home_listings(results, status, resp=None):
             logging.error(f"Listing: {listing['location']['address']}")
             logging.error(e)
     delVariables([zip_object, created, listType, homeListing, currTag, results])
-
-
-
-
 
 class PropertyPreviewResult(TypedDict):
     property_id: str
@@ -323,13 +326,22 @@ def get_realtor_property_records_loop(city, state, street, page, scrapfly):
         logging.error(e)
         return 0, []
     
-def get_realtor_property_details(listingId, scrapfly):
+def get_realtor_property_details(listingId, i):
     listing = HomeListing.objects.get(id=listingId)
+    scrapfly = zipScrapflies[i % 20] 
     url = f"https://www.realtor.com/realestateandhomes-detail/{listing.permalink}"
     result = scrapfly.scrape(ScrapeConfig(url, country="US", asp=False, proxy_pool="public_datacenter_pool"))
+    if result.status_code >= 400:
+            scrapfly = zipScrapflies[i+5 % 20]
+            result = scrapfly.scrape(ScrapeConfig(url, country="US", asp=False, proxy_pool="public_datacenter_pool"))
     data = result.selector.css("script#__NEXT_DATA__::text").get()
     data = dict(json.loads(data))
-    data = data['props']['pageProps']['initialReduxState']['propertyDetails']
+    try:
+        data = data['props']['pageProps']['initialReduxState']['propertyDetails']
+    except:
+        data = data['props']['pageProps']['property']
+    with open("alldata.json", "w") as f:
+        json.dump(data, f)
     try:
         # Check if fields exist before assigning
         description = data.get('description', {})
@@ -354,36 +366,35 @@ def get_realtor_property_details(listingId, scrapfly):
             
             if not listing.description and data.get('property_history'):
                 listing.description = data['property_history'][0]['listing']['description'].get('text')
-        
         listing.latitude = data['location']['address']['coordinate'].get('lat')
         listing.longitude = data['location']['address']['coordinate'].get('lon')
-        
-        if listing.get("tags"):
-            for tag in listing["tags"]:
+        if data.get("tags"):
+            for tag in data["tags"]:
                 currTag, _ = HomeListingTags.objects.get_or_create(tag=tag)
                 if currTag not in listing.tag.all():
-                    listing.tag.add(currTag)
-
-        extras = []
-        for extra in description.get('details', []):
-            if extra.get("category") in ["Interior Features", "Heating and Cooling"]:
-                extras.extend(extra.get("text", []))
-        
+                    listing.tag.add(currTag)        
+        for extra in data.get('details', []):
+            if extra.get("category") == "Interior Features":
+                listing.interiorFeaturesDescription = extra.get("text")
+            elif extra.get("category") == "Heating and Cooling":
+                listing.heatingCoolingDescription = extra.get("text")            
         if data.get("advertisers"):
             advertiser = data["advertisers"][0]
-            realtor, _ = Realtor.objects.get_or_create(
-                company = advertiser.get("broker", {}).get("name"),
-                email = advertiser.get("email"),
-                url = advertiser.get("href"),
-                name = advertiser.get("name"),
-                phone = advertiser.get("phones", [{}])[0].get("number")
-            )
-            listing.realtor = realtor
+            try:
+                realtor, _ = Realtor.objects.get_or_create(
+                    company = advertiser.get("broker", {}).get("name"),
+                    email = advertiser.get("email"),
+                    url = advertiser.get("href"),
+                    name = advertiser.get("name"),
+                    phone = advertiser.get("phones", [{}])[0].get("number")
+                )
+                listing.realtor = realtor
+            except Exception as e:
+                logging.error(e)
         listing.save()
 
     except Exception as e:
         logging.error(e)
-        logging.error(data)
         logging.error(f"ERROR: {listing.permalink}")
 
     
