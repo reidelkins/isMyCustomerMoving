@@ -522,7 +522,7 @@ class ZapierSoldSubscribe(APIView):
     def get(self, request):
         try:
             testClient = [{
-                "name": "Test Data",
+                "name": "new Test Data",
                 "address": "123 Main St",
                 "city": "New York",
                 "state": "NY",
