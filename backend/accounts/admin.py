@@ -14,15 +14,15 @@ class CustomUserAdmin(UserAdmin):
                            'last_name',
                            'status',
                            'email',
-                           'phone',    
+                           'phone',
                            'company',
                            'isVerified',
                            'otp_enabled',
-                            'otp_base32',
-                            'otp_auth_url',
-                            'enterprise',
-                            'is_enterprise_owner'  
-                                                  
+                           'otp_base32',
+                           'otp_auth_url',
+                           'enterprise',
+                           'is_enterprise_owner'
+
                            )}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff',
          'is_superuser', 'groups', 'user_permissions')}),
@@ -36,24 +36,26 @@ class CustomUserAdmin(UserAdmin):
     )
 
     list_display = ('first_name', 'last_name', 'email',
-                    'isVerified', 'company__name', 'enterprise')
+                    'isVerified', 'company', 'enterprise')
     search_fields = ('id', 'first_name', 'last_name', 'email')
     ordering = ('id',)
     list_filter = ('is_staff', 'isVerified',)
 
-    def company__name(self, obj):
-        return obj.company.name
 
 class CompanyAdmin(admin.ModelAdmin):
-    list_display = ('name', 'crm', 'recentlySoldPurchased', 'product', 'enterprise')
+    list_display = ('name', 'crm', 'recentlySoldPurchased',
+                    'product', 'enterprise')
+
 
 class InviteTokenAdmin(admin.ModelAdmin):
     list_display = ('id', 'email', 'company')
     search_fields = ['id', 'email', 'company']
 
+
 class EnterpriseAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
     search_fields = ['id', 'name']
+
 
 admin.site.register(Company, CompanyAdmin)
 admin.site.register(CustomUser, CustomUserAdmin)

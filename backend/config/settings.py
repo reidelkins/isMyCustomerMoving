@@ -10,7 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 import os
-
+import django_extensions
 import dotenv
 from pathlib import Path
 from common.utils import get_env_var
@@ -40,21 +40,26 @@ except:
 # this part will be executed if IS_POSTGRESQL = False
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'IMCM',
+        'USER': 'admin',
+        'PASSWORD': 'password',
+        'HOST': 'db',  # This is the service name you used in your docker-compose file
+        'PORT': 5432,
     }
 }
 MAX_CONN_AGE = 600
 DJANGO_SECRET_KEY = get_env_var('DJANGO_SECRET_KEY')
-SECRET_KEY=get_env_var('SECRET_KEY')
+SECRET_KEY = get_env_var('SECRET_KEY')
 EMAIL_HOST_PASSWORD = get_env_var('EMAIL_PASSWD')
 SCRAPFLY_KEY = get_env_var('SCRAPFLY_KEY')
 ST_APP_KEY = get_env_var('ST_APP_KEY')
 ST_APP_KEY_2 = get_env_var('ST_APP_KEY_2')
 SALESFORCE_CONSUMER_KEY = get_env_var('SALESFORCE_CONSUMER_KEY')
 SALESFORCE_CONSUMER_SECRET = get_env_var('SALESFORCE_CONSUMER_SECRET')
-GOOGLE_CLIENT_ID=get_env_var('GOOGLE_CLIENT_ID')
-KEAP_API_KEY=get_env_var('KEAP_API_KEY')
+GOOGLE_CLIENT_ID = get_env_var('GOOGLE_CLIENT_ID')
+KEAP_API_KEY = get_env_var('KEAP_API_KEY')
+USPS_USER_ID = get_env_var('USPS_USER_ID')
 # Celery Configuration
 # REDIS_URL = os.environ.get('REDIS_URL')
 if IS_HEROKU or IS_GITHUB:
@@ -62,8 +67,8 @@ if IS_HEROKU or IS_GITHUB:
     CELERY_RESULT_BACKEND = get_env_var('REDIS_URL')
     BASE_FRONTEND_URL = 'https://app.ismycustomermoving.com'
     BASE_BACKEND_URL = 'https://is-my-customer-moving.herokuapp.com'
-    CLIENT_ORIGIN_URL="https://app.ismycustomermoving.com"
-    CLIENT_FRONEND_URL="https://www.ismycustomermoving.com"
+    CLIENT_ORIGIN_URL = "https://app.ismycustomermoving.com"
+    CLIENT_FRONEND_URL = "https://www.ismycustomermoving.com"
     if IS_HEROKU:
         DATABASES["default"] = dj_database_url.config(
             conn_max_age=MAX_CONN_AGE, ssl_require=True)
@@ -71,16 +76,16 @@ if IS_HEROKU or IS_GITHUB:
         DATABASES["default"]["TEST"] = DATABASES["default"]
     CELERY_BROKER_URL = "{}?ssl_cert_reqs={}".format(
         CELERY_RESULT_BACKEND, "CERT_NONE",
-)
+    )
 else:
     DEBUG = True
     CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
     CELERY_BROKER_URL = CELERY_RESULT_BACKEND
     BASE_FRONTEND_URL = 'http://localhost:3000'
     BASE_BACKEND_URL = 'http://localhost:8000'
-    CLIENT_ORIGIN_URL="http://localhost:3000"
-    CLIENT_FRONEND_URL="http://localhost:3000"
-    
+    CLIENT_ORIGIN_URL = "http://localhost:3000"
+    CLIENT_FRONEND_URL = "http://localhost:3000"
+
 ALLOWED_HOSTS = ['*']
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = get_env_var('GOOGLE_CLIENT_ID')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = get_env_var('GOOGLE_CLIENT_SECRET')
@@ -104,9 +109,10 @@ INSTALLED_APPS = [
     'payments',
     'data',
     'djstripe',
-    'social_django',    
+    'social_django',
     'rest_framework_social_oauth2',
-    'oauth2_provider'
+    'oauth2_provider',
+    'django_extensions'
 
 ]
 
@@ -248,8 +254,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # Oauth2
-LOGIN_URL='/admin/login/'
-
+LOGIN_URL = '/admin/login/'
 
 
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
@@ -306,12 +311,12 @@ STRIPE_LIVE_MODE = False
 DJSTRIPE_WEBHOOK_SECRET = "whsec_N8LMT9fUTcrtlEBvKaHLKTnXWLE2uybj"
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
 
-DJSTRIPE_WEBHOOK_VALIDATION='retrieve_event'
+DJSTRIPE_WEBHOOK_VALIDATION = 'retrieve_event'
 
 # CELERY_BROKER_URL = CELERY_RESULT_BACKEND + "?ssl_cert_reqs=CERT_NONE"
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 CELERY_TIMEZONE = 'US/Central'
-CELERYD_TASK_TIME_LIMIT= 10
+CELERYD_TASK_TIME_LIMIT = 10
 CELERY_TASK_RESULT_EXPIRES = 10
 
 CHANNEL_LAYERS = {
@@ -337,15 +342,15 @@ CACHES = {
     }
 }
 # "CONNECTION_POOL_KWARGS": {
-            #     "ssl_cert_reqs": ssl.CERT_NONE,
-            # },
+#     "ssl_cert_reqs": ssl.CERT_NONE,
+# },
 
 # EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
-EMAIL_HOST = "smtp.gmail.com" # Your SMTP Provider or in this case gmail
+EMAIL_HOST = "smtp.gmail.com"  # Your SMTP Provider or in this case gmail
 EMAIL_PORT = 587
 EMAIL_USE_SSL = False
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = get_env_var('EMAIL')
 ACCOUNT_EMAIL_VERIFICATION = 'none'
-#assigned at the beginning
+# assigned at the beginning
 # EMAIL_HOST_PASSWORD

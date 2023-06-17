@@ -10,9 +10,10 @@ services:
     volumes:
       - ./data/db:/var/lib/postgresql/data
   backend:
-    platform: linux/amd64
+    # platform: linux/amd64
     build: ./backend
     command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"    
+    # command: bash -c "python manage.py reset_db --noinput --close-sessions"    
     volumes:
       - ./backend:/code
     ports:
@@ -35,4 +36,3 @@ services:
     depends_on:
       - db
       - redis
-
