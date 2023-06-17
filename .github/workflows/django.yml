@@ -92,33 +92,33 @@ jobs:
           safety check -r backend/requirements.txt
 
   build-frontend:
-  runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: 18
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18
 
-    - name: Install dependencies
-      run: |
-        cd frontend
-        yarn install --frozen-lockfile
+      - name: Install dependencies
+        run: |
+          cd frontend
+          yarn install --frozen-lockfile
 
-    - name: Lint with ESLint
-      run: |
-        cd frontend
-        yarn lint
+      - name: Lint with ESLint
+        run: |
+          cd frontend
+          yarn lint
 
-    - name: Build
-      run: |
-        cd frontend
-        yarn build
+      - name: Build
+        run: |
+          cd frontend
+          yarn build
 
-    - name: Run tests
-      run: |
-        cd frontend
-        yarn test
+      - name: Run tests
+        run: |
+          cd frontend
+          yarn test
