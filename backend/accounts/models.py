@@ -26,10 +26,10 @@ STATUS_CHOICES = (
 )
 
 STATUS = [
-    ('House For Sale','House For Sale'),
-    ('House For Rent','House For Rent'),
-    ('House Recently Sold (6)','House Recently Sold (6)'),
-    ('Recently Sold (12)','Recently Sold (12)'),
+    ('House For Sale', 'House For Sale'),
+    ('House For Rent', 'House For Rent'),
+    ('House Recently Sold (6)', 'House Recently Sold (6)'),
+    ('Recently Sold (12)', 'Recently Sold (12)'),
     ('Taken Off Market', 'Taken Off Market'),
     ('No Change', 'No Change')
 ]
@@ -86,9 +86,11 @@ class CustomUserManager(BaseUserManager):
 
         return self._create_user(email, password, **extra_fields)
 
+
 class Enterprise(models.Model):
-    id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100)    
+    id = models.UUIDField(primary_key=True, unique=True,
+                          default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
@@ -97,17 +99,20 @@ class Enterprise(models.Model):
 def create_access_token():
     return get_random_string(length=32)
 
+
 class Company(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     accessToken = models.CharField(default=create_access_token, max_length=100)
-    product = models.ForeignKey("djstripe.Plan", blank=True, null=True, on_delete=models.SET_NULL, default=None)
+    product = models.ForeignKey(
+        "djstripe.Plan", blank=True, null=True, on_delete=models.SET_NULL, default=None)
     phone = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(max_length=100, blank=True, null=True)
     stripeID = models.CharField(max_length=100, blank=True, null=True)
     crm = models.CharField(max_length=100, choices=CRM, default='None')
-    enterprise = models.ForeignKey(Enterprise, on_delete=models.CASCADE, blank=True, null=True, related_name='companies')
+    enterprise = models.ForeignKey(
+        Enterprise, on_delete=models.CASCADE, blank=True, null=True, related_name='companies')
 
     # Service Titan
     serviceTitanAppVersion = models.IntegerField(blank=True, null=True)
@@ -117,10 +122,13 @@ class Company(models.Model):
     serviceTitanForSaleTagID = models.IntegerField(blank=True, null=True)
     serviceTitanForRentTagID = models.IntegerField(blank=True, null=True)
     serviceTitanRecentlySoldTagID = models.IntegerField(blank=True, null=True)
-    serviceTitanForSaleContactedTagID = models.IntegerField(blank=True, null=True)
-    serviceTitanRecentlySoldContactedTagID = models.IntegerField(blank=True, null=True)
+    serviceTitanForSaleContactedTagID = models.IntegerField(
+        blank=True, null=True)
+    serviceTitanRecentlySoldContactedTagID = models.IntegerField(
+        blank=True, null=True)
     recentlySoldPurchased = models.BooleanField(default=False)
-    serviceTitanCustomerSyncOption = models.CharField(max_length=100, choices=CLIENT_OPTIONS, default='option1')
+    serviceTitanCustomerSyncOption = models.CharField(
+        max_length=100, choices=CLIENT_OPTIONS, default='option1')
 
     # Salesforce
     sfAccessToken = models.CharField(max_length=100, blank=True, null=True)
@@ -129,17 +137,20 @@ class Company(models.Model):
     # Zapier
     zapier_forSale = models.CharField(max_length=100, blank=True, null=True)
     zapier_sold = models.CharField(max_length=100, blank=True, null=True)
-    zapier_recentlySold = models.CharField(max_length=100, blank=True, null=True)
+    zapier_recentlySold = models.CharField(
+        max_length=100, blank=True, null=True)
 
     def __str__(self):
         return self.name
-    
+
 
 def zipTime():
     return (datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d')
 
+
 def formatToday():
     return datetime.today().strftime('%Y-%m-%d')
+
 
 class CustomUser(AbstractUser):
     username = None
@@ -150,8 +161,10 @@ class CustomUser(AbstractUser):
     status = models.CharField(
         max_length=100, choices=STATUS_CHOICES, default='active')
     phone = models.CharField(max_length=100, blank=True, null=True)
-    company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE)
-    enterprise = models.ForeignKey(Enterprise, blank=True, null=True, on_delete=models.CASCADE, related_name='users')
+    company = models.ForeignKey(
+        Company, blank=True, null=True, on_delete=models.CASCADE)
+    enterprise = models.ForeignKey(
+        Enterprise, blank=True, null=True, on_delete=models.CASCADE, related_name='users')
     is_enterprise_owner = models.BooleanField(default=False)
     otp_enabled = models.BooleanField(default=False)
     otp_verified = models.BooleanField(default=False)
@@ -164,13 +177,13 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.email
-    
+
     def save(self, *args, **kwargs):
         # Automatically set the enterprise based on the associated company
         if self.company and not self.enterprise:
             self.enterprise = self.company.enterprise
         super().save(*args, **kwargs)
-    
+
     @transaction.atomic
     def delete_with_tokens(self):
         # Revoke all refresh tokens associated with the user
@@ -189,32 +202,35 @@ class CustomUser(AbstractUser):
     class Meta:
         ordering = ["-id"]
 
+
 def utc_tomorrow():
     return datetime.utcnow() + timedelta(days=1)
+
 
 class InviteToken(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
     email = models.EmailField()
-    company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.CASCADE)
+    company = models.ForeignKey(
+        Company, blank=True, null=True, on_delete=models.CASCADE)
     expiration = models.DateTimeField(default=utc_tomorrow)
+
 
 @receiver(reset_password_token_created)
 def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
 
-    if CustomUser.objects.filter(email=reset_password_token.user.email).exists(): 
+    if CustomUser.objects.filter(email=reset_password_token.user.email).exists():
         subject = 'Password Reset: IsMyCustomerMoving.com'
         message = get_template("resetPassword.html").render({
             'token': reset_password_token.key
         })
 
         msg = EmailMessage(
-                    subject,
-                    message,
-                    settings.EMAIL_HOST_USER,
-                    [reset_password_token.user.email]
-                    # html_message=message,
-                )
-        msg.content_subtype ="html"# Main content is now text/html
+            subject,
+            message,
+            settings.EMAIL_HOST_USER,
+            [reset_password_token.user.email]
+            # html_message=message,
+        )
+        msg.content_subtype = "html"  # Main content is now text/html
         msg.send()
-
