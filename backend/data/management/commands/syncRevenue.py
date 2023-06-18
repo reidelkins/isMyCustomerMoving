@@ -8,13 +8,13 @@ from djstripe import models as djstripe_models
 
 
 class Command(BaseCommand):
-    help = 'Get Revenue Values From Service Titan'
+    help = "Get Revenue Values From Service Titan"
 
-    def add_arguments(self , parser):
-        parser.add_argument('-c', '--company')
-    
+    def add_arguments(self, parser):
+        parser.add_argument("-c", "--company")
+
     def handle(self, *args, **options):
-        company = options['company']
+        company = options["company"]
         if company:
             get_serviceTitan_invoices.delay(company_id=company)
         else:
@@ -23,7 +23,11 @@ class Command(BaseCommand):
             weekday = dt.weekday()
             if weekday in daysToRun:
                 if weekday in daysToRun:
-                    freePlan = djstripe_models.Plan.objects.get(id='price_1MhxfPAkLES5P4qQbu8O45xy')                
-                    companies = Company.objects.filter(crm='ServiceTitan').exclude(product=freePlan)
+                    freePlan = djstripe_models.Plan.objects.get(
+                        id="price_1MhxfPAkLES5P4qQbu8O45xy"
+                    )
+                    companies = Company.objects.filter(
+                        crm="ServiceTitan"
+                    ).exclude(product=freePlan)
                     for company in companies:
                         get_serviceTitan_invoices.delay(company.id)

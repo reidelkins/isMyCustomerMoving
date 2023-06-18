@@ -6,15 +6,15 @@ from data.utils import auto_update
 
 
 class Command(BaseCommand):
-    help = 'Scrape data from realtor.com and update the database for a single zip code'
+    help = "Scrape data from realtor.com and update the database for a single zip code"
 
-    def add_arguments(self , parser):
-        parser.add_argument('-c', '--company')
-        parser.add_argument('-z', '--zip')
-    
+    def add_arguments(self, parser):
+        parser.add_argument("-c", "--company")
+        parser.add_argument("-z", "--zip")
+
     def handle(self, *args, **options):
-        company = options['company']
-        zip = options['zip']
+        company = options["company"]
+        zip = options["zip"]
         if company:
             auto_update.delay(company_id=company)
         elif zip:

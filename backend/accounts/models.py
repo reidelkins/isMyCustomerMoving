@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 from django.utils.crypto import get_random_string
 from django.conf import settings
 from django.template.loader import get_template
-from djstripe import models as djstripe_models
 
 from django.db import transaction
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -18,42 +17,41 @@ from rest_framework_simplejwt.exceptions import TokenError
 
 
 STATUS_CHOICES = (
-
-    ('active', 'ACTIVE'),
-    ('banned', 'BANNED'),
-    ('admin', 'ADMIN'),
-    ('pending', 'PENDING'),
+    ("active", "ACTIVE"),
+    ("banned", "BANNED"),
+    ("admin", "ADMIN"),
+    ("pending", "PENDING"),
 )
 
 STATUS = [
-    ('House For Sale', 'House For Sale'),
-    ('House For Rent', 'House For Rent'),
-    ('House Recently Sold (6)', 'House Recently Sold (6)'),
-    ('Recently Sold (12)', 'Recently Sold (12)'),
-    ('Taken Off Market', 'Taken Off Market'),
-    ('No Change', 'No Change')
+    ("House For Sale", "House For Sale"),
+    ("House For Rent", "House For Rent"),
+    ("House Recently Sold (6)", "House Recently Sold (6)"),
+    ("Recently Sold (12)", "Recently Sold (12)"),
+    ("Taken Off Market", "Taken Off Market"),
+    ("No Change", "No Change"),
 ]
 
 PAY_TIER = [
-    ('Free', 'Free'),
-    ('Basic', 'Basic'),
-    ('Premium', 'Premium'),
-    ('Enterprise', 'Enterprise')
+    ("Free", "Free"),
+    ("Basic", "Basic"),
+    ("Premium", "Premium"),
+    ("Enterprise", "Enterprise"),
 ]
 
 CRM = [
-    ('ServiceTitan', 'ServiceTitan'),
-    ('HubSpot', 'HubSpot'),
-    ('Zoho', 'Zoho'),
-    ('Salesforce', 'Salesforce'),
-    ('FieldEdge', 'FieldEdge'),
-    ('None', 'None')
+    ("ServiceTitan", "ServiceTitan"),
+    ("HubSpot", "HubSpot"),
+    ("Zoho", "Zoho"),
+    ("Salesforce", "Salesforce"),
+    ("FieldEdge", "FieldEdge"),
+    ("None", "None"),
 ]
 
 CLIENT_OPTIONS = [
-    ('option1', 'option1'),
-    ('option2', 'option2'),
-    ('option3', 'option3'),
+    ("option1", "option1"),
+    ("option2", "option2"),
+    ("option3", "option3"),
 ]
 
 
@@ -63,33 +61,34 @@ class CustomUserManager(BaseUserManager):
     def _create_user(self, email, password=None, **extra_fields):
         """Create and save a User with the given email and password."""
         if not email:
-            raise ValueError('The given email must be set')
+            raise ValueError("The given email must be set")
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
     def create_user(self, email, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', False)
-        extra_fields.setdefault('is_superuser', False)
+        extra_fields.setdefault("is_staff", False)
+        extra_fields.setdefault("is_superuser", False)
         return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email, password=None, **extra_fields):
         """Create and save a SuperUser with the given email and password."""
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
 
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError('Superuser must have is_staff=True.')
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
 
         return self._create_user(email, password, **extra_fields)
 
 
 class Enterprise(models.Model):
-    id = models.UUIDField(primary_key=True, unique=True,
-                          default=uuid.uuid4, editable=False)
+    id = models.UUIDField(
+        primary_key=True, unique=True, default=uuid.uuid4, editable=False
+    )
     name = models.CharField(max_length=100)
 
     def __str__(self):
@@ -101,18 +100,29 @@ def create_access_token():
 
 
 class Company(models.Model):
-    id = models.UUIDField(primary_key=True, unique=True,
-                          default=uuid.uuid4, editable=False)
+    id = models.UUIDField(
+        primary_key=True, unique=True, default=uuid.uuid4, editable=False
+    )
     name = models.CharField(max_length=100)
     accessToken = models.CharField(default=create_access_token, max_length=100)
     product = models.ForeignKey(
-        "djstripe.Plan", blank=True, null=True, on_delete=models.SET_NULL, default=None)
+        "djstripe.Plan",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        default=None,
+    )
     phone = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(max_length=100, blank=True, null=True)
     stripeID = models.CharField(max_length=100, blank=True, null=True)
-    crm = models.CharField(max_length=100, choices=CRM, default='None')
+    crm = models.CharField(max_length=100, choices=CRM, default="None")
     enterprise = models.ForeignKey(
-        Enterprise, on_delete=models.CASCADE, blank=True, null=True, related_name='companies')
+        Enterprise,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="companies",
+    )
 
     # Service Titan
     serviceTitanAppVersion = models.IntegerField(blank=True, null=True)
@@ -123,12 +133,15 @@ class Company(models.Model):
     serviceTitanForRentTagID = models.IntegerField(blank=True, null=True)
     serviceTitanRecentlySoldTagID = models.IntegerField(blank=True, null=True)
     serviceTitanForSaleContactedTagID = models.IntegerField(
-        blank=True, null=True)
+        blank=True, null=True
+    )
     serviceTitanRecentlySoldContactedTagID = models.IntegerField(
-        blank=True, null=True)
+        blank=True, null=True
+    )
     recentlySoldPurchased = models.BooleanField(default=False)
     serviceTitanCustomerSyncOption = models.CharField(
-        max_length=100, choices=CLIENT_OPTIONS, default='option1')
+        max_length=100, choices=CLIENT_OPTIONS, default="option1"
+    )
 
     # Salesforce
     sfAccessToken = models.CharField(max_length=100, blank=True, null=True)
@@ -138,40 +151,49 @@ class Company(models.Model):
     zapier_forSale = models.CharField(max_length=100, blank=True, null=True)
     zapier_sold = models.CharField(max_length=100, blank=True, null=True)
     zapier_recentlySold = models.CharField(
-        max_length=100, blank=True, null=True)
+        max_length=100, blank=True, null=True
+    )
 
     def __str__(self):
         return self.name
 
 
 def zipTime():
-    return (datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d')
+    return (datetime.today() - timedelta(days=1)).strftime("%Y-%m-%d")
 
 
 def formatToday():
-    return datetime.today().strftime('%Y-%m-%d')
+    return datetime.today().strftime("%Y-%m-%d")
 
 
 class CustomUser(AbstractUser):
     username = None
-    id = models.UUIDField(primary_key=True, unique=True,
-                          default=uuid.uuid4, editable=False)
-    email = models.EmailField(_('email address'), unique=True)
+    id = models.UUIDField(
+        primary_key=True, unique=True, default=uuid.uuid4, editable=False
+    )
+    email = models.EmailField(_("email address"), unique=True)
     isVerified = models.BooleanField(default=False)
     status = models.CharField(
-        max_length=100, choices=STATUS_CHOICES, default='active')
+        max_length=100, choices=STATUS_CHOICES, default="active"
+    )
     phone = models.CharField(max_length=100, blank=True, null=True)
     company = models.ForeignKey(
-        Company, blank=True, null=True, on_delete=models.CASCADE)
+        Company, blank=True, null=True, on_delete=models.CASCADE
+    )
     enterprise = models.ForeignKey(
-        Enterprise, blank=True, null=True, on_delete=models.CASCADE, related_name='users')
+        Enterprise,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="users",
+    )
     is_enterprise_owner = models.BooleanField(default=False)
     otp_enabled = models.BooleanField(default=False)
     otp_verified = models.BooleanField(default=False)
     otp_base32 = models.CharField(max_length=255, null=True, blank=True)
     otp_auth_url = models.CharField(max_length=255, null=True, blank=True)
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', "last_name"]
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["first_name", "last_name"]
 
     objects = CustomUserManager()
 
@@ -208,22 +230,27 @@ def utc_tomorrow():
 
 
 class InviteToken(models.Model):
-    id = models.UUIDField(primary_key=True, unique=True,
-                          default=uuid.uuid4, editable=False)
+    id = models.UUIDField(
+        primary_key=True, unique=True, default=uuid.uuid4, editable=False
+    )
     email = models.EmailField()
     company = models.ForeignKey(
-        Company, blank=True, null=True, on_delete=models.CASCADE)
+        Company, blank=True, null=True, on_delete=models.CASCADE
+    )
     expiration = models.DateTimeField(default=utc_tomorrow)
 
 
 @receiver(reset_password_token_created)
-def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
-
-    if CustomUser.objects.filter(email=reset_password_token.user.email).exists():
-        subject = 'Password Reset: IsMyCustomerMoving.com'
-        message = get_template("resetPassword.html").render({
-            'token': reset_password_token.key
-        })
+def password_reset_token_created(
+    sender, instance, reset_password_token, *args, **kwargs
+):
+    if CustomUser.objects.filter(
+        email=reset_password_token.user.email
+    ).exists():
+        subject = "Password Reset: IsMyCustomerMoving.com"
+        message = get_template("resetPassword.html").render(
+            {"token": reset_password_token.key}
+        )
 
         msg = EmailMessage(
             subject,

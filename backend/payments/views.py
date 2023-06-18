@@ -36,7 +36,7 @@ stripe.api_key = settings.STRIPE_LIVE_SECRET_KEY
 #         else:
 #             customer = customer_data[0]
 #             extra_msg = 'Customer already exists.'
-        
+
 #         trialEnd = int((datetime.now()+ timedelta(days=7)).timestamp())
 #         subscription = stripe.Subscription.create(
 #             customer=customer,
@@ -53,13 +53,13 @@ stripe.api_key = settings.STRIPE_LIVE_SECRET_KEY
 #         if type(comp) == dict:
 #             print("company equals dict")
 #             return Response(comp, status=status.HTTP_400_BAD_REQUEST)
-#         return Response(status=status.HTTP_200_OK, 
+#         return Response(status=status.HTTP_200_OK,
 #             data={
-#                 'message': 'Success', 
+#                 'message': 'Success',
 #                 'data': {'customer_id': customer.id,
 #                 'extra_msg': extra_msg,
 #                 'sub_id':  subscription,
-#                 } }  
+#                 } }
 #         )
 
 # @api_view(['POST'])
@@ -73,7 +73,7 @@ stripe.api_key = settings.STRIPE_LIVE_SECRET_KEY
 #                 'message': 'Success',
 #                 'data': {'client_secret': intent.client_secret } }
 #         )
-        
+
 # @api_view(['GET'])
 # def publishable_key(request):
 #     if request.method == 'GET':
@@ -84,10 +84,12 @@ stripe.api_key = settings.STRIPE_LIVE_SECRET_KEY
 #         )
 
 
-# when customer/subscription created 
-@webhooks.handler('customer.created')
+# when customer/subscription created
+@webhooks.handler("customer.created")
 def create_customer(event: djstripe_models.Event):
     print("customer created")
+
+
 #     obj = event.data['object']
 #     company = obj['name']
 #     email = obj['email']
@@ -101,9 +103,11 @@ def create_customer(event: djstripe_models.Event):
 
 
 # # important in the case that company adds back a canceled subscription
-@webhooks.handler('customer.subscription.created')
+@webhooks.handler("customer.subscription.created")
 def create_subscription(event: djstripe_models.Event):
     print("subscription created")
+
+
 #     try:
 #         obj = event.data['object']
 #         customer = djstripe_models.Customer.objects.get(id=obj['customer'])
@@ -119,18 +123,23 @@ def create_subscription(event: djstripe_models.Event):
 #         print(e)
 #         print("error")
 
-@webhooks.handler('checkout.session.completed')
+
+@webhooks.handler("checkout.session.completed")
 def completed_checkout(event: djstripe_models.Event):
     try:
-        obj = event.data['object']
-        phone = obj['customer_details']['phone']
-        email = obj['customer_details']['email']
-        companyName = obj['custom_fields'][0]['text']['value']
-        stripeId = obj['customer']
-        subscription = djstripe_models.Subscription.objects.get(id=obj['subscription'])
+        obj = event.data["object"]
+        phone = obj["customer_details"]["phone"]
+        email = obj["customer_details"]["email"]
+        companyName = obj["custom_fields"][0]["text"]["value"]
+        stripeId = obj["customer"]
+        subscription = djstripe_models.Subscription.objects.get(
+            id=obj["subscription"]
+        )
         plan = subscription.plan
         try:
-            company = Company.objects.get(name=companyName, email=email, stripeID=stripeId)
+            company = Company.objects.get(
+                name=companyName, email=email, stripeID=stripeId
+            )
             company.stripeID = stripeId
             company.product = plan
             company.phone = phone
@@ -145,25 +154,26 @@ def completed_checkout(event: djstripe_models.Event):
                 create_keap_company(company.id)
             except Exception as e:
                 logging.error(f"error: {e}")
-                
+
         users = CustomUser.objects.filter(company=company)
         for user in users:
             user.isVerified = True
             user.save()
         deleteExtraClients(company.id)
     except Exception as e:
-                logging.error(f"error: {e}")
-            
+        logging.error(f"error: {e}")
 
 
-#canceled subscription
-@webhooks.handler('customer.subscription.deleted')
+# canceled subscription
+@webhooks.handler("customer.subscription.deleted")
 def cancel_subscription(event: djstripe_models.Event):
     try:
-        obj = event.data['object']
-        customer = djstripe_models.Customer.objects.get(id=obj['customer'])
+        obj = event.data["object"]
+        customer = djstripe_models.Customer.objects.get(id=obj["customer"])
         company = Company.objects.get(email=customer.email)
-        product = djstripe_models.Plan.objects.get(id="price_1MhxfPAkLES5P4qQbu8O45xy")
+        product = djstripe_models.Plan.objects.get(
+            id="price_1MhxfPAkLES5P4qQbu8O45xy"
+        )
         company.product = product
         company.save()
         users = CustomUser.objects.filter(company=company)
@@ -173,23 +183,35 @@ def cancel_subscription(event: djstripe_models.Event):
             mail_subject = "Subscription Ended: Is My Customer Moving"
             # send the endedSubscrition email to each user
             messagePlain = f"Your subscription to Is My Customer Moving has ended. Please contact us at reid@ismycustomermoving.com to reactivate your subscription."
-            message = get_template("endedSubscription.html").render({'email': user.email})
-            send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[user.email], html_message=message, fail_silently=False)    
+            message = get_template("endedSubscription.html").render(
+                {"email": user.email}
+            )
+            send_mail(
+                subject=mail_subject,
+                message=messagePlain,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[user.email],
+                html_message=message,
+                fail_silently=False,
+            )
     except Exception as e:
         logging.error(e)
         logging.error("error")
 
-@webhooks.handler('customer.subscription.updated')
+
+@webhooks.handler("customer.subscription.updated")
 def update_subscription(event: djstripe_models.Event):
     try:
-        obj = event.data['object']
-        customer = djstripe_models.Customer.objects.get(id=obj['customer'])
+        obj = event.data["object"]
+        customer = djstripe_models.Customer.objects.get(id=obj["customer"])
 
-        plan = djstripe_models.Subscription.objects.filter(customer=obj['customer']).values('plan')
-        plan = plan[0]['plan']
+        plan = djstripe_models.Subscription.objects.filter(
+            customer=obj["customer"]
+        ).values("plan")
+        plan = plan[0]["plan"]
         company = Company.objects.get(email=customer.email)
         plan = djstripe_models.Plan.objects.get(djstripe_id=plan)
-        
+
         company.product = plan
         company.save()
         if plan != "price_1MhxfPAkLES5P4qQbu8O45xy":
@@ -198,7 +220,7 @@ def update_subscription(event: djstripe_models.Event):
     except Exception as e:
         logging.error(e)
         logging.error("error")
-    
+
 
 # @webhooks.handler('payment_method.detached')
 # def remove_detached_payment_method(event: djstripe_models.Event):

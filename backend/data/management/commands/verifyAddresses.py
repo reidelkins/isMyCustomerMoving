@@ -5,15 +5,14 @@ from data.models import Client
 from data.utils import verify_address
 
 
-
 class Command(BaseCommand):
-    help = 'Verify All Addresses Using USPS API'
+    help = "Verify All Addresses Using USPS API"
 
-    def add_arguments(self , parser):
-        parser.add_argument('-c', '--company')
-    
+    def add_arguments(self, parser):
+        parser.add_argument("-c", "--company")
+
     def handle(self, *args, **options):
-        company = options['company']
+        company = options["company"]
         if company:
             comp = Company.objects.get(name=company)
             clients = Client.objects.filter(company=comp)
@@ -24,4 +23,3 @@ class Command(BaseCommand):
                 if count % 100 == 0:
                     print(count)
                 verify_address.delay(client.id)
-        

@@ -9,13 +9,13 @@ from django.contrib.auth.models import update_last_login
 import logging
 
 
-
 class BasicCompanySerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     name = serializers.CharField(max_length=100)
+
     class Meta:
         model = Company
-        fields = ['id', 'name']
+        fields = ["id", "name"]
 
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -26,53 +26,92 @@ class CompanySerializer(serializers.ModelSerializer):
     stripeID = serializers.CharField(max_length=100, required=False)
     recentlySoldPurchased = serializers.BooleanField(default=False)
     crm = serializers.CharField(max_length=100, required=False)
-    product = serializers.SerializerMethodField('get_product', read_only=True)
-
+    product = serializers.SerializerMethodField("get_product", read_only=True)
 
     # service titan
     tenantID = serializers.CharField(max_length=100, required=False)
     clientID = serializers.CharField(max_length=100, required=False)
-    serviceTitanForRentTagID = serializers.CharField(max_length=100, required=False)
-    serviceTitanForSaleTagID = serializers.CharField(max_length=100, required=False)
-    serviceTitanRecentlySoldTagID = serializers.CharField(max_length=100, required=False)
-    serviceTitanForSaleContactedTagID = serializers.CharField(max_length=100, required=False)
-    serviceTitanSoldContactedTagID = serializers.CharField(max_length=100, required=False)
-    serviceTitanCustomerSyncOption = serializers.CharField(max_length=100, required=False)
+    serviceTitanForRentTagID = serializers.CharField(
+        max_length=100, required=False
+    )
+    serviceTitanForSaleTagID = serializers.CharField(
+        max_length=100, required=False
+    )
+    serviceTitanRecentlySoldTagID = serializers.CharField(
+        max_length=100, required=False
+    )
+    serviceTitanForSaleContactedTagID = serializers.CharField(
+        max_length=100, required=False
+    )
+    serviceTitanSoldContactedTagID = serializers.CharField(
+        max_length=100, required=False
+    )
+    serviceTitanCustomerSyncOption = serializers.CharField(
+        max_length=100, required=False
+    )
 
     users_count = serializers.SerializerMethodField()
     leads_count = serializers.SerializerMethodField()
     clients_count = serializers.SerializerMethodField()
-    
 
     def create(self, validated_data):
-        if Company.objects.filter(name=validated_data['name']).exists():
+        if Company.objects.filter(name=validated_data["name"]).exists():
             return False
-        return Company.objects.create(**validated_data, accessToken=get_random_string(length=32))
-    
+        return Company.objects.create(
+            **validated_data, accessToken=get_random_string(length=32)
+        )
+
     def get_product(self, obj):
         if obj.product:
             return obj.product.id
         else:
             return "No product"
-        
+
     def get_users_count(self, obj):
         return CustomUser.objects.filter(company=obj).count()
 
     def get_leads_count(self, obj):
-        return ClientUpdate.objects.filter(client__company=obj).exclude(status="No Change").count()
-    
+        return (
+            ClientUpdate.objects.filter(client__company=obj)
+            .exclude(status="No Change")
+            .count()
+        )
+
     def get_clients_count(self, obj):
         return Client.objects.filter(company=obj).count()
+
     class Meta:
         model = Company
-        fields=['id', 'name', 'crm', 'phone', 'email', 'tenantID', 'clientID', 'stripeID', 'serviceTitanForRentTagID', 'serviceTitanForSaleTagID', 'serviceTitanRecentlySoldTagID', 'recentlySoldPurchased', 'serviceTitanForSaleContactedTagID', 'serviceTitanSoldContactedTagID', 'users_count', 'leads_count', 'clients_count', 'serviceTitanCustomerSyncOption', 'product']
+        fields = [
+            "id",
+            "name",
+            "crm",
+            "phone",
+            "email",
+            "tenantID",
+            "clientID",
+            "stripeID",
+            "serviceTitanForRentTagID",
+            "serviceTitanForSaleTagID",
+            "serviceTitanRecentlySoldTagID",
+            "recentlySoldPurchased",
+            "serviceTitanForSaleContactedTagID",
+            "serviceTitanSoldContactedTagID",
+            "users_count",
+            "leads_count",
+            "clients_count",
+            "serviceTitanCustomerSyncOption",
+            "product",
+        ]
+
 
 class EnterpriseSerializer(serializers.ModelSerializer):
     companies = CompanySerializer(many=True, read_only=True)
 
     class Meta:
         model = Enterprise
-        fields = ['id', 'name', 'companies']
+        fields = ["id", "name", "companies"]
+
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -85,6 +124,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             logging.error("User is not verified")
             raise serializers.ValidationError("User is not verified")
         return data
+
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
@@ -92,7 +132,10 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             return token
         else:
             logging.error("User is not verified 2")
-            raise serializers.ValidationError("User is not verified. Either you have not verified your email or your account has been disabled. Accounts are disabled if you have not paid for the service. Please contact us reid@ismycustomermoving.com if you have any questions.")
+            raise serializers.ValidationError(
+                "User is not verified. Either you have not verified your email or your account has been disabled. Accounts are disabled if you have not paid for the service. Please contact us reid@ismycustomermoving.com if you have any questions."
+            )
+
 
 class UserSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
@@ -110,12 +153,15 @@ class UserSerializer(serializers.Serializer):
     otp_auth_url = serializers.CharField(read_only=True)
     is_enterprise_owner = serializers.BooleanField(read_only=True)
 
-    #service titan
+    # service titan
     finishedSTIntegration = serializers.SerializerMethodField(read_only=True)
-    
 
     def get_finishedSTIntegration(self, obj):
-        return obj.company.tenantID != None and obj.company.clientID != None and obj.company.clientSecret != None
+        return (
+            obj.company.tenantID != None
+            and obj.company.clientID != None
+            and obj.company.clientSecret != None
+        )
 
 
 class UserSerializerWithToken(UserSerializer):
@@ -130,10 +176,15 @@ class UserSerializerWithToken(UserSerializer):
         token = RefreshToken.for_user(obj)
         return str(token)
 
+
 class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ('id', 'first_name', 'last_name', 'email', 'status', 'is_enterprise_owner')
-
-
-
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+            "status",
+            "is_enterprise_owner",
+        )

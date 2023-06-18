@@ -88,10 +88,10 @@
 
 #     user.delete()
 #     assert CustomUser.objects.filter(first_name="jane").count() == 0
-    
+
 # @pytest.mark.django_db
 # def test_makeCompany(company):
-    
+
 #     assert company.name == "Test Company"
 #     assert company.email == "testcompany@gmail.com"
 #     assert company.phone == "8881234567"
@@ -141,7 +141,7 @@
 #     response = api_client.post(url, data, format='json')
 #     assert response.status_code == 200
 #     assert CustomUser.objects.filter(email="test@gmail.com").count() == 1
-    
+
 #     user = CustomUser.objects.get(email="test@gmail.com")
 #     assert user.isVerified == True
 
@@ -163,10 +163,10 @@
 #     response = api_client.post(url, data, format='json')
 #     assert response.status_code == 400
 
-    
+
 # @pytest.mark.django_db
 # def test_login(api_client, authenticated_user):
-    
+
 #     response = api_client.get(reverse('login'))
 #     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
@@ -247,7 +247,7 @@
 #     assert EMAIL in emails
 #     assert response.json()[0]['status'] == "pending" or response.json()[1]['status'] == "pending"
 #     assert "test@gmail.com" in emails
-    
+
 #     invite_token, invited_user = invited_info
 #     # Test Accept Invite With Wrong Email
 #     url = reverse('manageuser', kwargs={'id':str(invite_token.id)})
@@ -340,7 +340,7 @@
 #     response = api_client.delete(url, data, format='json')
 #     assert response.status_code == status.HTTP_200_OK
 #     assert len(response.json()) == 1
-    
+
 #     # Test Delete Multiple Users
 #     data = [authenticated_user.id, secondUser.id]
 #     response = api_client.delete(url, data, format='json')
@@ -386,11 +386,3 @@
 # #     response = api_client.post(url, data, format='json')
 # #     assert response.status_code == status.HTTP_200_OK
 # #     assert response.data['detail'] == 'Password has been reset with the new password.'
-
-
-
-
-
-
-
-

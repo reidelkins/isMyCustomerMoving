@@ -4,16 +4,16 @@ from datetime import datetime
 from data.utils import update_clients_statuses
 from accounts.models import Company
 
-class Command(BaseCommand):
-    help = 'Sends the email to each user with their data'
 
-    def add_arguments(self , parser):
-        parser.add_argument('-c', '--company')
-    
+class Command(BaseCommand):
+    help = "Sends the email to each user with their data"
+
+    def add_arguments(self, parser):
+        parser.add_argument("-c", "--company")
+
     def handle(self, *args, **options):
-        company = options['company']
+        company = options["company"]
         if company:
-            
             update_clients_statuses.delay(Company.objects.get(name=company).id)
         else:
             daysToRun = [0, 1, 2, 3, 4]
