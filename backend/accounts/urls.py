@@ -1,8 +1,5 @@
 from django.urls import path, include
-from django.conf.urls import url
 from rest_framework import routers
-from rest_framework_social_oauth2 import urls as oauth2_urls
-from rest_framework_social_oauth2.views import ConvertTokenView
 
 from . import views
 

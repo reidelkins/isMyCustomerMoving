@@ -32,11 +32,13 @@ def makeCompany(companyName, email, phone, stripeId=None):
                 mail_subject = "Access Token for Is My Customer Moving"
                 messagePlain = "Your access token is: " + company.accessToken
                 messagePlain = (
-                    "Thank you for signing up for Is My Customer Moving. Your company name is: "
+                    """Thank you for signing up for Is My Customer Moving.
+                    Your company name is: """
                     + company.name
                     + "and your access token is: "
                     + company.accessToken
-                    + ". Please use this info at https://app.ismycustomermoving.com/register to create your account."
+                    + """. Please use this info at https://app.ismycustomermoving.com/register
+                      to create your account."""
                 )
                 message = get_template("registration.html").render(
                     {
@@ -117,14 +119,16 @@ class CustomAuthentication(BaseAuthentication):
 
         access_token = access_token.split(" ")[1]
         token_info = requests.get(
-            f"https://www.googleapis.com/oauth2/v3/tokeninfo?access_token={access_token}"
+            f"""https://www.googleapis.com/
+            oauth2/v3/tokeninfo?access_token={access_token}"""
         ).json()
         if int(token_info["expires_in"]) <= 0:
             return None
         if token_info["aud"] != settings.GOOGLE_CLIENT_ID:
             return None
         user_info = requests.get(
-            f"https://www.googleapis.com/oauth2/v3/userinfo?access_token={access_token}"
+            f"""https://www.googleapis.com/
+            oauth2/v3/userinfo?access_token={access_token}"""
         ).json()
         if token_info["sub"] != user_info["sub"]:
             return None

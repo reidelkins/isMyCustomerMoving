@@ -133,7 +133,10 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         else:
             logging.error("User is not verified 2")
             raise serializers.ValidationError(
-                "User is not verified. Either you have not verified your email or your account has been disabled. Accounts are disabled if you have not paid for the service. Please contact us reid@ismycustomermoving.com if you have any questions."
+                """User is not verified. Either you have not verified your 
+                email or your account has been disabled. Accounts are disabled
+                if you have not paid for the service. Please contact us 
+                reid@ismycustomermoving.com if you have any questions."""
             )
 
 
@@ -158,9 +161,9 @@ class UserSerializer(serializers.Serializer):
 
     def get_finishedSTIntegration(self, obj):
         return (
-            obj.company.tenantID != None
-            and obj.company.clientID != None
-            and obj.company.clientSecret != None
+            obj.company.tenantID is not None
+            and obj.company.clientID is not None
+            and obj.company.clientSecret is not None
         )
 
 

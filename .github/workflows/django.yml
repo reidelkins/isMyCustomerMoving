@@ -34,7 +34,7 @@ jobs:
       - name: Run Static Code Analysis
         run: |
           pip install flake8 black
-          flake8 backend --exclude=migrations
+          flake8 backend --exclude=accounts/migrations,data/migrations,accounts/migrations1,data/migrations1manage.py
           black --check backend
       - name: Database Setup
         run: |

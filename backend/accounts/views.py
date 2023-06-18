@@ -193,6 +193,7 @@ class ManageUserView(APIView):
                         user.status = "admin"
                         user.save()
                 except Exception as e:
+                    logging.error(e)
                     return Response(
                         {"status": "Data Error"},
                         status=status.HTTP_400_BAD_REQUEST,
@@ -206,6 +207,7 @@ class ManageUserView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         except Exception as e:
+            logging.error(e)
             return Response(
                 {"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST
             )
@@ -269,7 +271,8 @@ def company(request):
                 comp.save()
                 create_keap_company(comp.id)
                 return Response("", status=status.HTTP_201_CREATED, headers="")
-            except:
+            except Exception as e:
+                logging.error(e)
                 return Response(comp, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(e)
@@ -333,12 +336,12 @@ class VerifyRegistrationView(APIView):
                 if not user.isVerified:
                     user.isVerified = True
                     user.save()
-            except jwt.ExpiredSignatureError as identifier:
+            except jwt.ExpiredSignatureError:
                 return Response(
                     {"detail": "Activation Expired"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            except jwt.exceptions.DecodeError as identifier:
+            except jwt.exceptions.DecodeError:
                 return Response(
                     {"detail": "Invalid token"},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -368,17 +371,17 @@ class RegisterView(APIView):
         registrationToken = data.get("registrationToken")
         phone = data.get("phone")
         messages = {"errors": []}
-        if first_name == None:
+        if first_name is None:
             messages["errors"].append("first_name can't be empty")
-        if last_name == None:
+        if last_name is None:
             messages["errors"].append("last_name can't be empty")
-        if email == None:
+        if email is None:
             messages["errors"].append("Email can't be empty")
-        if password == None:
+        if password is None:
             messages["errors"].append("Password can't be empty")
-        if company == None:
+        if company is None:
             messages["errors"].append("Company can't be empty")
-        if registrationToken == None:
+        if registrationToken is None:
             messages["errors"].append("Registration Token can't be empty")
 
         if CustomUser.objects.filter(email=email).exists():
@@ -412,17 +415,27 @@ class RegisterView(APIView):
                 # current_site = get_current_site(request)
                 # tokenSerializer = UserSerializerWithToken(user, many=False)
                 # mail_subject = "Activation Link for Is My Customer Moving"
-                # messagePlain = "Verify your account for Is My Customer Moving by going here {}/api/v1/accounts/confirmation/{}/{}/".format(current_site, tokenSerializer.data['refresh'], user.id)
+                # messagePlain = """Verify your account for Is My Customer Moving
+                # by going here {}/api/v1/accounts/confirmation/{}/{}/"""
+                # .format(current_site, tokenSerializer.data['refresh'], user.id)
                 # message = get_template("registration.html").render({
                 #     'current_site': current_site, 'token': tokenSerializer.data['refresh'], 'user_id': user.id
                 # })
-                # send_mail(subject=mail_subject, message=messagePlain, from_email=settings.EMAIL_HOST_USER, recipient_list=[email], html_message=message, fail_silently=False)
+                # send_mail(
+                # subject=mail_subject,
+                # message=messagePlain,
+                # from_email=settings.EMAIL_HOST_USER,
+                #  recipient_list=[email],
+                #  html_message=message,
+                #  fail_silently=False
+                # )
                 serializer = UserSerializerWithToken(user, many=False)
                 create_keap_user(user.id)
             else:
                 return Response(
                     {
-                        "detail": f"Access Token Already Used. Ask an admin to login and create profile for you."
+                        "detail": """Access Token Already Used. 
+                        Ask an admin to login and create profile for you."""
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
@@ -485,7 +498,7 @@ class OTPGenerateView(generics.GenericAPIView):
     def post(self, request):
         try:
             user = CustomUser.objects.get(id=request.data["id"])
-            if user == None:
+            if user is None:
                 return Response(
                     {"detail": f"User with this email does not exist"},
                     status=status.HTTP_400_BAD_REQUEST,
