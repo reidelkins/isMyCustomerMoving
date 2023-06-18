@@ -35,7 +35,7 @@ jobs:
         run: |
           pip install flake8 black
           cd backend
-          flake8 backend --exclude=accounts/migrations,data/migrations,accounts/migrations1,data/migrations1manage.py
+          flake8 backend --exclude=backend/accounts/migrations,backend/data/migrations,backend/accounts/migrations1,backend/data/migrations1,backend/manage.py
           black --check backend
           cd ..
       - name: Database Setup
