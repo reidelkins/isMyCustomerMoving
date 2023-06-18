@@ -34,10 +34,8 @@ jobs:
       - name: Run Static Code Analysis
         run: |
           pip install flake8 black
-          cd backend
           flake8 backend --exclude=backend/accounts/migrations,backend/data/migrations,backend/accounts/migrations1,backend/data/migrations1,backend/manage.py
           black --check backend
-          cd ..
       - name: Database Setup
         run: |
           echo "Setting up test database..."
