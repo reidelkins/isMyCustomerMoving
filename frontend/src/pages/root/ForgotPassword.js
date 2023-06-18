@@ -1,23 +1,17 @@
-import React, { useEffect } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { Link as RouterLink } from 'react-router-dom';
+import { useState } from 'react';
 
 // @mui
 import { styled } from '@mui/material/styles';
 import { Card, Link, Container, Typography } from '@mui/material';
 
-import { showLoginInfo } from '../redux/actions/authActions';
-
 // hooks
-import useResponsive from '../hooks/useResponsive';
+import useResponsive from '../../hooks/useResponsive';
 // components
-import Page from '../components/Page';
-import Logo from '../components/Logo';
-import { LoginForm } from '../sections/auth/login';
-// import Facebook from "../components/social-media/Facebook";
-// import Twitter from "../components/social-media/Twitter";
-import Google from '../components/social-media/Google';
+import Page from '../../components/Page';
+import Logo from '../../components/Logo';
 
+import { ResetPasswordForm } from '../../sections/auth/reset';
 // ----------------------------------------------------------------------
 
 const RootStyle = styled('div')(({ theme }) => ({
@@ -63,36 +57,33 @@ const ContentStyle = styled('div')(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 
-export default function Login() {
+export default function ForgotPassword() {
   const smUp = useResponsive('up', 'sm');
 
   const mdUp = useResponsive('up', 'md');
-  const navigate = useNavigate();
-  const userLogin = useSelector(showLoginInfo);
-  const { userInfo } = userLogin;
 
-  useEffect(() => {
-    if (userInfo) {
-      navigate('/dashboard', { replace: true });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userInfo]);
+  const [submitted, setSubmitted] = useState(false);
 
   return (
-    <Page title="Login">
+    <Page title="ForgotPassword">
       <RootStyle>
         <HeaderStyle>
           <Logo />
+
+          {smUp && (
+            <Typography variant="body2" sx={{ mt: { md: -2 } }}>
+              Don’t have an account? {''}
+              <Link variant="subtitle2" component={RouterLink} to="/register">
+                Get started
+              </Link>
+            </Typography>
+          )}
         </HeaderStyle>
 
         {mdUp && (
           <SectionStyle>
-            <Typography variant="h2" sx={{ px: 5, mt: 10, mb: 5 }}>
-              <span>Don't Lose Your Customers,</span> <span style={{ color: '#8ce8c5' }}>Move With Them!</span>
-            </Typography>
-            <Typography variant="body1" sx={{ mx: 4 }}>
-              We instantly notify you when your customers list their home for sale, so you can be the first one to the
-              new home.
+            <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
+              Welcome Back
             </Typography>
             <img src="/static/illustrations/illustration_login.png" alt="login" />
           </SectionStyle>
@@ -101,15 +92,27 @@ export default function Login() {
         <Container maxWidth="sm">
           <ContentStyle>
             <Typography variant="h2" gutterBottom>
-              Log In Here
+              Forgot Password?
             </Typography>
 
-            <LoginForm />
-            <Google />
+            {submitted ? (
+              <Typography variant="body1" sx={{ color: 'text.secondary', mb: 5 }}>
+                If your email is associated with an account, you will receive an email with a link to reset your
+                password.
+              </Typography>
+            ) : (
+              <>
+                <Typography sx={{ color: 'text.secondary', mb: 5 }}>
+                  Enter your email below to receive a link to reset your password.
+                </Typography>
+                <ResetPasswordForm setSubmitted={setSubmitted} />
+              </>
+            )}
+
             {!smUp && (
               <Typography variant="body2" align="center" sx={{ mt: 3 }}>
                 Don’t have an account?{' '}
-                <Link variant="subtitle2" component={RouterLink} to="www.ismycustomermoving.com/#pricing">
+                <Link variant="subtitle2" component={RouterLink} to="/register">
                   Get started
                 </Link>
               </Typography>

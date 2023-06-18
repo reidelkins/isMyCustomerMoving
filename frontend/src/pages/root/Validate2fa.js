@@ -7,10 +7,10 @@ import { useFormik, Form, FormikProvider } from 'formik';
 
 import { Box, TextField, Button, Stack, Card, Typography, Container } from '@mui/material';
 // import { LoadingButton } from "../components/LoadingButton";
-import { showLoginInfo, validateOtp } from '../redux/actions/authActions';
-import useResponsive from '../hooks/useResponsive';
-import Page from '../components/Page';
-import Logo from '../components/Logo';
+import { showLoginInfo, validateOtp } from '../../redux/actions/authActions';
+import useResponsive from '../../hooks/useResponsive';
+import Page from '../../components/Page';
+import Logo from '../../components/Logo';
 
 const RootStyle = styled('div')(({ theme }) => ({
   [theme.breakpoints.up('md')]: {
