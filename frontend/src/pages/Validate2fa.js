@@ -90,6 +90,7 @@ export default function Validate2fa() {
     } else {
       navigate('/login');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userInfo, twoFA]);
 
   return (

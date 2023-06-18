@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 
 // @mui
 import { styled } from '@mui/material/styles';
-import { Card, Link, Container, Typography, Button } from '@mui/material';
+import { Card, Link, Container, Typography } from '@mui/material';
 
 import { showLoginInfo } from '../redux/actions/authActions';
 
@@ -75,6 +75,7 @@ export default function Login() {
     if (userInfo) {
       navigate('/dashboard', { replace: true });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userInfo]);
 
   return (
