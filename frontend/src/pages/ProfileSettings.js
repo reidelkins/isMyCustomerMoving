@@ -19,12 +19,13 @@ import NewUserModal from '../components/NewUserModal';
 import TwoFactorAuth from '../components/TwoFactorAuth';
 import CRMIntegrationModal from '../components/CRMIntegrationModal';
 import UpgradeFromFree from '../components/UpgradeFromFree';
-import { applySortFilter, getComparator } from './CustomerData';
+import { applySortFilter, getComparator } from '../utils/filterFunctions';
 // import ResetPasswordModal from '../components/ResetPasswordModal';
 
 import UsersListCall from '../redux/calls/UsersListCall';
 import { showLoginInfo, logout, editUserAsync } from '../redux/actions/authActions';
 import { addUser, selectUsers, makeAdminAsync } from '../redux/actions/usersActions';
+
 
 
 
@@ -56,7 +57,7 @@ export default function ProfileSettings() {
       window.location.reload(true);
     }
 
-  }, [userInfo, dispatch, navigate]);
+  }, [userInfo, dispatch, navigate, twoFA]);
 
   const listUser = useSelector(selectUsers);
   const { loading, USERLIST } = listUser;

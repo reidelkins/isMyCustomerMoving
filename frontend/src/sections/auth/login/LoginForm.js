@@ -49,7 +49,7 @@ export default function LoginForm() {
       if (userInfo.otp_enabled) {
         navigate('/validate2fa', { replace: true });
       } else {
-        navigate('/dashboard/customers', { replace: true });
+        navigate('/dashboard', { replace: true });
       }
     }
   }, [navigate, userInfo]);

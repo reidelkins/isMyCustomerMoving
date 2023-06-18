@@ -1,10 +1,9 @@
 import { Navigate, useRoutes } from 'react-router-dom';
-import { AuthenticationGuard } from './components/AuthenticationGuard';
 // layouts
 import DashboardLayout from './layouts/dashboard';
 import LogoOnlyLayout from './layouts/LogoOnlyLayout';
 //
-import CustomerData from './pages/CustomerData';
+import Home from './pages/Home';
 import RecentlySoldData from './pages/RecentlySoldData';
 import Login from './pages/Login';
 import Logout from './pages/Logout';
@@ -20,30 +19,14 @@ import ProfileSettings from './pages/ProfileSettings';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 
-// ----------------------------------------------------------------------
 
 export default function Router() {
   return useRoutes([
     {
-      path: '/dashboard',
-      element: <DashboardLayout />,
-      children: [
-        // { path: '', element:<PrivateRoute path="/dashboard/customers" component={<Navigate to="/dashboard/customers" />} />},
-        { path: '', element: <Navigate to="/dashboard/customers" /> },
-        { path: 'settings/user', element: <ProfileSettings />} ,
-        { path: 'settings/enterprise', element: <EnterpriseSettings />} ,
-        { path: 'customers', element: <CustomerData /> },
-        { path: 'recentlysold', element: <RecentlySoldData />},
-        { path: 'referrals', element: <Referrals />},
-        { path: 'adduser', element: <AddUser />},
-        
-      ],
-    },
-    {
       path: '/',
       element: <LogoOnlyLayout />,
       children: [
-        { path: '/', element: <Navigate to="/dashboard/customers" /> },
+        { path: '/', element: <Navigate to="/dashboard" /> },
         { path: 'login', element: <Login /> },
         { path: 'logout', element: <Logout />},
         { path: 'validate2fa', element: <Validate2fa />},
@@ -55,6 +38,19 @@ export default function Router() {
         { path: 'privacypolicy', element: <PrivacyPolicy /> },
         { path: '404', element: <NotFound /> },
         { path: '*', element: <Navigate to="/404" /> },
+        
+      ],
+    },
+    {
+      path: '/dashboard',
+      element: <DashboardLayout />,
+      children: [
+        { path: '', element: <Home /> },
+        { path: 'settings/user', element: <ProfileSettings />} ,
+        { path: 'settings/enterprise', element: <EnterpriseSettings />} ,
+        { path: 'recentlysold', element: <RecentlySoldData />},
+        { path: 'referrals', element: <Referrals />},
+        { path: 'adduser', element: <AddUser />},
         
       ],
     },
