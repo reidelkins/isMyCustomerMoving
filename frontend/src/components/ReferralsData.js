@@ -27,7 +27,7 @@ const ReferralsData = ({ refs, company, incoming }) => {
         setReferrals(refs.results.filter((referral) => referral.referredFrom.id === company));
       }
     }
-  }, [refs, incoming]);
+  }, [refs, incoming, company]);
 
   const updateContacted = (event, id, contacted) => {
     console.log('updateContacted', id, contacted);

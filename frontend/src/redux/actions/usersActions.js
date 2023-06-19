@@ -233,7 +233,7 @@ export const saveFilterSuccess = (state) => state.user.saveFilter.success;
 export default userSlice.reducer;
 
 export const getRefreshToken = (dispatch, func) => {
-  return async (dispatch, getState) => {
+  async (dispatch, getState) => {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
     const config = {
@@ -882,7 +882,7 @@ export const getClientsCSV = (
   equipInstallDateMin,
   equipInstallDateMax
 ) => {
-  return async (dispatch, getState) => {
+  async (dispatch, getState) => {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
     const config = {
@@ -920,8 +920,8 @@ export const getClientsCSV = (
   };
 };
 
-export const getRecentlySoldCSV = (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters) => {
-  return async (dispatch, getState) => {
+export const getRecentlySoldCSV =
+  (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters) => async (dispatch, getState) => {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
     const config = {
@@ -959,7 +959,6 @@ export const getRecentlySoldCSV = (minPrice, maxPrice, minYear, maxYear, minDays
     const csvBlob = new Blob([response.data], { type: 'text/csv' }); // Convert binary response to a blob
     FileSaver.saveAs(csvBlob, 'homelistings.csv'); // Download the file using FileSaver
   };
-};
 
 export const saveFilterAsync =
   (

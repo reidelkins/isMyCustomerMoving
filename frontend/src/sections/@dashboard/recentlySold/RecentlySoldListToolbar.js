@@ -32,6 +32,14 @@ RecentlySoldListToolbar.propTypes = {
   setMaxDaysAgo: PropTypes.func,
   savedFilter: PropTypes.string,
   setSavedFilter: PropTypes.func,
+  tagFilters: PropTypes.array,
+  setTagFilters: PropTypes.func,
+  zipCode: PropTypes.string,
+  setZipCode: PropTypes.func,
+  city: PropTypes.string,
+  setCity: PropTypes.func,
+  state: PropTypes.string,
+  setState: PropTypes.func,
 };
 
 // ----------------------------------------------------------------------

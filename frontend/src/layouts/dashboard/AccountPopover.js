@@ -9,7 +9,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { showLoginInfo, logout } from '../../redux/actions/authActions';
 // components
 import MenuPopover from '../../components/MenuPopover';
-import { URL } from '../../redux/constants';
 
 // ----------------------------------------------------------------------
 

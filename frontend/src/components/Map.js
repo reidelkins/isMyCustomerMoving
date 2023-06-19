@@ -2,14 +2,19 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { GoogleMap, Marker, useLoadScript, InfoWindow } from '@react-google-maps/api';
 import { Card } from '@mui/material';
 import { useDispatch } from 'react-redux';
+import PropTypes from 'prop-types';
 
 import { updateClientAsync } from '../redux/actions/usersActions';
 import '../theme/map.css';
 
+Map.propTypes = {
+  clients: PropTypes.array,
+};
+
 export default function Map({ clients }) {
   const dispatch = useDispatch();
 
-  const [mapRef, setMapRef] = useState();
+  // const [mapRef, setMapRef] = useState();
   const [isOpen, setIsOpen] = useState(false);
   const [infoWindowData, setInfoWindowData] = useState();
   const [markers, setMarkers] = useState([]);
@@ -20,7 +25,7 @@ export default function Map({ clients }) {
   const center = useMemo(() => ({ lat: 39.5, lng: -98.35 }), []);
 
   const handleMarkerClick = (id, lat, lng, address, city, state, zip, name, status) => {
-    mapRef?.panTo({ lat, lng });
+    // mapRef?.panTo({ lat, lng });
     setInfoWindowData({ id, address, city, state, zip, name, status });
     setIsOpen(true);
   };
@@ -74,6 +79,7 @@ export default function Map({ clients }) {
       setMarkers(markers);
     };
     getMarkers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

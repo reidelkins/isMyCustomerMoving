@@ -67,6 +67,18 @@ ClientListToolbar.propTypes = {
   setStatusFilters: PropTypes.func,
   listOrMap: PropTypes.string,
   setListOrMap: PropTypes.func,
+  tagFilters: PropTypes.array,
+  setTagFilters: PropTypes.func,
+  zipCode: PropTypes.string,
+  setZipCode: PropTypes.func,
+  city: PropTypes.string,
+  setCity: PropTypes.func,
+  state: PropTypes.string,
+  setState: PropTypes.func,
+  customerSinceMin: PropTypes.string,
+  setCustomerSinceMin: PropTypes.func,
+  customerSinceMax: PropTypes.string,
+  setCustomerSinceMax: PropTypes.func,
 };
 
 export default function ClientListToolbar({

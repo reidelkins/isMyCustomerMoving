@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import PropTypes from 'prop-types';
 
 import { makeStyles } from '@mui/styles';
 import {
@@ -9,12 +10,9 @@ import {
   Checkbox,
   FormControl,
   FormControlLabel,
-  FormLabel,
   Grid,
   Input,
   InputLabel,
-  MenuItem,
-  Select,
   Typography,
   Tooltip,
   IconButton,
@@ -54,6 +52,32 @@ const useStyles = makeStyles((theme) => ({
     minWidth: '500px',
   },
 }));
+
+RecentlySoldDataFilter.propTypes = {
+  minPrice: PropTypes.string,
+  setMinPrice: PropTypes.func,
+  maxPrice: PropTypes.string,
+  setMaxPrice: PropTypes.func,
+  minYear: PropTypes.string,
+  setMinYear: PropTypes.func,
+  maxYear: PropTypes.string,
+  setMaxYear: PropTypes.func,
+  minDaysAgo: PropTypes.string,
+  setMinDaysAgo: PropTypes.func,
+  maxDaysAgo: PropTypes.string,
+  setMaxDaysAgo: PropTypes.func,
+  tagFilters: PropTypes.array,
+  setTagFilters: PropTypes.func,
+  zipCode: PropTypes.string,
+  setZipCode: PropTypes.func,
+  city: PropTypes.string,
+  setCity: PropTypes.func,
+  state: PropTypes.string,
+  setState: PropTypes.func,
+  savedFilter: PropTypes.string,
+  setSavedFilter: PropTypes.func,
+  recentlySoldFilters: PropTypes.array,
+};
 
 export default function RecentlySoldDataFilter({
   minPrice,
@@ -196,7 +220,7 @@ export default function RecentlySoldDataFilter({
   });
 
   const handleDaysAgoChange = (event, type) => {
-    const value = event.target.value;
+    const { value } = event.target;
     if (value < 0) {
       if (type === 'min') {
         handleChangeMinDaysAgo(0);

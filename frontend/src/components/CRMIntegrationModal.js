@@ -266,6 +266,7 @@ const Salesforce = ({ open, setOpen, dispatch }) => {
 Salesforce.propTypes = {
   open: PropTypes.bool.isRequired,
   setOpen: PropTypes.func.isRequired,
+  dispatch: PropTypes.func.isRequired,
 };
 
 const ComingSoon = () => (
@@ -363,7 +364,7 @@ const CRMIntegrationModal = ({ user }) => {
       crm: '',
     },
     validationSchema: crmSchema,
-    onSubmit: (values) => {
+    onSubmit: () => {
       // TODO
       // dispatch(sendSuggestion(values.crm));
       setOpen(false);
@@ -398,19 +399,19 @@ const CRMIntegrationModal = ({ user }) => {
     }
   };
 
-  useEffect(async () => {
-    if (window.location.href.includes('code')) {
-      const code = window.location.href.split('code=')[1];
-      // const config = {
-      //     headers: {
-      //         'Content-type': 'application/json',
-      //     },
-      // };
-      // const resp = await axios.get(`https://login.salesforce.com/services/oauth2/token?grant_type=authorization_code&client_id=${salesForce.key}&client_secret=${salesForce.secret}&redirect_uri=${window.location.href}&code=${code}`, config)
-      // console.log(resp.data)
-      // dispatch(salesForceTokenAsync(code));
-    }
-  }, [dispatch]);
+  // useEffect(async () => {
+  //   if (window.location.href.includes('code')) {
+  //     const code = window.location.href.split('code=')[1];
+  //     // const config = {
+  //     //     headers: {
+  //     //         'Content-type': 'application/json',
+  //     //     },
+  //     // };
+  //     // const resp = await axios.get(`https://login.salesforce.com/services/oauth2/token?grant_type=authorization_code&client_id=${salesForce.key}&client_secret=${salesForce.secret}&redirect_uri=${window.location.href}&code=${code}`, config)
+  //     // console.log(resp.data)
+  //     // dispatch(salesForceTokenAsync(code));
+  //   }
+  // }, [dispatch]);
 
   return (
     <div>

@@ -1,5 +1,4 @@
 /* eslint-disable camelcase */
-import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // material
@@ -22,7 +21,6 @@ import {
 } from '@mui/material';
 
 import { useSelector, useDispatch } from 'react-redux';
-import { DOMAIN } from '../redux/constants';
 
 // components
 import Page from '../components/Page';
@@ -93,7 +91,7 @@ export default function RecentlySoldData() {
     } else if (userInfo.otp_enabled && twoFA === false) {
       navigate('/login', { replace: true });
     }
-  }, [userInfo, dispatch, navigate]);
+  }, [userInfo, dispatch, navigate, twoFA]);
 
   const listRecentlySold = useSelector(selectRecentlySold);
   const { loading, RECENTLYSOLDLIST, count, recentlySoldFilters } = listRecentlySold;
@@ -108,7 +106,8 @@ export default function RecentlySoldData() {
 
   const [shownClients, setShownClients] = useState(0);
 
-  const [csvLoading, setCsvLoading] = useState(false);
+  // const [csvLoading, setCsvLoading] = useState(false);
+  const csvLoading = false;
 
   const [recentlySoldLength, setRecentlySoldLength] = useState(0);
 
@@ -118,7 +117,7 @@ export default function RecentlySoldData() {
       setShownClients(0);
     }
     setRecentlySoldLength(RECENTLYSOLDLIST.length);
-  }, [RECENTLYSOLDLIST]);
+  }, [RECENTLYSOLDLIST, recentlySoldLength]);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';

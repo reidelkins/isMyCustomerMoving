@@ -11,6 +11,7 @@ ClientDetailsTable.propTypes = {
   price: PropTypes.number,
   yearBuilt: PropTypes.number,
   housingType: PropTypes.string,
+  equipmentInstalledDate: PropTypes.string,
 };
 
 function ClientDetailsTable({ price, yearBuilt, housingType, equipmentInstalledDate }) {

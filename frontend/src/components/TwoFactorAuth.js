@@ -34,7 +34,7 @@ const TwoFactorAuth = ({ userInfo }) => {
     },
   });
 
-  const { errors, register, handleSubmit, getFieldProps } = formik;
+  const { errors, handleSubmit, getFieldProps } = formik;
 
   const generateQrCode = async () => {
     dispatch(generateQrCodeAsync());

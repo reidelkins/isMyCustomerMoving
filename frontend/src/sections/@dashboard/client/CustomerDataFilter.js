@@ -64,6 +64,18 @@ CustomerDataFilter.propTypes = {
   setEquipInstallDateMax: PropTypes.func,
   statusFilters: PropTypes.array,
   setStatusFilters: PropTypes.func,
+  tagFilters: PropTypes.array,
+  setTagFilters: PropTypes.func,
+  zipCode: PropTypes.string,
+  setZipCode: PropTypes.func,
+  city: PropTypes.string,
+  setCity: PropTypes.func,
+  state: PropTypes.string,
+  setState: PropTypes.func,
+  customerSinceMin: PropTypes.string,
+  setCustomerSinceMin: PropTypes.func,
+  customerSinceMax: PropTypes.string,
+  setCustomerSinceMax: PropTypes.func,
 };
 
 export default function CustomerDataFilter({
@@ -221,6 +233,7 @@ export default function CustomerDataFilter({
 
   const handleShowFilters = () => {
     if (product.product === 'price_1MhxfPAkLES5P4qQbu8O45xy') {
+      // eslint-disable-next-line no-alert
       alert('Please upgrade your plan to access this feature');
     } else {
       setShowFilters(true);

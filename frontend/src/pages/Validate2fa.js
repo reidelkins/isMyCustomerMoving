@@ -90,7 +90,7 @@ export default function Validate2fa() {
     } else {
       navigate('/login');
     }
-  }, [userInfo, twoFA]);
+  }, [userInfo, twoFA, navigate]);
 
   return (
     <Page title="Validate 2FA">

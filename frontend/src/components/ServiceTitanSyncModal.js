@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import PropTypes from 'prop-types';
 import {
   Button,
   Dialog,
@@ -32,9 +31,9 @@ const StyledListItem = styled.li`
   margin-bottom: 1em;
 `;
 
-ServiceTitanSyncModal.propTypes = {
-  serviceTitanCustomerSyncOption: PropTypes.string,
-};
+// ServiceTitanSyncModal.propTypes = {
+//   serviceTitanCustomerSyncOption: PropTypes.string,
+// };
 
 export default function ServiceTitanSyncModal(serviceTitanCustomerSyncOption) {
   const [open, setOpen] = useState(false);

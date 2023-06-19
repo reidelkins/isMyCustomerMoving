@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import { Button, Dialog, DialogTitle, Divider, DialogContent, Stack, Typography } from '@mui/material';
 import { useDispatch } from 'react-redux';
+import PropTypes from 'prop-types';
 
 import { updateClientAsync } from '../redux/actions/usersActions';
+
+IncorrectDataButton.propTypes = {
+  clientId: PropTypes.string,
+};
 
 function IncorrectDataButton({ clientId }) {
   const dispatch = useDispatch();

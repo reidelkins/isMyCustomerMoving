@@ -1,14 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Checkbox,
   LinearProgress,
-  Link,
-  TextField,
   Card,
-  Grid,
   Container,
   Typography,
   Stack,
@@ -43,7 +40,7 @@ export default function EnterpriseSettings() {
       navigate('/login', { replace: true });
       window.location.reload(true);
     }
-  }, [userInfo, dispatch, navigate]);
+  }, [userInfo, dispatch, navigate, twoFA]);
 
   const enterprise = useSelector(enterpriseInfo);
   const { name, companies, loading } = enterprise;

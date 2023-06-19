@@ -1,5 +1,5 @@
 import { Navigate, useRoutes } from 'react-router-dom';
-import { AuthenticationGuard } from './components/AuthenticationGuard';
+// import { AuthenticationGuard } from './components/AuthenticationGuard';
 // layouts
 import DashboardLayout from './layouts/dashboard';
 import LogoOnlyLayout from './layouts/LogoOnlyLayout';

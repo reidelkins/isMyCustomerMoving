@@ -87,18 +87,22 @@ const FileUploader = () => {
     event.preventDefault();
   };
 
-  useEffect(async () => {
-    if (!file) return;
-    const fileData = await readFile(file);
-    const lowerCaseHeaders = Object.keys(fileData[0]).map((header) => header.toLowerCase());
-    setHeaders(lowerCaseHeaders);
-    const fileType = file.name.split('.').pop();
-    if (fileType !== 'csv' && fileType !== 'xlsx' && fileType !== 'xls' && fileType !== 'xlsm') {
-      setError('Invalid file type');
-      setFile(null);
-    } else {
-      setError(null);
+  useEffect(() => {
+    async function fetchData() {
+      if (!file) return;
+      const fileData = await readFile(file);
+      const lowerCaseHeaders = Object.keys(fileData[0]).map((header) => header.toLowerCase());
+      setHeaders(lowerCaseHeaders);
+      const fileType = file.name.split('.').pop();
+      if (fileType !== 'csv' && fileType !== 'xlsx' && fileType !== 'xls' && fileType !== 'xlsm') {
+        setError('Invalid file type');
+        setFile(null);
+      } else {
+        setError(null);
+      }
     }
+
+    fetchData();
   }, [file]);
 
   const handleHeaderMappingChange = (event) => {
@@ -158,7 +162,7 @@ const FileUploader = () => {
   };
 
   const readFile = (file) => {
-    return new Promise((resolve, reject) => {
+    new Promise((resolve, reject) => {
       Papa.parse(file, {
         header: true,
         complete: (results) => {

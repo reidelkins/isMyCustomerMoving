@@ -70,7 +70,7 @@ export default function ProfileSettings() {
       navigate('/login', { replace: true });
       window.location.reload(true);
     }
-  }, [userInfo, dispatch, navigate]);
+  }, [userInfo, dispatch, navigate, twoFA]);
 
   const listUser = useSelector(selectUsers);
   const { loading, USERLIST } = listUser;

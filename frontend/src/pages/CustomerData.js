@@ -51,7 +51,7 @@ import {
   selectClients,
   update,
   updateClientAsync,
-  serviceTitanSync,
+  // serviceTitanSync,
   salesForceSync,
   clientsAsync,
   getClientsCSV,
@@ -114,7 +114,7 @@ export default function CustomerData() {
       navigate('/login', { replace: true });
       window.location.reload(true);
     }
-  }, [userInfo, dispatch, navigate]);
+  }, [userInfo, dispatch, navigate, twoFA]);
 
   const [TABLE_HEAD, setTABLE_HEAD] = useState([
     { id: 'name', label: 'Name', alignRight: false },
@@ -184,7 +184,8 @@ export default function CustomerData() {
 
   const [expandedRow, setExpandedRow] = useState(null);
 
-  const [csvLoading, setCsvLoading] = useState(false);
+  // const [csvLoading, setCsvLoading] = useState(false);
+  const csvLoading = false;
 
   const [alertOpen, setAlertOpen] = useState(false);
 
