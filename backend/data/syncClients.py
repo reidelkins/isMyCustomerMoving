@@ -70,8 +70,12 @@ def get_salesforce_clients(company_id, task_id=None):
 
     saveClientList(clients, company_id)
 
-    # bulk = SalesforceBulk(sessionId="https://login.salesforce.com/id/00DDn00000DsoYnMAJ/005Dn000007Eo6XIAS", host="https://ismycustomermoving-dev-ed.develop.my.salesforce.com")
-    # job = bulk.create_query_job("Contact", contentType='JSON')
+    # bulk = SalesforceBulk(
+    #     sessionId="""https://login.salesforce.com/
+    #           id/00DDn00000DsoYnMAJ/005Dn000007Eo6XIAS""",
+    #     host="https://ismycustomermoving-dev-ed.develop.my.salesforce.com",
+    # )
+    # job = bulk.create_query_job("Contact", contentType="JSON")
     # batch = bulk.query(job, "select Id,LastName from Contact")
     # bulk.close_job(job)
     # while not bulk.is_batch_done(batch):
@@ -80,7 +84,7 @@ def get_salesforce_clients(company_id, task_id=None):
     # for result in bulk.get_all_results_for_query_batch(batch):
     #     result = json.load(IteratorBytesIO(result))
     #     for row in result:
-    #         print(row) # dictionary rows
+    #         print(row)  # dictionary rows
 
 
 @shared_task
@@ -99,7 +103,8 @@ def get_serviceTitan_clients(company_id, task_id, option=None, automated=False):
     page = 1
     while moreClients:
         response = requests.get(
-            f"https://api.servicetitan.io/crm/v2/tenant/{tenant}/locations?page={page}&pageSize=2500",
+            f"""https://api.servicetitan.io/crm/
+            v2/tenant/{tenant}/locations?page={page}&pageSize=2500""",
             headers=headers,
         )
         page += 1
@@ -130,7 +135,8 @@ def get_serviceTitan_clients(company_id, task_id, option=None, automated=False):
         while moreClients:
             page += 1
             response = requests.get(
-                f"https://api.servicetitan.io/crm/v2/tenant/{tenant}/export/customers/contacts?from={frm}",
+                f"""https://api.servicetitan.io/crm/
+                v2/tenant/{tenant}/export/customers/contacts?from={frm}""",
                 headers=headers,
             )
             # for number in response.json()['data']:
@@ -187,7 +193,8 @@ def update_clients_with_first_invoice_date(company_id):
 
     while moreInvoices:
         invoices = []
-        url = f"https://api.servicetitan.io/accounting/v2/tenant/{tenant}/invoices?page={page}&pageSize=2500"
+        url = f"""https://api.servicetitan.io/accounting/
+        v2/tenant/{tenant}/invoices?page={page}&pageSize=2500"""
         response = requests.get(url, headers=headers)
         page += 1
         for invoice in response.json()["data"]:
@@ -269,7 +276,9 @@ def get_servicetitan_equipment(company_id):
     page = 1
     while moreEquipment:
         response = requests.get(
-            f"https://api.servicetitan.io/equipmentsystems/v2/tenant/{tenant}/installed-equipment?page={page}&pageSize=2500",
+            f"""https://api.servicetitan.io/equipmentsystems/
+            v2/tenant/{tenant}/installed-equipment?page={page}
+            &pageSize=2500""",
             headers=headers,
         )
         # additional option &modifiedOnOrAfter=2000-1-1T00:00:14-05:00
@@ -297,7 +306,9 @@ def get_serviceTitan_invoices(company_id):
     page = 1
     invoices = []
     while moreInvoices:
-        url = f"https://api.servicetitan.io/accounting/v2/tenant/{tenant}/invoices?page={page}&pageSize=2500&invoicedOnOrAfter={rfc3339}"
+        url = f"""https://api.servicetitan.io/accounting/
+        v2/tenant/{tenant}/invoices?page={page}&
+        pageSize=2500&invoicedOnOrAfter={rfc3339}"""
         response = requests.get(url, headers=headers)
         page += 1
         for invoice in response.json()["data"]:

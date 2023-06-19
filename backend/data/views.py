@@ -95,8 +95,11 @@ class ClientListView(generics.ListAPIView):
 
         queryset = filter_clients(query_params, queryset)
         # TODO
-        # if 'tags' in query_params:
-        #     tags = [tag.replace('[', '').replace(']', '').replace(' ', '_') for tag in query_params.get('tags', '').split(',')]
+        # if "tags" in query_params:
+        #     tags = [
+        #         tag.replace("[", "").replace("]", "").replace(" ", "_")
+        #         for tag in query_params.get("tags", "").split(",")
+        #     ]
         #     queryset = queryset.filter(tag__tag__in=tags)
         try:
             if user.company.product.id == "price_1MhxfPAkLES5P4qQbu8O45xy":
@@ -469,16 +472,27 @@ class ServiceTitanView(APIView):
                     return Response(
                         {
                             "status": "SUCCESS",
-                            "data": "Clients Synced! Come back in about an hour to see your results.",
+                            "data": """Clients Synced! 
+                                Come back in about an hour to see your results.""",
                             "deleted": deleted,
                         },
                         status=status.HTTP_201_CREATED,
                         headers="",
                     )
                 else:
-                    # clients = Company.objects.get(id="faee8ca7-e5de-4c60-8578-0ac6bc576930").client_set.all()
+                    # clients = Company.objects.get(
+                    #     id="faee8ca7-e5de-4c60-8578-0ac6bc576930"
+                    # ).client_set.all()
                     # if clients.count() > 0:
-                    #     return Response({"status": "UNFINISHED", "clients": ClientListSerializer(clients[:1000], many=True).data}, status=status.HTTP_201_CREATED)
+                    #     return Response(
+                    #         {
+                    #             "status": "UNFINISHED",
+                    #             "clients": ClientListSerializer(
+                    #                 clients[:1000], many=True
+                    #             ).data,
+                    #         },
+                    #         status=status.HTTP_201_CREATED,
+                    #     )
                     return Response(
                         {"status": "UNFINISHED", "clients": []},
                         status=status.HTTP_201_CREATED,
@@ -553,7 +567,11 @@ class SalesforceConsumerView(APIView):
 
                 # Make the request
                 response = requests.post(
-                    f"https://login.salesforce.com/services/oauth2/token?grant_type=authorization_code&client_id={settings.SALESFORCE_CONSUMER_KEY}&client_secret={settings.SALESFORCE_CONSUMER_SECRET}&redirect_uri=http://localhost:3000/dashboard/settings&code={code}",
+                    f"""https://login.salesforce.com/services/oauth2/
+                    token?grant_type=authorization_code&
+                    client_id={settings.SALESFORCE_CONSUMER_KEY}&
+                    client_secret={settings.SALESFORCE_CONSUMER_SECRET}&
+                    redirect_uri=http://localhost:3000/dashboard/settings&code={code}""",
                     headers=headers,
                 )
 

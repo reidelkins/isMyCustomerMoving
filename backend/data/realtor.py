@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from celery import shared_task
 from datetime import datetime, timedelta
 from django.core.exceptions import MultipleObjectsReturned
-from django.db.models import Q
+
 from django.db import transaction
 import json
 import logging
@@ -43,9 +43,10 @@ def getAllZipcodes(company, zip=None):
         zips = list(zipCodes.order_by("zipCode").values("zipCode"))
         zipCodes.update(lastUpdated=datetime.today().strftime("%Y-%m-%d"))
         # zips = [{'zipCode': '37919'}]
-    except:
+    except Exception as e:
         if zip:
             zips = [{"zipCode": str(zip)}]
+        logging.error(e)
     for i in range(len(zips) * 2):
         # for i in range(len(zips)):
         extra = ""
@@ -103,7 +104,9 @@ def find_data(zip, i, status, url, extra):
             )
         content = first_result.scrape_result["content"]
         soup = BeautifulSoup(content, features="html.parser")
-        # resp = ScrapeResponse.objects.create(response=str(content), zip=zip, status=status, url=first_page)
+        # resp = ScrapeResponse.objects.create(
+        #     response=str(content), zip=zip, status=status, url=first_page
+        # )
         if "pg-1" not in first_result.context["url"]:
             url = first_result.context["url"] + "/pg-1"
         else:
@@ -153,7 +156,9 @@ def find_data(zip, i, status, url, extra):
                     )
                 )
             content = new_results.scrape_result["content"]
-            # resp = ScrapeResponse.objects.create(response=str(content), zip=zip, status=status, url=page_url)
+            # resp = ScrapeResponse.objects.create(
+            #     response=str(content), zip=zip, status=status, url=page_url
+            # )
             parsed = parse_search(new_results, status)
             if status == "For Rent":
                 results = parsed["properties"]
@@ -199,7 +204,10 @@ def create_home_listings(results, status, resp=None):
                         dateCompare = datetime.strptime(
                             listType, "%Y-%m-%dT%H:%M:%SZ"
                         )
-                    except:
+                    except Exception as e:
+                        logging.error(
+                            f"ERROR during create_home_listings: {e} with zipCode {zip_object}"
+                        )
                         dateCompare = datetime.strptime(listType, "%Y-%m-%d")
                     if dateCompare < two_years_ago:
                         continue
@@ -210,7 +218,10 @@ def create_home_listings(results, status, resp=None):
                             dateCompare = datetime.strptime(
                                 listType, "%Y-%m-%dT%H:%M:%SZ"
                             )
-                        except:
+                        except Exception as e:
+                            logging.error(
+                                f"ERROR during create_home_listings: {e} with zipCode {zip_object}"
+                            )
                             dateCompare = datetime.strptime(
                                 listType, "%Y-%m-%d"
                             )
@@ -218,7 +229,7 @@ def create_home_listings(results, status, resp=None):
                             continue
             else:
                 listType = listing["list_date"]
-            if listType == None:
+            if listType is None:
                 listType = "2022-01-01"
 
             price = (
@@ -346,7 +357,8 @@ def parse_search(result: ScrapeApiResponse, searchType: str) -> SearchResults:
     data = result.selector.css("script#__NEXT_DATA__::text").get()
     if not data:
         logging.error(
-            f"page {result.context['url']} is not a property listing page: Not Data"
+            f"""page {result.context['url']}
+              is not a property listing page: Not Data"""
         )
         return
 
@@ -359,7 +371,8 @@ def parse_search(result: ScrapeApiResponse, searchType: str) -> SearchResults:
         return data
     except KeyError:
         logging.error(
-            f"page {result.context['url']} is not a property listing page: KeyError"
+            f"""page {result.context['url']} is not
+              a property listing page: KeyError"""
         )
         return False
 
@@ -403,12 +416,15 @@ def get_realtor_property_records(address, city, state):
                 ).update(permalink=property["permalink"])
 
                 logging.error(
-                    f"ERROR: Multiple objects returned for {property['streetAddress']}, {property['city']}, {property['state']}, {property['zipCode']}"
+                    f"""ERROR: Multiple objects returned for 
+                    {property['streetAddress']}, {property['city']},
+                      {property['state']}, {property['zipCode']} {e}"""
                 )
 
 
 def get_realtor_property_records_loop(city, state, street, page, scrapfly):
-    url = f"https://www.realtor.com/propertyrecord-search/{city}_{state}/{street}/pg-{page}"
+    url = f"""https://www.realtor.com/propertyrecord-search
+    /{city}_{state}/{street}/pg-{page}"""
     result = scrapfly.scrape(
         ScrapeConfig(
             url, country="US", asp=False, proxy_pool="public_datacenter_pool"
@@ -440,9 +456,8 @@ def get_realtor_property_records_loop(city, state, street, page, scrapfly):
 
 def get_realtor_property_details(listingId, scrapfly):
     listing = HomeListing.objects.get(id=listingId)
-    url = (
-        f"https://www.realtor.com/realestateandhomes-detail/{listing.permalink}"
-    )
+    url = f"""https://www.realtor.com/
+        realestateandhomes-detail/{listing.permalink}"""
     result = scrapfly.scrape(
         ScrapeConfig(
             url, country="US", asp=False, proxy_pool="public_datacenter_pool"

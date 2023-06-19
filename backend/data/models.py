@@ -3,9 +3,6 @@ from django.core.exceptions import ValidationError
 import uuid
 from datetime import datetime, timedelta
 
-from django.forms import JSONField
-
-
 # from accounts.models import Company
 STATUS = [
     ("House For Sale", "House For Sale"),
@@ -256,7 +253,8 @@ class Referral(models.Model):
     )
     contacted = models.BooleanField(default=False)
 
-    # on save, make sure both the referredFrom and referredTo are not the same and they are part of the franchise
+    # on save, make sure both the referredFrom and referredTo
+    #  are not the same and they are part of the franchise
     def save(self, *args, **kwargs):
         if self.referredFrom == self.referredTo:
             raise ValidationError(

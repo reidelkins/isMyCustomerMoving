@@ -32,7 +32,7 @@ def delVariables(vars):
     for var in vars:
         try:
             del var
-        except:
+        except NameError:
             pass
     gc.collect()
 
@@ -118,7 +118,10 @@ def deleteExtraClients(companyID, taskID=None):
             ).update(active=False)
             admins = CustomUser.objects.filter(company=company, status="admin")
             mail_subject = "IMCM Clients Deleted"
-            messagePlain = "Your company has exceeded the number of clients allowed for your subscription. The oldest clients have been deleted. You can upgrade your subscription at any time to increase the number of clients you can have."
+            messagePlain = """Your company has exceeded the number of clients
+              allowed for your subscription. The oldest clients have been deleted.
+                You can upgrade your subscription at any time to increase the number
+                of clients you can have."""
             message = get_template("clientsDeleted.html").render(
                 {"deletedClients": deletedClients}
             )
@@ -131,7 +134,8 @@ def deleteExtraClients(companyID, taskID=None):
                     html_message=message,
                     fail_silently=False,
                 )
-    except:
+    except Exception as e:
+        print(e)
         deletedClients = 0
     if taskID:
         task = Task.objects.get(id=taskID)
@@ -196,7 +200,7 @@ def formatZip(zip):
             elif len(zip) != 5:
                 return False
         return zip
-    except:
+    except ValueError:
         return False
 
 
@@ -238,7 +242,7 @@ def saveClientList(clients, company_id, task=None):
                     state = clients[i]["address"]["state"]
                     name = clients[i]["name"]
                     if (
-                        clients[i]["address"]["zip"] == None
+                        clients[i]["address"]["zip"] is None
                         or not street
                         or not zip
                         or not city
@@ -281,7 +285,7 @@ def saveClientList(clients, company_id, task=None):
                 else:
                     phoneNumber = ""
                 if (
-                    clients[i]["zip code"] == None
+                    clients[i]["zip code"] is None
                     or not street
                     or not zip
                     or not city
@@ -321,7 +325,8 @@ def updateClientList(numbers):
             phoneNumbers[number["customerId"]] = number["phoneSettings"][
                 "phoneNumber"
             ]
-        except:
+        except Exception as e:
+            logging.error(f"update error {e}")
             continue
     clients = Client.objects.filter(servTitanID__in=list(phoneNumbers.keys()))
     for client in clients:
@@ -367,7 +372,8 @@ def updateStatus(zip, company, status):
         error_flag=False,
     )
     newlyListed = clientsToUpdate.difference(previousListed)
-    # TODO add logic so if date for one listing is older than date of other, it will not update status
+    # TODO add logic so if date for one listing is
+    #  older than date of other, it will not update status
     for toList in newlyListed:
         existingUpdates = ClientUpdate.objects.filter(
             client=toList,
@@ -420,14 +426,19 @@ def updateStatus(zip, company, status):
                 client=toList, status=status, listed=listing[0].listed
             )
         except Exception as e:
-            logging.error("Cant find listing to list")
+            logging.error(f"Cant find listing to list {e}")
             logging.error("This should not be the case")
-    # TODO There is an issue where clients uploaded with wrong zip code and are being marked to be unlisted when they should not be
+    # TODO There is an issue where clients uploaded with
+    #  wrong zip code and are being marked
+    #  to be unlisted when they should not be
     # unlisted = previousListed.difference(clientsToUpdate)
     # for toUnlist in unlisted:
     #     toUnlist.status = "Taken Off Market"
     #     toUnlist.save()
-    #     ClientUpdate.objects.create(client=toUnlist, status="Taken Off Market")
+    #     ClientUpdate.objects.create(
+    #         client=toUnlist,
+    #         status="Taken Off Market"
+    #     )
 
     clientsToUpdate = list(
         clientsToUpdate.values_list("servTitanID", flat=True)
@@ -486,7 +497,8 @@ def update_clients_statuses(company_id=None):
                     )
         except Exception as e:
             logging.error(
-                f"ERROR during update_clients_statuses: {e} with company {company}"
+                f"""ERROR during update_clients_statuses:
+                  {e} with company {company}"""
             )
             logging.error(traceback.format_exc())
 
@@ -583,16 +595,16 @@ def auto_update(company_id=None, zip=None):
             company = Company.objects.get(id=company_id)
             getAllZipcodes(company_id)
 
-        except:
-            logging.error("Company does not exist")
+        except Exception as e:
+            logging.error(f"Company does not exist {e}")
             return
         delVariables([company_id, company])
     elif zip:
         try:
             ZipCode.objects.get_or_create(zipCode=zip)
             getAllZipcodes("", zip=zip)
-        except:
-            logging.error("Zip does not exist")
+        except Exception as e:
+            logging.error(f"Zip does not exist {e}")
             return
     else:
         company, companies = "", ""
@@ -619,7 +631,9 @@ def get_serviceTitan_accessToken(company):
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
     }
-    data = f"grant_type=client_credentials&client_id={company.clientID}&client_secret={company.clientSecret}"
+    data = f"""grant_type=client_credentials&
+        client_id={company.clientID}&
+        client_secret={company.clientSecret}"""
     response = requests.post(
         "https://auth.servicetitan.io/connect/token", headers=headers, data=data
     )
@@ -660,7 +674,8 @@ def update_serviceTitan_client_tags(forSale, company, status):
                     "tagTypeIds": [str(company.serviceTitanForSaleTagID)],
                 }
                 response = requests.delete(
-                    f"https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags",
+                    f"""https://api.servicetitan.io/crm/
+                    v2/tenant/{str(company.tenantID)}/tags""",
                     headers=headers,
                     json=payload,
                 )
@@ -685,7 +700,8 @@ def update_serviceTitan_client_tags(forSale, company, status):
                         "tagTypeIds": tagType,
                     }
                     response = requests.delete(
-                        f"https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags",
+                        f"""https://api.servicetitan.io/crm/
+                        v2/tenant/{str(company.tenantID)}/tags""",
                         headers=headers,
                         json=payload,
                     )
@@ -693,7 +709,8 @@ def update_serviceTitan_client_tags(forSale, company, status):
                         logging.error(response.json())
             payload = {"customerIds": forSale, "tagTypeIds": tagType}
             response = requests.put(
-                f"https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags",
+                f"""https://api.servicetitan.io/crm/
+                v2/tenant/{str(company.tenantID)}/tags""",
                 headers=headers,
                 json=payload,
             )
@@ -719,13 +736,15 @@ def update_serviceTitan_client_tags(forSale, company, status):
                         "tagTypeIds": [str(company.serviceTitanForSaleTagID)],
                     }
                     response = requests.delete(
-                        f"https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags",
+                        f"""https://api.servicetitan.io/crm/
+                        v2/tenant/{str(company.tenantID)}/tags""",
                         headers=headers,
                         json=payload,
                     )
                 payload = {"customerIds": forSale, "tagTypeIds": tagType}
                 response = requests.put(
-                    f"https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags",
+                    f"""https://api.servicetitan.io/crm/
+                    v2/tenant/{str(company.tenantID)}/tags""",
                     headers=headers,
                     json=payload,
                 )
@@ -756,7 +775,8 @@ def add_serviceTitan_contacted_tag(client, tagId):
     headers = get_serviceTitan_accessToken(client.company.id)
     payload = {"customerIds": [str(client.id)], "tagTypeIds": [str(tagId)]}
     requests.put(
-        f"https://api.servicetitan.io/crm/v2/tenant/{str(client.company.tenantID)}/tags",
+        f"""https://api.servicetitan.io/crm/
+        v2/tenant/{str(client.company.tenantID)}/tags""",
         headers=headers,
         json=payload,
     )
@@ -778,7 +798,8 @@ def remove_all_serviceTitan_tags(company=None, client=None):
                     [str(company.serviceTitanRecentlySoldTagID)],
                 ]
                 for tag in tagTypes:
-                    # get a list of all the servTitanIDs for the clients with one from this company
+                    # get a list of all the servTitanIDs
+                    # for the clients with one from this company
                     clients = list(
                         Client.objects.filter(company=company)
                         .exclude(servTitanID=None)
@@ -792,7 +813,8 @@ def remove_all_serviceTitan_tags(company=None, client=None):
                         x = clients[i * 250 : (i + 1) * 250]
                         payload = {"customerIds": x, "tagTypeIds": tag}
                         response = requests.delete(
-                            f"https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags",
+                            f"""https://api.servicetitan.io/crm/
+                            v2/tenant/{str(company.tenantID)}/tags""",
                             headers=headers,
                             json=payload,
                         )
@@ -815,7 +837,8 @@ def remove_all_serviceTitan_tags(company=None, client=None):
                             if x:
                                 payload = {"customerIds": x, "tagTypeIds": tag}
                                 response = requests.delete(
-                                    f"https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tags",
+                                    f"""https://api.servicetitan.io/crm/
+                                    v2/tenant/{str(company.tenantID)}/tags""",
                                     headers=headers,
                                     json=payload,
                                 )
@@ -844,7 +867,8 @@ def remove_all_serviceTitan_tags(company=None, client=None):
                     "tagTypeIds": tag,
                 }
                 response = requests.delete(
-                    f"https://api.servicetitan.io/crm/v2/tenant/{str(client.company.tenantID)}/tags",
+                    f"""https://api.servicetitan.io/crm/
+                    v2/tenant/{str(client.company.tenantID)}/tags""",
                     headers=headers,
                     json=payload,
                 )
@@ -861,21 +885,35 @@ def update_serviceTitan_tasks(clients, company, status):
         try:
             headers = get_serviceTitan_accessToken(company.id)
             response = requests.get(
-                f"https://api.servicetitan.io/taskmanagement/v2/tenant/{str(company.tenantID)}/data",
+                f"""https://api.servicetitan.io/taskmanagement/
+                v2/tenant/{str(company.tenantID)}/data""",
                 headers=headers,
             )
             with open("tasks.json", "w") as f:
                 json.dump(response.json(), f)
             # if response.status_code != 200:
             #     resp = response.json()
-            #     error = resp['errors'][''][0]
-            #     error = error.replace('(', "").replace(')', "").replace(',', " ").replace(".", "").split()
+            #     error = resp["errors"][""][0]
+            #     error = (
+            #         error.replace("(", "")
+            #         .replace(")", "")
+            #         .replace(",", " ")
+            #         .replace(".", "")
+            #         .split()
+            #     )
             #     for word in error:
             #         if word.isdigit():
             #             Client.objects.filter(servTitanID=word).delete()
             #             forSale.remove(word)
-            #     payload={'customerIds': forSale, 'taskTypeId': str(company.serviceTitanTaskID)}
-            #     response = requests.put(f'https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tasks', headers=headers, json=payload)
+            #     payload = {
+            #         "customerIds": forSale,
+            #         "taskTypeId": str(company.serviceTitanTaskID),
+            #     }
+            #     response = requests.put(
+            #         f"https://api.servicetitan.io/crm/v2/tenant/{str(company.tenantID)}/tasks",
+            #         headers=headers,
+            #         json=payload,
+            #     )
         except Exception as e:
             logging.error("updating service titan tasks failed")
             logging.error(f"ERROR: {e}")
@@ -883,7 +921,8 @@ def update_serviceTitan_tasks(clients, company, status):
     delVariables([headers, data, response, company, status])
 
 
-# send email to every customuser with the html file that has the same name as the template
+# send email to every customuser with the html
+# file that has the same name as the template
 def send_update_email(templateName):
     try:
         users = list(
@@ -892,7 +931,9 @@ def send_update_email(templateName):
             )
         )
         mail_subject = "Is My Customer Moving Product Updates"
-        messagePlain = "Thank you for signing up for Is My Customer Moving. We have some updates for you. Please visit https://app.ismycustomermoving.com/ to see them."
+        messagePlain = """Thank you for signing up for Is My Customer Moving.
+          We have some updates for you. Please visit 
+          https://app.ismycustomermoving.com/ to see them."""
         message = get_template(f"{templateName}.html").render()
         for user in users:
             send_mail(
@@ -967,7 +1008,7 @@ def filter_recentlysold(query_params, queryset, company):
     if "tags" in query_params:
         try:
             tags = query_params["tags"].split(",")
-        except:
+        except Exception as e:
             tags = query_params["tags"]
         if tags != [""]:
             matching_tags = HomeListingTags.objects.filter(tag__in=tags)
