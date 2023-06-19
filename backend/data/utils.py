@@ -1,3 +1,4 @@
+from re import sub
 from time import sleep
 from accounts.models import Company, CustomUser
 from config import settings
@@ -36,15 +37,47 @@ def delVariables(vars):
     gc.collect()
 
 
-def findClientCount(subscriptionType):
-    if subscriptionType == "Small Business":
+def findClientCount(subscriptionProduct):
+    if (
+        subscriptionProduct.amount == 150
+        and subscriptionProduct.interval == "month"
+    ) or (
+        subscriptionProduct.amount == 1650
+        and subscriptionProduct.interval == "year"
+    ):
         ceiling = 5000
-    elif subscriptionType == "Franchise":
+    elif (
+        subscriptionProduct.amount == 250
+        and subscriptionProduct.interval == "month"
+    ) or (
+        subscriptionProduct.amount == 2750
+        and subscriptionProduct.interval == "year"
+    ):
         ceiling = 10000
-    elif subscriptionType == "Large Business":
+    elif (
+        subscriptionProduct.amount == 400
+        and subscriptionProduct.interval == "month"
+    ) or (
+        subscriptionProduct.amount == 4400
+        and subscriptionProduct.interval == "year"
+    ):
         ceiling = 20000
-    # elif subscriptionType == "Free Tier":
-    #     ceiling = 100
+    elif (
+        subscriptionProduct.amount == 1500
+        and subscriptionProduct.interval == "month"
+    ) or (
+        subscriptionProduct.amount == 16500
+        and subscriptionProduct.interval == "year"
+    ):
+        ceiling = 150000
+    elif (
+        subscriptionProduct.amount == 5000
+        and subscriptionProduct.interval == "month"
+    ) or (
+        subscriptionProduct.amount == 55000
+        and subscriptionProduct.interval == "year"
+    ):
+        ceiling = 500000
     else:
         ceiling = 100000
     return ceiling
@@ -76,9 +109,7 @@ def deleteExtraClients(companyID, taskID=None):
     try:
         company = Company.objects.get(id=companyID)
         clients = Client.objects.filter(company=company, active=True)
-        deletedClients = findClientsToDelete(
-            clients.count(), company.product.product.name
-        )
+        deletedClients = findClientsToDelete(clients.count(), company.product)
         if deletedClients > 0:
             Client.objects.filter(
                 id__in=list(
@@ -229,6 +260,12 @@ def saveClientList(clients, company_id, task=None):
                     )
             # file upload
             else:
+                if i % 1000 == 0:
+                    Client.objects.bulk_create(
+                        clientsToAdd, ignore_conflicts=True
+                    )
+                    clientsToAdd = []
+                    print(i)
                 street = parseStreets((str(clients[i]["address"])).title())
                 if street.lower() in badStreets:
                     continue
@@ -239,6 +276,8 @@ def saveClientList(clients, company_id, task=None):
                 name = clients[i]["name"]
                 if "phone number" in clients[i]:
                     phoneNumber = clients[i]["phone number"]
+                    # remove anything that is not a number with regex
+                    phoneNumber = sub("[^0-9]", "", phoneNumber)
                 else:
                     phoneNumber = ""
                 if (

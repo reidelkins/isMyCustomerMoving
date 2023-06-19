@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import {useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 // material
 import { styled } from '@mui/material/styles';
 import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput } from '@mui/material';
@@ -27,14 +27,12 @@ UserListToolbar.propTypes = {
 
 export default function UserListToolbar({ numSelected, selectedUsers }) {
   const dispatch = useDispatch();
-  
 
   const clickDelete = (event, Users) => {
     dispatch(deleteUserAsync(Users));
     setTimeout(() => {
       window.location.reload();
     }, 200);
-
   };
 
   return (
@@ -50,15 +48,15 @@ export default function UserListToolbar({ numSelected, selectedUsers }) {
         <Typography component="div" variant="subtitle1">
           {numSelected} selected
         </Typography>
-      ) }
+      )}
 
       {numSelected > 0 && (
         <Tooltip title="Delete">
-          <IconButton onClick={(event)=>clickDelete(event, selectedUsers)}>
+          <IconButton onClick={(event) => clickDelete(event, selectedUsers)}>
             <Iconify icon="eva:trash-2-fill" />
           </IconButton>
         </Tooltip>
-      ) }
+      )}
     </RootStyle>
   );
 }

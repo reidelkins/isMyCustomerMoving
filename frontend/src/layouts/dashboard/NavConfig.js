@@ -59,4 +59,3 @@ export const navConfig = [
     icon: getIcon('ri:user-settings-fill'),
   },
 ];
-

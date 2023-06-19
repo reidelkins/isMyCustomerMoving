@@ -1,11 +1,11 @@
 import * as Yup from 'yup';
-import { useEffect } from "react";
+import { useEffect } from 'react';
 import { styled } from '@mui/material/styles';
-import { useNavigate } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import { useFormik, Form, FormikProvider } from 'formik';
 
-import { Box, TextField, Button, Stack, Card, Typography, Container } from "@mui/material";
+import { Box, TextField, Button, Stack, Card, Typography, Container } from '@mui/material';
 // import { LoadingButton } from "../components/LoadingButton";
 import { showLoginInfo, validateOtp } from '../redux/actions/authActions';
 import useResponsive from '../hooks/useResponsive';
@@ -53,44 +53,44 @@ const ContentStyle = styled('div')(({ theme }) => ({
   padding: theme.spacing(12, 0),
 }));
 
-export default function Validate2fa(){
+export default function Validate2fa() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const mdUp = useResponsive('up', 'md');
 
   const userLogin = useSelector(showLoginInfo);
-  const {userInfo, twoFA, error } = userLogin;
+  const { userInfo, twoFA, error } = userLogin;
 
   const twoFactorAuthSchema = Yup.object().shape({
     token: Yup.string()
-        .required("Token is required")
-        .length(6, "Token must be 6 characters long")
-        .matches(/^[0-9]+$/, "Token must contain only numbers"),
-    });
+      .required('Token is required')
+      .length(6, 'Token must be 6 characters long')
+      .matches(/^[0-9]+$/, 'Token must contain only numbers'),
+  });
 
-    const formik = useFormik({
+  const formik = useFormik({
     initialValues: {
-        token: "",
+      token: '',
     },
     validationSchema: twoFactorAuthSchema,
     onSubmit: (values) => {
-        console.log("Verify OTP", values.token);
-        dispatch(validateOtp(values.token));
+      console.log('Verify OTP', values.token);
+      dispatch(validateOtp(values.token));
     },
-    });
+  });
 
-    const { errors, handleSubmit, getFieldProps } = formik;
+  const { errors, handleSubmit, getFieldProps } = formik;
 
-    useEffect(() => {
-      if (userInfo) {
-        if (twoFA) {
-          navigate("/dashboard/customers")
-        }
-      } else {
-        navigate("/login")
+  useEffect(() => {
+    if (userInfo) {
+      if (twoFA) {
+        navigate('/dashboard/customers');
       }
-    }, [userInfo, twoFA])
+    } else {
+      navigate('/login');
+    }
+  }, [userInfo, twoFA]);
 
   return (
     <Page title="Validate 2FA">
@@ -114,34 +114,28 @@ export default function Validate2fa(){
 
             <Typography sx={{ color: 'text.secondary', mb: 5 }}> </Typography>
 
-            <FormikProvider value={formik} >
-              <Form autoComplete="off" noValidate onSubmit={handleSubmit} >
-                  <Box marginLeft={5}>
-                      <TextField
-                      label="Authentication Code"
-                      margin="normal"
-                      name="token"
-                      type="text"
-                      {...getFieldProps("token")}
-                      error={Boolean(errors.token)}
-                      helperText={errors.token}
-                      
+            <FormikProvider value={formik}>
+              <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
+                <Box marginLeft={5}>
+                  <TextField
+                    label="Authentication Code"
+                    margin="normal"
+                    name="token"
+                    type="text"
+                    {...getFieldProps('token')}
+                    error={Boolean(errors.token)}
+                    helperText={errors.token}
                   />
-                  </Box>
-                  
+                </Box>
               </Form>
             </FormikProvider>
             <Stack direction="row" justifyContent="center">
-                <Button onClick={handleSubmit}>Verify</Button>
+              <Button onClick={handleSubmit}>Verify</Button>
             </Stack>
             {error && <Typography color="error">{error}</Typography>}
-            
-
-            
           </ContentStyle>
-        </Container>        
+        </Container>
       </RootStyle>
     </Page>
   );
-};
-
+}

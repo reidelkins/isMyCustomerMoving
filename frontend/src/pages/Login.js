@@ -1,13 +1,12 @@
-import React, {useEffect} from 'react';
+import React, { useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { useSelector } from "react-redux";
+import { useSelector } from 'react-redux';
 
 // @mui
 import { styled } from '@mui/material/styles';
 import { Card, Link, Container, Typography, Button } from '@mui/material';
 
 import { showLoginInfo } from '../redux/actions/authActions';
-
 
 // hooks
 import useResponsive from '../hooks/useResponsive';
@@ -17,7 +16,7 @@ import Logo from '../components/Logo';
 import { LoginForm } from '../sections/auth/login';
 // import Facebook from "../components/social-media/Facebook";
 // import Twitter from "../components/social-media/Twitter";
-import Google from "../components/social-media/Google";
+import Google from '../components/social-media/Google';
 
 // ----------------------------------------------------------------------
 
@@ -64,7 +63,7 @@ const ContentStyle = styled('div')(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 
-export default function Login() {  
+export default function Login() {
   const smUp = useResponsive('up', 'sm');
 
   const mdUp = useResponsive('up', 'md');
@@ -73,12 +72,10 @@ export default function Login() {
   const { userInfo } = userLogin;
 
   useEffect(() => {
-    if(userInfo) {
-      navigate('/dashboard/customers', { replace: true })
+    if (userInfo) {
+      navigate('/dashboard/customers', { replace: true });
     }
-    
   }, [userInfo]);
-  
 
   return (
     <Page title="Login">
@@ -87,13 +84,15 @@ export default function Login() {
           <Logo />
         </HeaderStyle>
 
-        {mdUp && (         
+        {mdUp && (
           <SectionStyle>
             <Typography variant="h2" sx={{ px: 5, mt: 10, mb: 5 }}>
-              <span >Don't Lose Your Customers,</span>{" "}
-              <span style={{color:"#8ce8c5"}}>Move With Them!</span>            
+              <span>Don't Lose Your Customers,</span> <span style={{ color: '#8ce8c5' }}>Move With Them!</span>
             </Typography>
-            <Typography variant="body1" sx={{mx:4}}>We instantly notify you when your customers list their home for sale, so you can be the first one to the new home.</Typography>
+            <Typography variant="body1" sx={{ mx: 4 }}>
+              We instantly notify you when your customers list their home for sale, so you can be the first one to the
+              new home.
+            </Typography>
             <img src="/static/illustrations/illustration_login.png" alt="login" />
           </SectionStyle>
         )}
@@ -103,7 +102,7 @@ export default function Login() {
             <Typography variant="h2" gutterBottom>
               Log In Here
             </Typography>
-            
+
             <LoginForm />
             <Google />
             {!smUp && (
@@ -120,7 +119,3 @@ export default function Login() {
     </Page>
   );
 }
-
-
-
-  

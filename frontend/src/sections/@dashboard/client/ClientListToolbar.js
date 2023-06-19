@@ -1,13 +1,23 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import {useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 // material
 import { styled } from '@mui/material/styles';
-import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment, Stack, Button, Alert } from '@mui/material';
+import {
+  Toolbar,
+  Tooltip,
+  IconButton,
+  Typography,
+  OutlinedInput,
+  InputAdornment,
+  Stack,
+  Button,
+  Alert,
+} from '@mui/material';
 
 // component
 import Iconify from '../../../components/Iconify';
-import CustomerDataFilter  from './CustomerDataFilter';
+import CustomerDataFilter from './CustomerDataFilter';
 // redux
 import { deleteClientAsync } from '../../../redux/actions/usersActions';
 
@@ -57,26 +67,52 @@ ClientListToolbar.propTypes = {
   setStatusFilters: PropTypes.func,
   listOrMap: PropTypes.string,
   setListOrMap: PropTypes.func,
-
 };
 
-export default function ClientListToolbar({ numSelected, filterName, onFilterName, selectedClients, product, 
-                                            minPrice, setMinPrice, maxPrice, setMaxPrice, minYear, setMinYear, maxYear, setMaxYear,
-                                            equipInstallDateMin, setEquipInstallDateMin, equipInstallDateMax, setEquipInstallDateMax,
-                                            statusFilters, setStatusFilters, listOrMap, setListOrMap,
-                                            tagFilters, setTagFilters, zipCode, setZipCode, city, setCity, state, setState,
-                                            customerSinceMin, setCustomerSinceMin, customerSinceMax, setCustomerSinceMax, }) {
+export default function ClientListToolbar({
+  numSelected,
+  filterName,
+  onFilterName,
+  selectedClients,
+  product,
+  minPrice,
+  setMinPrice,
+  maxPrice,
+  setMaxPrice,
+  minYear,
+  setMinYear,
+  maxYear,
+  setMaxYear,
+  equipInstallDateMin,
+  setEquipInstallDateMin,
+  equipInstallDateMax,
+  setEquipInstallDateMax,
+  statusFilters,
+  setStatusFilters,
+  listOrMap,
+  setListOrMap,
+  tagFilters,
+  setTagFilters,
+  zipCode,
+  setZipCode,
+  city,
+  setCity,
+  state,
+  setState,
+  customerSinceMin,
+  setCustomerSinceMin,
+  customerSinceMax,
+  setCustomerSinceMax,
+}) {
   const dispatch = useDispatch();
   const [showAlert, setShowAlert] = useState(false);
 
-
   const clickDelete = (event, clients) => {
     dispatch(deleteClientAsync(clients));
-    const timer = Math.ceil(clients.length / 1000)*250;
+    const timer = Math.ceil(clients.length / 1000) * 250;
     setTimeout(() => {
-     window.location.reload();
+      window.location.reload();
     }, timer);
-
   };
 
   const handleClickList = () => {
@@ -84,12 +120,11 @@ export default function ClientListToolbar({ numSelected, filterName, onFilterNam
   };
 
   const handleClickMap = () => {
-    if (product === "price_1MhxfPAkLES5P4qQbu8O45xy") {
+    if (product === 'price_1MhxfPAkLES5P4qQbu8O45xy') {
       setShowAlert(true);
     } else {
       setListOrMap('map');
     }
-    
   };
 
   return (
@@ -128,7 +163,7 @@ export default function ClientListToolbar({ numSelected, filterName, onFilterNam
 
       {numSelected > 0 ? (
         <Tooltip title="Delete">
-          <IconButton onClick={(event)=>clickDelete(event, selectedClients)}>
+          <IconButton onClick={(event) => clickDelete(event, selectedClients)}>
             <Iconify icon="eva:trash-2-fill" />
           </IconButton>
         </Tooltip>
@@ -163,8 +198,8 @@ export default function ClientListToolbar({ numSelected, filterName, onFilterNam
           setCustomerSinceMax={setCustomerSinceMax}
         />
       )}
-      {showAlert && (      
-        <Alert            
+      {showAlert && (
+        <Alert
           sx={{ mb: 2, mx: 'auto', width: '100%' }}
           variant="filled"
           severity="error"

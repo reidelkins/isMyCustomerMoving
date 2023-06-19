@@ -2,10 +2,10 @@ import axios from 'axios';
 import { createSlice } from '@reduxjs/toolkit';
 
 import { DOMAIN } from '../constants';
-import { logoutClients, getRefreshToken } from './usersActions'
+import { logoutClients, getRefreshToken } from './usersActions';
 
 export const authSlice = createSlice({
-  name: "auth",
+  name: 'auth',
   initialState: {
     userInfo: {
       userInfo: localStorage.getItem('userInfo') ? JSON.parse(localStorage.getItem('userInfo')) : null,
@@ -85,10 +85,8 @@ export const authSlice = createSlice({
     },
     salesForceError: (state, action) => {
       state.salesForce.error = action.payload;
-    }
+    },
   },
-
-  
 });
 
 // export const salesForceAsync = () => async (dispatch) => {
@@ -97,8 +95,8 @@ export const authSlice = createSlice({
 //         'Content-type': 'application/json',
 //       },
 //     };
-//   try{      
-//       const { data } = await axios.get(`${DOMAIN}/api/v1/data/salesforce/a/`, config);      
+//   try{
+//       const { data } = await axios.get(`${DOMAIN}/api/v1/data/salesforce/a/`, config);
 //       dispatch(salesForce(data));
 //     } catch (error) {
 //       console.log(error)
@@ -124,10 +122,10 @@ export const authSlice = createSlice({
 //       dispatch(salesForceError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
 //     }
 // }
-      
+
 export const loginAsync = (email, password) => async (dispatch) => {
   try {
-    dispatch(loginLoading()); 
+    dispatch(loginLoading());
     const config = {
       headers: {
         'Content-type': 'application/json',
@@ -136,40 +134,52 @@ export const loginAsync = (email, password) => async (dispatch) => {
     const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/login/`, { email, password }, config);
     dispatch(login(data));
     localStorage.setItem('userInfo', JSON.stringify(data));
-    
   } catch (error) {
-    // eslint-disable-next-line no-nested-ternary    
-    dispatch(loginError(error.response && error.response.data.non_field_errors ? error.response.data.non_field_errors[0] : 
-      (error.response && error.response.data.detail ? error.response.data.detail : error.message)));
+    dispatch(
+      loginError(
+        // eslint-disable-next-line no-nested-ternary
+        error.response && error.response.data.non_field_errors
+          ? error.response.data.non_field_errors[0]
+          : error.response && error.response.data.detail
+          ? error.response.data.detail
+          : error.message
+      )
+    );
   }
 };
 
 export const googleLoginAsync = (accessToken) => async (dispatch) => {
   try {
-    dispatch(loginLoading()); 
+    dispatch(loginLoading());
     const config = {
       headers: {
         'Content-type': 'application/x-www-form-urlencoded',
-        'Authorization': `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     };
     const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/login/google/`, config);
     dispatch(login(data));
     localStorage.setItem('userInfo', JSON.stringify(data));
-    
   } catch (error) {
-    console.log(error.response.data)
-    // eslint-disable-next-line no-nested-ternary    
-    dispatch(loginError(error.response && error.response.data.non_field_errors ? error.response.data.non_field_errors[0] : 
-      (error.response && error.response.data ? error.response.data : error.message)));
+    console.log(error.response.data);
+    dispatch(
+      loginError(
+        // eslint-disable-next-line no-nested-ternary
+        error.response && error.response.data.non_field_errors
+          ? error.response.data.non_field_errors[0]
+          : error.response && error.response.data
+          ? error.response.data
+          : error.message
+      )
+    );
     dispatch(logout(error.response && error.response.data ? error.response.data : error.message));
-    }
+  }
 };
 
 export const editUserAsync = (email, firstName, lastName, serviceTitan, phone) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
+    const { userInfo } = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
@@ -177,59 +187,108 @@ export const editUserAsync = (email, firstName, lastName, serviceTitan, phone) =
       },
     };
     dispatch(loginLoading());
-    const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/manageuser/${userInfo.id}/`, { email, firstName, lastName, serviceTitan, phone }, config);
+    const { data } = await axios.put(
+      `${DOMAIN}/api/v1/accounts/manageuser/${userInfo.id}/`,
+      { email, firstName, lastName, serviceTitan, phone },
+      config
+    );
     dispatch(login(data));
     localStorage.setItem('userInfo', JSON.stringify(data));
   } catch (error) {
     dispatch(loginError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
     if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, editUserAsync(email, firstName, lastName, serviceTitan, phone)))
+      dispatch(getRefreshToken(dispatch, editUserAsync(email, firstName, lastName, serviceTitan, phone)));
     }
   }
 };
 
-export const registerAsync = (company, registrationToken, firstName, lastName, email, password, phone) => async (dispatch) => {
-  try {
-    dispatch(registerLoading());
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-      },
-    };
-    const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/register/`, { company, registrationToken, firstName, lastName, email, password, phone }, config);    
-    dispatch(register(data));
-    localStorage.setItem('userInfo', JSON.stringify(data));
-  } catch (err) {
-    dispatch(registerError(err.response && err.response.data.detail ? err.response.data.detail : err.message,));
-  }
-};
-
-export const companyAsync = (email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag, forSaleContactedTag, soldContactedTag, crm) => async (dispatch, getState) => {
-  try {
-    dispatch(companyLoading());
-    const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
-      },
-    };
-    const body = { 'company': userInfo.company.id, email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag, forSaleContactedTag, soldContactedTag, crm, 'user': userInfo.id};
-    const { data } = await axios.put(
-      `${DOMAIN}/api/v1/accounts/company/`,
-      body,
-      config
-    );
-    dispatch(company(data));
-    localStorage.setItem('userInfo', JSON.stringify(data));
-  } catch (err) {
-    dispatch(companyError(err.response && err.response.data.detail ? err.response.data.detail : err.message,));
-    if (err.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, companyAsync(email, phone, tenantID, clientID, clientSecret, forSaleTag, forRentTag, soldTag, forSaleContactedTag, soldContactedTag)))
+export const registerAsync =
+  (company, registrationToken, firstName, lastName, email, password, phone) => async (dispatch) => {
+    try {
+      dispatch(registerLoading());
+      const config = {
+        headers: {
+          'Content-type': 'application/json',
+        },
+      };
+      const { data } = await axios.post(
+        `${DOMAIN}/api/v1/accounts/register/`,
+        { company, registrationToken, firstName, lastName, email, password, phone },
+        config
+      );
+      dispatch(register(data));
+      localStorage.setItem('userInfo', JSON.stringify(data));
+    } catch (err) {
+      dispatch(registerError(err.response && err.response.data.detail ? err.response.data.detail : err.message));
     }
-  }
-};
+  };
+
+export const companyAsync =
+  (
+    email,
+    phone,
+    tenantID,
+    clientID,
+    clientSecret,
+    forSaleTag,
+    forRentTag,
+    soldTag,
+    forSaleContactedTag,
+    soldContactedTag,
+    crm
+  ) =>
+  async (dispatch, getState) => {
+    try {
+      dispatch(companyLoading());
+      const reduxStore = getState();
+      const { userInfo } = reduxStore.auth.userInfo;
+      const config = {
+        headers: {
+          'Content-type': 'application/json',
+          Authorization: `Bearer ${userInfo.accessToken}`,
+        },
+      };
+      const body = {
+        company: userInfo.company.id,
+        email,
+        phone,
+        tenantID,
+        clientID,
+        clientSecret,
+        forSaleTag,
+        forRentTag,
+        soldTag,
+        forSaleContactedTag,
+        soldContactedTag,
+        crm,
+        user: userInfo.id,
+      };
+      const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/company/`, body, config);
+      dispatch(company(data));
+      localStorage.setItem('userInfo', JSON.stringify(data));
+    } catch (err) {
+      dispatch(companyError(err.response && err.response.data.detail ? err.response.data.detail : err.message));
+      if (err.response.status === 403) {
+        dispatch(
+          getRefreshToken(
+            dispatch,
+            companyAsync(
+              email,
+              phone,
+              tenantID,
+              clientID,
+              clientSecret,
+              forSaleTag,
+              forRentTag,
+              soldTag,
+              forSaleContactedTag,
+              soldContactedTag
+            )
+          )
+        );
+      }
+    }
+  };
 
 export const addUserAsync = (firstName, lastName, email, password, token, phone) => async (dispatch) => {
   try {
@@ -248,7 +307,7 @@ export const addUserAsync = (firstName, lastName, email, password, token, phone)
     dispatch(register(data));
     localStorage.setItem('userInfo', JSON.stringify(data));
   } catch (err) {
-    dispatch(registerError(err.response && err.response.data.detail ? err.response.data.detail : err.message,));
+    dispatch(registerError(err.response && err.response.data.detail ? err.response.data.detail : err.message));
   }
 };
 
@@ -263,7 +322,7 @@ export const resetAsync = (email) => async (dispatch) => {
     await axios.post(`${DOMAIN}/api/v1/accounts/password_reset/`, { email }, config);
     dispatch(reset());
   } catch (err) {
-    dispatch(registerError(err.response && err.response.data.detail ? err.response.data.detail : err.message,));
+    dispatch(registerError(err.response && err.response.data.detail ? err.response.data.detail : err.message));
   }
 };
 
@@ -277,36 +336,37 @@ export const submitNewPassAsync = (password, token) => async (dispatch) => {
     };
     await axios.post(
       `${DOMAIN}/api/v1/accounts/password_reset/confirm/`,
-      { 
+      {
         token,
-        password
+        password,
       },
       config
     );
   } catch (err) {
-    dispatch(registerError(err.response && err.response.data.detail ? err.response.data.detail : err.message,));
+    dispatch(registerError(err.response && err.response.data.detail ? err.response.data.detail : err.message));
   }
 };
 
-export const logout = (error=null) => (dispatch) => {
-  localStorage.removeItem('userInfo');
-  localStorage.removeItem('twoFA');
-  dispatch(logoutUser(error));
-  dispatch(logoutClients());
-
-};
+export const logout =
+  (error = null) =>
+  (dispatch) => {
+    localStorage.removeItem('userInfo');
+    localStorage.removeItem('twoFA');
+    dispatch(logoutUser(error));
+    dispatch(logoutClients());
+  };
 
 export const generateQrCodeAsync = () => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
+    const { userInfo } = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
         Authorization: `Bearer ${userInfo.accessToken}`,
       },
     };
-    const {id} = userInfo;
+    const { id } = userInfo;
     dispatch(loginLoading());
     const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/otp/generate/`, { id }, config);
     dispatch(login(data));
@@ -319,14 +379,14 @@ export const generateQrCodeAsync = () => async (dispatch, getState) => {
 export const verifyOtp = (otp) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
+    const { userInfo } = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
         Authorization: `Bearer ${userInfo.accessToken}`,
       },
     };
-    const {id} = userInfo;
+    const { id } = userInfo;
     dispatch(loginLoading());
     const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/otp/verify/`, { id, otp }, config);
     dispatch(login(data));
@@ -340,14 +400,14 @@ export const verifyOtp = (otp) => async (dispatch, getState) => {
 export const validateOtp = (otp) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
+    const { userInfo } = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
         Authorization: `Bearer ${userInfo.accessToken}`,
       },
     };
-    const {id} = userInfo;
+    const { id } = userInfo;
     dispatch(loginLoading());
     const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/otp/validate/`, { id, otp }, config);
     dispatch(validate(data));
@@ -362,14 +422,14 @@ export const validateOtp = (otp) => async (dispatch, getState) => {
 export const disableTwoFactorAuth = () => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
+    const { userInfo } = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
         Authorization: `Bearer ${userInfo.accessToken}`,
       },
     };
-    const {id} = userInfo;
+    const { id } = userInfo;
     dispatch(loginLoading());
     const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/otp/disable/`, { id }, config);
     dispatch(login(data));
@@ -379,7 +439,22 @@ export const disableTwoFactorAuth = () => async (dispatch, getState) => {
   }
 };
 
-export const { login, validate, loginError, loginLoading, register, registerError, registerLoading, logoutUser, company, companyError, companyLoading, reset, salesForce, salesForceError } = authSlice.actions;
+export const {
+  login,
+  validate,
+  loginError,
+  loginLoading,
+  register,
+  registerError,
+  registerLoading,
+  logoutUser,
+  company,
+  companyError,
+  companyLoading,
+  reset,
+  salesForce,
+  salesForceError,
+} = authSlice.actions;
 export const showLoginInfo = (state) => state.auth.userInfo;
 export const showRegisterInfo = (state) => state.auth.registerInfo;
 export const showSTInfo = (state) => state.auth.salesForce;

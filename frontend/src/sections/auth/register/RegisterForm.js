@@ -18,18 +18,15 @@ RegisterForm.propTypes = {
   accessToken: PropTypes.string.isRequired,
 };
 
-
-export default function RegisterForm({company, accessToken}) {
+export default function RegisterForm({ company, accessToken }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
 
-
   const userRegister = useSelector(showRegisterInfo);
   const { error: registerError, loading: registerLoading } = userRegister;
-
 
   const [showPassword, setShowPassword] = useState(false);
   const [showVerifiedPassword, setShowVerifiedPassword] = useState(false);
@@ -40,16 +37,16 @@ export default function RegisterForm({company, accessToken}) {
     company: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Company required'),
     accessToken: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Access token required'),
     email: Yup.string().email('Email must be a valid email address').required('Email is required'),
-    password: Yup.string().required('Password is required').matches(
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*-])(?=.{12,})/,
-            "Must Contain 12 Characters, One Uppercase, One Lowercase, One Number and One Special Case Character"
-            ),
-    verifiedPassword: Yup.string()
-            .oneOf([Yup.ref('password'), null], 'Passwords must match'),
-    phone: Yup.string().required('Phone number is required').matches(
-            /^(\+?1)?[2-9]\d{2}[2-9](?!11)\d{6}$/,
-            "Must be a valid phone number"
-            ),
+    password: Yup.string()
+      .required('Password is required')
+      .matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*-])(?=.{12,})/,
+        'Must Contain 12 Characters, One Uppercase, One Lowercase, One Number and One Special Case Character'
+      ),
+    verifiedPassword: Yup.string().oneOf([Yup.ref('password'), null], 'Passwords must match'),
+    phone: Yup.string()
+      .required('Phone number is required')
+      .matches(/^(\+?1)?[2-9]\d{2}[2-9](?!11)\d{6}$/, 'Must be a valid phone number'),
   });
 
   const formik = useFormik({
@@ -65,7 +62,17 @@ export default function RegisterForm({company, accessToken}) {
     },
     validationSchema: RegisterSchema,
     onSubmit: () => {
-      dispatch(registerAsync(values.company, values.accessToken, values.firstName, values.lastName, values.email, values.password, values.phone));
+      dispatch(
+        registerAsync(
+          values.company,
+          values.accessToken,
+          values.firstName,
+          values.lastName,
+          values.email,
+          values.password,
+          values.phone
+        )
+      );
     },
   });
 
@@ -95,9 +102,8 @@ export default function RegisterForm({company, accessToken}) {
               helperText={touched.accessToken && errors.accessToken}
             />
           </Stack>
-          
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
 
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <TextField
               fullWidth
               label="First name"
@@ -146,7 +152,7 @@ export default function RegisterForm({company, accessToken}) {
             fullWidth
             label="Verify Password"
             type={showVerifiedPassword ? 'text' : 'password'}
-            {...getFieldProps('verifiedPassword')}        
+            {...getFieldProps('verifiedPassword')}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -155,7 +161,7 @@ export default function RegisterForm({company, accessToken}) {
                   </IconButton>
                 </InputAdornment>
               ),
-            }}    
+            }}
             error={Boolean(touched.verifiedPassword && errors.verifiedPassword)}
             helperText={touched.verifiedPassword && errors.verifiedPassword}
           />

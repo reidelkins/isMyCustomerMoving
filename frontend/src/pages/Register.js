@@ -59,8 +59,8 @@ export default function Register() {
   const smUp = useResponsive('up', 'sm');
 
   const mdUp = useResponsive('up', 'md');
-  
-  const { company, accesstoken} = useParams();
+
+  const { company, accesstoken } = useParams();
 
   return (
     <Page title="Register">
@@ -80,11 +80,13 @@ export default function Register() {
         {mdUp && (
           <SectionStyle>
             <Typography variant="h2" sx={{ px: 5, mt: 10, mb: 5 }}>
-              <span >Don't Lose Your Customers,</span>{" "}
-              <span style={{color:"#8ce8c5"}}>Move With Them!</span>            
+              <span>Don't Lose Your Customers,</span> <span style={{ color: '#8ce8c5' }}>Move With Them!</span>
             </Typography>
-            <Typography variant="body1" sx={{mx:4}}>We instantly notify you when your customers list their home for sale, so you can be the first one to the new home.</Typography>
-            
+            <Typography variant="body1" sx={{ mx: 4 }}>
+              We instantly notify you when your customers list their home for sale, so you can be the first one to the
+              new home.
+            </Typography>
+
             <img alt="register" src="/static/illustrations/illustration_register.png" />
           </SectionStyle>
         )}
@@ -97,17 +99,16 @@ export default function Register() {
 
             {company && accesstoken ? (
               <RegisterForm company={company} accessToken={accesstoken} />
-            ):(
-              <RegisterForm company={""} accessToken={""} />
+            ) : (
+              <RegisterForm company={''} accessToken={''} />
             )}
-            
 
             <Typography variant="body2" align="center" sx={{ color: 'text.secondary', mt: 3 }}>
-              By registering, I agree to {' '}
+              By registering, I agree to{' '}
               <Link underline="always" color="text.primary" href="/termsofservice" target="_blank">
                 Terms of Service
-              </Link>
-              {' '}and{' '}
+              </Link>{' '}
+              and{' '}
               <Link underline="always" color="text.primary" href="/privacypolicy" target="_blank">
                 Privacy Policy
               </Link>

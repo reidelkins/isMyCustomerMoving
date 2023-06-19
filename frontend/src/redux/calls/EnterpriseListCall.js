@@ -4,7 +4,6 @@ import { useDispatch } from 'react-redux';
 
 import { enterpriseAsync } from '../actions/enterpriseActions';
 
-
 const EnterpriseCall = () => {
   // ** Store Vars
   const dispatch = useDispatch();
@@ -12,7 +11,6 @@ const EnterpriseCall = () => {
   // ** Get data on mount
   useEffect(() => {
     dispatch(enterpriseAsync());
-    
   }, [dispatch]);
 
   return null;

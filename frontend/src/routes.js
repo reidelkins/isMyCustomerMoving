@@ -30,13 +30,12 @@ export default function Router() {
       children: [
         // { path: '', element:<PrivateRoute path="/dashboard/customers" component={<Navigate to="/dashboard/customers" />} />},
         { path: '', element: <Navigate to="/dashboard/customers" /> },
-        { path: 'settings/user', element: <ProfileSettings />} ,
-        { path: 'settings/enterprise', element: <EnterpriseSettings />} ,
+        { path: 'settings/user', element: <ProfileSettings /> },
+        { path: 'settings/enterprise', element: <EnterpriseSettings /> },
         { path: 'customers', element: <CustomerData /> },
-        { path: 'recentlysold', element: <RecentlySoldData />},
-        { path: 'referrals', element: <Referrals />},
-        { path: 'adduser', element: <AddUser />},
-        
+        { path: 'recentlysold', element: <RecentlySoldData /> },
+        { path: 'referrals', element: <Referrals /> },
+        { path: 'adduser', element: <AddUser /> },
       ],
     },
     {
@@ -45,8 +44,8 @@ export default function Router() {
       children: [
         { path: '/', element: <Navigate to="/dashboard/customers" /> },
         { path: 'login', element: <Login /> },
-        { path: 'logout', element: <Logout />},
-        { path: 'validate2fa', element: <Validate2fa />},
+        { path: 'logout', element: <Logout /> },
+        { path: 'validate2fa', element: <Validate2fa /> },
         { path: 'register/:company?/:accesstoken?', element: <Register /> },
         { path: 'addeduser/:token', element: <AddUser /> },
         { path: 'forgot_password', element: <ForgotPassword /> },
@@ -55,7 +54,6 @@ export default function Router() {
         { path: 'privacypolicy', element: <PrivacyPolicy /> },
         { path: '404', element: <NotFound /> },
         { path: '*', element: <Navigate to="/404" /> },
-        
       ],
     },
     { path: '*', element: <Navigate to="/404" replace /> },

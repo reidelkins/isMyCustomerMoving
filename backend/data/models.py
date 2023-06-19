@@ -156,19 +156,21 @@ class HomeListing(models.Model):
         on_delete=models.SET_NULL,
         related_name="homeListing_ScrapeResponse",
     )
-    price = models.IntegerField(default=0)
-    housingType = models.CharField(max_length=100, default=" ")
-    year_built = models.IntegerField(default=0)
+    price = models.IntegerField(default=0, blank=True, null=True)
+    housingType = models.CharField(
+        max_length=100, default=" ", blank=True, null=True
+    )
+    year_built = models.IntegerField(default=0, blank=True, null=True)
     tag = models.ManyToManyField(
         "HomeListingTags", blank=True, related_name="homeListing_tag"
     )
     # tags = JSONField(default=list)     this is how to greatly reduce the amount of data in the table
     city = models.CharField(max_length=40, blank=True, null=True)
     state = models.CharField(max_length=31, blank=True, null=True)
-    bedrooms = models.IntegerField(default=0)
-    bathrooms = models.IntegerField(default=0)
-    sqft = models.IntegerField(default=0)
-    lot_sqft = models.IntegerField(default=0)
+    bedrooms = models.IntegerField(default=0, blank=True, null=True)
+    bathrooms = models.IntegerField(default=0, blank=True, null=True)
+    sqft = models.IntegerField(default=0, blank=True, null=True)
+    lot_sqft = models.IntegerField(default=0, blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
     permalink = models.CharField(max_length=100, blank=True, null=True)

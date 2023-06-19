@@ -13,9 +13,7 @@ import { URL } from '../../redux/constants';
 
 // ----------------------------------------------------------------------
 
-const MENU_OPTIONS = [
-
-];
+const MENU_OPTIONS = [];
 
 // ----------------------------------------------------------------------
 
@@ -42,7 +40,10 @@ export default function AccountPopover() {
     navigate('/logout', { replace: true });
   };
 
-  const initials = userInfo?.name?.split(' ').map((n) => n[0]).join('');
+  const initials = userInfo?.name
+    ?.split(' ')
+    .map((n) => n[0])
+    .join('');
   return (
     <>
       <IconButton
@@ -82,7 +83,14 @@ export default function AccountPopover() {
       >
         <Box sx={{ my: 1.5, px: 2.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {userInfo ? <>{(userInfo.first_name).charAt(0).toUpperCase()+(userInfo.first_name).slice(1)} {(userInfo.last_name).charAt(0).toUpperCase()+(userInfo.last_name).slice(1)}</> : 'John Doe'}
+            {userInfo ? (
+              <>
+                {userInfo.first_name.charAt(0).toUpperCase() + userInfo.first_name.slice(1)}{' '}
+                {userInfo.last_name.charAt(0).toUpperCase() + userInfo.last_name.slice(1)}
+              </>
+            ) : (
+              'John Doe'
+            )}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
             {userInfo ? <>{userInfo.email}</> : 'email@email.com'}

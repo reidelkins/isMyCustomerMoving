@@ -6,8 +6,6 @@ import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
-
-
 // ** Redux Imports
 import { Provider } from 'react-redux';
 import store from './redux/store';
@@ -18,36 +16,37 @@ import * as serviceWorker from './serviceWorker';
 import reportWebVitals from './reportWebVitals';
 import 'font-awesome/css/font-awesome.min.css'; // font-awesome
 
-const { REACT_APP_GOOGLE_CLIENT_ID } = process.env
-
-
+const { REACT_APP_GOOGLE_CLIENT_ID } = process.env;
 
 // ----------------------------------------------------------------------
 
 ReactDOM.render(
-  
   <HelmetProvider>
     <Helmet>
       <title>Is My Customer Moving</title>
       <meta name="description" content="Is My Customer Moving" />
-      <script dangerouslySetInnerHTML={{
-        __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
       new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
       j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-      })(window,document,'script','dataLayer','GTM-N6RJ2R7');`
-      }}/>      
+      })(window,document,'script','dataLayer','GTM-N6RJ2R7');`,
+        }}
+      />
     </Helmet>
-    <noscript dangerouslySetInnerHTML={{
-      __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N6RJ2R7"
-      height="0" width="0" style="display:none;visibility:hidden"></iframe>`
-    }} />
+    <noscript
+      dangerouslySetInnerHTML={{
+        __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N6RJ2R7"
+      height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
+      }}
+    />
     <BrowserRouter>
-        <GoogleOAuthProvider clientId={REACT_APP_GOOGLE_CLIENT_ID}>
-          <Provider store={store}>
-            <App />
-          </Provider>
-        </GoogleOAuthProvider>
+      <GoogleOAuthProvider clientId={REACT_APP_GOOGLE_CLIENT_ID}>
+        <Provider store={store}>
+          <App />
+        </Provider>
+      </GoogleOAuthProvider>
     </BrowserRouter>
   </HelmetProvider>,
   document.getElementById('root')

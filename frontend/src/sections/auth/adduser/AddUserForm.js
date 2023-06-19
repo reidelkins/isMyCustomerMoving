@@ -6,13 +6,11 @@ import PropTypes from 'prop-types';
 import { Stack, TextField, Alert, AlertTitle, InputAdornment, IconButton } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { useDispatch, useSelector } from 'react-redux';
-import {useNavigate } from 'react-router-dom';
-
+import { useNavigate } from 'react-router-dom';
 
 import { showRegisterInfo, addUserAsync } from '../../../redux/actions/authActions';
 
 import Iconify from '../../../components/Iconify';
-
 
 // component
 
@@ -22,7 +20,7 @@ AddUserForm.propTypes = {
   token: PropTypes.string,
 };
 
-export default function AddUserForm({token}) {
+export default function AddUserForm({ token }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -36,13 +34,13 @@ export default function AddUserForm({token}) {
     firstName: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('First name required'),
     lastName: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Last name required'),
     email: Yup.string().email('Email must be a valid email address').required('Email is required'),
-    password: Yup.string().min(6, 'Password is too short - should be 6 chars minimum.').required('Password is required'),
-    verifiedPassword: Yup.string()
-            .oneOf([Yup.ref('password'), null], 'Passwords must match'),
-    phone: Yup.string().required('Phone number is required').matches(
-          /^(\+?1)?[2-9]\d{2}[2-9](?!11)\d{6}$/,
-          "Must be a valid phone number"
-          ),
+    password: Yup.string()
+      .min(6, 'Password is too short - should be 6 chars minimum.')
+      .required('Password is required'),
+    verifiedPassword: Yup.string().oneOf([Yup.ref('password'), null], 'Passwords must match'),
+    phone: Yup.string()
+      .required('Phone number is required')
+      .matches(/^(\+?1)?[2-9]\d{2}[2-9](?!11)\d{6}$/, 'Must be a valid phone number'),
   });
 
   const formik = useFormik({
@@ -53,23 +51,24 @@ export default function AddUserForm({token}) {
       email: '',
       password: '',
       verifiedPassword: '',
-      token
+      token,
     },
     validationSchema: AddUserSchema,
     onSubmit: () => {
-      dispatch(addUserAsync(values.firstName, values.lastName, values.email, values.password, values.token, values.phone));
+      dispatch(
+        addUserAsync(values.firstName, values.lastName, values.email, values.password, values.token, values.phone)
+      );
       navigate('/login', { replace: true });
     },
   });
 
   const { errors, touched, values, handleSubmit, isSubmitting, getFieldProps } = formik;
-  
+
   return (
     <FormikProvider value={formik}>
       <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
-        <Stack spacing={3}>  
+        <Stack spacing={3}>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-
             <TextField
               fullWidth
               label="First name"
@@ -127,7 +126,7 @@ export default function AddUserForm({token}) {
             fullWidth
             label="Verify Password"
             type={showVerifiedPassword ? 'text' : 'password'}
-            {...getFieldProps('verifiedPassword')}        
+            {...getFieldProps('verifiedPassword')}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -136,7 +135,7 @@ export default function AddUserForm({token}) {
                   </IconButton>
                 </InputAdornment>
               ),
-            }}    
+            }}
             error={Boolean(touched.verifiedPassword && errors.verifiedPassword)}
             helperText={touched.verifiedPassword && errors.verifiedPassword}
           />

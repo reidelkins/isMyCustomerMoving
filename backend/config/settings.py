@@ -81,7 +81,7 @@ if IS_HEROKU or IS_GITHUB:
     )
 else:
     DEBUG = True
-    CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+    CELERY_RESULT_BACKEND = "redis://redis:6379/0"
     CELERY_BROKER_URL = CELERY_RESULT_BACKEND
     BASE_FRONTEND_URL = "http://localhost:3000"
     BASE_BACKEND_URL = "http://localhost:8000"

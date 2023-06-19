@@ -1,13 +1,30 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-nested-ternary */
 
-import {useEffect, useState} from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import * as Yup from 'yup';
 import { useFormik, Form, FormikProvider } from 'formik';
 import { useNavigate } from 'react-router-dom';
 
-import { Box, Checkbox, LinearProgress, Link, TextField, Card, Grid, Container, Typography, Stack, Button, TableContainer, Table, TableBody, TableCell, TableRow } from '@mui/material';
+import {
+  Box,
+  Checkbox,
+  LinearProgress,
+  Link,
+  TextField,
+  Card,
+  Grid,
+  Container,
+  Typography,
+  Stack,
+  Button,
+  TableContainer,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+} from '@mui/material';
 
 // components
 // import Iconify from '../components/Iconify';
@@ -15,7 +32,7 @@ import Page from '../components/Page';
 import Scrollbar from '../components/Scrollbar';
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 import NewUserModal from '../components/NewUserModal';
- 
+
 import TwoFactorAuth from '../components/TwoFactorAuth';
 import CRMIntegrationModal from '../components/CRMIntegrationModal';
 import UpgradeFromFree from '../components/UpgradeFromFree';
@@ -25,8 +42,6 @@ import { applySortFilter, getComparator } from './CustomerData';
 import UsersListCall from '../redux/calls/UsersListCall';
 import { showLoginInfo, logout, editUserAsync } from '../redux/actions/authActions';
 import { addUser, selectUsers, makeAdminAsync } from '../redux/actions/usersActions';
-
-
 
 // ----------------------------------------------------------------------
 
@@ -43,7 +58,7 @@ export default function ProfileSettings() {
 
   const userLogin = useSelector(showLoginInfo);
   const { userInfo, twoFA } = userLogin;
-  
+
   const [editting, setEditting] = useState(false);
 
   useEffect(() => {
@@ -55,7 +70,6 @@ export default function ProfileSettings() {
       navigate('/login', { replace: true });
       window.location.reload(true);
     }
-
   }, [userInfo, dispatch, navigate]);
 
   const listUser = useSelector(selectUsers);
@@ -68,7 +82,7 @@ export default function ProfileSettings() {
   const [filterName, setFilterName] = useState('');
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('status');
-  const adminBool = (userInfo && userInfo.status === 'admin') ? 1 : 0;
+  const adminBool = userInfo && userInfo.status === 'admin' ? 1 : 0;
 
   const handleFilterByName = (event) => {
     setFilterName(event.target.value);
@@ -87,10 +101,10 @@ export default function ProfileSettings() {
 
   const formik = useFormik({
     initialValues: {
-      firstName: userInfo ? userInfo.first_name: '',
-      lastName: userInfo ? userInfo.last_name: '',
-      email: userInfo ? userInfo.email: '',
-      phone: userInfo ? userInfo.phone: '',
+      firstName: userInfo ? userInfo.first_name : '',
+      lastName: userInfo ? userInfo.last_name : '',
+      email: userInfo ? userInfo.email : '',
+      phone: userInfo ? userInfo.phone : '',
     },
     validationSchema: SettingsSchema,
     onSubmit: () => {
@@ -100,7 +114,6 @@ export default function ProfileSettings() {
   });
 
   const { errors, touched, values, handleSubmit, getFieldProps } = formik;
-
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -134,11 +147,13 @@ export default function ProfileSettings() {
       newSelectedUsers = newSelectedUsers.concat(selectedUsers.slice(0, -1));
     } else if (selectedIndex > 0) {
       newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
-      newSelectedUsers = newSelectedUsers.concat(selectedUsers.slice(0, selectedIndex), selectedUsers.slice(selectedIndex + 1));
+      newSelectedUsers = newSelectedUsers.concat(
+        selectedUsers.slice(0, selectedIndex),
+        selectedUsers.slice(selectedIndex + 1)
+      );
     }
     setSelected(newSelected);
     setSelectedUsers(newSelectedUsers);
-
   };
   return (
     <Page title="Profile Settings" userInfo={userInfo}>
@@ -150,84 +165,88 @@ export default function ProfileSettings() {
         <Grid container spacing={3}>
           <Grid item xs={12} md={6} lg={8}>
             {editting ? (
-                <FormikProvider value={formik}>
-                  <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
-                    <Stack direction='column'>
-                      <h3>Name:</h3>
-                      <TextField
-                        fullWidth                                        
-                        type="text"  
-                        {...getFieldProps('firstName')}
-                        error={Boolean(touched.firstName && errors.firstName)}
-                        helperText={touched.firstName && errors.firstName}
-                      />
-                      <TextField
-                        fullWidth                                        
-                        type="text"  
-                        {...getFieldProps('lastName')}
-                        error={Boolean(touched.lastName && errors.lastName)}
-                        helperText={touched.lastName && errors.lastName}
-                      />
-                      <br />
-                      <h3>Email:</h3>
-                      <TextField
-                        fullWidth                    
-                        type="email"
-                        {...getFieldProps('email')}
-                        error={Boolean(touched.email && errors.email)}
-                        helperText={touched.email && errors.email}
-                      />
-                      <br />
-                      <h3>Phone:</h3>
-                      <TextField
-                        fullWidth                    
-                        type="phone"
-                        {...getFieldProps('phone')}
-                        error={Boolean(touched.phone && errors.phone)}
-                        helperText={touched.phone && errors.phone}
-                      />
-                      <br />                      
-                      <br />
-                      <Button
-                        fullWidth
-                        size="large"
-                        type="submit"
-                        variant="contained"
-                        // loading={registerLoading ? isSubmitting : null}
-                      >
-                        Save Changes
-                    </Button>            
-                    </Stack>
-                  </Form>
-                </FormikProvider>
-              ):(
-                <Stack direction='column'>
-                  <h3>Name:</h3>
-                  <p>{userInfo && userInfo.first_name} {userInfo && userInfo.last_name}</p>
-                  <br />
-                  <h3>Email:</h3>
-                  <p>{userInfo && userInfo.email ? userInfo.email : 'None'}</p>
-                  <br />
-                  <h3>Phone Number:</h3>
-                  <p>{userInfo && userInfo.phone ? userInfo.phone : "None"}</p>
-                  <br />            
-                  <Button 
-                    fullWidth
-                    size="large"                        
-                    variant="contained" 
-                    onClick={()=>(setEditting(true))} >
-                      Edit
-                  </Button>             
-                </Stack>
-                
-              )}            
+              <FormikProvider value={formik}>
+                <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
+                  <Stack direction="column">
+                    <h3>Name:</h3>
+                    <TextField
+                      fullWidth
+                      type="text"
+                      {...getFieldProps('firstName')}
+                      error={Boolean(touched.firstName && errors.firstName)}
+                      helperText={touched.firstName && errors.firstName}
+                    />
+                    <TextField
+                      fullWidth
+                      type="text"
+                      {...getFieldProps('lastName')}
+                      error={Boolean(touched.lastName && errors.lastName)}
+                      helperText={touched.lastName && errors.lastName}
+                    />
+                    <br />
+                    <h3>Email:</h3>
+                    <TextField
+                      fullWidth
+                      type="email"
+                      {...getFieldProps('email')}
+                      error={Boolean(touched.email && errors.email)}
+                      helperText={touched.email && errors.email}
+                    />
+                    <br />
+                    <h3>Phone:</h3>
+                    <TextField
+                      fullWidth
+                      type="phone"
+                      {...getFieldProps('phone')}
+                      error={Boolean(touched.phone && errors.phone)}
+                      helperText={touched.phone && errors.phone}
+                    />
+                    <br />
+                    <br />
+                    <Button
+                      fullWidth
+                      size="large"
+                      type="submit"
+                      variant="contained"
+                      // loading={registerLoading ? isSubmitting : null}
+                    >
+                      Save Changes
+                    </Button>
+                  </Stack>
+                </Form>
+              </FormikProvider>
+            ) : (
+              <Stack direction="column">
+                <h3>Name:</h3>
+                <p>
+                  {userInfo && userInfo.first_name} {userInfo && userInfo.last_name}
+                </p>
+                <br />
+                <h3>Email:</h3>
+                <p>{userInfo && userInfo.email ? userInfo.email : 'None'}</p>
+                <br />
+                <h3>Phone Number:</h3>
+                <p>{userInfo && userInfo.phone ? userInfo.phone : 'None'}</p>
+                <br />
+                <Button fullWidth size="large" variant="contained" onClick={() => setEditting(true)}>
+                  Edit
+                </Button>
+              </Stack>
+            )}
           </Grid>
           <Grid item xs={12} md={6} lg={4}>
-            {" "}
+            {' '}
           </Grid>
         </Grid>
-        <Card sx={{marginTop:"3%", marginBottom:"3%", padding:'3%'}}>
-          <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} selectedUsers={selectedUsers} setSelected setSelectedUsers/>          
+        <Card sx={{ marginTop: '3%', marginBottom: '3%', padding: '3%' }}>
+          <UserListToolbar
+            numSelected={selected.length}
+            filterName={filterName}
+            onFilterName={handleFilterByName}
+            selectedUsers={selectedUsers}
+            setSelected
+            setSelectedUsers
+          />
           {loading ? (
             <Box sx={{ width: '100%' }}>
               <LinearProgress />
@@ -251,21 +270,17 @@ export default function ProfileSettings() {
                     const isItemSelected = selected.indexOf(id) !== -1;
                     if (email !== 'reid@gmail.com' && email !== 'reidelkins3@gmail.com') {
                       return (
-                        <TableRow
-                          hover
-                          key={id}
-                          tabIndex={-1}>
+                        <TableRow hover key={id} tabIndex={-1}>
                           {adminBool ? (
                             is_enterprise_owner ? (
-                                <div/>
+                              <div />
                             ) : (
                               <TableCell padding="checkbox">
-                                <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, id)}/>
+                                <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, id)} />
                               </TableCell>
-                            )                                
-                            ) : null
-                          }
-                                          
+                            )
+                          ) : null}
+
                           <TableCell component="th" scope="row" padding="none">
                             <Stack direction="row" alignItems="center" spacing={2}>
                               <Typography variant="subtitle2" noWrap>
@@ -274,24 +289,30 @@ export default function ProfileSettings() {
                             </Stack>
                           </TableCell>
                           <TableCell align="left">{email}</TableCell>
-                          <TableCell align="left">
-                            {is_enterprise_owner ? "Enterprise Admin" : status}                         
-                          </TableCell>
+                          <TableCell align="left">{is_enterprise_owner ? 'Enterprise Admin' : status}</TableCell>
                           <TableCell align="left">
                             {(() => {
                               if (status === 'pending' && adminBool) {
-                                return(
-                                  <Button  aria-label="Send Reminder" component="label" onClick={(event)=>sendReminder(event, email)}>
+                                return (
+                                  <Button
+                                    aria-label="Send Reminder"
+                                    component="label"
+                                    onClick={(event) => sendReminder(event, email)}
+                                  >
                                     &nbsp;&nbsp;&nbsp;Send Reminder
                                   </Button>
-                                )
-                              } 
+                                );
+                              }
                               if (status === 'active' && adminBool) {
-                                return(
-                                  <Button  aria-label="Make Admin" component="label" onClick={(event)=>makeAdmin(event, id)}>
+                                return (
+                                  <Button
+                                    aria-label="Make Admin"
+                                    component="label"
+                                    onClick={(event) => makeAdmin(event, id)}
+                                  >
                                     &nbsp;&nbsp;&nbsp;Make Admin
                                   </Button>
-                                )
+                                );
                               }
                               return null;
                             })()}
@@ -301,60 +322,59 @@ export default function ProfileSettings() {
                           </TableCell>
                         </TableRow>
                       );
-                    }                  
-                    return null;                    
+                    }
+                    return null;
                   })}
                   {emptyRows > 0 && (
                     <TableRow style={{ height: 53 * emptyRows }}>
                       <TableCell colSpan={6} />
                     </TableRow>
                   )}
-                </TableBody>                
+                </TableBody>
               </Table>
             </TableContainer>
           </Scrollbar>
         </Card>
         {/* <ResetPasswordModal /> */}
-        { adminBool && (
+        {adminBool && (
           <>
             <NewUserModal />
-            <br/>
+            <br />
             {userInfo.company.product === 'price_1MhxfPAkLES5P4qQbu8O45xy' ? (
               <UpgradeFromFree />
-            ):(
+            ) : (
               <Button variant="contained" color="primary" aria-label="Create Company" component="label">
-                <Link href={`https://billing.stripe.com/p/login/aEU2aZ4PtbdD9A49AA?prefilled_email=${userInfo.company.email}`} color="secondary" underline="none" target="_blank" rel="noopener noreferrer">
+                <Link
+                  href={`https://billing.stripe.com/p/login/aEU2aZ4PtbdD9A49AA?prefilled_email=${userInfo.company.email}`}
+                  color="secondary"
+                  underline="none"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   Manage Subscription
                 </Link>
               </Button>
             )}
-           
-          </>       
+          </>
         )}
 
         <Box>
           <Typography variant="h3" sx={{ mt: 5 }}>
             Mobile App Authentication (2FA)
           </Typography>
-          <p style={{"marginBottom": 20}}>
-            Secure your account with TOTP two-factor authentication.
-          </p>
-          {userInfo &&
-            <TwoFactorAuth userInfo={userInfo}/>
-          }            
+          <p style={{ marginBottom: 20 }}>Secure your account with TOTP two-factor authentication.</p>
+          {userInfo && <TwoFactorAuth userInfo={userInfo} />}
         </Box>
-
 
         <Box>
           <Typography variant="h3" sx={{ mt: 5 }}>
             CRM Integration
           </Typography>
-          <p style={{"marginBottom": 20}}>
+          <p style={{ marginBottom: 20 }}>
             Connect IMCM With Your CRM! If you don't see your CRM listed, suggest it to us!
           </p>
           <CRMIntegrationModal user={userInfo} />
         </Box>
-
       </Container>
     </Page>
   );
