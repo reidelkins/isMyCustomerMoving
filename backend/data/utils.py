@@ -259,6 +259,12 @@ def saveClientList(clients, company_id, task=None):
                     )
             # file upload
             else:
+                if i % 1000 == 0:
+                    Client.objects.bulk_create(
+                        clientsToAdd, ignore_conflicts=True
+                    )
+                    clientsToAdd = []
+                    print(i)
                 street = parseStreets((str(clients[i]["address"])).title())
                 if street.lower() in badStreets:
                     continue
@@ -292,9 +298,10 @@ def saveClientList(clients, company_id, task=None):
                         phoneNumber=phoneNumber,
                     )
                 )
+
         except Exception as e:
             logging.error("create error")
-            logging.error(e)
+            logging.error(e)    
     Client.objects.bulk_create(clientsToAdd, ignore_conflicts=True)
 
     if task:
