@@ -1,3 +1,4 @@
+from re import sub
 from time import sleep
 from accounts.models import Company, CustomUser
 from config import settings
@@ -264,7 +265,6 @@ def saveClientList(clients, company_id, task=None):
                         clientsToAdd, ignore_conflicts=True
                     )
                     clientsToAdd = []
-                    print(i)
                 street = parseStreets((str(clients[i]["address"])).title())
                 if street.lower() in badStreets:
                     continue
@@ -275,6 +275,8 @@ def saveClientList(clients, company_id, task=None):
                 name = clients[i]["name"]
                 if "phone number" in clients[i]:
                     phoneNumber = clients[i]["phone number"]
+                    # remove anything that is not a number with regex
+                    phoneNumber = sub("[^0-9]", "", phoneNumber)
                 else:
                     phoneNumber = ""
                 if (
@@ -301,7 +303,7 @@ def saveClientList(clients, company_id, task=None):
 
         except Exception as e:
             logging.error("create error")
-            logging.error(e)    
+            logging.error(e)
     Client.objects.bulk_create(clientsToAdd, ignore_conflicts=True)
 
     if task:

@@ -251,12 +251,13 @@ def create_home_listings(results, status, resp=None):
                 homeListing.price = price
                 homeListing.housingType = listing["description"]["type"]
                 homeListing.year_built = year_built
-                homeListing.latitude = listing["location"]["address"][
-                    "coordinate"
-                ].get("lat")
-                homeListing.longitude = listing["location"]["address"][
-                    "coordinate"
-                ].get("lon")
+                if listing["location"]["address"]["coordinate"] is not None:
+                    homeListing.latitude = listing["location"]["address"][
+                        "coordinate"
+                    ].get("lat")
+                    homeListing.longitude = listing["location"]["address"][
+                        "coordinate"
+                    ].get("lon")
                 homeListing.permalink = listing["permalink"]
                 homeListing.lot_sqft = listing["description"].get("lot_sqft", 0)
                 homeListing.bedrooms = beds
@@ -268,6 +269,13 @@ def create_home_listings(results, status, resp=None):
 
             except HomeListing.DoesNotExist:
                 # Create a new HomeListing if it doesn't exist
+                if listing["location"]["address"]["coordinate"] is not None:
+                    latitude = listing["location"]["address"]["coordinate"].get(
+                        "lat"
+                    )
+                    longitude = listing["location"]["address"][
+                        "coordinate"
+                    ].get("lon")
                 homeListing = HomeListing.objects.create(
                     zipCode=zip_object,
                     address=parseStreets(
@@ -280,12 +288,8 @@ def create_home_listings(results, status, resp=None):
                     year_built=year_built,
                     state=listing["location"]["address"]["state_code"],
                     city=listing["location"]["address"]["city"],
-                    latitude=listing["location"]["address"]["coordinate"].get(
-                        "lat"
-                    ),
-                    longitude=listing["location"]["address"]["coordinate"].get(
-                        "lon"
-                    ),
+                    latitude=latitude,
+                    longitude=longitude,
                     permalink=listing["permalink"],
                     lot_sqft=listing["description"].get("lot_sqft", 0),
                     bedrooms=beds,
@@ -473,9 +477,13 @@ def get_realtor_property_details(listingId, scrapfly):
                 listing.description = data["property_history"][0]["listing"][
                     "description"
                 ].get("text")
-
-        listing.latitude = data["location"]["address"]["coordinate"].get("lat")
-        listing.longitude = data["location"]["address"]["coordinate"].get("lon")
+        if listing["location"]["address"]["coordinate"] is not None:
+            listing.latitude = data["location"]["address"]["coordinate"].get(
+                "lat"
+            )
+            listing.longitude = data["location"]["address"]["coordinate"].get(
+                "lon"
+            )
 
         if listing.get("tags"):
             for tag in listing["tags"]:
