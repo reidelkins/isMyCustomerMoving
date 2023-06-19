@@ -162,6 +162,7 @@ const FileUploader = () => {
   };
 
   const readFile = (file) => {
+    // eslint-disable-next-line no-new
     new Promise((resolve, reject) => {
       Papa.parse(file, {
         header: true,

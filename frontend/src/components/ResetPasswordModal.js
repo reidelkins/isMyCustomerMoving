@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import * as Yup from 'yup';
 import { Button, TextField, Dialog, DialogTitle, Stack, InputAdornment, IconButton } from '@mui/material';
 import { useFormik, Form, FormikProvider } from 'formik';
-import { useDispatch } from 'react-redux';
+// import { useDispatch } from 'react-redux';
 
 // import { resetPasswordAsync } from '../redux/actions/authActions';
 import Iconify from './Iconify';
@@ -10,7 +10,7 @@ import Iconify from './Iconify';
 export default function ResetPasswordModal() {
   const [open, setOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
   const handleOpen = () => {
     setOpen(true);
   };
@@ -42,7 +42,7 @@ export default function ResetPasswordModal() {
     },
   });
 
-  const { errors, touched, values, handleSubmit, getFieldProps } = formik;
+  const { errors, touched, handleSubmit, getFieldProps } = formik;
   return (
     <div>
       <Button variant="contained" color="primary" aria-label="Create Company" component="label" onClick={handleOpen}>

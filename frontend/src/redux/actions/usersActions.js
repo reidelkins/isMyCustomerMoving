@@ -233,7 +233,7 @@ export const saveFilterSuccess = (state) => state.user.saveFilter.success;
 export default userSlice.reducer;
 
 export const getRefreshToken = (dispatch, func) => {
-  async (dispatch, getState) => {
+  return async (dispatch, getState) => {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
     const config = {
@@ -882,7 +882,7 @@ export const getClientsCSV = (
   equipInstallDateMin,
   equipInstallDateMax
 ) => {
-  async (dispatch, getState) => {
+  return async (dispatch, getState) => {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
     const config = {

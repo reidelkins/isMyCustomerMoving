@@ -1,4 +1,4 @@
-// eslint-disable-next-line react/no-danger
+// eslint-disable react/no-danger
 
 // scroll bar
 import 'simplebar/src/simplebar.css';
