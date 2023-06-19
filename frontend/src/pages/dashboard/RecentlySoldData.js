@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import React, { useState, useEffect } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 // material
 import {
   Button,
@@ -33,7 +33,7 @@ import { RecentlySoldListToolbar } from '../../sections/@dashboard/recentlySold'
 
 import RecentlySoldListCall from '../../redux/calls/RecentlySoldListCall';
 import { selectRecentlySold, recentlySoldAsync, getRecentlySoldCSV } from '../../redux/actions/usersActions';
-import { logout, showLoginInfo } from '../../redux/actions/authActions';
+import { showLoginInfo } from '../../redux/actions/authActions';
 import { makeDate } from '../../utils/makeDate';
 
 // ----------------------------------------------------------------------
@@ -79,20 +79,9 @@ export function applySortFilter(array, comparator) {
 
 export default function RecentlySoldData() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   const userLogin = useSelector(showLoginInfo);
-  const { userInfo, twoFA } = userLogin;
-  useEffect(() => {
-    if (!userInfo) {
-      dispatch(logout());
-      navigate('/login', { replace: true });
-      window.location.reload(false);
-    } else if (userInfo.otp_enabled && twoFA === false) {
-      navigate('/login', { replace: true });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userInfo, twoFA]);
+  const { userInfo } = userLogin;
 
   const listRecentlySold = useSelector(selectRecentlySold);
   const { loading, RECENTLYSOLDLIST, count, recentlySoldFilters } = listRecentlySold;

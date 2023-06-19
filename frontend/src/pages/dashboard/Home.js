@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import { sentenceCase } from 'change-case';
 import React, { useState, useEffect } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 // material
 import {
   Alert,
@@ -55,28 +55,15 @@ import {
   clientsAsync,
   getClientsCSV,
 } from '../../redux/actions/usersActions';
-import { showLoginInfo, logout } from '../../redux/actions/authActions';
+import { showLoginInfo } from '../../redux/actions/authActions';
 
 import '../../theme/map.css';
 
 export default function HomePage() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   const userLogin = useSelector(showLoginInfo);
-  const { userInfo, twoFA } = userLogin;
-
-  useEffect(() => {
-    if (!userInfo) {
-      dispatch(logout());
-      navigate('/login', { replace: true });
-      window.location.reload(false);
-    } else if (userInfo.otp_enabled && twoFA === false) {
-      navigate('/login', { replace: true });
-      window.location.reload(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userInfo, twoFA]);
+  const { userInfo } = userLogin;
 
   const [TABLE_HEAD, setTABLE_HEAD] = useState([
     { id: 'name', label: 'Name', alignRight: false },

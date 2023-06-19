@@ -71,12 +71,12 @@ export default function Login() {
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
 
-  useEffect(() => {
-    if (userInfo) {
-      navigate('/dashboard', { replace: true });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userInfo]);
+  // useEffect(() => {
+  //   if (userInfo) {
+  //     navigate('/dashboard', { replace: true });
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [userInfo]);
 
   return (
     <Page title="Login">

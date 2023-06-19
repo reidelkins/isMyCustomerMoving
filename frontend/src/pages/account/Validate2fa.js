@@ -1,7 +1,5 @@
 import * as Yup from 'yup';
-import { useEffect } from 'react';
 import { styled } from '@mui/material/styles';
-import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { useFormik, Form, FormikProvider } from 'formik';
 
@@ -54,13 +52,12 @@ const ContentStyle = styled('div')(({ theme }) => ({
 }));
 
 export default function Validate2fa() {
-  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const mdUp = useResponsive('up', 'md');
 
   const userLogin = useSelector(showLoginInfo);
-  const { userInfo, twoFA, error } = userLogin;
+  const { error } = userLogin;
 
   const twoFactorAuthSchema = Yup.object().shape({
     token: Yup.string()
@@ -81,17 +78,6 @@ export default function Validate2fa() {
   });
 
   const { errors, handleSubmit, getFieldProps } = formik;
-
-  useEffect(() => {
-    if (userInfo) {
-      if (twoFA) {
-        navigate('/dashboard');
-      }
-    } else {
-      navigate('/login');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userInfo, twoFA]);
 
   return (
     <Page title="Validate 2FA">

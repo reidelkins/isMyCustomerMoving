@@ -105,11 +105,11 @@ export default function Register() {
 
             <Typography variant="body2" align="center" sx={{ color: 'text.secondary', mt: 3 }}>
               By registering, I agree to{' '}
-              <Link underline="always" color="text.primary" href="/termsofservice" target="_blank">
+              <Link underline="always" color="text.primary" href="/account/termsofservice" target="_blank">
                 Terms of Service
               </Link>{' '}
               and{' '}
-              <Link underline="always" color="text.primary" href="/privacypolicy" target="_blank">
+              <Link underline="always" color="text.primary" href="/account/privacypolicy" target="_blank">
                 Privacy Policy
               </Link>
               .

@@ -1,6 +1,4 @@
-import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Checkbox,
@@ -17,7 +15,7 @@ import {
   TableCell,
   TableRow,
 } from '@mui/material';
-import { showLoginInfo, logout } from '../../../redux/actions/authActions';
+import { showLoginInfo } from '../../../redux/actions/authActions';
 import { enterpriseInfo, switchCompany } from '../../../redux/actions/enterpriseActions';
 import EnterpriseCall from '../../../redux/calls/EnterpriseListCall';
 // components
@@ -26,22 +24,8 @@ import Scrollbar from '../../../components/Scrollbar';
 
 export default function EnterpriseSettings() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-
   const userLogin = useSelector(showLoginInfo);
-  const { userInfo, twoFA } = userLogin;
-
-  useEffect(() => {
-    if (!userInfo) {
-      dispatch(logout());
-      navigate('/login', { replace: true });
-      window.location.reload(false);
-    } else if (userInfo.otp_enabled && twoFA === false) {
-      navigate('/login', { replace: true });
-      window.location.reload(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userInfo, twoFA]);
+  const { userInfo } = userLogin;
 
   const enterprise = useSelector(enterpriseInfo);
   const { name, companies, loading } = enterprise;
