@@ -37,8 +37,9 @@ def makeCompany(companyName, email, phone, stripeId=None):
                     + company.name
                     + "and your access token is: "
                     + company.accessToken
-                    + """. Please use this info at https://app.ismycustomermoving.com/register
-                      to create your account."""
+                    + """. Please use this info at
+                    https://app.ismycustomermoving.com/register
+                    to create your account."""
                 )
                 message = get_template("registration.html").render(
                     {

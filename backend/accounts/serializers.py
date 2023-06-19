@@ -133,9 +133,9 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         else:
             logging.error("User is not verified 2")
             raise serializers.ValidationError(
-                """User is not verified. Either you have not verified your 
+                """User is not verified. Either you have not verified your
                 email or your account has been disabled. Accounts are disabled
-                if you have not paid for the service. Please contact us 
+                if you have not paid for the service. Please contact us
                 reid@ismycustomermoving.com if you have any questions."""
             )
 
