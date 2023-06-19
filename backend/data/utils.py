@@ -28,18 +28,51 @@ def delVariables(vars):
             pass
     gc.collect()
 
-def findClientCount(subscriptionType):
-    if subscriptionType == "Small Business":
+def findClientCount(subscriptionProduct):
+    if (
+        subscriptionProduct.amount == 150
+        and subscriptionProduct.interval == "month"
+    ) or (
+        subscriptionProduct.amount == 1650
+        and subscriptionProduct.interval == "year"
+    ):
         ceiling = 5000
-    elif subscriptionType == "Franchise":
+    elif (
+        subscriptionProduct.amount == 250
+        and subscriptionProduct.interval == "month"
+    ) or (
+        subscriptionProduct.amount == 2750
+        and subscriptionProduct.interval == "year"
+    ):
         ceiling = 10000
-    elif subscriptionType == "Large Business":
+    elif (
+        subscriptionProduct.amount == 400
+        and subscriptionProduct.interval == "month"
+    ) or (
+        subscriptionProduct.amount == 4400
+        and subscriptionProduct.interval == "year"
+    ):
         ceiling = 20000
-    # elif subscriptionType == "Free Tier":
-    #     ceiling = 100
+    elif (
+        subscriptionProduct.amount == 1500
+        and subscriptionProduct.interval == "month"
+    ) or (
+        subscriptionProduct.amount == 16500
+        and subscriptionProduct.interval == "year"
+    ):
+        ceiling = 150000
+    elif (
+        subscriptionProduct.amount == 5000
+        and subscriptionProduct.interval == "month"
+    ) or (
+        subscriptionProduct.amount == 55000
+        and subscriptionProduct.interval == "year"
+    ):
+        ceiling = 500000
     else:
         ceiling = 100000
     return ceiling
+
 
 def findClientsToDelete(clientCount, subscriptionType):
     ceiling = findClientCount(subscriptionType)
@@ -47,11 +80,27 @@ def findClientsToDelete(clientCount, subscriptionType):
         return clientCount - ceiling
     else:
         return 0
-    
+
+
 def reactivateClients(companyID):
     company = Company.objects.get(id=companyID)
     clients = Client.objects.filter(company=company)
     clientCeiling = findClientCount(company.product.product.name)
+    if clientCeiling > clients.count():
+        clients.update(active=True)
+    else:
+        toReactiveCount = clientCeiling - clients.filter(active=True).count()
+        clients.filter(active=False).order_by("id")[:toReactiveCount].update(
+            active=True
+        )
+
+
+@shared_task
+def deleteExtraClients(companyID, taskID=None):
+    try:
+        company = Company.objects.get(id=companyID)
+        clients = Client.objects.filter(company=company, active=True)
+        deletedClients = findClientsToDelete(clients.count(), company.product)
     if clientCeiling > clients.count():
         clients.update(active=True)
     else:
