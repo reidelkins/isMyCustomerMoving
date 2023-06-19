@@ -24,12 +24,12 @@ from simple_salesforce import Salesforce
 
 @shared_task
 def get_fieldEdge_clients(company_id, task_id):
-    company = Company.objects.get(id=company_id)
+    Company.objects.get(id=company_id)
 
 
 @shared_task
 def get_hubspot_clients(company_id, task_id):
-    company = Company.objects.get(id=company_id)
+    Company.objects.get(id=company_id)
 
 
 @shared_task
@@ -51,13 +51,13 @@ def get_salesforce_clients(company_id, task_id=None):
     for contact in contacts["records"]:
         x = contact["MailingStreet"]
         count += 1
-        if x != None:
+        if x is not None:
             x = x.split("\n")
             if len(x) > 1:
                 street = x[0]
                 x = x[1].replace(",", "")
                 x = x.split(" ")
-                if len(x) == 3 and street != None:
+                if len(x) == 3 and street is not None:
                     client = {
                         "name": f"{contact['FirstName']} {contact['LastName']}",
                         "phone number": contact["Phone"],
@@ -109,7 +109,7 @@ def get_serviceTitan_clients(company_id, task_id, option=None, automated=False):
         )
         page += 1
         clients = response.json()["data"]
-        if response.json()["hasMore"] == False:
+        if not response.json()["hasMore"]:
             moreClients = False
         if option == "option3":
             for client in clients:
@@ -142,7 +142,7 @@ def get_serviceTitan_clients(company_id, task_id, option=None, automated=False):
             # for number in response.json()['data']:
             #     numbers.append(number)
             numbers = response.json()["data"]
-            if response.json()["hasMore"] == True:
+            if response.json()["hasMore"]:
                 frm = response.json()["continueFrom"]
             else:
                 moreClients = False
@@ -157,12 +157,13 @@ def update_clients_with_last_service_date(equipment, company_id):
     company = Company.objects.get(id=company_id)
     client_dict = {}
     for equip in equipment:
-        if equip["installedOn"] != None:
+        if equip["installedOn"] is not None:
             try:
                 client_dict[equip["customerId"]] = datetime.strptime(
                     equip["installedOn"], "%Y-%m-%dT%H:%M:%SZ"
                 ).date()
             except Exception as e:
+                logging.error(e)
                 pass
 
     client_ids = client_dict.keys()
@@ -284,7 +285,7 @@ def get_servicetitan_equipment(company_id):
         # additional option &modifiedOnOrAfter=2000-1-1T00:00:14-05:00
         page += 1
         equipment = response.json()["data"]
-        if response.json()["hasMore"] == False:
+        if not response.json()["hasMore"]:
             moreEquipment = False
 
         update_clients_with_last_service_date.delay(equipment, company_id)
@@ -315,7 +316,7 @@ def get_serviceTitan_invoices(company_id):
             invoices.append(
                 {"id": invoice["customer"]["id"], "total": invoice["total"]}
             )
-        if response.json()["hasMore"] == False:
+        if not response.json()["hasMore"]:
             moreInvoices = False
     update_clients_with_revenue.delay(invoices, company_id)
     delVariables([invoices, response])

@@ -115,7 +115,7 @@ class AcceptInvite(APIView):
                     )
             except Exception as e:
                 return Response(
-                    {"status": "Data Error on Invite Token"},
+                    {"status": f"Data Error on Invite Token: {e}"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             serializer = UserSerializerWithToken(user, many=False)
@@ -164,7 +164,11 @@ class ManageUserView(APIView):
                                 "Invite Reminder For Is My Customer Moving"
                             )
 
-                        messagePlain = f"You have been invited to join Is My Customer Moving by {admin.first_name} {admin.last_name}. Please click the link below to join. https://app.ismycustomermoving.com/addeduser/{str(token.id)}"
+                        messagePlain = f"""You have been invited to join Is
+                        My Customer Moving by {admin.first_name} {admin.last_name}.
+                        Please click the link below to join.
+                        https://app.ismycustomermoving.com/
+                        addeduser/{str(token.id)}"""
                         message = get_template("addUserEmail.html").render(
                             {"admin": admin, "token": token.id}
                         )
@@ -419,7 +423,9 @@ class RegisterView(APIView):
                 # by going here {}/api/v1/accounts/confirmation/{}/{}/"""
                 # .format(current_site, tokenSerializer.data['refresh'], user.id)
                 # message = get_template("registration.html").render({
-                #     'current_site': current_site, 'token': tokenSerializer.data['refresh'], 'user_id': user.id
+                #     'current_site': current_site,
+                #       'token': tokenSerializer.data['refresh'],
+                #       'user_id': user.id
                 # })
                 # send_mail(
                 # subject=mail_subject,
@@ -434,7 +440,7 @@ class RegisterView(APIView):
             else:
                 return Response(
                     {
-                        "detail": """Access Token Already Used. 
+                        "detail": """Access Token Already Used.
                         Ask an admin to login and create profile for you."""
                     },
                     status=status.HTTP_400_BAD_REQUEST,
@@ -453,7 +459,7 @@ def confirmation(request, pk, uid):
     token = jwt.decode(pk, settings.SECRET_KEY, algorithms=["HS256"])
 
     if (
-        user.isVerified == False
+        not user.isVerified
         and datetime.datetime.fromtimestamp(token["exp"])
         > datetime.datetime.now()
     ):
@@ -464,8 +470,12 @@ def confirmation(request, pk, uid):
     elif (
         datetime.datetime.fromtimestamp(token["exp"]) < datetime.datetime.now()
     ):
-        # For resending confirmation email use send_mail with the following encryption
-        # print(jwt.encode({'user_id': user.user.id, 'exp': datetime.datetime.now() + datetime.timedelta(days=1)}, settings.SECRET_KEY, algorithm='HS256'))
+        # For resending confirmation email
+        #  use send_mail with the following encryption
+        # print(jwt.encode({
+        # 'user_id': user.user.id,
+        #  'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
+        #  settings.SECRET_KEY, algorithm='HS256'))
 
         return HttpResponse("Your activation link has been expired")
     else:
@@ -500,7 +510,7 @@ class OTPGenerateView(generics.GenericAPIView):
             user = CustomUser.objects.get(id=request.data["id"])
             if user is None:
                 return Response(
-                    {"detail": f"User with this email does not exist"},
+                    {"detail": "User with this email does not exist"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             otp_base32 = pyotp.random_base32()
@@ -529,14 +539,14 @@ class OTPVerifyView(generics.GenericAPIView):
     def post(self, request):
         try:
             user = CustomUser.objects.get(id=request.data["id"])
-            if user == None:
+            if user is None:
                 return Response(
-                    {"detail": f"User with this email does not exist"},
+                    {"detail": "User with this email does not exist"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            if user.otp_base32 == None:
+            if user.otp_base32 is None:
                 return Response(
-                    {"detail": f"OTP not generated for this user"},
+                    {"detail": "OTP not generated for this user"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             totp = pyotp.TOTP(user.otp_base32)
@@ -549,7 +559,7 @@ class OTPVerifyView(generics.GenericAPIView):
             else:
                 logging.error("verification failed")
                 return Response(
-                    {"detail": f"OTP verification failed"},
+                    {"detail": "OTP verification failed"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -571,9 +581,9 @@ class OTPValidateView(generics.GenericAPIView):
         user = CustomUser.objects.get(id=request.data["id"])
         if not user.otp_verified:
             messages["errors"].append("One Time Password incorrect")
-        if user.otp_base32 == None:
+        if user.otp_base32 is None:
             return Response(
-                {"detail": f"OTP not generated for this user"},
+                {"detail": "OTP not generated for this user"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if len(messages["errors"]) > 0:
@@ -588,7 +598,7 @@ class OTPValidateView(generics.GenericAPIView):
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response(
-                    {"detail": f"OTP verification failed"},
+                    {"detail": "OTP verification failed"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         except Exception as e:
@@ -640,7 +650,8 @@ class TokenValidate(APIView):
             )
         access_token = access_token.split(" ")[1]
         token_info = requests.get(
-            f"https://www.googleapis.com/oauth2/v3/tokeninfo?access_token={access_token}"
+            f"""https://www.googleapis.com/
+            oauth2/v3/tokeninfo?access_token={access_token}"""
         ).json()
         if int(token_info["expires_in"]) <= 0:
             return Response(
@@ -653,7 +664,8 @@ class TokenValidate(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
         user_info = requests.get(
-            f"https://www.googleapis.com/oauth2/v3/userinfo?access_token={access_token}"
+            f"""https://www.googleapis.com/
+            oauth2/v3/userinfo?access_token={access_token}"""
         ).json()
         if (
             token_info["sub"] != user_info["sub"]

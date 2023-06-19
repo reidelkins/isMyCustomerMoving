@@ -157,7 +157,10 @@ def find_data(zip, i, status, url, extra):
                 )
             content = new_results.scrape_result["content"]
             # resp = ScrapeResponse.objects.create(
-            #     response=str(content), zip=zip, status=status, url=page_url
+            #     response=str(content),
+            #     zip=zip,
+            #     status=status,
+            #     url=page_url
             # )
             parsed = parse_search(new_results, status)
             if status == "For Rent":
@@ -206,8 +209,9 @@ def create_home_listings(results, status, resp=None):
                         )
                     except Exception as e:
                         logging.error(
-                            f"ERROR during create_home_listings: {e} with zipCode {zip_object}"
+                            f"ERROR during create_home_listings: {zip_object}"
                         )
+                        logging.error(e)
                         dateCompare = datetime.strptime(listType, "%Y-%m-%d")
                     if dateCompare < two_years_ago:
                         continue
@@ -220,8 +224,9 @@ def create_home_listings(results, status, resp=None):
                             )
                         except Exception as e:
                             logging.error(
-                                f"ERROR during create_home_listings: {e} with zipCode {zip_object}"
+                                f"ERROR during create_home_listings: {zip_object}"
                             )
+                            logging.error(e)
                             dateCompare = datetime.strptime(
                                 listType, "%Y-%m-%d"
                             )
@@ -309,7 +314,7 @@ def create_home_listings(results, status, resp=None):
                     heating=heating,
                     sqft=sqft,
                 )
-            # Uncomment this if you want to link the HomeListing with a ScrapeResponse
+            # Uncomment this if you want a Scrapresponse
             # if resp:
             #     homeListing.ScrapeResponse = ScrapeResponse.objects.get(id=resp)
             #     homeListing.save()
@@ -416,7 +421,7 @@ def get_realtor_property_records(address, city, state):
                 ).update(permalink=property["permalink"])
 
                 logging.error(
-                    f"""ERROR: Multiple objects returned for 
+                    f"""ERROR: Multiple objects returned for
                     {property['streetAddress']}, {property['city']},
                       {property['state']}, {property['zipCode']} {e}"""
                 )

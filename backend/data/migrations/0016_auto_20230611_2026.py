@@ -6,43 +6,43 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0015_client_servicetitancustomersince'),
+        ("data", "0015_client_servicetitancustomersince"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='homelisting',
-            name='bathrooms',
+            model_name="homelisting",
+            name="bathrooms",
             field=models.IntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='bedrooms',
+            model_name="homelisting",
+            name="bedrooms",
             field=models.IntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='latitude',
+            model_name="homelisting",
+            name="latitude",
             field=models.FloatField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='longitude',
+            model_name="homelisting",
+            name="longitude",
             field=models.FloatField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='lot_sqft',
+            model_name="homelisting",
+            name="lot_sqft",
             field=models.IntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='permalink',
+            model_name="homelisting",
+            name="permalink",
             field=models.CharField(blank=True, max_length=100, null=True),
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='sqft',
+            model_name="homelisting",
+            name="sqft",
             field=models.IntegerField(default=0),
         ),
     ]

@@ -66,9 +66,7 @@ urlpatterns = [
         "password_reset/",
         include("django_rest_passwordreset.urls", namespace="password_reset"),
     ),
-    path(
-        "users/<str:company>/", views.UserListView.as_view(), name="user-list"
-    ),
+    path("users/<str:company>/", views.UserListView.as_view(), name="user-list"),
     path("register/", views.RegisterView.as_view(), name="register"),
     path("login/", include(login_patterns)),
     path("zapier/", include(zapier_patterns)),

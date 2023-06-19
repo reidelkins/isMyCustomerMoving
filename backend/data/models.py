@@ -161,7 +161,8 @@ class HomeListing(models.Model):
     tag = models.ManyToManyField(
         "HomeListingTags", blank=True, related_name="homeListing_tag"
     )
-    # tags = JSONField(default=list)     this is how to greatly reduce the amount of data in the table
+    # this is how to greatly reduce the amount of data in the table
+    # tags = JSONField(default=list)
     city = models.CharField(max_length=40, blank=True, null=True)
     state = models.CharField(max_length=31, blank=True, null=True)
     bedrooms = models.IntegerField(default=0, blank=True, null=True)

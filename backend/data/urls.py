@@ -20,9 +20,7 @@ urlpatterns = [
         views.UpdateStatusView.as_view(),
         name="update-status",
     ),
-    path(
-        "updateclient/", views.UpdateClientView.as_view(), name="updateclient"
-    ),
+    path("updateclient/", views.UpdateClientView.as_view(), name="updateclient"),
     path(
         "upload/<str:company>/",
         views.UploadFileView.as_view(),

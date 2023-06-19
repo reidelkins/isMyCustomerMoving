@@ -6,23 +6,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0004_remove_clientupdate_housingtype_and_more'),
+        ("data", "0004_remove_clientupdate_housingtype_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='client',
-            name='housingType',
-            field=models.CharField(blank=True, default=' ', max_length=100, null=True),
+            model_name="client",
+            name="housingType",
+            field=models.CharField(
+                blank=True, default=" ", max_length=100, null=True
+            ),
         ),
         migrations.AlterField(
-            model_name='client',
-            name='price',
+            model_name="client",
+            name="price",
             field=models.IntegerField(blank=True, default=0, null=True),
         ),
         migrations.AlterField(
-            model_name='client',
-            name='year_built',
+            model_name="client",
+            name="year_built",
             field=models.IntegerField(blank=True, default=0, null=True),
         ),
     ]

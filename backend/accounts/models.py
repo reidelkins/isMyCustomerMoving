@@ -132,9 +132,7 @@ class Company(models.Model):
     serviceTitanForSaleTagID = models.IntegerField(blank=True, null=True)
     serviceTitanForRentTagID = models.IntegerField(blank=True, null=True)
     serviceTitanRecentlySoldTagID = models.IntegerField(blank=True, null=True)
-    serviceTitanForSaleContactedTagID = models.IntegerField(
-        blank=True, null=True
-    )
+    serviceTitanForSaleContactedTagID = models.IntegerField(blank=True, null=True)
     serviceTitanRecentlySoldContactedTagID = models.IntegerField(
         blank=True, null=True
     )
@@ -150,9 +148,7 @@ class Company(models.Model):
     # Zapier
     zapier_forSale = models.CharField(max_length=100, blank=True, null=True)
     zapier_sold = models.CharField(max_length=100, blank=True, null=True)
-    zapier_recentlySold = models.CharField(
-        max_length=100, blank=True, null=True
-    )
+    zapier_recentlySold = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -244,9 +240,7 @@ class InviteToken(models.Model):
 def password_reset_token_created(
     sender, instance, reset_password_token, *args, **kwargs
 ):
-    if CustomUser.objects.filter(
-        email=reset_password_token.user.email
-    ).exists():
+    if CustomUser.objects.filter(email=reset_password_token.user.email).exists():
         subject = "Password Reset: IsMyCustomerMoving.com"
         message = get_template("resetPassword.html").render(
             {"token": reset_password_token.key}

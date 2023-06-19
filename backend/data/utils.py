@@ -25,7 +25,6 @@ import xml.etree.ElementTree as ET
 
 from django.template.loader import get_template
 from django.core.mail import EmailMessage, send_mail
-from django.db.models.functions import Coalesce
 
 
 def delVariables(vars):
@@ -810,7 +809,7 @@ def remove_all_serviceTitan_tags(company=None, client=None):
                         if time < datetime.now() - timedelta(minutes=15):
                             headers = get_serviceTitan_accessToken(company.id)
                             time = datetime.now()
-                        x = clients[i * 250 : (i + 1) * 250]
+                        x = clients[i * 250 : (i + 1) * 250]  # noqa: E203
                         payload = {"customerIds": x, "tagTypeIds": tag}
                         response = requests.delete(
                             f"""https://api.servicetitan.io/crm/
@@ -932,7 +931,7 @@ def send_update_email(templateName):
         )
         mail_subject = "Is My Customer Moving Product Updates"
         messagePlain = """Thank you for signing up for Is My Customer Moving.
-          We have some updates for you. Please visit 
+          We have some updates for you. Please visit
           https://app.ismycustomermoving.com/ to see them."""
         message = get_template(f"{templateName}.html").render()
         for user in users:
@@ -1009,6 +1008,7 @@ def filter_recentlysold(query_params, queryset, company):
         try:
             tags = query_params["tags"].split(",")
         except Exception as e:
+            logging.error(e)
             tags = query_params["tags"]
         if tags != [""]:
             matching_tags = HomeListingTags.objects.filter(tag__in=tags)

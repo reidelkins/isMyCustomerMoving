@@ -1,6 +1,4 @@
 from django.core.management.base import BaseCommand
-from datetime import datetime
-
 from data.models import ZipCode, HomeListing
 
 
@@ -22,6 +20,10 @@ class Command(BaseCommand):
                 f.write("Address,City,State,Zip Code,Sell Price,Date Listed\n")
                 for listing in listings:
                     f.write(
-                        f"""{listing.address},{listing.city},{listing.state},
-                        {listing.zipCode.zipCode},{listing.price},{listing.listed}\n"""
+                        f"""{listing.address},
+                        {listing.city},
+                        {listing.state},
+                        {listing.zipCode.zipCode},
+                        {listing.price},
+                        {listing.listed}\n"""
                     )

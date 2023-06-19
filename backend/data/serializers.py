@@ -86,9 +86,7 @@ class HomeListingTagsSerializer(serializers.ModelSerializer):
 
 
 class HomeListingSerializer(serializers.ModelSerializer):
-    zipCode = (
-        serializers.StringRelatedField()
-    )  # assuming that ZipCode has a __str__
+    zipCode = serializers.StringRelatedField()  # assuming that ZipCode has a __str__
     # method that returns a meaningful string
     tags = HomeListingTagsSerializer(many=True, read_only=True)
 

@@ -110,7 +110,8 @@ class ClientListView(generics.ListAPIView):
                 queryset = queryset.exclude(status="No Change").order_by(
                     "status"
                 )
-        except:
+        except Exception as e:
+            logging.error(e)
             queryset = queryset.order_by("status")
         return queryset
 
@@ -337,7 +338,8 @@ class UploadFileView(generics.ListAPIView):
                     return Response(
                         {
                             "status": "SUCCESS",
-                            "data": "Clients Uploaded! Come back in about an hour to see your results.",
+                            "data": """Clients Uploaded!
+                            Come back in about an hour to see your results.""",
                             "deleted": deleted,
                         },
                         status=status.HTTP_201_CREATED,
@@ -362,7 +364,7 @@ class UploadFileView(generics.ListAPIView):
     def put(self, request, *args, **kwargs):
         company_id = self.kwargs["company"]
         try:
-            company = Company.objects.get(id=company_id)
+            Company.objects.get(id=company_id)
         except Exception as e:
             logging.error(e)
             return Response(
@@ -378,7 +380,8 @@ class UploadFileView(generics.ListAPIView):
             )
         return Response(
             {
-                "data": "Clients Uploaded! Come back in about an hour to see your results",
+                "data": """Clients Uploaded!
+                Come back in about an hour to see your results""",
                 "task": task.id,
             },
             status=status.HTTP_201_CREATED,
@@ -432,7 +435,7 @@ class UpdateClientView(APIView):
                         ):
                             add_serviceTitan_contacted_tag.delay(
                                 client.id,
-                                client.company.serviceTitanRecentlySoldContactedTagID,
+                                client.company.serviceTitanRecentlySoldContactedTagID,  # noqa
                             )
                 if request.data["errorFlag"] != "":
                     client.status = "No Change"
@@ -472,7 +475,7 @@ class ServiceTitanView(APIView):
                     return Response(
                         {
                             "status": "SUCCESS",
-                            "data": """Clients Synced! 
+                            "data": """Clients Synced!
                                 Come back in about an hour to see your results.""",
                             "deleted": deleted,
                         },
@@ -535,7 +538,8 @@ class ServiceTitanView(APIView):
 
 
 class SalesforceConsumerView(APIView):
-    # GET request that returns the Salesforce Consumer Key and Consumer Secret from the config file, make this protected
+    # GET request that returns the Salesforce Consumer Key and
+    # Consumer Secret from the config file, make this protected
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
@@ -571,7 +575,8 @@ class SalesforceConsumerView(APIView):
                     token?grant_type=authorization_code&
                     client_id={settings.SALESFORCE_CONSUMER_KEY}&
                     client_secret={settings.SALESFORCE_CONSUMER_SECRET}&
-                    redirect_uri=http://localhost:3000/dashboard/settings&code={code}""",
+                    redirect_uri=http://localhost:3000/
+                    dashboard/settings&code={code}""",
                     headers=headers,
                 )
 

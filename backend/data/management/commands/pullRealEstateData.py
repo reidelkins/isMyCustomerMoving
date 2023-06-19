@@ -6,7 +6,9 @@ from data.utils import auto_update
 
 
 class Command(BaseCommand):
-    help = "Scrape data from realtor.com and update the database for a single zip code"
+    help = (
+        "Scrape data from realtor.com and update the database for a single zip code"
+    )
 
     def add_arguments(self, parser):
         parser.add_argument("-c", "--company")

@@ -26,8 +26,8 @@ class Command(BaseCommand):
                     freePlan = djstripe_models.Plan.objects.get(
                         id="price_1MhxfPAkLES5P4qQbu8O45xy"
                     )
-                    companies = Company.objects.filter(
-                        crm="ServiceTitan"
-                    ).exclude(product=freePlan)
+                    companies = Company.objects.filter(crm="ServiceTitan").exclude(
+                        product=freePlan
+                    )
                     for company in companies:
                         get_serviceTitan_invoices.delay(company.id)

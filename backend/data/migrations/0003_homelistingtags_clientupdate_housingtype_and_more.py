@@ -7,55 +7,68 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0002_alter_client_unique_together_referral'),
+        ("data", "0002_alter_client_unique_together_referral"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='HomeListingTags',
+            name="HomeListingTags",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
-                ('tag', models.CharField(max_length=100)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
+                ("tag", models.CharField(max_length=100)),
             ],
         ),
         migrations.AddField(
-            model_name='clientupdate',
-            name='housingType',
-            field=models.CharField(default=' ', max_length=100),
+            model_name="clientupdate",
+            name="housingType",
+            field=models.CharField(default=" ", max_length=100),
         ),
         migrations.AddField(
-            model_name='clientupdate',
-            name='price',
+            model_name="clientupdate",
+            name="price",
             field=models.IntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='clientupdate',
-            name='year_built',
+            model_name="clientupdate",
+            name="year_built",
             field=models.IntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='housingType',
-            field=models.CharField(default=' ', max_length=100),
+            model_name="homelisting",
+            name="housingType",
+            field=models.CharField(default=" ", max_length=100),
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='price',
+            model_name="homelisting",
+            name="price",
             field=models.IntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='year_built',
+            model_name="homelisting",
+            name="year_built",
             field=models.IntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='clientupdate',
-            name='tag',
-            field=models.ManyToManyField(blank=True, related_name='client_tags', to='data.HomeListingTags'),
+            model_name="clientupdate",
+            name="tag",
+            field=models.ManyToManyField(
+                blank=True, related_name="client_tags", to="data.HomeListingTags"
+            ),
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='tag',
-            field=models.ManyToManyField(blank=True, related_name='homeListing_tag', to='data.HomeListingTags'),
+            model_name="homelisting",
+            name="tag",
+            field=models.ManyToManyField(
+                blank=True, related_name="homeListing_tag", to="data.HomeListingTags"
+            ),
         ),
     ]

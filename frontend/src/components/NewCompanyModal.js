@@ -2,14 +2,14 @@ import React from 'react';
 import * as Yup from 'yup';
 import { Button, TextField, Dialog, DialogTitle, Stack } from '@mui/material';
 import { useFormik, Form, FormikProvider } from 'formik';
-import { useDispatch } from 'react-redux';
+// import { useDispatch } from 'react-redux';
 
-import { createCompany } from '../redux/actions/usersActions';
+// import { createCompany } from '../redux/actions/usersActions';
 
 export default function NewCompanyModal() {
   // const classes = useStyles();
   const [open, setOpen] = React.useState(false);
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
 
   const handleOpen = () => {
     setOpen(true);
@@ -30,7 +30,7 @@ export default function NewCompanyModal() {
     },
     validationSchema: NewCompanySchema,
     onSubmit: () => {
-      dispatch(createCompany(values.company, values.email));
+      // dispatch(createCompany(values.company, values.email));
       values.company = '';
       values.email = '';
       setOpen(false);

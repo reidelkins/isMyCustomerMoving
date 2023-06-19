@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 import os
-import django_extensions
 import dotenv
 from pathlib import Path
 from common.utils import get_env_var

@@ -4,7 +4,6 @@ from django.core.mail import send_mail
 from accounts.models import Company, CustomUser
 from accounts.utils import makeCompany, create_keap_company
 from data.utils import deleteExtraClients, reactivateClients
-from datetime import datetime, timedelta
 
 from djstripe import webhooks, models as djstripe_models
 
@@ -157,7 +156,7 @@ def completed_checkout(event: djstripe_models.Event):
             company.phone = phone
             company.save()
             create_keap_company(company.id)
-        except:
+        except Company.DoesNotExist:
             try:
                 company = makeCompany(companyName, email, phone, stripeId)
                 company = Company.objects.get(id=company)
@@ -194,7 +193,7 @@ def cancel_subscription(event: djstripe_models.Event):
             user.save()
             mail_subject = "Subscription Ended: Is My Customer Moving"
             # send the endedSubscrition email to each user
-            messagePlain = f"""Your subscription to Is My Customer 
+            messagePlain = """Your subscription to Is My Customer
             Moving has ended. Please contact us at reid@ismycustomermoving.com
              to reactivate your subscription."""
             message = get_template("endedSubscription.html").render(
@@ -260,7 +259,8 @@ def update_subscription(event: djstripe_models.Event):
 # @webhooks.handler("invoice.payment_failed", "invoice.payment_action_required")
 # def send_email_on_subscription_payment_failure(event: djstripe_models.Event):
 #     """
-#     This is an example of a handler that sends an email to a customer after a recurring payment fails
+#     This is an example of a handler that sends
+#       an email to a customer after a recurring payment fails
 
 #     :param event:
 #     :return:
