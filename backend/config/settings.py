@@ -20,16 +20,9 @@ from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-IS_HEROKU = False
-IS_GITHUB = False
-try:
-    IS_HEROKU = get_env_var("IS_HEROKU")
-except:
-    pass
-try:
-    IS_GITHUB = get_env_var("IS_GITHUB")
-except:
-    pass
+IS_HEROKU = os.environ.get("IS_HEROKU", False)
+IS_GITHUB = os.environ.get("IS_GITHUB", False)
+
 if IS_HEROKU or IS_GITHUB:
     dotenv.load_dotenv(BASE_DIR / ".env")
 else:
@@ -300,7 +293,7 @@ STRIPE_TEST_SECRET_KEY = get_env_var("STRIPE_SECRET_KEY_TEST")
 STRIPE_LIVE_SECRET_KEY = get_env_var("STRIPE_SECRET_KEY")
 STRIPE_LIVE_MODE = False
 
-DJSTRIPE_WEBHOOK_SECRET = "whsec_N8LMT9fUTcrtlEBvKaHLKTnXWLE2uybj"
+DJSTRIPE_WEBHOOK_SECRET = get_env_var("DJSTRIPE_WEBHOOK_SECRET")
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
 
 DJSTRIPE_WEBHOOK_VALIDATION = "retrieve_event"

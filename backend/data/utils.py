@@ -20,7 +20,7 @@ import json
 import logging
 import requests
 import traceback
-import xml.etree.ElementTree as ET
+from defusedxml.ElementTree import fromstring
 
 
 from django.template.loader import get_template
@@ -406,14 +406,18 @@ def updateStatus(zip, company, status):
                 try:
                     serializer = ZapierClientSerializer(toList)
                     serialized_data = serializer.data
-                    requests.post(company.zapier_forSale, data=serialized_data)
+                    requests.post(
+                        company.zapier_forSale, data=serialized_data, timeout=10
+                    )
                 except Exception as e:
                     logging.error(e)
             if company.zapier_sold and status == "House Recently Sold (6)":
                 try:
                     serializer = ZapierClientSerializer(toList)
                     serialized_data = serializer.data
-                    requests.post(company.zapier_sold, data=serialized_data)
+                    requests.post(
+                        company.zapier_sold, data=serialized_data, timeout=10
+                    )
                 except Exception as e:
                     logging.error(f"Zapier Sold: {e}")
 
@@ -634,7 +638,10 @@ def get_serviceTitan_accessToken(company):
         client_id={company.clientID}&
         client_secret={company.clientSecret}"""
     response = requests.post(
-        "https://auth.servicetitan.io/connect/token", headers=headers, data=data
+        "https://auth.servicetitan.io/connect/token",
+        headers=headers,
+        data=data,
+        timeout=10,
     )
     headers = {
         "Authorization": response.json()["access_token"],
@@ -677,6 +684,7 @@ def update_serviceTitan_client_tags(forSale, company, status):
                     v2/tenant/{str(company.tenantID)}/tags""",
                     headers=headers,
                     json=payload,
+                    timeout=10,
                 )
                 if response.status_code != 200:
                     resp = response.json()
@@ -703,6 +711,7 @@ def update_serviceTitan_client_tags(forSale, company, status):
                         v2/tenant/{str(company.tenantID)}/tags""",
                         headers=headers,
                         json=payload,
+                        timeout=10,
                     )
                     if response.status_code != 200:
                         logging.error(response.json())
@@ -712,6 +721,7 @@ def update_serviceTitan_client_tags(forSale, company, status):
                 v2/tenant/{str(company.tenantID)}/tags""",
                 headers=headers,
                 json=payload,
+                timeout=10,
             )
             if response.status_code != 200:
                 resp = response.json()
@@ -739,6 +749,7 @@ def update_serviceTitan_client_tags(forSale, company, status):
                         v2/tenant/{str(company.tenantID)}/tags""",
                         headers=headers,
                         json=payload,
+                        timeout=10,
                     )
                 payload = {"customerIds": forSale, "tagTypeIds": tagType}
                 response = requests.put(
@@ -746,6 +757,7 @@ def update_serviceTitan_client_tags(forSale, company, status):
                     v2/tenant/{str(company.tenantID)}/tags""",
                     headers=headers,
                     json=payload,
+                    timeout=10,
                 )
     except Exception as e:
         logging.error("updating service titan clients failed")
@@ -778,6 +790,7 @@ def add_serviceTitan_contacted_tag(client, tagId):
         v2/tenant/{str(client.company.tenantID)}/tags""",
         headers=headers,
         json=payload,
+        timeout=10,
     )
 
 
@@ -816,6 +829,7 @@ def remove_all_serviceTitan_tags(company=None, client=None):
                             v2/tenant/{str(company.tenantID)}/tags""",
                             headers=headers,
                             json=payload,
+                            timeout=10,
                         )
                         if response.status_code != 200:
                             resp = response.json()
@@ -840,6 +854,7 @@ def remove_all_serviceTitan_tags(company=None, client=None):
                                     v2/tenant/{str(company.tenantID)}/tags""",
                                     headers=headers,
                                     json=payload,
+                                    timeout=10,
                                 )
                                 if response.status_code != 200:
                                     logging.error(response.json())
@@ -870,6 +885,7 @@ def remove_all_serviceTitan_tags(company=None, client=None):
                     v2/tenant/{str(client.company.tenantID)}/tags""",
                     headers=headers,
                     json=payload,
+                    timeout=10,
                 )
         except Exception as e:
             logging.error(e)
@@ -887,6 +903,7 @@ def update_serviceTitan_tasks(clients, company, status):
                 f"""https://api.servicetitan.io/taskmanagement/
                 v2/tenant/{str(company.tenantID)}/data""",
                 headers=headers,
+                timeout=10,
             )
             with open("tasks.json", "w") as f:
                 json.dump(response.json(), f)
@@ -1107,10 +1124,10 @@ def verify_address(client_id):
 
     params = {"API": api, "XML": xml_request}
 
-    response = requests.get(base_url, params=params)
+    response = requests.get(base_url, params=params, timeout=10)
     response_xml = response.text
 
-    parsed_response = ET.fromstring(response_xml)
+    parsed_response = fromstring(response_xml)
     address_element = parsed_response.find("Address")
     error = address_element.find("Error")
     if error:
@@ -1169,7 +1186,9 @@ def send_zapier_recentlySold(company_id):
                         ):  # Add savedFilter.name to each item in the list
                             data["filterName"] = savedFilter.name
                     requests.post(
-                        company.zapier_recentlySold, data=serialized_data
+                        company.zapier_recentlySold,
+                        data=serialized_data,
+                        timeout=10,
                     )
                 except Exception as e:
                     logging.error(e)

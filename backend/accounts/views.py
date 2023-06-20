@@ -651,7 +651,8 @@ class TokenValidate(APIView):
         access_token = access_token.split(" ")[1]
         token_info = requests.get(
             f"""https://www.googleapis.com/
-            oauth2/v3/tokeninfo?access_token={access_token}"""
+            oauth2/v3/tokeninfo?access_token={access_token}""",
+            timeout=10
         ).json()
         if int(token_info["expires_in"]) <= 0:
             return Response(
@@ -665,7 +666,8 @@ class TokenValidate(APIView):
             )
         user_info = requests.get(
             f"""https://www.googleapis.com/
-            oauth2/v3/userinfo?access_token={access_token}"""
+            oauth2/v3/userinfo?access_token={access_token}""",
+            timeout=10
         ).json()
         if (
             token_info["sub"] != user_info["sub"]
@@ -682,7 +684,7 @@ class TokenValidate(APIView):
             CustomUser.objects.get(email=user_data["email"])
             response = requests.post(
                 f"{settings.BASE_BACKEND_URL}/api/v1/accounts/glogin/",
-                json=user_data,
+                json=user_data, timeout=10
             ).json()
             return Response(response, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:

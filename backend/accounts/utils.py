@@ -121,7 +121,8 @@ class CustomAuthentication(BaseAuthentication):
         access_token = access_token.split(" ")[1]
         token_info = requests.get(
             f"""https://www.googleapis.com/
-            oauth2/v3/tokeninfo?access_token={access_token}"""
+            oauth2/v3/tokeninfo?access_token={access_token}""",
+            timeout=10
         ).json()
         if int(token_info["expires_in"]) <= 0:
             return None
@@ -129,7 +130,8 @@ class CustomAuthentication(BaseAuthentication):
             return None
         user_info = requests.get(
             f"""https://www.googleapis.com/
-            oauth2/v3/userinfo?access_token={access_token}"""
+            oauth2/v3/userinfo?access_token={access_token}""",
+            timeout=10
         ).json()
         if token_info["sub"] != user_info["sub"]:
             return None
@@ -163,7 +165,7 @@ def create_keap_company(company_id):
             },
             "notes": float(company.product.amount),
         }
-        response = requests.post(url, headers=headers, json=body)
+        response = requests.post(url, headers=headers, json=body, timeout=10)
         if response.status_code != 201:
             logging.error(f"ERROR: {response.text}")
             logging.error("Could not create company in Keap")
@@ -179,7 +181,7 @@ def create_keap_user(user_id):
         company = user.company
         url = "https://api.infusionsoft.com/crm/rest/v1/companies"
         headers = {"X-Keap-API-Key": settings.KEAP_API_KEY}
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=10)
         if response.status_code != 200:
             logging.error(f"ERROR: {response.text}")
             logging.error("Could not get companies in Keap")
@@ -202,7 +204,7 @@ def create_keap_user(user_id):
                 "phone_numbers": [{"number": user.phone, "field": "PHONE1"}],
                 "company": {"id": company_id},
             }
-            response = requests.post(url, headers=headers, json=body)
+            response = requests.post(url, headers=headers, json=body, timeout=10)
             if response.status_code != 201:
                 logging.error(f"ERROR: {response.text}")
                 logging.error("Could not create user in Keap")
@@ -212,7 +214,7 @@ def create_keap_user(user_id):
                     "https://api.infusionsoft.com/crm/rest/v1/tags/127/contacts"
                 )
                 body = {"ids": [response.json()["id"]]}
-                response = requests.post(url, headers=headers, json=body)
+                response = requests.post(url, headers=headers, json=body, timeout=10)
                 if response.status_code != 200:
                     logging.error(f"ERROR: {response.text}")
                     logging.error("Could not add user to tag in Keap")

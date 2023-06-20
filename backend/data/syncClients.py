@@ -106,6 +106,7 @@ def get_serviceTitan_clients(company_id, task_id, option=None, automated=False):
             f"""https://api.servicetitan.io/crm/
             v2/tenant/{tenant}/locations?page={page}&pageSize=2500""",
             headers=headers,
+            timeout=10,
         )
         page += 1
         clients = response.json()["data"]
@@ -138,6 +139,7 @@ def get_serviceTitan_clients(company_id, task_id, option=None, automated=False):
                 f"""https://api.servicetitan.io/crm/
                 v2/tenant/{tenant}/export/customers/contacts?from={frm}""",
                 headers=headers,
+                timeout=10,
             )
             # for number in response.json()['data']:
             #     numbers.append(number)
@@ -196,7 +198,7 @@ def update_clients_with_first_invoice_date(company_id):
         invoices = []
         url = f"""https://api.servicetitan.io/accounting/
         v2/tenant/{tenant}/invoices?page={page}&pageSize=2500"""
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=10)
         page += 1
         for invoice in response.json()["data"]:
             invoices.append(
@@ -281,6 +283,7 @@ def get_servicetitan_equipment(company_id):
             v2/tenant/{tenant}/installed-equipment?page={page}
             &pageSize=2500""",
             headers=headers,
+            timeout=10
         )
         # additional option &modifiedOnOrAfter=2000-1-1T00:00:14-05:00
         page += 1
@@ -310,7 +313,7 @@ def get_serviceTitan_invoices(company_id):
         url = f"""https://api.servicetitan.io/accounting/
         v2/tenant/{tenant}/invoices?page={page}&
         pageSize=2500&invoicedOnOrAfter={rfc3339}"""
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=10)
         page += 1
         for invoice in response.json()["data"]:
             invoices.append(

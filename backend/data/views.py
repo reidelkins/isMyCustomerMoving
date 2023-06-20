@@ -578,6 +578,7 @@ class SalesforceConsumerView(APIView):
                     redirect_uri=http://localhost:3000/
                     dashboard/settings&code={code}""",
                     headers=headers,
+                    timeout=10,
                 )
 
                 # Parse the response

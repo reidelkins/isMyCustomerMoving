@@ -133,9 +133,11 @@ def find_data(zip, i, status, url, extra):
         else:
             total_pages = math.ceil(total / count)
         for page in range(2, total_pages + 1):
-            assert (
-                "pg-1" in url
-            )  # make sure we don't accidently scrape duplicate pages
+            if "pg-1" not in url:
+                raise ValueError(
+                    """URL does not contain 'pg-1',
+                    might risk scraping duplicate pages."""
+                )
             page_url = url.replace("pg-1", f"pg-{page}")
             new_results = scrapfly.scrape(
                 ScrapeConfig(
