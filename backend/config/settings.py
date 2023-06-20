@@ -19,11 +19,7 @@ from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-# try:
-#     dotenv.load_dotenv(BASE_DIR / ".env.testing")
-# except:
-#     dotenv.load_dotenv(BASE_DIR / ".env")
-dotenv.load_dotenv(BASE_DIR / ".env")
+
 IS_HEROKU = False
 IS_GITHUB = False
 try:
@@ -34,6 +30,10 @@ try:
     IS_GITHUB = get_env_var("IS_GITHUB")
 except:
     pass
+if IS_HEROKU or IS_GITHUB:
+    dotenv.load_dotenv(BASE_DIR / ".env")
+else:
+    dotenv.load_dotenv(BASE_DIR / ".env.testing")
 
 
 # this part will be executed if IS_POSTGRESQL = False

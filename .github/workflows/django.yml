@@ -59,7 +59,7 @@ jobs:
       - name: Database Setup
         run: |
           echo "Setting up test database..."
-          docker run --name db -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres:latest
+          docker run --name db -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=password -e POSTGRES_DB=IMCM -p 5432:5432 -d postgres:latest
           echo "Database setup complete."
       - name: Apply Database Migrations
         run: |

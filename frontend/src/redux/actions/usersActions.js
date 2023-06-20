@@ -232,8 +232,8 @@ export const selectReferrals = (state) => state.user.referralInfo;
 export const saveFilterSuccess = (state) => state.user.saveFilter.success;
 export default userSlice.reducer;
 
+// eslint-disable-next-line arrow-body-style
 export const getRefreshToken = (dispatch, func) => {
-  // eslint-disable-next-line arrow-body-style
   return async (dispatch, getState) => {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
@@ -882,8 +882,8 @@ export const getClientsCSV = (
   tagFilters,
   equipInstallDateMin,
   equipInstallDateMax
-) => {
   // eslint-disable-next-line arrow-body-style
+) => {
   return async (dispatch, getState) => {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
