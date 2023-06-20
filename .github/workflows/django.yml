@@ -59,9 +59,8 @@ jobs:
       - name: Database Setup
         run: |
           echo "Setting up test database..."
-          docker run --name test-db -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres:latest
-          echo "Updating Django settings..."
-          echo "DATABASES['default'] = {'ENGINE': 'django.db.backends.postgresql', 'NAME': 'test_db', 'USER': 'postgres', 'PASSWORD': 'password', 'HOST': 'localhost', 'PORT': '5432'}" >> backend/settings.py
+          docker run --name db -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres:latest
+          echo "Database setup complete."
       - name: Apply Database Migrations
         run: |
           cd backend

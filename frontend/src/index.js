@@ -1,5 +1,3 @@
-// eslint-disable react/no-danger
-
 // scroll bar
 import 'simplebar/src/simplebar.css';
 
@@ -28,6 +26,7 @@ ReactDOM.render(
       <title>Is My Customer Moving</title>
       <meta name="description" content="Is My Customer Moving" />
       <script
+        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{
           __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
       new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -38,6 +37,7 @@ ReactDOM.render(
       />
     </Helmet>
     <noscript
+      // eslint-disable-next-line react/no-danger
       dangerouslySetInnerHTML={{
         __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N6RJ2R7"
       height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
