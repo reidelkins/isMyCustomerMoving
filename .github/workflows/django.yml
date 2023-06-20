@@ -6,6 +6,26 @@ on:
   pull_request:
     branches: ["master", "pipeline-work"]
 
+env:
+  DJANGO_SECRET_KEY: ${{secrets.DJANGO_SECRET_KEY}}
+  EMAIL: ${{secrets.EMAIL}}
+  EMAIL_PASSWD: ${{secrets.EMAIL_PASSWD}}
+  GOOGLE_CLIENT_ID: ${{secrets.GOOGLE_CLIENT_ID}}
+  GOOGLE_CLIENT_SECRET: ${{secrets.GOOGLE_CLIENT_SECRET}}
+  KEAP_API_KEY: ${{secrets.KEAP_API_KEY}}
+  REDIS_URL: ${{secrets.REDIS_URL}}
+  SALESFORCE_CONSUMER_KEY: ${{secrets.SALESFORCE_CONSUMER_KEY}}
+  SALESFORCE_CONSUMER_SECRET: ${{secrets.SALESFORCE_CONSUMER_SECRET}}
+  SCRAPFLY_KEY: ${{secrets.SCRAPFLY_KEY}}
+  ST_APP_KEY: ${{secrets.ST_APP_KEY}}
+  ST_APP_KEY_2: ${{secrets.ST_APP_KEY_2}}
+  STRIPE_SECRET_KEY: ${{secrets.STRIPE_SECRET_KEY }}
+  STRIPE_SECRET_KEY_TEST: ${{secrets.STRIPE_SECRET_KEY_TEST }}
+  STRIPE_PUBLIC_KEY: ${{secrets.STRIPE_PUBLIC_KEY }}
+  STRIPE_PUBLIC_KEY_TEST: ${{secrets.STRIPE_PUBLIC_KEY_TEST }}
+  USPS_USER_ID: ${{secrets.USPS_USER_ID }}
+  IS_GITHUB: True
+
 jobs:
   build-backend:
     runs-on: ubuntu-latest
