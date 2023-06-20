@@ -43,8 +43,8 @@ DATABASES = {
         "NAME": "IMCM",
         "USER": "admin",
         "PASSWORD": "password",
-        "HOST": "db",  # This is the service name you used in your docker-compose file
-        "PORT": 5432,
+        "HOST": "db",  # Changed from "db" to "localhost"
+        "PORT": 5432,  # This is the service name you used in your docker-compose file
     }
 }
 MAX_CONN_AGE = 600
@@ -72,6 +72,8 @@ if IS_HEROKU or IS_GITHUB:
         DATABASES["default"] = dj_database_url.config(
             conn_max_age=MAX_CONN_AGE, ssl_require=True
         )
+    elif IS_GITHUB:
+        DATABASES["default"]["HOST"] = "localhost"
     else:
         DATABASES["default"]["TEST"] = DATABASES["default"]
     CELERY_BROKER_URL = "{}?ssl_cert_reqs={}".format(
