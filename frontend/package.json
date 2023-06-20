@@ -39,7 +39,6 @@
     "@auth0/auth0-react": "^2.0.1",
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
-    "@faker-js/faker": "^6.1.2",
     "@iconify/react": "^3.2.1",
     "@mui/lab": "^5.0.0-alpha.77",
     "@mui/material": "^5.6.1",
@@ -47,7 +46,6 @@
     "@react-google-maps/api": "^2.18.1",
     "@react-oauth/google": "^0.9.0",
     "@reduxjs/toolkit": "^1.9.1",
-    "@testing-library/jest-dom": "^5.16.2",
     "apexcharts": "^3.35.0",
     "axios": "^0.26.1",
     "change-case": "^4.1.2",
@@ -74,7 +72,6 @@
     "react-router-dom": "6.11.2",
     "react-scripts": "^5.0.0",
     "redux": "^4.1.2",
-    "redux-devtools-extension": "^2.13.9",
     "redux-thunk": "^2.4.1",
     "simplebar": "^5.3.6",
     "simplebar-react": "^2.3.6",
@@ -85,6 +82,7 @@
   "devDependencies": {
     "@babel/core": "^7.17.9",
     "@babel/eslint-parser": "^7.17.0",
+    "@testing-library/jest-dom": "^5.16.5",
     "eslint": "^8.42.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^8.4.0",
@@ -95,6 +93,7 @@
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react": "^7.28.0",
     "eslint-plugin-react-hooks": "^4.3.0",
-    "prettier": "^2.5.1"
+    "prettier": "^2.5.1",
+    "redux-devtools-extension": "^2.13.9"
   }
 }
