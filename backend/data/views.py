@@ -3,29 +3,29 @@ from rest_framework import status, generics
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from django.http import HttpResponse
 import datetime
 import logging
 import json
-import requests
+
+# import requests
+import csv
 
 from accounts.models import CustomUser, Company
-from accounts.serializers import UserSerializerWithToken
+
+# from accounts.serializers import UserSerializerWithToken
 from config import settings
 from .models import Client, ClientUpdate, HomeListing, Task, SavedFilter
 from .serializers import ClientListSerializer, HomeListingSerializer
 from .syncClients import get_salesforce_clients, get_serviceTitan_clients
-from .realtor import getAllZipcodes
+from .realtor import get_all_zipcodes
 from .utils import (
-    saveClientList,
-    add_serviceTitan_contacted_tag,
-    filter_recentlysold,
+    save_client_list,
+    add_service_titan_contacted_tag,
+    filter_recently_sold,
     filter_clients,
-    remove_all_serviceTitan_tags,
+    remove_all_service_titan_tags,
 )
-
-from django.http import HttpResponse
-import csv
 
 
 # Create your views here.
@@ -34,36 +34,31 @@ class DownloadClientView(APIView):
 
     def get(self, request, user, format=None):
         queryset = self.get_queryset(user)
-        # Define the CSV header row
         header = [
             "name",
             "address",
             "city",
             "state",
-            "zipCode",
+            "zip_code",
             "status",
-            "phoneNumber",
+            "phone_number",
         ]
-        # Create a response object with the CSV content
         response = HttpResponse(content_type="text/csv")
         response["Content-Disposition"] = 'attachment; filename="clients.csv"'
-        # Create a CSV writer object
         writer = csv.writer(response)
-        # Write the header row to the CSV file
         writer.writerow(header)
-        # Write the data rows to the CSV file
+
         for client in queryset:
             row = [
                 client.name,
                 client.address,
                 client.city,
                 client.state,
-                client.zipCode.zipCode,
+                client.zip_code.zip_code,
                 client.status,
-                client.phoneNumber,
+                client.phone_number,
             ]
             writer.writerow(row)
-        # Return the response
         return response
 
     def get_queryset(self, user):
@@ -87,12 +82,9 @@ class ClientListView(generics.ListAPIView):
     def get_queryset(self):
         user = CustomUser.objects.get(id=self.kwargs["user"])
         query_params = self.request.query_params
-
-        # Initialize the queryset with the base filters
         queryset = Client.objects.prefetch_related(
-            "clientUpdates_client"
+            "client_updates_client"
         ).filter(company=user.company, active=True)
-
         queryset = filter_clients(query_params, queryset)
         # TODO
         # if "tags" in query_params:
@@ -170,19 +162,18 @@ class RecentlySoldView(generics.ListAPIView):
     def get_queryset(self):
         query_params = self.request.query_params
         company = Company.objects.get(id=self.kwargs["company"])
-        if company.recentlySoldPurchased:
-            zipCode_objects = Client.objects.filter(company=company).values(
-                "zipCode"
+        if company.recently_sold_purchased:
+            zip_code_objects = Client.objects.filter(company=company).values(
+                "zip_code"
             )
             queryset = HomeListing.objects.filter(
-                zipCode__in=zipCode_objects,
+                zip_code__in=zip_code_objects,
                 status="House Recently Sold (6)",
                 listed__gt=(
                     datetime.datetime.today() - datetime.timedelta(days=30)
                 ).strftime("%Y-%m-%d"),
             ).order_by("listed")
-            return filter_recentlysold(query_params, queryset, company.id)
-
+            return filter_recently_sold(query_params, queryset, company.id)
         else:
             return HomeListing.objects.none()
 
@@ -259,73 +250,80 @@ class RecentlySoldView(generics.ListAPIView):
 
 
 class AllRecentlySoldView(generics.ListAPIView):
+    """
+    An API view that allows users to download all recently sold home listings
+    as a CSV file.
+    """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, company, format=None):
         queryset = self.get_queryset(company)
-        # Define the CSV header row
         header = [
             "address",
             "city",
             "state",
-            "zipCode",
-            "Listing Price",
-            "Year Built",
+            "zip_code",
+            "listing_price",
+            "year_built",
         ]
-        # Create a response object with the CSV content
         response = HttpResponse(content_type="text/csv")
         response[
             "Content-Disposition"
         ] = 'attachment; filename="HomeListings.csv"'
-        # Create a CSV writer object
         writer = csv.writer(response)
-        # Write the header row to the CSV file
         writer.writerow(header)
-        # Write the data rows to the CSV file
-        for homeListing in queryset:
+
+        for home_listing in queryset:
             row = [
-                homeListing.address,
-                homeListing.city,
-                homeListing.state,
-                homeListing.zipCode.zipCode,
-                homeListing.price,
-                homeListing.year_built,
+                home_listing.address,
+                home_listing.city,
+                home_listing.state,
+                home_listing.zip_code.zip_code,
+                home_listing.price,
+                home_listing.year_built,
             ]
             writer.writerow(row)
-        # Return the response
         return response
 
     def get_queryset(self, company):
         query_params = self.request.query_params
         company = Company.objects.get(id=company)
-        if company.recentlySoldPurchased:
-            zipCode_objects = Client.objects.filter(company=company).values(
-                "zipCode"
+        if company.recently_sold_purchased:
+            zip_code_objects = Client.objects.filter(company=company).values(
+                "zip_code"
             )
             queryset = HomeListing.objects.filter(
-                zipCode__in=zipCode_objects,
+                zip_code__in=zip_code_objects,
                 listed__gt=(
                     datetime.datetime.today() - datetime.timedelta(days=30)
                 ).strftime("%Y-%m-%d"),
             ).order_by("listed")
-            return filter_recentlysold(query_params, queryset)
-
+            return filter_recently_sold(query_params, queryset)
         else:
             return HomeListing.objects.none()
 
 
 class UpdateStatusView(APIView):
+    """
+    An API view to trigger the process to update the status of home listings.
+    """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         try:
-            getAllZipcodes.delay(self.kwargs["company"])
+            get_all_zipcodes.delay(self.kwargs["company"])
         except Exception as e:
             logging.error(f"ERROR: Update Status View: {e}")
         return Response("", status=status.HTTP_201_CREATED, headers="")
 
 
 class UploadFileView(generics.ListAPIView):
+    """
+    An API view to upload a list of clients and track the task status.
+    """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
@@ -353,7 +351,8 @@ class UploadFileView(generics.ListAPIView):
             except Exception as e:
                 logging.error(e)
                 return Response(
-                    {"status": "Task Error"}, status=status.HTTP_400_BAD_REQUEST
+                    {"status": "Task Error"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
         except Exception as e:
             logging.error(e)
@@ -368,11 +367,12 @@ class UploadFileView(generics.ListAPIView):
         except Exception as e:
             logging.error(e)
             return Response(
-                {"status": "Company Error"}, status=status.HTTP_400_BAD_REQUEST
+                {"status": "Company Error"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         try:
             task = Task.objects.create()
-            saveClientList.delay(request.data, company_id, task=task.id)
+            save_client_list.delay(request.data, company_id, task=task.id)
         except Exception as e:
             logging.error(e)
             return Response(
@@ -391,6 +391,10 @@ class UploadFileView(generics.ListAPIView):
 
 # create a class for update client that will be used for the put and delete requests
 class UpdateClientView(APIView):
+    """
+    An API view to handle client updates or deletions.
+    """
+
     permission_classes = [IsAuthenticated]
 
     def put(self, request, *args, **kwargs):
@@ -423,19 +427,19 @@ class UpdateClientView(APIView):
                     if request.data["contacted"] and client.servTitanID:
                         if (
                             client.status == "House For Sale"
-                            and client.company.serviceTitanForSaleContactedTagID
+                            and client.company.service_titan_for_sale_contacted_tag_id  # noqa
                         ):
-                            add_serviceTitan_contacted_tag.delay(
+                            add_service_titan_contacted_tag.delay(
                                 client.id,
-                                client.company.serviceTitanForSaleContactedTagID,
+                                client.company.service_titan_for_sale_contacted_tag_id,  # noqa
                             )
                         elif (
                             client.status == "House Recently Sold (6)"
-                            and client.company.serviceTitanRecentlySoldContactedTagID
+                            and client.company.service_titan_recently_sold_contacted_tag_id  # noqa
                         ):
-                            add_serviceTitan_contacted_tag.delay(
+                            add_service_titan_contacted_tag.delay(
                                 client.id,
-                                client.company.serviceTitanRecentlySoldContactedTagID,  # noqa
+                                client.company.service_titan_recently_sold_contacted_tag_id,  # noqa
                             )
                 if request.data["errorFlag"] != "":
                     client.status = "No Change"
@@ -444,7 +448,7 @@ class UpdateClientView(APIView):
                         client=client, error_flag=request.data["errorFlag"]
                     )
                     if client.servTitanID:
-                        remove_all_serviceTitan_tags.delay(client=client.id)
+                        remove_all_service_titan_tags.delay(client=client.id)
                 if request.data["latitude"] != "":
                     client.latitude = request.data["latitude"]
                 if request.data["longitude"] != "":
@@ -463,6 +467,10 @@ class UpdateClientView(APIView):
 
 
 class ServiceTitanView(APIView):
+    """
+    An API view to handle the process related to ServiceTitan clients.
+    """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
@@ -503,31 +511,7 @@ class ServiceTitanView(APIView):
             except Exception as e:
                 logging.error(e)
                 return Response(
-                    {"status": "Task Error"}, status=status.HTTP_400_BAD_REQUEST
-                )
-        except Exception as e:
-            logging.error(e)
-            return Response(
-                {"status": "error"}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-    def put(self, request, *args, **kwargs):
-        try:
-            company_id = self.kwargs["company"]
-            option = request.data["option"]
-            try:
-                Company.objects.get(id=company_id)
-                task = Task.objects.create()
-                get_serviceTitan_clients.delay(company_id, task.id, option)
-                return Response(
-                    {"status": "Success", "task": task.id},
-                    status=status.HTTP_201_CREATED,
-                    headers="",
-                )
-            except Exception as e:
-                logging.error(e)
-                return Response(
-                    {"status": "Company Error"},
+                    {"status": "Task Error"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         except Exception as e:
@@ -536,10 +520,39 @@ class ServiceTitanView(APIView):
                 {"status": "error"}, status=status.HTTP_400_BAD_REQUEST
             )
 
+    def put(self, request, *args, **kwargs):
+        company_id = self.kwargs["company"]
+        option = request.data.get("option", "")
+        try:
+            Company.objects.get(id=company_id)
+        except Company.DoesNotExist:
+            logging.error(f"Company with id {company_id} does not exist.")
+            return Response(
+                {"status": "Company Error"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            task = Task.objects.create()
+            get_serviceTitan_clients.delay(company_id, task.id, option)
+            return Response(
+                {"status": "Success", "task": task.id},
+                status=status.HTTP_201_CREATED,
+                headers="",
+            )
+        except Exception as e:
+            logging.error(e)
+            return Response(
+                {"status": "error"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
 
 class SalesforceConsumerView(APIView):
-    # GET request that returns the Salesforce Consumer Key and
-    # Consumer Secret from the config file, make this protected
+    """
+    An API view to handle interactions with Salesforce, including
+    retrieving consumer keys and handling post requests.
+    """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
@@ -559,67 +572,40 @@ class SalesforceConsumerView(APIView):
             )
 
     def post(self, request, *args, **kwargs):
+        company_id = self.kwargs["company"]
         try:
-            company_id = self.kwargs["company"]
-            try:
-                company = Company.objects.get(id=company_id)
-                company.crm = "Salesforce"
-                code = request.data["code"]
-                headers = {
-                    "Content-type": "application/x-www-form-urlencoded",
-                }
-
-                # Make the request
-                response = requests.post(
-                    f"""https://login.salesforce.com/services/oauth2/
-                    token?grant_type=authorization_code&
-                    client_id={settings.SALESFORCE_CONSUMER_KEY}&
-                    client_secret={settings.SALESFORCE_CONSUMER_SECRET}&
-                    redirect_uri=http://localhost:3000/
-                    dashboard/settings&code={code}""",
-                    headers=headers,
-                    timeout=10,
-                )
-
-                # Parse the response
-                response_data = response.json()
-                new_access_token = response_data["access_token"]
-                new_refresh_token = response_data["refresh_token"]
-                company.sfAccessToken = new_access_token
-                company.sfRefreshToken = new_refresh_token
-                company.save()
-                user = CustomUser.objects.get(id=request.data["id"])
-                serializer = UserSerializerWithToken(user, many=False)
-                return Response(serializer.data)
-            except Exception as e:
-                logging.error(e)
-                return Response(
-                    {"status": "Company Error"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        except Exception as e:
-            logging.error(e)
+            company = Company.objects.get(id=company_id)
+        except Company.DoesNotExist:
+            logging.error(f"Company with id {company_id} does not exist.")
             return Response(
-                {"status": "error"}, status=status.HTTP_400_BAD_REQUEST
+                {"status": "Company Error"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-    def put(self, request, *args, **kwargs):
-        try:
-            company_id = self.kwargs["company"]
+        company.crm = "Salesforce"
+        # code = request.data.get("code", "")
+        # headers = {
+        #     "Content-type": "application/x-www-form-urlencoded",
+        # }
 
-            try:
-                get_salesforce_clients(company_id)
-                return Response(
-                    {"status": "Success"},
-                    status=status.HTTP_201_CREATED,
-                    headers="",
-                )
-            except Exception as e:
-                logging.error(e)
-                return Response(
-                    {"status": "Company Error"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+    def put(self, request, *args, **kwargs):
+        company_id = self.kwargs["company"]
+        try:
+            Company.objects.get(id=company_id)
+        except Company.DoesNotExist:
+            logging.error(f"Company with id {company_id} does not exist.")
+            return Response(
+                {"status": "Company Error"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            get_salesforce_clients(company_id)
+            return Response(
+                {"status": "Success"},
+                status=status.HTTP_201_CREATED,
+                headers="",
+            )
         except Exception as e:
             logging.error(e)
             return Response(

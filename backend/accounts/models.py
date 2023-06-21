@@ -9,12 +9,10 @@ from datetime import datetime, timedelta
 from django.utils.crypto import get_random_string
 from django.conf import settings
 from django.template.loader import get_template
-
 from django.db import transaction
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 from rest_framework_simplejwt.exceptions import TokenError
-
 
 STATUS_CHOICES = (
     ("active", "ACTIVE"),
@@ -55,11 +53,24 @@ CLIENT_OPTIONS = [
 ]
 
 
-class CustomUserManager(BaseUserManager):
-    """Define a model manager for User model with no username field."""
+def create_access_token():
+    return get_random_string(length=32)
 
+
+def zip_time():
+    return (datetime.today() - timedelta(days=1)).strftime("%Y-%m-%d")
+
+
+def format_today():
+    return datetime.today().strftime("%Y-%m-%d")
+
+
+def utc_tomorrow():
+    return datetime.utcnow() + timedelta(days=1)
+
+
+class CustomUserManager(BaseUserManager):
     def _create_user(self, email, password=None, **extra_fields):
-        """Create and save a User with the given email and password."""
         if not email:
             raise ValueError("The given email must be set")
         user = self.model(email=email, **extra_fields)
@@ -73,7 +84,6 @@ class CustomUserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email, password=None, **extra_fields):
-        """Create and save a SuperUser with the given email and password."""
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
 
@@ -95,16 +105,12 @@ class Enterprise(models.Model):
         return self.name
 
 
-def create_access_token():
-    return get_random_string(length=32)
-
-
 class Company(models.Model):
     id = models.UUIDField(
         primary_key=True, unique=True, default=uuid.uuid4, editable=False
     )
     name = models.CharField(max_length=100)
-    accessToken = models.CharField(default=create_access_token, max_length=100)
+    access_token = models.CharField(default=create_access_token, max_length=100)
     product = models.ForeignKey(
         "djstripe.Plan",
         blank=True,
@@ -114,7 +120,7 @@ class Company(models.Model):
     )
     phone = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(max_length=100, blank=True, null=True)
-    stripeID = models.CharField(max_length=100, blank=True, null=True)
+    stripe_id = models.CharField(max_length=100, blank=True, null=True)
     crm = models.CharField(max_length=100, choices=CRM, default="None")
     enterprise = models.ForeignKey(
         Enterprise,
@@ -125,41 +131,39 @@ class Company(models.Model):
     )
 
     # Service Titan
-    serviceTitanAppVersion = models.IntegerField(blank=True, null=True)
-    tenantID = models.IntegerField(blank=True, null=True)
-    clientID = models.CharField(max_length=100, blank=True, null=True)
-    clientSecret = models.CharField(max_length=100, blank=True, null=True)
-    serviceTitanForSaleTagID = models.IntegerField(blank=True, null=True)
-    serviceTitanForRentTagID = models.IntegerField(blank=True, null=True)
-    serviceTitanRecentlySoldTagID = models.IntegerField(blank=True, null=True)
-    serviceTitanForSaleContactedTagID = models.IntegerField(blank=True, null=True)
-    serviceTitanRecentlySoldContactedTagID = models.IntegerField(
+    service_titan_app_version = models.IntegerField(blank=True, null=True)
+    tenant_id = models.IntegerField(blank=True, null=True)
+    client_id = models.CharField(max_length=100, blank=True, null=True)
+    client_secret = models.CharField(max_length=100, blank=True, null=True)
+    service_titan_for_sale_tag_id = models.IntegerField(blank=True, null=True)
+    service_titan_for_rent_tag_id = models.IntegerField(blank=True, null=True)
+    service_titan_recently_sold_tag_id = models.IntegerField(
         blank=True, null=True
     )
-    recentlySoldPurchased = models.BooleanField(default=False)
-    serviceTitanCustomerSyncOption = models.CharField(
+    service_titan_for_sale_contacted_tag_id = models.IntegerField(
+        blank=True, null=True
+    )
+    service_titan_recently_sold_contacted_tag_id = models.IntegerField(
+        blank=True, null=True
+    )
+    recently_sold_purchased = models.BooleanField(default=False)
+    service_titan_customer_sync_option = models.CharField(
         max_length=100, choices=CLIENT_OPTIONS, default="option1"
     )
 
     # Salesforce
-    sfAccessToken = models.CharField(max_length=100, blank=True, null=True)
-    sfRefreshToken = models.CharField(max_length=100, blank=True, null=True)
+    sf_access_token = models.CharField(max_length=100, blank=True, null=True)
+    sf_refresh_token = models.CharField(max_length=100, blank=True, null=True)
 
     # Zapier
-    zapier_forSale = models.CharField(max_length=100, blank=True, null=True)
+    zapier_for_sale = models.CharField(max_length=100, blank=True, null=True)
     zapier_sold = models.CharField(max_length=100, blank=True, null=True)
-    zapier_recentlySold = models.CharField(max_length=100, blank=True, null=True)
+    zapier_recently_sold = models.CharField(
+        max_length=100, blank=True, null=True
+    )
 
     def __str__(self):
         return self.name
-
-
-def zipTime():
-    return (datetime.today() - timedelta(days=1)).strftime("%Y-%m-%d")
-
-
-def formatToday():
-    return datetime.today().strftime("%Y-%m-%d")
 
 
 class CustomUser(AbstractUser):
@@ -168,7 +172,7 @@ class CustomUser(AbstractUser):
         primary_key=True, unique=True, default=uuid.uuid4, editable=False
     )
     email = models.EmailField(_("email address"), unique=True)
-    isVerified = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)
     status = models.CharField(
         max_length=100, choices=STATUS_CHOICES, default="active"
     )
@@ -197,32 +201,23 @@ class CustomUser(AbstractUser):
         return self.email
 
     def save(self, *args, **kwargs):
-        # Automatically set the enterprise based on the associated company
         if self.company and not self.enterprise:
             self.enterprise = self.company.enterprise
         super().save(*args, **kwargs)
 
     @transaction.atomic
     def delete_with_tokens(self):
-        # Revoke all refresh tokens associated with the user
         user_refresh_tokens = OutstandingToken.objects.filter(user=self)
         for token in user_refresh_tokens:
             try:
                 refresh_token = RefreshToken(token.token)
                 refresh_token.blacklist()
             except TokenError:
-                # Ignore if the token is already expired or blacklisted
                 pass
-
-        # Delete the user
         self.delete()
 
     class Meta:
         ordering = ["-id"]
-
-
-def utc_tomorrow():
-    return datetime.utcnow() + timedelta(days=1)
 
 
 class InviteToken(models.Model):
@@ -240,9 +235,11 @@ class InviteToken(models.Model):
 def password_reset_token_created(
     sender, instance, reset_password_token, *args, **kwargs
 ):
-    if CustomUser.objects.filter(email=reset_password_token.user.email).exists():
+    if CustomUser.objects.filter(
+        email=reset_password_token.user.email
+    ).exists():
         subject = "Password Reset: IsMyCustomerMoving.com"
-        message = get_template("resetPassword.html").render(
+        message = get_template("reset_password.html").render(
             {"token": reset_password_token.key}
         )
 
@@ -253,5 +250,5 @@ def password_reset_token_created(
             [reset_password_token.user.email]
             # html_message=message,
         )
-        msg.content_subtype = "html"  # Main content is now text/html
+        msg.content_subtype = "html"
         msg.send()

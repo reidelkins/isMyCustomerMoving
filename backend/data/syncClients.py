@@ -12,12 +12,12 @@ from django.db.models.functions import Coalesce
 from accounts.models import Company, CustomUser
 from .models import Client
 from .utils import (
-    saveClientList,
-    updateClientList,
-    doItAll,
-    deleteExtraClients,
-    delVariables,
-    get_serviceTitan_accessToken,
+    save_client_list,
+    update_client_list,
+    do_it_all,
+    delete_extra_clients,
+    del_variables,
+    get_service_titan_access_token,
 )
 from simple_salesforce import Salesforce
 
@@ -68,7 +68,7 @@ def get_salesforce_clients(company_id, task_id=None):
                     }
                     clients.append(client)
 
-    saveClientList(clients, company_id)
+    save_client_list(clients, company_id)
 
     # bulk = SalesforceBulk(
     #     sessionId="""https://login.salesforce.com/
@@ -88,7 +88,9 @@ def get_salesforce_clients(company_id, task_id=None):
 
 
 @shared_task
-def get_serviceTitan_clients(company_id, task_id, option=None, automated=False):
+def get_serviceTitan_clients(
+    company_id, task_id, option=None, automated=False
+):
     company = Company.objects.get(id=company_id)
     if not option:
         option = company.serviceTitanCustomerSyncOption
@@ -96,7 +98,7 @@ def get_serviceTitan_clients(company_id, task_id, option=None, automated=False):
         company.serviceTitanCustomerSyncOption = option
         company.save()
     tenant = company.tenantID
-    headers = get_serviceTitan_accessToken(company_id)
+    headers = get_service_titan_access_token(company_id)
     clients = []
     moreClients = True
     # get client data
@@ -115,8 +117,8 @@ def get_serviceTitan_clients(company_id, task_id, option=None, automated=False):
         if option == "option3":
             for client in clients:
                 client["name"] = " "
-        result = saveClientList.delay(clients, company_id)
-        delVariables([clients, response])
+        result = save_client_list.delay(clients, company_id)
+        del_variables([clients, response])
 
     # wait up to 30 seconds for the last task to complete
     count = 0
@@ -124,11 +126,11 @@ def get_serviceTitan_clients(company_id, task_id, option=None, automated=False):
         sleep(1)
         count += 1
 
-    deleteExtraClients.delay(company_id, task_id)
+    delete_extra_clients.delay(company_id, task_id)
 
     get_servicetitan_equipment.delay(company_id)
     if not automated:
-        doItAll.delay(company_id)
+        do_it_all.delay(company_id)
     if option == "option1":
         frm = ""
         moreClients = True
@@ -148,9 +150,9 @@ def get_serviceTitan_clients(company_id, task_id, option=None, automated=False):
                 frm = response.json()["continueFrom"]
             else:
                 moreClients = False
-            updateClientList.delay(numbers)
-            delVariables([numbers, response])
-    delVariables([frm, moreClients, headers, company, tenant])
+            update_client_list.delay(numbers)
+            del_variables([numbers, response])
+    del_variables([frm, moreClients, headers, company, tenant])
     update_clients_with_first_invoice_date.delay(company_id)
 
 
@@ -166,23 +168,18 @@ def update_clients_with_last_service_date(equipment, company_id):
                 ).date()
             except Exception as e:
                 logging.error(e)
-                pass
 
     client_ids = client_dict.keys()
-
-    # Use select_related to fetch related objects in a single query
     clients = Client.objects.filter(
-        servTitanID__in=client_ids, company=company
+        serv_titan_id__in=client_ids, company=company
     ).select_related("company")
 
-    # Use bulk_update to update multiple objects at once
     for client in clients:
-        client.equipmentInstalledDate = Coalesce(
-            client_dict.get(client.servTitanID), client.equipmentInstalledDate
+        client.equipment_installed_date = Coalesce(
+            client_dict.get(client.serv_titan_id),
+            client.equipment_installed_date,
         )
-        client.save(update_fields=["equipmentInstalledDate"])
-
-    # Return the number of clients updated
+        client.save(update_fields=["equipment_installed_date"])
     return len(clients)
 
 
@@ -190,14 +187,16 @@ def update_clients_with_last_service_date(equipment, company_id):
 def update_clients_with_first_invoice_date(company_id):
     company = Company.objects.get(id=company_id)
     tenant = company.tenantID
-    headers = get_serviceTitan_accessToken(company_id)
-    moreInvoices = True
+    headers = get_service_titan_access_token(company_id)
+    more_invoices = True
     page = 1
 
-    while moreInvoices:
+    while more_invoices:
         invoices = []
-        url = f"""https://api.servicetitan.io/accounting/
-        v2/tenant/{tenant}/invoices?page={page}&pageSize=2500"""
+        url = (
+            f"https://api.servicetitan.io/accounting"
+            f"/v2/tenant/{tenant}/invoices?page={page}&pageSize=2500"
+        )
         response = requests.get(url, headers=headers, timeout=10)
         page += 1
         for invoice in response.json()["data"]:
@@ -210,7 +209,7 @@ def update_clients_with_first_invoice_date(company_id):
         process_invoices.delay(invoices, company_id)
 
         if not response.json()["hasMore"]:
-            moreInvoices = False
+            more_invoices = False
 
 
 @shared_task
@@ -273,26 +272,29 @@ def update_clients(client_dict, company):
 def get_servicetitan_equipment(company_id):
     company = Company.objects.get(id=company_id)
     tenant = company.tenantID
-    headers = get_serviceTitan_accessToken(company_id)
-    moreEquipment = True
+    headers = get_service_titan_access_token(company_id)
+    more_equipment = True
     # get client data
     page = 1
-    while moreEquipment:
+    while more_equipment:
+        url = (
+            f"https://api.servicetitan.io/equipmentsystems"
+            f"/v2/tenant/{tenant}/installed-equipment"
+            f"?page={page}&pageSize=2500"
+        )
         response = requests.get(
-            f"""https://api.servicetitan.io/equipmentsystems/
-            v2/tenant/{tenant}/installed-equipment?page={page}
-            &pageSize=2500""",
+            url,
             headers=headers,
-            timeout=10
+            timeout=10,
         )
         # additional option &modifiedOnOrAfter=2000-1-1T00:00:14-05:00
         page += 1
         equipment = response.json()["data"]
         if not response.json()["hasMore"]:
-            moreEquipment = False
+            more_equipment = False
 
         update_clients_with_last_service_date.delay(equipment, company_id)
-        delVariables([equipment, response])
+        del_variables([equipment, response])
 
 
 @shared_task
@@ -304,15 +306,18 @@ def get_serviceTitan_invoices(company_id):
     rfc3339 = earliest_date["date_joined__min"].isoformat()
     rfc3339 = rfc3339[:-6]
     tenant = company.tenantID
-    headers = get_serviceTitan_accessToken(company_id)
-    moreInvoices = True
+    headers = get_service_titan_access_token(company_id)
+    more_invoices = True
     # get client data
     page = 1
     invoices = []
-    while moreInvoices:
-        url = f"""https://api.servicetitan.io/accounting/
-        v2/tenant/{tenant}/invoices?page={page}&
-        pageSize=2500&invoicedOnOrAfter={rfc3339}"""
+    while more_invoices:
+        url = (
+            f"https://api.servicetitan.io/accounting/"
+            f"v2/tenant/{tenant}/invoices?page={page}"
+            f"&pageSize=2500&invoicedOnOrAfter={rfc3339}"
+        )
+
         response = requests.get(url, headers=headers, timeout=10)
         page += 1
         for invoice in response.json()["data"]:
@@ -320,9 +325,9 @@ def get_serviceTitan_invoices(company_id):
                 {"id": invoice["customer"]["id"], "total": invoice["total"]}
             )
         if not response.json()["hasMore"]:
-            moreInvoices = False
+            more_invoices = False
     update_clients_with_revenue.delay(invoices, company_id)
-    delVariables([invoices, response])
+    del_variables([invoices, response])
 
 
 @shared_task
@@ -354,14 +359,14 @@ def update_clients_with_revenue(invoices, company_id):
     client_ids = client_dict.keys()
 
     clients = Client.objects.filter(
-        servTitanID__in=client_ids,
+        serv_titan_id__in=client_ids,
         company=company,
         status__in=["House For Sale", "House Recently Sold (6)"],
     )
 
     for client in clients:
         client.revenue = Coalesce(
-            client_dict.get(client.servTitanID), client.revenue
+            client_dict.get(client.serv_titan_id), client.revenue
         )
 
     Client.objects.bulk_update(clients, ["revenue"])

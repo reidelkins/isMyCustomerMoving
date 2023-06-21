@@ -9,44 +9,44 @@ from rest_framework_simplejwt.views import (
 
 router = routers.DefaultRouter()
 router.register(r"users", views.UserViewSet)
-router.register(r"glogin", views.googleLoginViewSet, basename="glogin")
+router.register(r"glogin", views.GoogleLoginViewSet, basename="glogin")
 
 login_patterns = [
     path("", views.MyTokenObtainPairView.as_view(), name="login"),
-    path("google/", views.TokenValidate.as_view(), name="google-login"),
+    path("google/", views.TokenValidateView.as_view(), name="google-login"),
 ]
 
 zapier_patterns = [
-    path("", views.ZapierToken.as_view(), name="zapier-login"),
+    path("", views.ZapierTokenView.as_view(), name="zapier-login"),
     path(
         "sold/",
-        views.ZapierSoldSubscribe.as_view(),
+        views.ZapierSoldSubscribeView.as_view(),
         name="zapier-sold-subscribe",
     ),
     path(
         "forSale/",
-        views.ZapierForSaleSubscribe.as_view(),
+        views.ZapierForSaleSubscribeView.as_view(),
         name="zapier-forSale-subscribe",
     ),
     path(
         "recentlySold/",
-        views.ZapierRecentlySoldSubscribe.as_view(),
+        views.ZapierRecentlySoldSubscribeView.as_view(),
         name="zapier-recentlySold-subscribe",
     ),
 ]
 
 urlpatterns = [
     path("refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path(
-        "verify_registration/",
-        views.VerifyRegistrationView.as_view(),
-        name="verify",
-    ),
-    path(
-        "confirmation/<str:pk>/<str:uid>/",
-        views.confirmation,
-        name="email_confirmation",
-    ),
+    # path(
+    #     "verify_registration/",
+    #     views.VerifyRegistrationView.as_view(),
+    #     name="verify",
+    # ),
+    # path(
+    #     "confirmation/<str:pk>/<str:uid>/",
+    #     views.confirmation,
+    #     name="email_confirmation",
+    # ),
     path("otp/disable/", views.OTPDisableView.as_view(), name="otp-disable"),
     path("otp/validate/", views.OTPValidateView.as_view(), name="otp-validate"),
     path("otp/verify/", views.OTPVerifyView.as_view(), name="otp-verify"),
@@ -66,7 +66,9 @@ urlpatterns = [
         "password_reset/",
         include("django_rest_passwordreset.urls", namespace="password_reset"),
     ),
-    path("users/<str:company>/", views.UserListView.as_view(), name="user-list"),
+    path(
+        "users/<str:company>/", views.UserListView.as_view(), name="user-list"
+    ),
     path("register/", views.RegisterView.as_view(), name="register"),
     path("login/", include(login_patterns)),
     path("zapier/", include(zapier_patterns)),

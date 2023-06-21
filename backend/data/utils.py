@@ -27,7 +27,7 @@ from django.template.loader import get_template
 from django.core.mail import EmailMessage, send_mail
 
 
-def delVariables(vars):
+def del_variables(vars):
     for var in vars:
         try:
             del var
@@ -36,7 +36,7 @@ def delVariables(vars):
     gc.collect()
 
 
-def findClientCount(subscriptionProduct):
+def find_client_count(subscriptionProduct):
     if (
         subscriptionProduct.amount == 150
         and subscriptionProduct.interval == "month"
@@ -82,18 +82,18 @@ def findClientCount(subscriptionProduct):
     return ceiling
 
 
-def findClientsToDelete(clientCount, subscriptionType):
-    ceiling = findClientCount(subscriptionType)
+def find_clients_to_delete(clientCount, subscriptionType):
+    ceiling = find_client_count(subscriptionType)
     if clientCount > ceiling:
         return clientCount - ceiling
     else:
         return 0
 
 
-def reactivateClients(companyID):
+def reactivate_clients(companyID):
     company = Company.objects.get(id=companyID)
     clients = Client.objects.filter(company=company)
-    clientCeiling = findClientCount(company.product.product.name)
+    clientCeiling = find_client_count(company.product.product.name)
     if clientCeiling > clients.count():
         clients.update(active=True)
     else:
@@ -104,46 +104,65 @@ def reactivateClients(companyID):
 
 
 @shared_task
-def deleteExtraClients(companyID, taskID=None):
+def delete_extra_clients(company_id, task_id=None):
+    """
+    Delete extra clients based on the company's subscription limit.
+
+    :param company_id: ID of the company
+    :param task_id: ID of the task (optional)
+    """
     try:
-        company = Company.objects.get(id=companyID)
+        company = Company.objects.get(id=company_id)
         clients = Client.objects.filter(company=company, active=True)
-        deletedClients = findClientsToDelete(clients.count(), company.product)
-        if deletedClients > 0:
+        deleted_clients = find_clients_to_delete(
+            clients.count(), company.product
+        )
+
+        if deleted_clients > 0:
             Client.objects.filter(
                 id__in=list(
-                    clients.values_list("id", flat=True)[:deletedClients]
+                    clients.values_list("id", flat=True)[:deleted_clients]
                 )
             ).update(active=False)
-            admins = CustomUser.objects.filter(company=company, status="admin")
-            mail_subject = "IMCM Clients Deleted"
-            messagePlain = """Your company has exceeded the number of clients
-              allowed for your subscription. The oldest clients have been deleted.
-                You can upgrade your subscription at any time to increase the number
-                of clients you can have."""
-            message = get_template("clientsDeleted.html").render(
-                {"deletedClients": deletedClients}
+
+            admins = CustomUser.objects.filter(
+                company=company, status="admin"
             )
+            mail_subject = "IMCM Clients Deleted"
+            message_plain = (
+                "Your company has exceeded the number of clients..."
+            )
+            message_html = get_template("clientsDeleted.html").render(
+                {"deleted_clients": deleted_clients}
+            )
+
             for admin in admins:
                 send_mail(
                     subject=mail_subject,
-                    message=messagePlain,
+                    message=message_plain,
                     from_email=settings.EMAIL_HOST_USER,
                     recipient_list=[admin.email],
-                    html_message=message,
+                    html_message=message_html,
                     fail_silently=False,
                 )
     except Exception as e:
-        print(e)
-        deletedClients = 0
-    if taskID:
-        task = Task.objects.get(id=taskID)
-        task.deletedClients = deletedClients
+        logging.error(e)
+        deleted_clients = 0
+
+    if task_id:
+        task = Task.objects.get(id=task_id)
+        task.deleted_clients = deleted_clients
         task.completed = True
         task.save()
 
 
-def parseStreets(street):
+def parse_streets(street):
+    """
+    Parses street names into abbreviated forms.
+
+    :param street: Street name
+    :return: Abbreviated street name
+    """
     conversions = {
         "Alley": "Aly",
         "Avenue": "Ave",
@@ -178,38 +197,43 @@ def parseStreets(street):
         "Sw": "SW",
         "Se": "SE",
     }
+
     for word in street.split():
         if word in conversions:
             street = street.replace(word, conversions[word])
     return street
 
 
-def formatZip(zip):
+def format_zip(zip_code):
+    """
+    Formats the zip code.
+
+    :param zip_code: Zip code
+    :return: Formatted zip code
+    """
     try:
-        if type(zip) == float:
-            zip = int(zip)
-        if type(zip) == str:
-            zip = zip.replace(" ", "")
-            zip = (zip.split("-"))[0]
-        if int(zip) > 500 and int(zip) < 99951:
-            if len(zip) == 4:
-                zip = "0" + str(zip)
-            elif len(zip) == 3:
-                zip = "00" + str(zip)
-            elif len(zip) != 5:
-                return False
-        return zip
+        if isinstance(zip_code, float):
+            zip_code = int(zip_code)
+        if isinstance(zip_code, str):
+            zip_code = zip_code.replace(" ", "")
+            zip_code = zip_code.split("-")[0]
+        if 500 < int(zip_code) < 99951:
+            zip_code = str(zip_code).zfill(5)
+        return zip_code
     except ValueError:
         return False
 
 
 @shared_task
-def saveClientList(clients, company_id, task=None):
-    clientsToAdd, company, badStreets = "", "", ""
-    # create
-    clientsToAdd = []
-    company = Company.objects.get(id=company_id)
-    badStreets = [
+def save_client_list(clients, company_id, task=None):
+    """
+    Saves a list of clients to the database.
+
+    :param clients: List of clients
+    :param company_id: ID of the company
+    :param task: Task instance (optional)
+    """
+    bad_streets = [
         "none",
         "null",
         "na",
@@ -222,101 +246,83 @@ def saveClientList(clients, company_id, task=None):
         "no address",
         "cmo",
     ]
-    for i in range(len(clients)):
-        # service titan
+    clients_to_add = []
+    company = Company.objects.get(id=company_id)
+
+    for i, client in enumerate(clients):
         try:
-            if "active" in clients[i]:
-                if clients[i]["active"]:
-                    street = parseStreets(
-                        (str(clients[i]["address"]["street"])).title()
-                    )
-                    if street.lower() in badStreets or "tbd" in street.lower():
-                        continue
-                    zip = formatZip(clients[i]["address"]["zip"])
-                    if int(zip) < 500 or int(zip) > 99951:
-                        continue
-                    zipCode = ZipCode.objects.get_or_create(zipCode=str(zip))[0]
-                    city = (clients[i]["address"]["city"],)
-                    city = city[0]
-                    state = clients[i]["address"]["state"]
-                    name = clients[i]["name"]
-                    if (
-                        clients[i]["address"]["zip"] is None
-                        or not street
-                        or not zip
-                        or not city
-                        or not state
-                        or not name
-                        or zip == 0
-                    ):
-                        continue
-                    clientsToAdd.append(
+            is_service_titan = "active" in client
+
+            if (
+                is_service_titan and client["active"]
+            ) or not is_service_titan:
+                street = parse_streets(client["address"]["street"].title())
+
+                if street.lower() in bad_streets or "tbd" in street.lower():
+                    continue
+
+                zip_code = format_zip(client["address"]["zip"])
+
+                if int(zip_code) < 500 or int(zip_code) > 99951:
+                    continue
+
+                zip_code_obj = ZipCode.objects.get_or_create(
+                    zipCode=str(zip_code)
+                )[0]
+                city = client["address"]["city"]
+                state = client["address"]["state"]
+                name = client["name"]
+
+                if is_service_titan:
+                    clients_to_add.append(
                         Client(
                             address=street,
-                            zipCode=zipCode,
+                            zipCode=zip_code_obj,
                             city=city,
                             state=state,
                             name=name,
                             company=company,
-                            servTitanID=clients[i]["customerId"],
+                            servTitanID=client["customerId"],
                         )
                     )
-            # file upload
-            else:
-                if i % 1000 == 0:
-                    Client.objects.bulk_create(
-                        clientsToAdd, ignore_conflicts=True
-                    )
-                    clientsToAdd = []
-                    print(i)
-                street = parseStreets((str(clients[i]["address"])).title())
-                if street.lower() in badStreets:
-                    continue
-                zip = formatZip(clients[i]["zip code"])
-                zipCode = ZipCode.objects.get_or_create(zipCode=str(zip))[0]
-                city = clients[i]["city"]
-                state = clients[i]["state"]
-                name = clients[i]["name"]
-                if "phone number" in clients[i]:
-                    phoneNumber = clients[i]["phone number"]
-                    # remove anything that is not a number with regex
-                    phoneNumber = sub("[^0-9]", "", phoneNumber)
                 else:
-                    phoneNumber = ""
-                if (
-                    clients[i]["zip code"] is None
-                    or not street
-                    or not zip
-                    or not city
-                    or not state
-                    or not name
-                    or zip == 0
-                ):
-                    continue
-                clientsToAdd.append(
-                    Client(
-                        address=street,
-                        zipCode=zipCode,
-                        city=city,
-                        state=state,
-                        name=name,
-                        company=company,
-                        phoneNumber=phoneNumber,
+                    if i % 1000 == 0:
+                        Client.objects.bulk_create(
+                            clients_to_add, ignore_conflicts=True
+                        )
+                        clients_to_add = []
+                        print(i)
+
+                    phone_number = (
+                        sub("[^0-9]", "", client["phone number"])
+                        if "phone number" in client
+                        else ""
                     )
-                )
+                    clients_to_add.append(
+                        Client(
+                            address=street,
+                            zipCode=zip_code_obj,
+                            city=city,
+                            state=state,
+                            name=name,
+                            company=company,
+                            phoneNumber=phone_number,
+                        )
+                    )
         except Exception as e:
             logging.error("create error")
             logging.error(e)
-    Client.objects.bulk_create(clientsToAdd, ignore_conflicts=True)
+
+    Client.objects.bulk_create(clients_to_add, ignore_conflicts=True)
 
     if task:
-        deleteExtraClients.delay(company_id, task)
-        doItAll.delay(company_id)
-    delVariables([clientsToAdd, clients, company, company_id, badStreets])
+        delete_extra_clients.delay(company_id, task)
+        do_it_all.delay(company_id)
+    del clients_to_add, clients, company, company_id, bad_streets
 
 
 @shared_task
-def updateClientList(numbers):
+def update_client_list(numbers):
     phoneNumbers, clients = "", ""
     phoneNumbers = {}
     for number in numbers:
@@ -331,185 +337,160 @@ def updateClientList(numbers):
     for client in clients:
         client.phoneNumber = phoneNumbers[client.servTitanID]
         client.save()
-    delVariables([phoneNumbers, clients, numbers])
+    del_variables([phoneNumbers, clients, numbers])
 
 
 @shared_task
-def updateStatus(zip, company, status):
-    (
-        zipCode_object,
-        listedAddresses,
-        clientsToUpdate,
-        previousListed,
-        newlyListed,
-        toList,
-        listing,
-        clientsToUpdate,
-    ) = ("", "", "", "", "", "", "", "")
-    company = Company.objects.get(id=company)
+def update_status(zip_code, company_id, status):
+    """
+    Update the status of listings based on the provided zip code and status.
+
+    :param zip_code: The zip code of the listings to be updated.
+    :param company_id: The ID of the company.
+    :param status: The status to be set for the listings.
+    """
     try:
-        zipCode_object = ZipCode.objects.get(zipCode=zip)
+        company = Company.objects.get(id=company_id)
+        zip_code_object = ZipCode.objects.get(zipCode=zip_code)
     except Exception as e:
-        logging.error(f"ERROR during updateStatus: {e} with zipCode {zip}")
+        logging.error(
+            f"ERROR during updateStatus: {e} with zipCode {zip_code}"
+        )
         return
-    # addresses from all home listings with the provided zip code and status
-    listedAddresses = HomeListing.objects.filter(
-        zipCode=zipCode_object, status=status
+
+    listed_addresses = HomeListing.objects.filter(
+        zipCode=zip_code_object, status=status
     ).values("address")
-    clientsToUpdate = Client.objects.filter(
+
+    clients_to_update = Client.objects.filter(
         company=company,
-        address__in=listedAddresses,
-        zipCode=zipCode_object,
+        address__in=listed_addresses,
+        zipCode=zip_code_object,
         active=True,
         error_flag=False,
     )
-    previousListed = Client.objects.filter(
+
+    previous_listed = Client.objects.filter(
         company=company,
-        zipCode=zipCode_object,
+        zipCode=zip_code_object,
         status=status,
         active=True,
         error_flag=False,
     )
-    newlyListed = clientsToUpdate.difference(previousListed)
-    # TODO add logic so if date for one listing is
-    #  older than date of other, it will not update status
-    for toList in newlyListed:
-        existingUpdates = ClientUpdate.objects.filter(
-            client=toList,
+
+    newly_listed = clients_to_update.difference(previous_listed)
+
+    for to_list in newly_listed:
+        existing_updates = ClientUpdate.objects.filter(
+            client=to_list,
             status__in=["House For Sale", "House Recently Sold (6)"],
         )
         update = True
         try:
-            for listing in existingUpdates:
+            for listing in existing_updates:
                 if (
                     listing.listed
-                    > HomeListing.objects.filter(
-                        address=toList.address, status=status
-                    )[0].listed
+                    > HomeListing.objects.get(
+                        address=to_list.address, status=status
+                    ).listed
                 ):
                     update = False
         except Exception as e:
             logging.error(e)
-        if update:
-            homeListing = HomeListing.objects.get(
-                address=toList.address, status=status
-            )
-            toList.status = status
-            toList.price = homeListing.price
-            toList.year_built = homeListing.year_built
-            toList.housingType = homeListing.housingType
-            toList.save()
-            for tag in homeListing.tag.all():
-                toList.tag.add(tag)
 
-            if company.zapier_forSale and status == "House For Sale":
+        if update:
+            home_listing = HomeListing.objects.get(
+                address=to_list.address, status=status
+            )
+            to_list.status = status
+            to_list.price = home_listing.price
+            to_list.year_built = home_listing.year_built
+            to_list.housingType = home_listing.housingType
+            to_list.save()
+            to_list.tag.add(*home_listing.tag.all())
+
+            zapier_url = (
+                company.zapier_forSale
+                if status == "House For Sale"
+                else company.zapier_sold
+            )
+            if zapier_url:
                 try:
-                    serializer = ZapierClientSerializer(toList)
-                    serialized_data = serializer.data
+                    serializer = ZapierClientSerializer(to_list)
                     requests.post(
-                        company.zapier_forSale, data=serialized_data, timeout=10
+                        zapier_url, data=serializer.data, timeout=10
                     )
                 except Exception as e:
                     logging.error(e)
-            if company.zapier_sold and status == "House Recently Sold (6)":
-                try:
-                    serializer = ZapierClientSerializer(toList)
-                    serialized_data = serializer.data
-                    requests.post(
-                        company.zapier_sold, data=serialized_data, timeout=10
-                    )
-                except Exception as e:
-                    logging.error(f"Zapier Sold: {e}")
 
         try:
             listing = HomeListing.objects.filter(
-                zipCode=zipCode_object, address=toList.address, status=status
+                zipCode=zip_code_object,
+                address=to_list.address,
+                status=status,
             )
             ClientUpdate.objects.get_or_create(
-                client=toList, status=status, listed=listing[0].listed
+                client=to_list, status=status, listed=listing[0].listed
             )
         except Exception as e:
             logging.error(f"Cant find listing to list {e}")
             logging.error("This should not be the case")
-    # TODO There is an issue where clients uploaded with
-    #  wrong zip code and are being marked
-    #  to be unlisted when they should not be
-    # unlisted = previousListed.difference(clientsToUpdate)
-    # for toUnlist in unlisted:
-    #     toUnlist.status = "Taken Off Market"
-    #     toUnlist.save()
-    #     ClientUpdate.objects.create(
-    #         client=toUnlist,
-    #         status="Taken Off Market"
-    #     )
 
-    clientsToUpdate = list(
-        clientsToUpdate.values_list("servTitanID", flat=True)
-    )
-    for client in clientsToUpdate:
-        if client is None:
-            clientsToUpdate.remove(client)
+    clients_to_update = [
+        client
+        for client in clients_to_update.values_list("servTitanID", flat=True)
+        if client
+    ]
 
-    if clientsToUpdate:
-        update_serviceTitan_client_tags.delay(
-            clientsToUpdate, company.id, status
+    if clients_to_update:
+        update_service_titan_client_tags.delay(
+            clients_to_update, company.id, status
         )
-    delVariables(
-        [
-            zipCode_object,
-            listedAddresses,
-            clientsToUpdate,
-            previousListed,
-            newlyListed,
-            toList,
-            listing,
-            clientsToUpdate,
-        ]
-    )
 
 
 @shared_task
 def update_clients_statuses(company_id=None):
-    companies, company, zipCode_objects, zipCodes, zips, zip = (
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-    )
-    if company_id:
-        companies = Company.objects.filter(id=company_id)
-    else:
-        companies = Company.objects.all()
-    for company in companies:
-        try:
-            if company.product.id != "price_1MhxfPAkLES5P4qQbu8O45xy":
-                zipCode_objects = Client.objects.filter(
-                    company=company, active=True
-                ).values("zipCode")
-                zipCodes = zipCode_objects.distinct()
-                zips = list(zipCodes.order_by("zipCode").values("zipCode"))
-                for zip in zips:
-                    zip = zip["zipCode"]
-                    updateStatus.delay(zip, company.id, "House For Sale")
-                for zip in zips:
-                    zip = zip["zipCode"]
-                    updateStatus.delay(
-                        zip, company.id, "House Recently Sold (6)"
-                    )
-        except Exception as e:
-            logging.error(
-                f"""ERROR during update_clients_statuses:
-                  {e} with company {company}"""
-            )
-            logging.error(traceback.format_exc())
+    """
+    Update the statuses of clients in all companies or a specific company.
 
-    delVariables([companies, company, zipCode_objects, zipCodes, zips, zip])
+    :param company_id: The ID of the specific company.
+    If None, update for all companies.
+    """
+    try:
+        companies = (
+            Company.objects.filter(id=company_id)
+            if company_id
+            else Company.objects.all()
+        )
+
+        for company in companies:
+            if company.product.id != "price_1MhxfPAkLES5P4qQbu8O45xy":
+                zip_codes = (
+                    Client.objects.filter(company=company, active=True)
+                    .values("zipCode")
+                    .distinct()
+                    .order_by("zipCode")
+                )
+
+                for zip_code in zip_codes:
+                    update_status.delay(
+                        zip_code["zipCode"], company.id, "House For Sale"
+                    )
+                    update_status.delay(
+                        zip_code["zipCode"],
+                        company.id,
+                        "House Recently Sold (6)",
+                    )
+
+    except Exception as e:
+        logging.error(
+            f"""ERROR during update_clients_statuses: {e} with company {company}"""
+        )
+        logging.error(traceback.format_exc())
 
 
 @shared_task
-def sendDailyEmail(company_id=None):
+def send_daily_email(company_id=None):
     (
         companies,
         company,
@@ -559,7 +540,10 @@ def sendDailyEmail(company_id=None):
                     for email in emails:
                         email = email[0]
                         msg = EmailMessage(
-                            subject, message, settings.EMAIL_HOST_USER, [email]
+                            subject,
+                            message,
+                            settings.EMAIL_HOST_USER,
+                            [email],
                         )
                         msg.content_subtype = "html"
                         msg.send()
@@ -573,7 +557,7 @@ def sendDailyEmail(company_id=None):
     ZipCode.objects.filter(
         lastUpdated__lt=datetime.today() - timedelta(days=3)
     ).delete()
-    delVariables(
+    del_variables(
         [
             companies,
             company,
@@ -601,7 +585,7 @@ def auto_update(company_id=None, zip=None):
         except Exception as e:
             logging.error(f"Company does not exist {e}")
             return
-        delVariables([company_id, company])
+        del_variables([company_id, company])
     elif zip:
         try:
             ZipCode.objects.get_or_create(zipCode=zip)
@@ -614,7 +598,9 @@ def auto_update(company_id=None, zip=None):
         companies = Company.objects.all()
         for company in companies:
             try:
-                logging.error(f"Auto Update: {company.product} {company.name}")
+                logging.error(
+                    f"Auto Update: {company.product} {company.name}"
+                )
                 if company.product.id != "price_1MhxfPAkLES5P4qQbu8O45xy":
                     logging.error("In the if statement")
                     getAllZipcodes(company.id)
@@ -622,10 +608,10 @@ def auto_update(company_id=None, zip=None):
                     logging.error("free tier")
             except Exception as e:
                 logging.error(f"Auto Update Error: {e}")
-        delVariables([company, companies])
+        del_variables([company, companies])
 
 
-def get_serviceTitan_accessToken(company):
+def get_service_titan_access_token(company):
     company = Company.objects.get(id=company)
     if company.serviceTitanAppVersion == 2:
         app_key = settings.ST_APP_KEY_2
@@ -651,139 +637,238 @@ def get_serviceTitan_accessToken(company):
     return headers
 
 
-@shared_task
-def update_serviceTitan_client_tags(forSale, company, status):
-    headers, data, response, payload, tagType, resp, error, word = (
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-    )
+def process_client_tags(client_id):
+    """
+    Process tag removal for the given client.
+
+    Parameters:
+    client_id (str): ID of the client.
+    """
     try:
-        company = Company.objects.get(id=company)
-        if forSale and (
-            company.serviceTitanForSaleTagID
-            or company.serviceTitanRecentlySoldTagID
-        ):
-            headers = get_serviceTitan_accessToken(company.id)
-            if status == "House For Sale":
-                tagType = [str(company.serviceTitanForSaleTagID)]
-            elif status == "House Recently Sold (6)":
-                forSaleToRemove = forSale
-                tagType = [str(company.serviceTitanRecentlySoldTagID)]
-                payload = {
-                    "customerIds": forSaleToRemove,
-                    "tagTypeIds": [str(company.serviceTitanForSaleTagID)],
-                }
-                response = requests.delete(
-                    f"""https://api.servicetitan.io/crm/
-                    v2/tenant/{str(company.tenantID)}/tags""",
-                    headers=headers,
-                    json=payload,
-                    timeout=10,
-                )
-                if response.status_code != 200:
-                    resp = response.json()
-                    error = resp["title"]
-                    error = (
-                        error.replace("(", "")
-                        .replace(")", "")
-                        .replace(",", " ")
-                        .replace(".", "")
-                        .split()
-                    )
-                    for word in error:
-                        if word.isdigit():
-                            # Client.objects.filter(servTitanID=word).delete()
-                            word = int(word)
-                            if word in forSaleToRemove:
-                                forSaleToRemove.remove(word)
-                    payload = {
-                        "customerIds": forSaleToRemove,
-                        "tagTypeIds": tagType,
-                    }
-                    response = requests.delete(
-                        f"""https://api.servicetitan.io/crm/
-                        v2/tenant/{str(company.tenantID)}/tags""",
-                        headers=headers,
-                        json=payload,
-                        timeout=10,
-                    )
-                    if response.status_code != 200:
-                        logging.error(response.json())
-            payload = {"customerIds": forSale, "tagTypeIds": tagType}
-            response = requests.put(
-                f"""https://api.servicetitan.io/crm/
-                v2/tenant/{str(company.tenantID)}/tags""",
+        client = CustomUser.objects.get(id=client_id)
+        headers = get_service_titan_access_token(client.company.id)
+        tag_ids = [
+            str(client.company.serviceTitanForSaleTagID),
+            str(client.company.serviceTitanRecentlySoldTagID),
+            str(client.company.serviceTitanForSaleContactedTagID),
+            str(client.company.serviceTitanRecentlySoldContactedTagID),
+        ]
+        tag_ids = [tag_id for tag_id in tag_ids if tag_id]
+
+        for tag_id in tag_ids:
+            payload = {
+                "customerIds": [str(client.servTitanID)],
+                "tagTypeIds": [tag_id],
+            }
+            handle_tag_deletion_request(payload, headers, client.company)
+
+    except Exception as e:
+        logging.error(e)
+
+
+def determine_tag_type(company, status):
+    """
+    Determine the tag type based on the status.
+
+    Parameters:
+    company (object): Company object.
+    status (str): Status of the property.
+
+    Returns:
+    list: List containing the tag type.
+    """
+    if status == "House For Sale":
+        return [str(company.serviceTitanForSaleTagID)]
+    elif status == "House Recently Sold (6)":
+        return [str(company.serviceTitanRecentlySoldTagID)]
+
+
+def handle_tag_deletion_request(
+    payload, headers, company, client_subset=None
+):
+    """
+    Send a tag deletion request to Service Titan API.
+
+    Parameters:
+    payload (dict): Payload for the request.
+    headers (dict): Headers for the request.
+    company (object): Company object.
+    client_subset (list, optional): Subset of client IDs.
+
+    Returns:
+    response (object): Response from the Service Titan API.
+    """
+    base_url = "https://api.servicetitan.io/"
+    response = requests.delete(
+        f"{base_url}crm/v2/tenant/{str(company.tenantID)}/tags",
+        headers=headers,
+        json=payload,
+        timeout=10,
+    )
+    if response.status_code != 200:
+        resp = response.json()
+        error = (
+            resp["title"]
+            .replace("(", "")
+            .replace(")", "")
+            .replace(",", "")
+            .replace(".", "")
+            .split()
+        )
+
+        for word in error:
+            if (
+                word.isdigit()
+                and client_subset
+                and int(word) in client_subset
+            ):
+                client_subset.remove(int(word))
+
+        if client_subset:
+            payload = {
+                "customerIds": client_subset,
+                "tagTypeIds": payload["tagTypeIds"],
+            }
+            response = requests.delete(
+                f"{base_url}crm/v2/tenant/{str(company.tenantID)}/tags",
                 headers=headers,
                 json=payload,
                 timeout=10,
             )
-            if response.status_code != 200:
-                resp = response.json()
-                error = resp["title"]
-                error = (
-                    error.replace("(", "")
-                    .replace(")", "")
-                    .replace(",", " ")
-                    .replace(".", "")
-                    .split()
+
+    return response
+
+
+def handle_tag_addition_request(payload, headers, company, for_sale):
+    """
+    Send a tag addition request to Service Titan API.
+
+    Parameters:
+    payload (dict): Payload for the request.
+    headers (dict): Headers for the request.
+    company (object): Company object.
+    for_sale (list): List of client IDs for sale.
+
+    Returns:
+    response (object): Response from the Service Titan API.
+    """
+    base_url = "https://api.servicetitan.io/"
+    response = requests.put(
+        f"{base_url}crm/v2/tenant/{str(company.tenantID)}/tags",
+        headers=headers,
+        json=payload,
+        timeout=10,
+    )
+    if response.status_code != 200:
+        resp = response.json()
+        error = (
+            resp["title"]
+            .replace("(", "")
+            .replace(")", "")
+            .replace(",", "")
+            .replace(".", "")
+            .split()
+        )
+
+        for word in error:
+            if word.isdigit() and int(word) in for_sale:
+                for_sale.remove(int(word))
+
+        if for_sale:
+            payload = {
+                "customerIds": for_sale,
+                "tagTypeIds": payload["tagTypeIds"],
+            }
+            response = requests.put(
+                f"{base_url}crm/v2/tenant/{str(company.tenantID)}/tags",
+                headers=headers,
+                json=payload,
+                timeout=10,
+            )
+
+    return response
+
+
+def cleanup_variables(variable_list):
+    """
+    Clean up variables by deleting them.
+
+    Parameters:
+    variable_list (list): List of variables to delete.
+    """
+    for var in variable_list:
+        del var
+
+
+@shared_task
+def update_service_titan_client_tags(for_sale, company, status):
+    """
+    Update Service Titan client tags.
+
+    Parameters:
+    for_sale (list): List of IDs of clients for sale.
+    company (str): ID of the company.
+    status (str): Status of the property.
+    """
+    try:
+        company = Company.objects.get(id=company)
+        tag_ids = [
+            company.serviceTitanForSaleTagID,
+            company.serviceTitanRecentlySoldTagID,
+        ]
+        tag_ids = [str(tag_id) for tag_id in tag_ids if tag_id]
+
+        if for_sale and tag_ids:
+            headers = get_service_titan_access_token(company.id)
+            tag_type = determine_tag_type(company, status)
+
+            if status == "House Recently Sold (6)":
+                for_sale_to_remove = for_sale
+                payload = {
+                    "customerIds": for_sale_to_remove,
+                    "tagTypeIds": [str(company.serviceTitanForSaleTagID)],
+                }
+                response = handle_tag_deletion_request(
+                    payload, headers, company, for_sale_to_remove
                 )
-                for word in error:
-                    if word.isdigit():
-                        # Client.objects.filter(servTitanID=word).delete()
-                        word = int(word)
-                        if word in forSale:
-                            forSale.remove(word)
-                if status == "House Recently Sold (6)":
-                    payload = {
-                        "customerIds": forSale,
-                        "tagTypeIds": [str(company.serviceTitanForSaleTagID)],
-                    }
-                    response = requests.delete(
-                        f"""https://api.servicetitan.io/crm/
-                        v2/tenant/{str(company.tenantID)}/tags""",
-                        headers=headers,
-                        json=payload,
-                        timeout=10,
-                    )
-                payload = {"customerIds": forSale, "tagTypeIds": tagType}
-                response = requests.put(
-                    f"""https://api.servicetitan.io/crm/
-                    v2/tenant/{str(company.tenantID)}/tags""",
-                    headers=headers,
-                    json=payload,
-                    timeout=10,
-                )
+
+                if response and response.status_code != 200:
+                    logging.error(response.json())
+
+            payload = {"customerIds": for_sale, "tagTypeIds": tag_type}
+            response = handle_tag_addition_request(
+                payload, headers, company, for_sale
+            )
+
+            if response and response.status_code != 200:
+                logging.error(response.json())
+
     except Exception as e:
-        logging.error("updating service titan clients failed")
+        logging.error("Updating Service Titan clients failed")
         logging.error(f"ERROR: {e}")
         logging.error(traceback.format_exc())
-    delVariables(
+
+    cleanup_variables(
         [
             headers,
-            data,
+            # data,
             response,
             payload,
             company,
             status,
-            tagType,
-            forSale,
-            resp,
-            error,
-            word,
+            tag_type,
+            for_sale,
+            # resp,
+            # error,
+            # word,
         ]
     )
 
 
 @shared_task
-def add_serviceTitan_contacted_tag(client, tagId):
+def add_service_titan_contacted_tag(client, tagId):
     client = Client.objects.get(id=client)
-    headers = get_serviceTitan_accessToken(client.company.id)
+    headers = get_service_titan_access_token(client.company.id)
     payload = {"customerIds": [str(client.id)], "tagTypeIds": [str(tagId)]}
     requests.put(
         f"""https://api.servicetitan.io/crm/
@@ -795,21 +880,28 @@ def add_serviceTitan_contacted_tag(client, tagId):
 
 
 @shared_task
-def remove_all_serviceTitan_tags(company=None, client=None):
+def remove_all_service_titan_tags(company=None, client=None):
+    """
+    Remove all Service Titan tags for the provided company or client.
+
+    Parameters:
+    company (str, optional): ID of the company.
+    client (str, optional): ID of the client.
+    """
     if company:
         try:
             company = Company.objects.get(id=company)
-            if (
-                company.serviceTitanForSaleTagID
-                or company.serviceTitanRecentlySoldTagID
-            ):
-                headers = get_serviceTitan_accessToken(company.id)
-                time = datetime.now()
-                tagTypes = [
-                    [str(company.serviceTitanForSaleTagID)],
-                    [str(company.serviceTitanRecentlySoldTagID)],
-                ]
-                for tag in tagTypes:
+            tag_ids = [
+                company.serviceTitanForSaleTagID,
+                company.serviceTitanRecentlySoldTagID,
+            ]
+            tag_ids = [str(tag_id) for tag_id in tag_ids if tag_id]
+
+            if tag_ids:
+                headers = get_service_titan_access_token(company.id)
+                time_limit = datetime.now()
+
+                for tag_id in tag_ids:
                     # get a list of all the servTitanIDs
                     # for the clients with one from this company
                     clients = list(
@@ -817,88 +909,52 @@ def remove_all_serviceTitan_tags(company=None, client=None):
                         .exclude(servTitanID=None)
                         .values_list("servTitanID", flat=True)
                     )
-                    iters = (len(clients) // 250) + 1
-                    for i in range(iters):
-                        if time < datetime.now() - timedelta(minutes=15):
-                            headers = get_serviceTitan_accessToken(company.id)
-                            time = datetime.now()
-                        x = clients[i * 250 : (i + 1) * 250]  # noqa: E203
-                        payload = {"customerIds": x, "tagTypeIds": tag}
-                        response = requests.delete(
-                            f"""https://api.servicetitan.io/crm/
-                            v2/tenant/{str(company.tenantID)}/tags""",
-                            headers=headers,
-                            json=payload,
-                            timeout=10,
-                        )
-                        if response.status_code != 200:
-                            resp = response.json()
-                            error = resp["title"]
-                            error = (
-                                error.replace("(", "")
-                                .replace(")", "")
-                                .replace(",", " ")
-                                .replace(".", "")
+                    num_iterations = (len(clients) // 250) + 1
+
+                    for i in range(num_iterations):
+                        if time_limit < datetime.now() - timedelta(
+                            minutes=15
+                        ):
+                            headers = get_service_titan_access_token(
+                                company.id
                             )
-                            error = error.split()
-                            for word in error:
-                                if word.isdigit():
-                                    word = int(word)
-                                    # Client.objects.filter(servTitanID=word).delete()
-                                    if word in x:
-                                        x.remove(word)
-                            if x:
-                                payload = {"customerIds": x, "tagTypeIds": tag}
-                                response = requests.delete(
-                                    f"""https://api.servicetitan.io/crm/
-                                    v2/tenant/{str(company.tenantID)}/tags""",
-                                    headers=headers,
-                                    json=payload,
-                                    timeout=10,
-                                )
-                                if response.status_code != 200:
-                                    logging.error(response.json())
+                            time_limit = datetime.now()
+
+                        client_subset = clients[
+                            i * 250 : (i + 1) * 250  # noqa: E203
+                        ]
+                        payload = {
+                            "customerIds": client_subset,
+                            "tagTypeIds": [tag_id],
+                        }
+                        response = handle_tag_deletion_request(
+                            payload, headers, company, client_subset
+                        )
+
+                        if response and response.status_code != 200:
+                            logging.error(response.json())
+
                 Client.objects.filter(company=company).update(
                     status="No Change"
                 )
+
         except Exception as e:
-            logging.error("updating service titan clients failed")
+            logging.error("Updating Service Titan clients failed")
             logging.error(f"ERROR: {e}")
             logging.error(traceback.format_exc())
+
     if client:
-        try:
-            client = CustomUser.objects.get(id=client)
-            headers = get_serviceTitan_accessToken(client.company.id)
-            tagTypes = [
-                [str(company.serviceTitanForSaleTagID)],
-                [str(company.serviceTitanRecentlySoldTagID)],
-                [str(company.serviceTitanForSaleContactedTagID)],
-                [str(company.serviceTitanRecentlySoldContactedTagID)],
-            ]
-            for tag in tagTypes:
-                payload = {
-                    "customerIds": [str(client.servTitanID)],
-                    "tagTypeIds": tag,
-                }
-                response = requests.delete(
-                    f"""https://api.servicetitan.io/crm/
-                    v2/tenant/{str(client.company.tenantID)}/tags""",
-                    headers=headers,
-                    json=payload,
-                    timeout=10,
-                )
-        except Exception as e:
-            logging.error(e)
+        process_client_tags(client)
 
 
-def update_serviceTitan_tasks(clients, company, status):
+def update_service_titan_tasks(clients, company, status):
     headers, data, response = "", "", ""
     if clients and (
         company.serviceTitanForSaleTagID
         or company.serviceTitanRecentlySoldTagID
     ):
         try:
-            headers = get_serviceTitan_accessToken(company.id)
+            headers = get_service_titan_access_token(company.id)
             response = requests.get(
                 f"""https://api.servicetitan.io/taskmanagement/
                 v2/tenant/{str(company.tenantID)}/data""",
@@ -934,7 +990,7 @@ def update_serviceTitan_tasks(clients, company, status):
             logging.error("updating service titan tasks failed")
             logging.error(f"ERROR: {e}")
             logging.error(traceback.format_exc())
-    delVariables([headers, data, response, company, status])
+    del_variables([headers, data, response, company, status])
 
 
 # send email to every customuser with the html
@@ -967,7 +1023,7 @@ def send_update_email(templateName):
 
 
 @shared_task(rate_limit="1/s")
-def doItAll(company):
+def do_it_all(company):
     try:
         company = Company.objects.get(id=company)
         result = auto_update.delay(
@@ -978,16 +1034,28 @@ def doItAll(company):
             company.id
         )  # Schedule update_clients_statuses task
         sleep(360)
-        result.then(sendDailyEmail.apply_async, args=[company.id])
+        result.then(send_daily_email.apply_async, args=[company.id])
     except Exception as e:
         logging.error("doItAll failed")
         logging.error(f"ERROR: {e}")
         logging.error(traceback.format_exc())
 
 
-def filter_recentlysold(query_params, queryset, company):
+def filter_recently_sold(query_params, queryset, company_id):
+    """
+    Filter recently sold properties based on the provided query parameters.
+
+    Parameters:
+    query_params (dict): Parameters to filter the queryset.
+    queryset (QuerySet): QuerySet to be filtered.
+    company_id (str): ID of the company.
+
+    Returns:
+    queryset: Filtered QuerySet.
+    """
+    company = Company.objects.get(id=company_id)
+
     if "saved_filter" in query_params:
-        company = Company.objects.get(id=company)
         query_params = SavedFilter.objects.get(
             name=query_params["saved_filter"],
             company=company,
@@ -995,98 +1063,88 @@ def filter_recentlysold(query_params, queryset, company):
         ).savedFilters
         query_params = json.loads(query_params)
         query_params = {k: v for k, v in query_params.items() if v != ""}
-    if "min_price" in query_params:
-        queryset = queryset.filter(price__gte=query_params["min_price"])
-    if "max_price" in query_params:
-        queryset = queryset.filter(
-            price__lte=query_params["max_price"], price__gt=0
-        )
-    if "min_year" in query_params:
-        queryset = queryset.filter(year_built__gte=query_params["min_year"])
-    if "max_year" in query_params:
-        queryset = queryset.filter(
-            year_built__lte=query_params["max_year"], year_built__gt=0
-        )
-    if "min_days_ago" in query_params:
-        queryset = queryset.filter(
-            listed__lt=(
-                datetime.today()
-                - timedelta(days=int(query_params["min_days_ago"]))
-            ).strftime("%Y-%m-%d")
-        )
-    if "max_days_ago" in query_params:
-        queryset = queryset.filter(
-            listed__gt=(
-                datetime.today()
-                - timedelta(days=int(query_params["max_days_ago"]))
-            ).strftime("%Y-%m-%d")
-        )
-    if "tags" in query_params:
-        try:
-            tags = query_params["tags"].split(",")
-        except Exception as e:
-            logging.error(e)
-            tags = query_params["tags"]
-        if tags != [""]:
-            matching_tags = HomeListingTags.objects.filter(tag__in=tags)
-            queryset = queryset.filter(tag__in=matching_tags)
-    if "state" in query_params:
-        queryset = queryset.filter(state=query_params["state"].upper())
-    if "city" in query_params:
-        queryset = queryset.filter(city=query_params["city"].capitalize())
-    if "zip_code" in query_params:
-        zipCode = ZipCode.objects.filter(zipCode=query_params["zip_code"])
-        if len(zipCode) > 0:
-            queryset = queryset.filter(zipCode=zipCode[0])
+
+    for param in query_params:
+        if param in ["min_price", "max_price", "min_year", "max_year"]:
+            filter_key = f"{param.split('_')[1]}__{param.split('_')[0]}"
+            queryset = queryset.filter(**{filter_key: query_params[param]})
+        elif param in ["min_days_ago", "max_days_ago"]:
+            filter_key = f"listed__{param.split('_')[1]}"
+            queryset = queryset.filter(
+                **{
+                    filter_key: (
+                        datetime.today()
+                        - timedelta(days=int(query_params[param]))
+                    ).strftime("%Y-%m-%d")
+                }
+            )
+        elif param == "tags":
+            try:
+                tags = query_params[param].split(",")
+                matching_tags = HomeListingTags.objects.filter(tag__in=tags)
+                queryset = queryset.filter(tag__in=matching_tags)
+            except Exception as e:
+                logging.error(e)
+        elif param in ["state", "city"]:
+            filter_key = f"{param}__iexact"
+            queryset = queryset.filter(**{filter_key: query_params[param]})
+        elif param == "zip_code":
+            zip_code = ZipCode.objects.filter(zip_code=query_params[param])
+            if zip_code.exists():
+                queryset = queryset.filter(zip_code=zip_code.first())
+
     return queryset
 
 
 def filter_clients(query_params, queryset):
-    if "min_price" in query_params:
-        queryset = queryset.filter(price__gte=query_params["min_price"])
-    if "max_price" in query_params:
-        queryset = queryset.filter(
-            price__lte=query_params["max_price"], price__gt=0
-        )
-    if "min_year" in query_params:
-        queryset = queryset.filter(year_built__gte=query_params["min_year"])
-    if "max_year" in query_params:
-        queryset = queryset.filter(
-            year_built__lte=query_params["max_year"], year_built__gt=0
-        )
-    if "state" in query_params:
-        queryset = queryset.filter(state=query_params["state"].upper())
-    if "city" in query_params:
-        queryset = queryset.filter(city=query_params["city"].capitalize())
-    if "zip_code" in query_params:
-        zipCode = ZipCode.objects.filter(zipCode=query_params["zip_code"])
-        if len(zipCode) > 0:
-            queryset = queryset.filter(zipCode=zipCode[0])
-    if "tags" in query_params:
-        tags = query_params["tags"].split(",")
-        matching_tags = HomeListingTags.objects.filter(tag__in=tags)
-        queryset = queryset.filter(tag__in=matching_tags)
-    if "status" in query_params:
-        statuses = []
-        if "For Sale" in query_params["status"]:
-            statuses.append("House For Sale")
-        if "Recently Sold" in query_params["status"]:
-            statuses.append("House Recently Sold (6)")
-        queryset = queryset.filter(status__in=statuses)
-    if "equip_install_date_min" in query_params:
-        queryset = queryset.filter(
-            equipmentInstalledDate__gte=query_params["equip_install_date_min"]
-        )
-    if "equip_install_date_max" in query_params:
-        queryset = queryset.filter(
-            equipmentInstalledDate__lte=query_params["equip_install_date_max"]
-        )
-    if "customer_since_min" in query_params:
-        start_date = date(int(query_params["customer_since_min"]), 1, 1)
-        queryset = queryset.filter(serviceTitanCustomerSince__gte=start_date)
-    if "customer_since_max" in query_params:
-        end_date = date(int(query_params["customer_since_max"]), 12, 31)
-        queryset = queryset.filter(serviceTitanCustomerSince__lte=end_date)
+    """
+    Filter clients based on the provided query parameters.
+
+    Parameters:
+    query_params (dict): Parameters to filter the queryset.
+    queryset (QuerySet): QuerySet to be filtered.
+
+    Returns:
+    queryset: Filtered QuerySet.
+    """
+    for param in query_params:
+        if param in [
+            "min_price",
+            "max_price",
+            "min_year",
+            "max_year",
+            "equip_install_date_min",
+            "equip_install_date_max",
+        ]:
+            filter_key = f"{param.split('_')[1]}__{param.split('_')[0]}"
+            queryset = queryset.filter(**{filter_key: query_params[param]})
+        elif param in ["state", "city"]:
+            filter_key = f"{param}__iexact"
+            queryset = queryset.filter(**{filter_key: query_params[param]})
+        elif param == "zip_code":
+            zip_code = ZipCode.objects.filter(zip_code=query_params[param])
+            if zip_code.exists():
+                queryset = queryset.filter(zip_code=zip_code.first())
+        elif param == "tags":
+            tags = query_params[param].split(",")
+            matching_tags = HomeListingTags.objects.filter(tag__in=tags)
+            queryset = queryset.filter(tag__in=matching_tags)
+        elif param == "status":
+            statuses = []
+            if "For Sale" in query_params[param]:
+                statuses.append("House For Sale")
+            if "Recently Sold" in query_params[param]:
+                statuses.append("House Recently Sold (6)")
+            queryset = queryset.filter(status__in=statuses)
+        elif param in ["customer_since_min", "customer_since_max"]:
+            filter_key = f"serviceTitanCustomerSince__{param.split('_')[2]}"
+            date_value = (
+                date(int(query_params[param]), 1, 1)
+                if param.endswith("min")
+                else date(int(query_params[param]), 12, 31)
+            )
+            queryset = queryset.filter(**{filter_key: date_value})
+
     return queryset
 
 
@@ -1103,8 +1161,22 @@ def remove_error_flag():
 
 @shared_task
 def verify_address(client_id):
-    client = Client.objects.get(id=client_id)
-    zip_code = client.zipCode.zipCode
+    """
+    Verify the client's address using USPS API.
+
+    Parameters:
+    client_id (str): The ID of the client.
+
+    Returns:
+    None
+    """
+    try:
+        client = Client.objects.get(id=client_id)
+    except Client.DoesNotExist:
+        logging.error(f"Client with id {client_id} does not exist.")
+        return
+
+    zip_code = client.zip_code.zip_code
     base_url = "http://production.shippingapis.com/ShippingAPI.dll"
     user_id = settings.USPS_USER_ID
     api = "Verify"
@@ -1124,20 +1196,25 @@ def verify_address(client_id):
 
     params = {"API": api, "XML": xml_request}
 
-    response = requests.get(base_url, params=params, timeout=10)
-    response_xml = response.text
+    try:
+        response = requests.get(base_url, params=params, timeout=10)
+    except requests.exceptions.RequestException as e:
+        logging.error(e)
+        return
 
+    response_xml = response.text
     parsed_response = fromstring(response_xml)
     address_element = parsed_response.find("Address")
     error = address_element.find("Error")
+
     if error:
         usps_address = "Error"
-
     else:
         address2 = address_element.find("Address2").text.title()
         city = address_element.find("City").text.title()
         state = address_element.find("State").text
         zip5 = address_element.find("Zip5").text
+
         if (
             address2 != client.address
             or state != client.state
@@ -1151,44 +1228,65 @@ def verify_address(client_id):
 
 
 @shared_task
-def send_zapier_recentlySold(company_id):
-    company = Company.objects.get(id=company_id)
-    if company.zapier_recentlySold:
-        zipCode_objects = Client.objects.filter(company=company).values(
-            "zipCode"
+def send_zapier_recently_sold(company_id):
+    """
+    Send information about recently sold homes to Zapier for a given company.
+
+    Parameters:
+    company_id (str): The ID of the company.
+
+    Returns:
+    None
+    """
+    try:
+        company = Company.objects.get(id=company_id)
+    except Company.DoesNotExist:
+        logging.error(f"Company with id {company_id} does not exist.")
+        return
+
+    if not company.zapier_recently_sold:
+        return
+
+    zip_code_objects = Client.objects.filter(company=company).values(
+        "zip_code"
+    )
+    recently_listed_date = (datetime.today() - timedelta(days=7)).strftime(
+        "%Y-%m-%d"
+    )
+    home_listings = HomeListing.objects.filter(
+        zip_code__in=zip_code_objects, listed__gt=recently_listed_date
+    ).order_by("listed")
+
+    saved_filters = SavedFilter.objects.filter(
+        company=company, for_existing_client=False, for_zapier=True
+    )
+
+    for saved_filter in saved_filters:
+        query_params = {
+            k: v
+            for k, v in json.loads(saved_filter.saved_filters).items()
+            if v != ""
+        }
+        filtered_home_listings = filter_recently_sold(
+            query_params, home_listings, company_id
         )
-        queryset = HomeListing.objects.filter(
-            zipCode__in=zipCode_objects,
-            listed__gt=(datetime.today() - timedelta(days=7)).strftime(
-                "%Y-%m-%d"
-            ),
-        ).order_by("listed")
-        savedFilters = SavedFilter.objects.filter(
-            company=company, forExistingClient=False, forZapier=True
-        )
-        for savedFilter in savedFilters:
-            query_params = json.loads(savedFilter.savedFilters)
-            query_params = {k: v for k, v in query_params.items() if v != ""}
-            queryset = filter_recentlysold(query_params, queryset, company_id)
-            if len(queryset) > 0:
-                try:
-                    if len(queryset) == 1:
-                        serializer = HomeListingSerializer(queryset[0])
-                        serialized_data = serializer.data
-                        serialized_data["filter_name"] = savedFilter.name
-                    else:
-                        serializer = HomeListingSerializer(queryset, many=True)
-                        serialized_data = serializer.data
-                        for (
-                            data
-                        ) in (
-                            serialized_data
-                        ):  # Add savedFilter.name to each item in the list
-                            data["filterName"] = savedFilter.name
-                    requests.post(
-                        company.zapier_recentlySold,
-                        data=serialized_data,
-                        timeout=10,
-                    )
-                except Exception as e:
-                    logging.error(e)
+
+        if filtered_home_listings:
+            try:
+                serialized_data = HomeListingSerializer(
+                    filtered_home_listings, many=True
+                ).data
+                for (
+                    data
+                ) in (
+                    serialized_data
+                ):  # Add saved_filter.name to each item in the list
+                    data["filter_name"] = saved_filter.name
+
+                requests.post(
+                    company.zapier_recently_sold,
+                    data=serialized_data,
+                    timeout=10,
+                )
+            except Exception as e:
+                logging.error(e)

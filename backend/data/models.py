@@ -1,9 +1,9 @@
 from django.db import models
 from django.core.exceptions import ValidationError
-import uuid
 from datetime import datetime, timedelta
+import uuid
 
-# from accounts.models import Company
+# Define status choices
 STATUS = [
     ("House For Sale", "House For Sale"),
     ("House For Rent", "House For Rent"),
@@ -14,30 +14,33 @@ STATUS = [
 ]
 
 
-def zipTime():
+# Function to return yesterday's date
+def zip_time():
     return (datetime.today() - timedelta(days=1)).strftime("%Y-%m-%d")
 
 
+# ZipCode model
 class ZipCode(models.Model):
-    zipCode = models.CharField(max_length=5, primary_key=True, unique=True)
-    lastUpdated = models.DateField(default=zipTime)
+    zip_code = models.CharField(max_length=5, primary_key=True, unique=True)
+    last_updated = models.DateField(default=zip_time)
 
     def __str__(self):
-        return self.zipCode
+        return self.zip_code
 
 
+# Client model
 class Client(models.Model):
     id = models.UUIDField(
         primary_key=True, unique=True, default=uuid.uuid4, editable=False
     )
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=100)
-    zipCode = models.ForeignKey(
+    zip_code = models.ForeignKey(
         ZipCode,
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        related_name="client_zipCode",
+        related_name="client_zip_code",
     )
     company = models.ForeignKey(
         "accounts.Company",
@@ -53,23 +56,23 @@ class Client(models.Model):
     state = models.CharField(max_length=31, blank=True, null=True)
     contacted = models.BooleanField(default=False)
     note = models.TextField(default="", blank=True, null=True)
-    servTitanID = models.IntegerField(blank=True, null=True)
-    phoneNumber = models.CharField(max_length=100, blank=True, null=True)
+    serv_titan_id = models.IntegerField(blank=True, null=True)
+    phone_number = models.CharField(max_length=100, blank=True, null=True)
     price = models.IntegerField(default=0, blank=True, null=True)
-    housingType = models.CharField(
+    housing_type = models.CharField(
         max_length=100, default=" ", blank=True, null=True
     )
     year_built = models.IntegerField(default=0, blank=True, null=True)
     tag = models.ManyToManyField(
         "HomeListingTags", blank=True, related_name="client_tags"
     )
-    equipmentInstalledDate = models.DateField(blank=True, null=True)
+    equipment_installed_date = models.DateField(blank=True, null=True)
     active = models.BooleanField(default=True)
     error_flag = models.BooleanField(default=False)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
     revenue = models.IntegerField(default=0, blank=True, null=True)
-    serviceTitanCustomerSince = models.DateField(blank=True, null=True)
+    service_titan_customer_since = models.DateField(blank=True, null=True)
     usps_address = models.CharField(max_length=100, blank=True, null=True)
     usps_different = models.BooleanField(default=False)
 
@@ -77,18 +80,20 @@ class Client(models.Model):
         unique_together = ("company", "name", "address")
 
 
-def formatToday():
+# Function to return today's date
+def format_today():
     return datetime.today().strftime("%Y-%m-%d")
 
 
+# ClientUpdate model
 class ClientUpdate(models.Model):
     id = models.UUIDField(
         primary_key=True, unique=True, default=uuid.uuid4, editable=False
     )
     client = models.ForeignKey(
-        Client, on_delete=models.CASCADE, related_name="clientUpdates_client"
+        Client, on_delete=models.CASCADE, related_name="client_updates_client"
     )
-    date = models.DateField(default=formatToday)
+    date = models.DateField(default=format_today)
     status = models.CharField(
         max_length=25,
         choices=STATUS,
@@ -102,11 +107,12 @@ class ClientUpdate(models.Model):
     error_flag = models.BooleanField(blank=True, null=True)
 
 
+# ScrapeResponse model
 class ScrapeResponse(models.Model):
     id = models.UUIDField(
         primary_key=True, unique=True, default=uuid.uuid4, editable=False
     )
-    date = models.DateField(default=formatToday)
+    date = models.DateField(default=format_today)
     response = models.TextField(default="")
     zip = models.IntegerField(blank=True, null=True)
     status = models.CharField(
@@ -119,6 +125,7 @@ class ScrapeResponse(models.Model):
     url = models.CharField(max_length=100, blank=True, null=True)
 
 
+# Realtor model
 class Realtor(models.Model):
     id = models.UUIDField(
         primary_key=True, unique=True, default=uuid.uuid4, editable=False
@@ -130,39 +137,38 @@ class Realtor(models.Model):
     url = models.CharField(max_length=100)
 
 
+# HomeListing model
 class HomeListing(models.Model):
     id = models.UUIDField(
         primary_key=True, unique=True, default=uuid.uuid4, editable=False
     )
-    zipCode = models.ForeignKey(
+    zip_code = models.ForeignKey(
         ZipCode,
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
-        related_name="homeListing_zipCode",
+        related_name="home_listing_zip_code",
     )
     address = models.CharField(max_length=100)
     status = models.CharField(
         max_length=25, choices=STATUS, default="Off Market"
     )
     listed = models.CharField(max_length=30, default=" ")
-    ScrapeResponse = models.ForeignKey(
+    scrape_response = models.ForeignKey(
         ScrapeResponse,
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
-        related_name="homeListing_ScrapeResponse",
+        related_name="home_listing_scrape_response",
     )
     price = models.IntegerField(default=0, blank=True, null=True)
-    housingType = models.CharField(
+    housing_type = models.CharField(
         max_length=100, default=" ", blank=True, null=True
     )
     year_built = models.IntegerField(default=0, blank=True, null=True)
     tag = models.ManyToManyField(
-        "HomeListingTags", blank=True, related_name="homeListing_tag"
+        "HomeListingTags", blank=True, related_name="home_listing_tag"
     )
-    # this is how to greatly reduce the amount of data in the table
-    # tags = JSONField(default=list)
     city = models.CharField(max_length=40, blank=True, null=True)
     state = models.CharField(max_length=31, blank=True, null=True)
     bedrooms = models.IntegerField(default=0, blank=True, null=True)
@@ -199,13 +205,14 @@ class HomeListing(models.Model):
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
-        related_name="homeListing_realtor",
+        related_name="home_listing_realtor",
     )
 
     class Meta:
         unique_together = ("address", "status", "city", "state")
 
 
+# HomeListingTags model
 class HomeListingTags(models.Model):
     id = models.UUIDField(
         primary_key=True, unique=True, default=uuid.uuid4, editable=False
@@ -216,14 +223,16 @@ class HomeListingTags(models.Model):
         return self.tag
 
 
+# Task model
 class Task(models.Model):
     id = models.UUIDField(
         primary_key=True, unique=True, default=uuid.uuid4, editable=False
     )
     completed = models.BooleanField(default=False)
-    deletedClients = models.IntegerField(default=0)
+    deleted_clients = models.IntegerField(default=0)
 
 
+# Referral model
 class Referral(models.Model):
     id = models.UUIDField(
         primary_key=True, unique=True, default=uuid.uuid4, editable=False
@@ -231,46 +240,46 @@ class Referral(models.Model):
     enterprise = models.ForeignKey(
         "accounts.Enterprise", on_delete=models.CASCADE, blank=True, null=True
     )
-    referredFrom = models.ForeignKey(
+    referred_from = models.ForeignKey(
         "accounts.Company",
         on_delete=models.SET_NULL,
-        related_name="referredFrom",
+        related_name="referred_from",
         blank=True,
         null=True,
     )
-    referredTo = models.ForeignKey(
+    referred_to = models.ForeignKey(
         "accounts.Company",
         on_delete=models.SET_NULL,
-        related_name="referredTo",
+        related_name="referred_to",
         blank=True,
         null=True,
     )
     client = models.ForeignKey(
         Client,
         on_delete=models.CASCADE,
-        related_name="referralClient",
+        related_name="referral_client",
         blank=True,
         null=True,
     )
     contacted = models.BooleanField(default=False)
 
-    # on save, make sure both the referredFrom and referredTo
+    # on save, make sure both the referred_from and referred_to
     #  are not the same and they are part of the franchise
     def save(self, *args, **kwargs):
-        if self.referredFrom == self.referredTo:
+        if self.referred_from == self.referred_to:
             raise ValidationError(
                 "Referred From and Referred To cannot be the same"
             )
         if (
-            self.referredFrom.enterprise != self.enterprise
-            or self.referredTo.enterprise != self.enterprise
+            self.referred_from.enterprise != self.enterprise
+            or self.referred_to.enterprise != self.enterprise
         ):
             raise ValidationError(
                 "Both Referred From and Referred To must be part of the enterprise"
             )
         if self.client.company.enterprise != self.enterprise:
             raise ValidationError("Client must be part of the enterprise")
-        if self.client.company != self.referredFrom:
+        if self.client.company != self.referred_from:
             raise ValidationError(
                 "Client must have the same company as Referred From"
             )
@@ -278,6 +287,7 @@ class Referral(models.Model):
         super(Referral, self).save(*args, **kwargs)
 
 
+# SavedFilter model
 class SavedFilter(models.Model):
     id = models.UUIDField(
         primary_key=True, unique=True, default=uuid.uuid4, editable=False
@@ -286,10 +296,10 @@ class SavedFilter(models.Model):
     company = models.ForeignKey(
         "accounts.Company", on_delete=models.CASCADE, blank=True, null=True
     )
-    forExistingClient = models.BooleanField(default=False)
-    savedFilters = models.CharField(max_length=1000, blank=True, null=True)
-    serviceTitanTag = models.IntegerField(blank=True, null=True)
-    forZapier = models.BooleanField(default=False)
+    for_existing_client = models.BooleanField(default=False)
+    saved_filters = models.CharField(max_length=1000, blank=True, null=True)
+    service_titan_tag = models.IntegerField(blank=True, null=True)
+    for_zapier = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ("name", "company", "forExistingClient")
+        unique_together = ("name", "company", "for_existing_client")
