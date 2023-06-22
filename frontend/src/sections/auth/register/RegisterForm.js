@@ -79,7 +79,7 @@ export default function RegisterForm({ company, accessToken }) {
   const { errors, touched, values, handleSubmit, isSubmitting, getFieldProps } = formik;
   useEffect(() => {
     if (userInfo) {
-      navigate('/dashboard/customers', { replace: true });
+      navigate('/dashboard', { replace: true });
     }
   }, [navigate, userInfo]);
   return (

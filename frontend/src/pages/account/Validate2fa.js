@@ -1,16 +1,15 @@
 import * as Yup from 'yup';
-import { useEffect } from 'react';
 import { styled } from '@mui/material/styles';
-import { useNavigate } from 'react-router-dom';
+
 import { useSelector, useDispatch } from 'react-redux';
 import { useFormik, Form, FormikProvider } from 'formik';
 
 import { Box, TextField, Button, Stack, Card, Typography, Container } from '@mui/material';
 // import { LoadingButton } from "../components/LoadingButton";
-import { showLoginInfo, validateOtp } from '../redux/actions/authActions';
-import useResponsive from '../hooks/useResponsive';
-import Page from '../components/Page';
-import Logo from '../components/Logo';
+import { showLoginInfo, validateOtp } from '../../redux/actions/authActions';
+import useResponsive from '../../hooks/useResponsive';
+import Page from '../../components/Page';
+import Logo from '../../components/Logo';
 
 const RootStyle = styled('div')(({ theme }) => ({
   [theme.breakpoints.up('md')]: {
@@ -54,13 +53,12 @@ const ContentStyle = styled('div')(({ theme }) => ({
 }));
 
 export default function Validate2fa() {
-  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const mdUp = useResponsive('up', 'md');
 
   const userLogin = useSelector(showLoginInfo);
-  const { userInfo, twoFA, error } = userLogin;
+  const { error } = userLogin;
 
   const twoFactorAuthSchema = Yup.object().shape({
     token: Yup.string()
@@ -81,16 +79,6 @@ export default function Validate2fa() {
   });
 
   const { errors, handleSubmit, getFieldProps } = formik;
-
-  useEffect(() => {
-    if (userInfo) {
-      if (twoFA) {
-        navigate('/dashboard/customers');
-      }
-    } else {
-      navigate('/login');
-    }
-  }, [userInfo, twoFA, navigate]);
 
   return (
     <Page title="Validate 2FA">

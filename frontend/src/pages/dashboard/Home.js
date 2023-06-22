@@ -1,8 +1,7 @@
 /* eslint-disable camelcase */
-import _, { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
 import React, { useState, useEffect } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 // material
 import {
   Alert,
@@ -26,95 +25,45 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
+import { applySortFilter, getComparator } from '../../utils/filterFunctions';
 
 // components
-import IncorrectDataButton from '../components/IncorrectDataButton';
-import RemoveErrorFlagButton from '../components/RemoveErrorFlagButton';
-import ReferralModal from '../components/ReferralModal';
-import UpgradeFromFree from '../components/UpgradeFromFree';
-import NoteModal from '../components/NoteModal';
-import Page from '../components/Page';
-import Label from '../components/Label';
-import FileUploader from '../components/FileUploader';
-import Scrollbar from '../components/Scrollbar';
-import Iconify from '../components/Iconify';
-import SearchNotFound from '../components/SearchNotFound';
-import CounterCard from '../components/CounterCard';
-import ClientEventTable from '../components/ClientEventTable';
-import ClientDetailsTable from '../components/ClientDetailsTable';
-import ServiceTitanSyncModal from '../components/ServiceTitanSyncModal';
-import Map from '../components/Map';
-import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
+import IncorrectDataButton from '../../components/IncorrectDataButton';
+import RemoveErrorFlagButton from '../../components/RemoveErrorFlagButton';
+import ReferralModal from '../../components/ReferralModal';
+import UpgradeFromFree from '../../components/UpgradeFromFree';
+import NoteModal from '../../components/NoteModal';
+import Page from '../../components/Page';
+import Label from '../../components/Label';
+import FileUploader from '../../components/FileUploader';
+import Scrollbar from '../../components/Scrollbar';
+import Iconify from '../../components/Iconify';
+import SearchNotFound from '../../components/SearchNotFound';
+import CounterCard from '../../components/CounterCard';
+import ClientEventTable from '../../components/ClientEventTable';
+import ClientDetailsTable from '../../components/ClientDetailsTable';
+import ServiceTitanSyncModal from '../../components/ServiceTitanSyncModal';
+import Map from '../../components/Map';
+import { ClientListHead, ClientListToolbar } from '../../sections/@dashboard/client';
 
-import ClientsListCall from '../redux/calls/ClientsListCall';
+import ClientsListCall from '../../redux/calls/ClientsListCall';
 import {
   selectClients,
   update,
   updateClientAsync,
-  // serviceTitanSync,
   salesForceSync,
   clientsAsync,
   getClientsCSV,
-} from '../redux/actions/usersActions';
-import { showLoginInfo, logout } from '../redux/actions/authActions';
+} from '../../redux/actions/usersActions';
+import { showLoginInfo } from '../../redux/actions/authActions';
 
-import '../theme/map.css';
+import '../../theme/map.css';
 
-// ----------------------------------------------------------------------
-// change this to sort by status
-function descendingComparator(a, b, orderBy) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
-}
-
-export function getComparator(order, orderBy) {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-export function applySortFilter(array, comparator, query, userInfo) {
-  let stabilizedThis = array;
-  if (userInfo === 'admin') {
-    stabilizedThis = array.map((el, index) => [el, index]);
-  } else {
-    stabilizedThis = array.filter((el) => el.status !== 'No Change').map((el, index) => [el, index]);
-  }
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-  if (query) {
-    return filter(array, (_user) =>
-      _.some(_user, (val) => val && val.toString().toLowerCase().includes(query.toLowerCase()))
-    );
-  }
-  return stabilizedThis.map((el) => el[0]);
-}
-
-export default function CustomerData() {
+export default function HomePage() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   const userLogin = useSelector(showLoginInfo);
-  const { userInfo, twoFA } = userLogin;
-
-  useEffect(() => {
-    if (!userInfo) {
-      dispatch(logout());
-      navigate('/login', { replace: true });
-      window.location.reload(false);
-    } else if (userInfo.otp_enabled && twoFA === false) {
-      navigate('/login', { replace: true });
-      window.location.reload(true);
-    }
-  }, [userInfo, dispatch, navigate, twoFA]);
+  const { userInfo } = userLogin;
 
   const [TABLE_HEAD, setTABLE_HEAD] = useState([
     { id: 'name', label: 'Name', alignRight: false },
@@ -184,8 +133,7 @@ export default function CustomerData() {
 
   const [expandedRow, setExpandedRow] = useState(null);
 
-  // const [csvLoading, setCsvLoading] = useState(false);
-  const csvLoading = false;
+  const [csvLoading] = useState(false);
 
   const [alertOpen, setAlertOpen] = useState(false);
 

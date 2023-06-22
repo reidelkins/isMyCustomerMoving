@@ -3,11 +3,11 @@ import { styled } from '@mui/material/styles';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 
 // hooks
-import { AddUserForm } from '../sections/auth/adduser';
+import { AddUserForm } from '../../sections/auth/adduser';
 // import useResponsive from '../hooks/useResponsive';
 
 // components
-import Page from '../components/Page';
+import Page from '../../components/Page';
 
 // ----------------------------------------------------------------------
 

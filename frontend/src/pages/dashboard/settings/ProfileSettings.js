@@ -1,12 +1,10 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-nested-ternary */
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import * as Yup from 'yup';
 import { useFormik, Form, FormikProvider } from 'formik';
-import { useNavigate } from 'react-router-dom';
-
 import {
   Box,
   Checkbox,
@@ -28,20 +26,20 @@ import {
 
 // components
 // import Iconify from '../components/Iconify';
-import Page from '../components/Page';
-import Scrollbar from '../components/Scrollbar';
-import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
-import NewUserModal from '../components/NewUserModal';
+import Page from '../../../components/Page';
+import Scrollbar from '../../../components/Scrollbar';
+import { UserListHead, UserListToolbar } from '../../../sections/@dashboard/user';
+import NewUserModal from '../../../components/NewUserModal';
 
-import TwoFactorAuth from '../components/TwoFactorAuth';
-import CRMIntegrationModal from '../components/CRMIntegrationModal';
-import UpgradeFromFree from '../components/UpgradeFromFree';
-import { applySortFilter, getComparator } from './CustomerData';
+import TwoFactorAuth from '../../../components/TwoFactorAuth';
+import CRMIntegrationModal from '../../../components/CRMIntegrationModal';
+import UpgradeFromFree from '../../../components/UpgradeFromFree';
+import { applySortFilter, getComparator } from '../../../utils/filterFunctions';
 // import ResetPasswordModal from '../components/ResetPasswordModal';
 
-import UsersListCall from '../redux/calls/UsersListCall';
-import { showLoginInfo, logout, editUserAsync } from '../redux/actions/authActions';
-import { addUser, selectUsers, makeAdminAsync } from '../redux/actions/usersActions';
+import UsersListCall from '../../../redux/calls/UsersListCall';
+import { showLoginInfo, editUserAsync } from '../../../redux/actions/authActions';
+import { addUser, selectUsers, makeAdminAsync } from '../../../redux/actions/usersActions';
 
 // ----------------------------------------------------------------------
 
@@ -54,23 +52,10 @@ const TABLE_HEAD = [
 
 export default function ProfileSettings() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-
   const userLogin = useSelector(showLoginInfo);
-  const { userInfo, twoFA } = userLogin;
+  const { userInfo } = userLogin;
 
   const [editting, setEditting] = useState(false);
-
-  useEffect(() => {
-    if (!userInfo) {
-      dispatch(logout());
-      navigate('/login', { replace: true });
-      window.location.reload(false);
-    } else if (userInfo.otp_enabled && twoFA === false) {
-      navigate('/login', { replace: true });
-      window.location.reload(true);
-    }
-  }, [userInfo, dispatch, navigate, twoFA]);
 
   const listUser = useSelector(selectUsers);
   const { loading, USERLIST } = listUser;

@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import React, { useState, useEffect } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 // material
 import {
   Button,
@@ -23,18 +23,18 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 
 // components
-import Page from '../components/Page';
-import Scrollbar from '../components/Scrollbar';
-import SearchNotFound from '../components/SearchNotFound';
-import { ClientListHead } from '../sections/@dashboard/client';
-import Iconify from '../components/Iconify';
+import Page from '../../components/Page';
+import Scrollbar from '../../components/Scrollbar';
+import SearchNotFound from '../../components/SearchNotFound';
+import { ClientListHead } from '../../sections/@dashboard/client';
+import Iconify from '../../components/Iconify';
 
-import { RecentlySoldListToolbar } from '../sections/@dashboard/recentlySold';
+import { RecentlySoldListToolbar } from '../../sections/@dashboard/recentlySold';
 
-import RecentlySoldListCall from '../redux/calls/RecentlySoldListCall';
-import { selectRecentlySold, recentlySoldAsync, getRecentlySoldCSV } from '../redux/actions/usersActions';
-import { logout, showLoginInfo } from '../redux/actions/authActions';
-import { makeDate } from '../utils/makeDate';
+import RecentlySoldListCall from '../../redux/calls/RecentlySoldListCall';
+import { selectRecentlySold, recentlySoldAsync, getRecentlySoldCSV } from '../../redux/actions/usersActions';
+import { showLoginInfo } from '../../redux/actions/authActions';
+import { makeDate } from '../../utils/makeDate';
 
 // ----------------------------------------------------------------------
 
@@ -79,19 +79,9 @@ export function applySortFilter(array, comparator) {
 
 export default function RecentlySoldData() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   const userLogin = useSelector(showLoginInfo);
-  const { userInfo, twoFA } = userLogin;
-  useEffect(() => {
-    if (!userInfo) {
-      dispatch(logout());
-      navigate('/login', { replace: true });
-      window.location.reload(false);
-    } else if (userInfo.otp_enabled && twoFA === false) {
-      navigate('/login', { replace: true });
-    }
-  }, [userInfo, dispatch, navigate, twoFA]);
+  const { userInfo } = userLogin;
 
   const listRecentlySold = useSelector(selectRecentlySold);
   const { loading, RECENTLYSOLDLIST, count, recentlySoldFilters } = listRecentlySold;
@@ -106,8 +96,7 @@ export default function RecentlySoldData() {
 
   const [shownClients, setShownClients] = useState(0);
 
-  // const [csvLoading, setCsvLoading] = useState(false);
-  const csvLoading = false;
+  const [csvLoading] = useState(false);
 
   const [recentlySoldLength, setRecentlySoldLength] = useState(0);
 

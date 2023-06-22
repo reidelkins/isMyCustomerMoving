@@ -3,11 +3,11 @@ import { useSelector } from 'react-redux';
 import { Button, Stack, Container, Box, Typography } from '@mui/material';
 import { grey, orange } from '@mui/material/colors';
 
-import { selectReferrals } from '../redux/actions/usersActions';
-import { showLoginInfo } from '../redux/actions/authActions';
-import ReferralsData from '../components/ReferralsData';
-import Page from '../components/Page';
-import ReferralListCall from '../redux/calls/ReferralListCall';
+import { selectReferrals } from '../../redux/actions/usersActions';
+import { showLoginInfo } from '../../redux/actions/authActions';
+import ReferralsData from '../../components/ReferralsData';
+import Page from '../../components/Page';
+import ReferralListCall from '../../redux/calls/ReferralListCall';
 
 // define style for button that is selected
 const selectedButton = {

@@ -1,17 +1,23 @@
-import { Link as RouterLink } from 'react-router-dom';
-import { useState } from 'react';
+import React, { useEffect } from 'react';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 // @mui
 import { styled } from '@mui/material/styles';
 import { Card, Link, Container, Typography } from '@mui/material';
 
-// hooks
-import useResponsive from '../hooks/useResponsive';
-// components
-import Page from '../components/Page';
-import Logo from '../components/Logo';
+import { showLoginInfo } from '../../redux/actions/authActions';
 
-import { ResetPasswordForm } from '../sections/auth/reset';
+// hooks
+import useResponsive from '../../hooks/useResponsive';
+// components
+import Page from '../../components/Page';
+import Logo from '../../components/Logo';
+import { LoginForm } from '../../sections/auth/login';
+// import Facebook from "../components/social-media/Facebook";
+// import Twitter from "../components/social-media/Twitter";
+import Google from '../../components/social-media/Google';
+
 // ----------------------------------------------------------------------
 
 const RootStyle = styled('div')(({ theme }) => ({
@@ -57,33 +63,26 @@ const ContentStyle = styled('div')(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 
-export default function ForgotPassword() {
+export default function Login() {
   const smUp = useResponsive('up', 'sm');
 
   const mdUp = useResponsive('up', 'md');
 
-  const [submitted, setSubmitted] = useState(false);
-
   return (
-    <Page title="ForgotPassword">
+    <Page title="Login">
       <RootStyle>
         <HeaderStyle>
           <Logo />
-
-          {smUp && (
-            <Typography variant="body2" sx={{ mt: { md: -2 } }}>
-              Don’t have an account? {''}
-              <Link variant="subtitle2" component={RouterLink} to="/register">
-                Get started
-              </Link>
-            </Typography>
-          )}
         </HeaderStyle>
 
         {mdUp && (
           <SectionStyle>
-            <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
-              Welcome Back
+            <Typography variant="h2" sx={{ px: 5, mt: 10, mb: 5 }}>
+              <span>Don't Lose Your Customers,</span> <span style={{ color: '#8ce8c5' }}>Move With Them!</span>
+            </Typography>
+            <Typography variant="body1" sx={{ mx: 4 }}>
+              We instantly notify you when your customers list their home for sale, so you can be the first one to the
+              new home.
             </Typography>
             <img src="/static/illustrations/illustration_login.png" alt="login" />
           </SectionStyle>
@@ -92,27 +91,15 @@ export default function ForgotPassword() {
         <Container maxWidth="sm">
           <ContentStyle>
             <Typography variant="h2" gutterBottom>
-              Forgot Password?
+              Log In Here
             </Typography>
 
-            {submitted ? (
-              <Typography variant="body1" sx={{ color: 'text.secondary', mb: 5 }}>
-                If your email is associated with an account, you will receive an email with a link to reset your
-                password.
-              </Typography>
-            ) : (
-              <>
-                <Typography sx={{ color: 'text.secondary', mb: 5 }}>
-                  Enter your email below to receive a link to reset your password.
-                </Typography>
-                <ResetPasswordForm setSubmitted={setSubmitted} />
-              </>
-            )}
-
+            <LoginForm />
+            <Google />
             {!smUp && (
               <Typography variant="body2" align="center" sx={{ mt: 3 }}>
                 Don’t have an account?{' '}
-                <Link variant="subtitle2" component={RouterLink} to="/register">
+                <Link variant="subtitle2" component={RouterLink} to="www.ismycustomermoving.com/#pricing">
                   Get started
                 </Link>
               </Typography>

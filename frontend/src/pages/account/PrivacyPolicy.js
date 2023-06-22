@@ -1,6 +1,6 @@
 import { Container, Stack, Box } from '@mui/material';
 // components
-import Page from '../components/Page';
+import Page from '../../components/Page';
 
 export default function PrivacyPolicy() {
   return (
