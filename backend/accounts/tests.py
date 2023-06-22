@@ -36,7 +36,7 @@ def authenticated_user(api_client, company):
         "email": "test@gmail.com",
         "password": "password",
         "company": company.name,
-        "accessToken": company.accessToken,
+        "accessToken": company.access_token,
         "phone": "8881234567",
     }
     api_client.post(url, data, format="json")

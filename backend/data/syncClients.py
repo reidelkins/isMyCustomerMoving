@@ -38,7 +38,7 @@ def get_salesforce_clients(company_id, task_id=None):
 
     sf = Salesforce(
         instance_url="https://ismycustomermoving-dev-ed.develop.my.salesforce.com",
-        session_id=company.sfAccessToken,
+        session_id=company.sf_access_token,
         consumer_key=settings.SALESFORCE_CONSUMER_KEY,
         consumer_secret=settings.SALESFORCE_CONSUMER_SECRET,
     )
@@ -88,16 +88,16 @@ def get_salesforce_clients(company_id, task_id=None):
 
 
 @shared_task
-def get_serviceTitan_clients(
+def get_service_titan_clients(
     company_id, task_id, option=None, automated=False
 ):
     company = Company.objects.get(id=company_id)
     if not option:
-        option = company.serviceTitanCustomerSyncOption
+        option = company.service_titan_customer_sync_option
     else:
-        company.serviceTitanCustomerSyncOption = option
+        company.service_titan_customer_sync_option = option
         company.save()
-    tenant = company.tenantID
+    tenant = company.tenant_id
     headers = get_service_titan_access_token(company_id)
     clients = []
     moreClients = True
@@ -186,7 +186,7 @@ def update_clients_with_last_service_date(equipment, company_id):
 @shared_task
 def update_clients_with_first_invoice_date(company_id):
     company = Company.objects.get(id=company_id)
-    tenant = company.tenantID
+    tenant = company.tenant_id
     headers = get_service_titan_access_token(company_id)
     more_invoices = True
     page = 1
@@ -221,7 +221,7 @@ def process_invoices(invoices, company):
         if invoice["createdOn"] is not None:
             try:
                 tmpClients = Client.objects.filter(
-                    servTitanID=invoice["id"], company=company
+                    serv_titan_id=invoice["id"], company=company
                 )
                 year, month, day = map(
                     int, invoice["createdOn"][:10].split("-")
@@ -230,10 +230,10 @@ def process_invoices(invoices, company):
                 for tmpClient in tmpClients:
                     if tmpClient is not None:
                         if (
-                            tmpClient.serviceTitanCustomerSince is None
-                            or tmpClient.serviceTitanCustomerSince
+                            tmpClient.service_titan_customer_since is None
+                            or tmpClient.service_titan_customer_since
                             > invoice_date
-                            or tmpClient.serviceTitanCustomerSince
+                            or tmpClient.service_titan_customer_since
                             == date(1, 1, 1)
                         ):
                             if invoice["id"] in client_dict:
@@ -245,7 +245,7 @@ def process_invoices(invoices, company):
                 logging.error(f"date error {e}")
     update_clients(
         client_dict, company
-    )  # Update the clients' serviceTitanCustomerSince field
+    )  # Update the clients' service_titanCustomerSince field
 
 
 def update_clients(client_dict, company):
@@ -253,25 +253,25 @@ def update_clients(client_dict, company):
     company = Company.objects.get(id=company.id)
 
     clients = Client.objects.filter(
-        servTitanID__in=client_ids, company=company
+        serv_titan_id__in=client_ids, company=company
     ).select_related("company")
 
     updated_clients = []
     for client in clients:
-        client.serviceTitanCustomerSince = client_dict.get(
-            client.servTitanID, client.serviceTitanCustomerSince
+        client.service_titan_customer_since = client_dict.get(
+            client.serv_titan_id, client.service_titan_customer_since
         )
         updated_clients.append(client)
     with transaction.atomic():
         Client.objects.bulk_update(
-            updated_clients, ["serviceTitanCustomerSince"]
+            updated_clients, ["service_titan_customer_since"]
         )
 
 
 @shared_task
 def get_servicetitan_equipment(company_id):
     company = Company.objects.get(id=company_id)
-    tenant = company.tenantID
+    tenant = company.tenant_id
     headers = get_service_titan_access_token(company_id)
     more_equipment = True
     # get client data
@@ -298,14 +298,14 @@ def get_servicetitan_equipment(company_id):
 
 
 @shared_task
-def get_serviceTitan_invoices(company_id):
+def get_service_titan_invoices(company_id):
     company = Company.objects.get(id=company_id)
     earliest_date = CustomUser.objects.filter(company=company).aggregate(
         Min("date_joined")
     )
     rfc3339 = earliest_date["date_joined__min"].isoformat()
     rfc3339 = rfc3339[:-6]
-    tenant = company.tenantID
+    tenant = company.tenant_id
     headers = get_service_titan_access_token(company_id)
     more_invoices = True
     # get client data
@@ -344,14 +344,14 @@ def update_clients_with_revenue(invoices, company_id):
     tmpDict = client_dict.copy()
     for client in tmpDict:
         tmpClient = (
-            Client.objects.filter(servTitanID=client, company=company)
+            Client.objects.filter(serv_titan_id=client, company=company)
             .order_by("address")
             .first()
         )
         if tmpClient is not None:
             if (
-                tmpClient.serviceTitanCustomerSince is not None
-                and tmpClient.serviceTitanCustomerSince
+                tmpClient.service_titan_customer_since is not None
+                and tmpClient.service_titan_customer_since
                 > date.today() - timedelta(days=180)
             ):
                 client_dict.pop(client)

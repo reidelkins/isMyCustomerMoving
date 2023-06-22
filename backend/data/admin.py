@@ -20,7 +20,7 @@ class ClientAdmin(admin.ModelAdmin):
         "status",
         "revenue",
         "display_company_name",
-        "service_titan_id",
+        "serv_titan_id",
         "phone_number",
         "price",
         "year_built",
@@ -38,7 +38,7 @@ class ClientAdmin(admin.ModelAdmin):
         "status",
         "city",
         "state",
-        "service_titan_id",
+        "serv_titan_id",
         "zip_code__zip_code",
         "company__name",
     )

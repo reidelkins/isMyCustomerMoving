@@ -6,10 +6,6 @@ import { Box, Alert } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
-Page.propTypes = {
-  userInfo: PropTypes.object,
-};
-
 const Page = forwardRef(({ children, userInfo = null, title = '', meta, ...other }, ref) => (
   <>
     <Helmet>

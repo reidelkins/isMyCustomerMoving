@@ -428,19 +428,19 @@ export default function HomePage() {
                                     address,
                                     city,
                                     state,
-                                    zipCode,
+                                    zip_code: zipCode,
                                     status,
                                     contacted,
                                     note,
-                                    phoneNumber,
+                                    phone_number: phoneNumber,
                                     clientUpdates_client: clientUpdates,
                                     price,
                                     year_built: yearBuilt,
-                                    housingType,
-                                    equipmentInstalledDate,
+                                    housing_type: housingType,
+                                    equipment_installed_date: equipmentInstalledDate,
                                     error_flag: errorFlag,
-                                    serviceTitanCustomerSinceYear,
-                                  } = row;
+                                    service_titan_customer_since_year: serviceTitanCustomerSinceYear,
+                                  } = row;                                  
                                   const isItemSelected = selected.indexOf(address) !== -1;
 
                                   return (

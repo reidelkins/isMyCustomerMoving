@@ -35,7 +35,7 @@ def get_all_zipcodes(company, zip=None):
         company_object = Company.objects.get(id=company)
         zip_code_objects = Client.objects.filter(
             company=company_object, active=True
-        ).values("zipCode")
+        ).values("zip_code")
         zip_codes = zip_code_objects.distinct()
         zip_codes = ZipCode.objects.filter(
             zip_code__in=zip_code_objects,
@@ -168,7 +168,7 @@ def find_data(zip_code, i, status, url, extra):
 
     except Exception as e:
         logging.error(
-            f"ERROR during getHomesForSale: {e} with zipCode {zip_code}"
+            f"ERROR during getHomesForSale: {e} with zip_code {zip_code}"
         )
         logging.error(f"URL: {url}")
 
@@ -353,7 +353,7 @@ def get_property_details(property):
         "streetAddress": property["location"]["address"]["line"],
         "city": property["location"]["address"]["city"],
         "state": property["location"]["address"]["state_code"],
-        "zipCode": property["location"]["address"]["postal_code"],
+        "zip_code": property["location"]["address"]["postal_code"],
         "permalink": property["permalink"],
     }
 
@@ -394,12 +394,12 @@ def update_home_listings(properties):
     with transaction.atomic():
         for property in properties:
             try:
-                zip_code = ZipCode.objects.get(zipCode=property["zipCode"])
+                zip_code = ZipCode.objects.get(zip_code=property["zip_code"])
                 HomeListing.objects.update_or_create(
                     address=property["streetAddress"],
                     city=property["city"],
                     state=property["state"],
-                    zipCode=zip_code,
+                    zip_code=zip_code,
                     defaults={"permalink": property["permalink"]},
                 )
             except MultipleObjectsReturned as e:
@@ -407,12 +407,12 @@ def update_home_listings(properties):
                     address=property["streetAddress"],
                     city=property["city"],
                     state=property["state"],
-                    zipCode=zip_code,
+                    zip_code=zip_code,
                 ).update(permalink=property["permalink"])
                 error_string = (
                     f"Multiple objects returned for "
                     f"{property['streetAddress']}, {property['city']}, "
-                    f"{property['state']}, {property['zipCode']} {e}"
+                    f"{property['state']}, {property['zip_code']} {e}"
                 )
                 logging.error(error_string)
 

@@ -1,12 +1,9 @@
-import React, { useEffect } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import React from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 
 // @mui
 import { styled } from '@mui/material/styles';
 import { Card, Link, Container, Typography } from '@mui/material';
-
-import { showLoginInfo } from '../../redux/actions/authActions';
 
 // hooks
 import useResponsive from '../../hooks/useResponsive';

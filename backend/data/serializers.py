@@ -1,13 +1,19 @@
 from rest_framework import serializers
 
 from accounts.serializers import EnterpriseSerializer, BasicCompanySerializer
-from .models import Client, ClientUpdate, HomeListing, Referral, HomeListingTags
+from .models import (
+    Client,
+    ClientUpdate,
+    HomeListing,
+    Referral,
+    HomeListingTags,
+)
 
 
 class ClientUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientUpdate
-        fields = "__all__"
+        fields = [f.name for f in ClientUpdate._meta.fields]
         read_only_fields = fields
 
 
@@ -32,7 +38,9 @@ class ClientListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Client
-        fields = "__all__"
+        fields = [f.name for f in Client._meta.fields if f.name !=
+                  'service_titan_customer_since' and f.name != 'zip_code'] + ['zip_code', 'tag',
+                                                                              'service_titan_customer_since_year', 'client_updates_client']
         read_only_fields = fields
 
 
@@ -67,7 +75,8 @@ class HomeListingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HomeListing
-        fields = "__all__"
+        fields = [f.name for f in HomeListing._meta.fields if f.name !=
+                  "zip_code"] + ["zip_code", "tags"]
 
 
 class ReferralSerializer(serializers.ModelSerializer):
@@ -78,5 +87,6 @@ class ReferralSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Referral
-        fields = "__all__"
+        fields = ["contacted", "id", "enterprise",
+                  "referred_from", "referred_to", "client"]
         read_only_fields = fields

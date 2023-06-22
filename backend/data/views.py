@@ -17,7 +17,7 @@ from accounts.models import CustomUser, Company
 from config import settings
 from .models import Client, ClientUpdate, HomeListing, Task, SavedFilter
 from .serializers import ClientListSerializer, HomeListingSerializer
-from .syncClients import get_salesforce_clients, get_serviceTitan_clients
+from .syncClients import get_salesforce_clients, get_service_titan_clients
 from .realtor import get_all_zipcodes
 from .utils import (
     save_client_list,
@@ -181,7 +181,7 @@ class RecentlySoldView(generics.ListAPIView):
         queryset = self.get_queryset()
         savedFilters = list(
             SavedFilter.objects.filter(
-                company=company, forExistingClient=False
+                company=company, for_existing_client=False
             ).values_list("name", flat=True)
         )
         page = self.paginate_queryset(queryset)
@@ -203,7 +203,7 @@ class RecentlySoldView(generics.ListAPIView):
         filterName = data["filterName"]
 
         if SavedFilter.objects.filter(
-            name=filterName, company=company, forExistingClient=True
+            name=filterName, company=company, for_existing_client=True
         ).exists():
             return Response(
                 {"error": "A filter with that name already exists"},
@@ -331,7 +331,7 @@ class UploadFileView(generics.ListAPIView):
             try:
                 task = Task.objects.get(id=self.kwargs["company"])
                 if task.completed:
-                    deleted = task.deletedClients
+                    deleted = task.deleted_clients
                     # task.delete()
                     return Response(
                         {
@@ -424,7 +424,7 @@ class UpdateClientView(APIView):
                     ClientUpdate.objects.create(
                         client=client, contacted=request.data["contacted"]
                     )
-                    if request.data["contacted"] and client.servTitanID:
+                    if request.data["contacted"] and client.serv_titan_id:
                         if (
                             client.status == "House For Sale"
                             and client.company.service_titan_for_sale_contacted_tag_id  # noqa
@@ -447,7 +447,7 @@ class UpdateClientView(APIView):
                     ClientUpdate.objects.create(
                         client=client, error_flag=request.data["errorFlag"]
                     )
-                    if client.servTitanID:
+                    if client.serv_titan_id:
                         remove_all_service_titan_tags.delay(client=client.id)
                 if request.data["latitude"] != "":
                     client.latitude = request.data["latitude"]
@@ -534,7 +534,7 @@ class ServiceTitanView(APIView):
 
         try:
             task = Task.objects.create()
-            get_serviceTitan_clients.delay(company_id, task.id, option)
+            get_service_titan_clients.delay(company_id, task.id, option)
             return Response(
                 {"status": "Success", "task": task.id},
                 status=status.HTTP_201_CREATED,

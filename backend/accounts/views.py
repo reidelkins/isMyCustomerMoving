@@ -668,8 +668,8 @@ class ZapierSoldSubscribeView(APIView):
                     "address": "123 Main St",
                     "city": "New York",
                     "state": "NY",
-                    "zipCode": 10001,
-                    "phoneNumber": "212-555-1234",
+                    "zip_code": 10001,
+                    "phone_number": "212-555-1234",
                 }
             ]
             return Response(test_client, status=status.HTTP_200_OK)
@@ -744,8 +744,8 @@ class ZapierForSaleSubscribeView(APIView):
                     "address": "123 Main St",
                     "city": "New York",
                     "state": "NY",
-                    "zipCode": 10001,
-                    "phoneNumber": "212-555-1234",
+                    "zip_code": 10001,
+                    "phone_number": "212-555-1234",
                 }
             ]
             return Response(test_client, status=status.HTTP_200_OK)
@@ -766,7 +766,7 @@ class ZapierForSaleSubscribeView(APIView):
         try:
             user = CustomUser.objects.get(email=request.user)
             company = user.company
-            company.zapier_forSale = request.data["hookUrl"]
+            company.zapier_for_sale = request.data["hookUrl"]
             company.save()
             return Response(
                 {"detail": "Zapier For Sale Subscribe"},
@@ -789,7 +789,7 @@ class ZapierForSaleSubscribeView(APIView):
         try:
             user = CustomUser.objects.get(email=request.user)
             company = user.company
-            company.zapier_forSale = None
+            company.zapier_for_sale = None
             company.save()
             return Response(
                 {"detail": "Zapier For Sale Unsubscribe"},
@@ -822,7 +822,7 @@ class ZapierRecentlySoldSubscribeView(APIView):
                     "address": "123 Main St",
                     "city": "New York",
                     "state": "NY",
-                    "zipCode": 10001,
+                    "zip_code": 10001,
                     "price": 1000000,
                     "housingType": "Single Family",
                     "bedrooms": 3,
@@ -862,7 +862,7 @@ class ZapierRecentlySoldSubscribeView(APIView):
         try:
             user = CustomUser.objects.get(email=request.user)
             company = user.company
-            company.zapier_recentlySold = request.data["hookUrl"]
+            company.zapier_recently_sold = request.data["hookUrl"]
             company.save()
             return Response(
                 {"detail": "Zapier Recently Sold Subscribe"},
@@ -885,7 +885,7 @@ class ZapierRecentlySoldSubscribeView(APIView):
         try:
             user = CustomUser.objects.get(email=request.user)
             company = user.company
-            company.zapier_recentlySold = None
+            company.zapier_recently_sold = None
             company.save()
             return Response(
                 {"detail": "Zapier Recently Sold Unsubscribe"},

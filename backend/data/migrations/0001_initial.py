@@ -7,7 +7,6 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -36,7 +35,10 @@ class Migration(migrations.Migration):
                         choices=[
                             ("House For Sale", "House For Sale"),
                             ("House For Rent", "House For Rent"),
-                            ("House Recently Sold (6)", "House Recently Sold (6)"),
+                            (
+                                "House Recently Sold (6)",
+                                "House Recently Sold (6)",
+                            ),
                             ("Recently Sold (12)", "Recently Sold (12)"),
                             ("Taken Off Market", "Taken Off Market"),
                             ("No Change", "No Change"),
@@ -45,8 +47,14 @@ class Migration(migrations.Migration):
                         max_length=25,
                     ),
                 ),
-                ("city", models.CharField(blank=True, max_length=40, null=True)),
-                ("state", models.CharField(blank=True, max_length=31, null=True)),
+                (
+                    "city",
+                    models.CharField(blank=True, max_length=40, null=True),
+                ),
+                (
+                    "state",
+                    models.CharField(blank=True, max_length=31, null=True),
+                ),
                 ("contacted", models.BooleanField(default=False)),
                 ("note", models.TextField(blank=True, default="", null=True)),
                 ("servTitanID", models.IntegerField(blank=True, null=True)),
@@ -79,7 +87,7 @@ class Migration(migrations.Migration):
                         unique=True,
                     ),
                 ),
-                ("date", models.DateField(default=data.models.formatToday)),
+                ("date", models.DateField(default=data.models.format_today)),
                 ("response", models.TextField(default="")),
                 ("zip", models.IntegerField(blank=True, null=True)),
                 (
@@ -89,7 +97,10 @@ class Migration(migrations.Migration):
                         choices=[
                             ("House For Sale", "House For Sale"),
                             ("House For Rent", "House For Rent"),
-                            ("House Recently Sold (6)", "House Recently Sold (6)"),
+                            (
+                                "House Recently Sold (6)",
+                                "House Recently Sold (6)",
+                            ),
                             ("Recently Sold (12)", "Recently Sold (12)"),
                             ("Taken Off Market", "Taken Off Market"),
                             ("No Change", "No Change"),
@@ -99,7 +110,10 @@ class Migration(migrations.Migration):
                         null=True,
                     ),
                 ),
-                ("url", models.CharField(blank=True, max_length=100, null=True)),
+                (
+                    "url",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
             ],
         ),
         migrations.CreateModel(
@@ -125,10 +139,16 @@ class Migration(migrations.Migration):
                 (
                     "zipCode",
                     models.CharField(
-                        max_length=5, primary_key=True, serialize=False, unique=True
+                        max_length=5,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
                     ),
                 ),
-                ("lastUpdated", models.DateField(default=data.models.zipTime)),
+                (
+                    "lastUpdated",
+                    models.DateField(default=data.models.zip_time),
+                ),
             ],
         ),
         migrations.CreateModel(
@@ -151,7 +171,10 @@ class Migration(migrations.Migration):
                         choices=[
                             ("House For Sale", "House For Sale"),
                             ("House For Rent", "House For Rent"),
-                            ("House Recently Sold (6)", "House Recently Sold (6)"),
+                            (
+                                "House Recently Sold (6)",
+                                "House Recently Sold (6)",
+                            ),
                             ("Recently Sold (12)", "Recently Sold (12)"),
                             ("Taken Off Market", "Taken Off Market"),
                             ("No Change", "No Change"),
@@ -196,7 +219,7 @@ class Migration(migrations.Migration):
                         unique=True,
                     ),
                 ),
-                ("date", models.DateField(default=data.models.formatToday)),
+                ("date", models.DateField(default=data.models.format_today)),
                 (
                     "status",
                     models.CharField(
@@ -204,7 +227,10 @@ class Migration(migrations.Migration):
                         choices=[
                             ("House For Sale", "House For Sale"),
                             ("House For Rent", "House For Rent"),
-                            ("House Recently Sold (6)", "House Recently Sold (6)"),
+                            (
+                                "House Recently Sold (6)",
+                                "House Recently Sold (6)",
+                            ),
                             ("Recently Sold (12)", "Recently Sold (12)"),
                             ("Taken Off Market", "Taken Off Market"),
                             ("No Change", "No Change"),
@@ -214,7 +240,10 @@ class Migration(migrations.Migration):
                         null=True,
                     ),
                 ),
-                ("listed", models.CharField(blank=True, max_length=30, null=True)),
+                (
+                    "listed",
+                    models.CharField(blank=True, max_length=30, null=True),
+                ),
                 ("note", models.TextField(blank=True, default="", null=True)),
                 ("contacted", models.BooleanField(blank=True, null=True)),
                 (

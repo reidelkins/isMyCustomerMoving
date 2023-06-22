@@ -19,7 +19,7 @@ class CustomUserAdmin(UserAdmin):
                     "email",
                     "phone",
                     "company",
-                    "isVerified",
+                    "is_verified",
                     "otp_enabled",
                     "otp_base32",
                     "otp_auth_url",
@@ -65,7 +65,7 @@ class CustomUserAdmin(UserAdmin):
         "first_name",
         "last_name",
         "email",
-        "isVerified",
+        "is_verified",
         "company",
         "enterprise",
     )
@@ -73,7 +73,7 @@ class CustomUserAdmin(UserAdmin):
     ordering = ("id",)
     list_filter = (
         "is_staff",
-        "isVerified",
+        "is_verified",
     )
 
 
@@ -81,7 +81,7 @@ class CompanyAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "crm",
-        "recentlySoldPurchased",
+        "recently_sold_purchased",
         "product",
         "enterprise",
     )

@@ -151,7 +151,7 @@ def completed_checkout(event: djstripe_models.Event):
             company = Company.objects.get(
                 name=companyName, email=email, stripeID=stripeId
             )
-            company.stripeID = stripeId
+            company.stripe_id = stripeId
             company.product = plan
             company.phone = phone
             company.save()

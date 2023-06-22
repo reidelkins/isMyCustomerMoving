@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from datetime import datetime
 from accounts.models import Company
-from data.syncClients import get_serviceTitan_clients
+from data.syncClients import get_service_titan_clients
 from djstripe import models as djstripe_models
 
 
@@ -14,7 +14,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         company = options["company"]
         if company:
-            get_serviceTitan_clients.delay(company_id=company, task_id=None)
+            get_service_titan_clients.delay(company_id=company, task_id=None)
         else:
             days_to_run = [0, 1, 2, 3, 4]
             current_datetime = datetime.now()
@@ -27,6 +27,6 @@ class Command(BaseCommand):
                     product=free_plan
                 )
                 for company in companies:
-                    get_serviceTitan_clients.delay(
+                    get_service_titan_clients.delay(
                         company.id, task_id=None, automated=True
                     )

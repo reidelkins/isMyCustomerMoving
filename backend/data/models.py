@@ -154,13 +154,13 @@ class HomeListing(models.Model):
         max_length=25, choices=STATUS, default="Off Market"
     )
     listed = models.CharField(max_length=30, default=" ")
-    scrape_response = models.ForeignKey(
-        ScrapeResponse,
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
-        related_name="home_listing_scrape_response",
-    )
+    # scrape_response = models.ForeignKey(
+    #     ScrapeResponse,
+    #     blank=True,
+    #     null=True,
+    #     on_delete=models.SET_NULL,
+    #     related_name="home_listing_scrape_response",
+    # )
     price = models.IntegerField(default=0, blank=True, null=True)
     housing_type = models.CharField(
         max_length=100, default=" ", blank=True, null=True
@@ -195,7 +195,9 @@ class HomeListing(models.Model):
     exterior = models.CharField(
         max_length=100, default=" ", blank=True, null=True
     )
-    pool = models.CharField(max_length=100, default=" ", blank=True, null=True)
+    pool = models.CharField(
+        max_length=100, default=" ", blank=True, null=True
+    )
     fireplace = models.CharField(
         max_length=100, default=" ", blank=True, null=True
     )
