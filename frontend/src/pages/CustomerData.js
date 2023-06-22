@@ -118,7 +118,7 @@ export default function CustomerData() {
         { id: 'note', label: 'Note', alignRight: false },
         { id: 'phone', label: 'Phone Number', alignRight: false }]);
   useEffect(() => {
-    if (userInfo && userInfo.company.franchise) {
+    if (userInfo && userInfo.company.enterprise || userInfo.email === 'reid@gmail.com' || userInfo.email === 'reid@ismycustomermoving.com' || userInfo.email === 'jb@aquaclearws.com') {
       setTABLE_HEAD([
         { id: 'serviceTitanCustomerSinceYear', label: 'Customer Since', alignRight: false },
         { id: 'name', label: 'Name', alignRight: false },
