@@ -38,9 +38,17 @@ class ClientListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Client
-        fields = [f.name for f in Client._meta.fields if f.name !=
-                  'service_titan_customer_since' and f.name != 'zip_code'] + ['zip_code', 'tag',
-                                                                              'service_titan_customer_since_year', 'client_updates_client']
+        fields = [
+            f.name
+            for f in Client._meta.fields
+            if f.name != "service_titan_customer_since"
+            and f.name != "zip_code"
+        ] + [
+            "zip_code",
+            "tag",
+            "service_titan_customer_since_year",
+            "client_updates_client",
+        ]
         read_only_fields = fields
 
 
@@ -75,8 +83,9 @@ class HomeListingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HomeListing
-        fields = [f.name for f in HomeListing._meta.fields if f.name !=
-                  "zip_code"] + ["zip_code", "tags"]
+        fields = [
+            f.name for f in HomeListing._meta.fields if f.name != "zip_code"
+        ] + ["zip_code", "tags"]
 
 
 class ReferralSerializer(serializers.ModelSerializer):
@@ -87,6 +96,12 @@ class ReferralSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Referral
-        fields = ["contacted", "id", "enterprise",
-                  "referred_from", "referred_to", "client"]
+        fields = [
+            "contacted",
+            "id",
+            "enterprise",
+            "referred_from",
+            "referred_to",
+            "client",
+        ]
         read_only_fields = fields
