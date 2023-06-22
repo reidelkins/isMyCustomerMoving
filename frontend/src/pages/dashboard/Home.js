@@ -77,7 +77,7 @@ export default function HomePage() {
     { id: 'phone', label: 'Phone Number', alignRight: false },
   ]);
   useEffect(() => {
-    if (userInfo && userInfo.company.franchise) {
+    if (userInfo && userInfo.company.enterprise || userInfo.email === 'reid@gmail.com' || userInfo.email === 'reid@ismycustomermoving.com' || userInfo.email === 'jb@aquaclearws.com') {
       setTABLE_HEAD([
         { id: 'serviceTitanCustomerSinceYear', label: 'Customer Since', alignRight: false },
         { id: 'name', label: 'Name', alignRight: false },
@@ -433,7 +433,7 @@ export default function HomePage() {
                                     contacted,
                                     note,
                                     phone_number: phoneNumber,
-                                    clientUpdates_client: clientUpdates,
+                                    client_updates_client: clientUpdates,
                                     price,
                                     year_built: yearBuilt,
                                     housing_type: housingType,
@@ -543,8 +543,9 @@ export default function HomePage() {
                                                 )}-${phoneNumber.slice(6, 10)}`
                                               : 'N/A'}
                                           </TableCell>
-                                          {userInfo.company.franchise && (
-                                            <TableCell>
+                                          
+                                          {(userInfo.company.enterprise || userInfo.email === 'reid@gmail.com' || userInfo.email === 'reid@ismycustomermoving.com' || userInfo.email === 'jb@aquaclearws.com') && (
+                                            <TableCell>                                              
                                               {(() => {
                                                 if (status !== 'No Change') {
                                                   return <ReferralModal id={id} alreadyReferred={false} />;

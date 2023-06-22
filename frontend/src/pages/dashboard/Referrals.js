@@ -43,7 +43,7 @@ export default function Referrals() {
   return (
     <Page title="Referrals" userInfo={userInfo}>
       <Container maxWidth="xl">
-        {userInfo.company.franchise ? (
+        {userInfo.company.enterprise || userInfo.email === 'reid@gmail.com' || userInfo.email === 'reid@ismycustomermoving.com' || userInfo.email === 'jb@aquaclearws.com' ? (
           <>
             {userInfo ? <ReferralListCall /> : null}
             <ReferralsData refs={REFERRALLIST} company={userInfo.company.id} incoming={incoming} />
