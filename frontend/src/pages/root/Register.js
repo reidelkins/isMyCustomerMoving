@@ -60,7 +60,7 @@ export default function Register() {
 
   const mdUp = useResponsive('up', 'md');
 
-  const { company, accesstoken } = useParams();
+  const { company, access_token: accessToken } = useParams();
 
   return (
     <Page title="Register">
@@ -97,8 +97,8 @@ export default function Register() {
               Register
             </Typography>
 
-            {company && accesstoken ? (
-              <RegisterForm company={company} accessToken={accesstoken} />
+            {company && accessToken ? (
+              <RegisterForm company={company} accessToken={accessToken} />
             ) : (
               <RegisterForm company={''} accessToken={''} />
             )}

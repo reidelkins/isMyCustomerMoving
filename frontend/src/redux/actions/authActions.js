@@ -183,7 +183,7 @@ export const editUserAsync = (email, firstName, lastName, serviceTitan, phone) =
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     dispatch(loginLoading());
@@ -245,7 +245,7 @@ export const companyAsync =
       const config = {
         headers: {
           'Content-type': 'application/json',
-          Authorization: `Bearer ${userInfo.accessToken}`,
+          Authorization: `Bearer ${userInfo.access_token}`,
         },
       };
       const body = {
@@ -363,7 +363,7 @@ export const generateQrCodeAsync = () => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     const { id } = userInfo;
@@ -383,7 +383,7 @@ export const verifyOtp = (otp) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     const { id } = userInfo;
@@ -404,7 +404,7 @@ export const validateOtp = (otp) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     const { id } = userInfo;
@@ -426,7 +426,7 @@ export const disableTwoFactorAuth = () => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     const { id } = userInfo;

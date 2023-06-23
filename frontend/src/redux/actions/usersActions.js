@@ -266,7 +266,7 @@ export const usersAsync = () => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     dispatch(usersLoading());
@@ -291,7 +291,7 @@ export const deleteUserAsync = (ids) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
       data: JSON.stringify(ids),
     };
@@ -313,7 +313,7 @@ export const clientsAsync = (page) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
 
@@ -353,7 +353,7 @@ export const deleteClientAsync = (ids) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     dispatch(clientsLoading());
@@ -385,7 +385,7 @@ export const updateClientAsync =
       const config = {
         headers: {
           'Content-type': 'application/json',
-          Authorization: `Bearer ${userInfo.accessToken}`,
+          Authorization: `Bearer ${userInfo.access_token}`,
         },
       };
       dispatch(clientsLoading());
@@ -410,7 +410,7 @@ export const uploadClientsUpdateAsync = (id) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     const { data } = await axios.get(`${DOMAIN}/api/v1/data/upload/${id}/`, config);
@@ -439,7 +439,7 @@ export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
 
@@ -478,7 +478,7 @@ export const filterClientsAsync =
       const config = {
         headers: {
           'Content-type': 'application/json',
-          Authorization: `Bearer ${userInfo.accessToken}`,
+          Authorization: `Bearer ${userInfo.access_token}`,
         },
       };
       let filters = '';
@@ -557,7 +557,7 @@ export const serviceTitanUpdateAsync = (id) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
 
@@ -589,7 +589,7 @@ export const serviceTitanSync = (option) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     const { data } = await axios.put(`${DOMAIN}/api/v1/data/servicetitan/${company}/`, { option }, config);
@@ -609,7 +609,7 @@ export const salesForceSync = () => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     // dispatch(clientsLoading());
@@ -629,7 +629,7 @@ export const salesForceSync = () => async (dispatch, getState) => {
 //     const config = {
 //       headers: {
 //         'Content-type': 'application/json',
-//         Authorization: `Bearer ${userInfo.accessToken}`,
+//         Authorization: `Bearer ${userInfo.access_token}`,
 //       },
 //     };
 
@@ -651,7 +651,7 @@ export const addUser = (email) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
 
@@ -677,7 +677,7 @@ export const makeAdminAsync = (userId) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
 
@@ -699,7 +699,7 @@ export const update = () => async (getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     await axios.get(`${DOMAIN}/api/v1/data/update/${userInfo.company.id}`, config);
@@ -715,7 +715,7 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     if (page === 1) {
@@ -754,7 +754,7 @@ export const filterRecentlySoldAsync =
       const config = {
         headers: {
           'Content-type': 'application/json',
-          Authorization: `Bearer ${userInfo.accessToken}`,
+          Authorization: `Bearer ${userInfo.access_token}`,
         },
       };
       dispatch(recentlySoldLoading());
@@ -831,7 +831,7 @@ export const makeReferralAsync = (id, area) => async (getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     await axios.post(`${DOMAIN}/api/v1/accounts/referrals/${userInfo.company.id}/`, { id, area }, config);
@@ -847,7 +847,7 @@ export const referralsAsync = (page) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     if (page === 1) {
@@ -890,7 +890,7 @@ export const getClientsCSV = (
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
       responseType: 'blob', // Tell axios to expect a binary response
     };
@@ -929,7 +929,7 @@ export const getRecentlySoldCSV =
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     let filters = '';
@@ -984,7 +984,7 @@ export const saveFilterAsync =
       const config = {
         headers: {
           'Content-type': 'application/json',
-          Authorization: `Bearer ${userInfo.accessToken}`,
+          Authorization: `Bearer ${userInfo.access_token}`,
         },
       };
       const body = {

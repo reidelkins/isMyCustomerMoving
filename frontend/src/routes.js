@@ -29,7 +29,7 @@ export default function Router() {
         { path: '/', element: <Navigate to="/dashboard" /> },
         { path: 'login', element: <Login /> },
         { path: 'logout', element: <Logout /> },
-        { path: 'register/:company?/:accesstoken?', element: <Register /> },
+        { path: 'register/:company?/:access_token?', element: <Register /> },
         { path: 'addeduser/:token', element: <AddUser /> },
         { path: 'forgot_password', element: <ForgotPassword /> },
         { path: 'resetpassword/:token', element: <ResetPassword /> },

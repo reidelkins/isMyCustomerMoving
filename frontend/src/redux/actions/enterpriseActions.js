@@ -39,7 +39,7 @@ export const switchCompany = (company) => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
 
@@ -71,7 +71,7 @@ export const enterpriseAsync = () => async (dispatch, getState) => {
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/enterprise/`, config);

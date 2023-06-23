@@ -33,6 +33,7 @@ Page.propTypes = {
   children: PropTypes.node.isRequired,
   title: PropTypes.string,
   meta: PropTypes.node,
+  userInfo: PropTypes.object,
 };
 
 export default Page;

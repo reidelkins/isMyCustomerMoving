@@ -77,7 +77,12 @@ export default function HomePage() {
     { id: 'phone', label: 'Phone Number', alignRight: false },
   ]);
   useEffect(() => {
-    if (userInfo && userInfo.company.enterprise || userInfo.email === 'reid@gmail.com' || userInfo.email === 'reid@ismycustomermoving.com' || userInfo.email === 'jb@aquaclearws.com') {
+    if (
+      (userInfo && userInfo.company.enterprise) ||
+      userInfo.email === 'reid@gmail.com' ||
+      userInfo.email === 'reid@ismycustomermoving.com' ||
+      userInfo.email === 'jb@aquaclearws.com'
+    ) {
       setTABLE_HEAD([
         { id: 'serviceTitanCustomerSinceYear', label: 'Customer Since', alignRight: false },
         { id: 'name', label: 'Name', alignRight: false },
@@ -440,7 +445,7 @@ export default function HomePage() {
                                     equipment_installed_date: equipmentInstalledDate,
                                     error_flag: errorFlag,
                                     service_titan_customer_since_year: serviceTitanCustomerSinceYear,
-                                  } = row;                                  
+                                  } = row;
                                   const isItemSelected = selected.indexOf(address) !== -1;
 
                                   return (
@@ -543,9 +548,12 @@ export default function HomePage() {
                                                 )}-${phoneNumber.slice(6, 10)}`
                                               : 'N/A'}
                                           </TableCell>
-                                          
-                                          {(userInfo.company.enterprise || userInfo.email === 'reid@gmail.com' || userInfo.email === 'reid@ismycustomermoving.com' || userInfo.email === 'jb@aquaclearws.com') && (
-                                            <TableCell>                                              
+
+                                          {(userInfo.company.enterprise ||
+                                            userInfo.email === 'reid@gmail.com' ||
+                                            userInfo.email === 'reid@ismycustomermoving.com' ||
+                                            userInfo.email === 'jb@aquaclearws.com') && (
+                                            <TableCell>
                                               {(() => {
                                                 if (status !== 'No Change') {
                                                   return <ReferralModal id={id} alreadyReferred={false} />;
@@ -650,7 +658,7 @@ export default function HomePage() {
                       </Button>
                     )}
 
-                    {userInfo.status === 'admin' && userInfo.finishedSTIntegration && (
+                    {userInfo.status === 'admin' && userInfo.finished_st_integration && (
                       <Button variant="contained">
                         <CircularProgress color="secondary" />
                       </Button>
@@ -680,7 +688,7 @@ export default function HomePage() {
                     {userInfo.status === 'admin' &&
                       (userInfo.company.crm === 'ServiceTitan' ? (
                         <ServiceTitanSyncModal
-                          serviceTitanCustomerSyncOption={userInfo.company.serviceTitanCustomerSyncOption}
+                          serviceTitanCustomerSyncOption={userInfo.company.service_titan_customer_sync_option}
                         />
                       ) : (
                         userInfo.company.crm === 'Salesforce' && (

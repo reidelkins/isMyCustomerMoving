@@ -46,16 +46,16 @@ export default function ServiceTitanTagsModal({ userInfo }) {
 
   const formik = useFormik({
     initialValues: {
-      forSale: userInfo.company.serviceTitanForSaleTagID ? userInfo.company.serviceTitanForSaleTagID : '',
+      forSale: userInfo.company.service_titan_for_sale_tag_id ? userInfo.company.service_titan_for_sale_tag_id : '',
       forRent: '',
-      recentlySold: userInfo.company.serviceTitanRecentlySoldTagID
-        ? userInfo.company.serviceTitanRecentlySoldTagID
+      recentlySold: userInfo.company.service_titan_recently_sold_tag_id
+        ? userInfo.company.service_titan_recently_sold_tag_id
         : '',
-      forSale_contacted: userInfo.company.serviceTitanForSaleContactedTagID
-        ? userInfo.company.serviceTitanForSaleContactedTagID
+      forSale_contacted: userInfo.company.service_titan_for_sale_contacted_tag_id
+        ? userInfo.company.service_titan_for_sale_contacted_tag_id
         : '',
-      recentlySold_contacted: userInfo.company.serviceTitanSoldContactedTagID
-        ? userInfo.company.serviceTitanSoldContactedTagID
+      recentlySold_contacted: userInfo.company.service_titan_sold_contacted_tag_id
+        ? userInfo.company.service_titan_sold_contacted_tag_id
         : '',
     },
     validationSchema: IntegrateSTSchema,
@@ -83,9 +83,9 @@ export default function ServiceTitanTagsModal({ userInfo }) {
   return (
     <div>
       <Button variant="contained" color="primary" aria-label="Create Company" component="label" onClick={handleOpen}>
-        {userInfo.company.serviceTitanForSaleTagID ||
-        userInfo.company.serviceTitanForRentTagID ||
-        userInfo.company.serviceTitanRecentlySoldTagID
+        {userInfo.company.service_titan_for_sale_tag_id ||
+        userInfo.company.service_titan_for_rent_tag_id ||
+        userInfo.company.service_titan_recently_sold_tag_id
           ? 'Edit'
           : 'Add'}{' '}
         Service Titan Tag IDs

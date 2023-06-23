@@ -210,7 +210,7 @@ export default function RecentlySoldData() {
                   <LinearProgress />
                 </Box>
               ) : null}
-              {userInfo.company.recentlySoldPurchased ? (
+              {userInfo.company.recently_sold_purchased ? (
                 <Scrollbar>
                   <RecentlySoldListToolbar
                     recentlySoldFilters={recentlySoldFilters}
@@ -252,7 +252,16 @@ export default function RecentlySoldData() {
                       />
                       <TableBody>
                         {filteredRecentlySold.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                          const { id, address, city, state, zip_code: zipCode, listed, price, year_built: yearBuilt } = row;
+                          const {
+                            id,
+                            address,
+                            city,
+                            state,
+                            zip_code: zipCode,
+                            listed,
+                            price,
+                            year_built: yearBuilt,
+                          } = row;
 
                           return (
                             <React.Fragment key={row.id}>
