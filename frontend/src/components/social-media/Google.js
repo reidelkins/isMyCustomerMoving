@@ -2,41 +2,37 @@ import { useGoogleLogin } from '@react-oauth/google';
 import GoogleButton from 'react-google-button';
 import { useDispatch } from 'react-redux';
 
-
 import { googleLoginAsync } from '../../redux/actions/authActions';
 
 const { REACT_APP_GOOGLE_CLIENT_ID } = process.env;
-function Google(){
-    const dispatch = useDispatch();
-    async function sendToken(accessToken){
-        dispatch(googleLoginAsync(accessToken))
-        
-    }
-    const Success = (response)=>{        
-        sendToken(response.access_token)
-    }
+function Google() {
+  const dispatch = useDispatch();
+  async function sendToken(accessToken) {
+    dispatch(googleLoginAsync(accessToken));
+  }
+  const Success = (response) => {
+    sendToken(response.access_token);
+  };
 
-    const Error = ()=>{
-        console.log("Error")
-    }
-    const login = useGoogleLogin({
+  const Error = () => {
+    console.log('Error');
+  };
+  const login = useGoogleLogin({
     onSuccess: Success,
     onError: Error,
-    });
+  });
 
-
-    return(
-            <GoogleButton 
-              style={{ width: '100%', marginTop: '1rem' }}
-              onClick={() => login()}
-              label="Sign in with Google"
-              disabled={!REACT_APP_GOOGLE_CLIENT_ID}
-            />
-        )
+  return (
+    <GoogleButton
+      style={{ width: '100%', marginTop: '1rem' }}
+      onClick={() => login()}
+      label="Sign in with Google"
+      disabled={!REACT_APP_GOOGLE_CLIENT_ID}
+    />
+  );
 }
 
 export default Google;
-
 
 // onClick , send a request the authorization endpoint in your backend, using django-Oauth-toolkit, it's /o/authorize/
 // this request SHOULD contain client_id provide by google api console
@@ -54,21 +50,20 @@ export default Google;
 // 11. For further requests, The React application includes the token in the request headers, and the Django server verifies the token and serve the requested resources if it's valid.
 // 12. Optionally, The React application can use the refresh token to request new access token without user interaction.
 
-
-// 1. react sends a request to google api "https://accounts.google.com/o/oauth2/v2/auth" + client_id, scope, redirect_uri, response_type, and prompt specified , this step is taken care of 
+// 1. react sends a request to google api "https://accounts.google.com/o/oauth2/v2/auth" + client_id, scope, redirect_uri, response_type, and prompt specified , this step is taken care of
 // by useGoogleLogin() hook
 // 2. google api returns authorizatoin grant to the uri after the user grants permission to access his info (in this case chooses his google account)
 // the authorization grant in exhanged for an access token in the uri and the access_token is received by react onSuccess.
-// 3. react sends it to the backend 
-// to validate the token found in the response you receive ( the respose has this shape : 
+// 3. react sends it to the backend
+// to validate the token found in the response you receive ( the respose has this shape :
 // access_token :"ya29.a0AX9GBdVGW5i2o_sfEcy5tY9WVccbxyjfMpOULHS-9Rq2L-U0LPSfpNua7sJeMw-gmis8LEjc5xHR1RXQCDD4ykBSIO-FziQltjpD7fv2prR5Zpk07iz-6W8wIQi3QJsmvYjXDzxbgn8RMtgyaiMmjjaHatWn8QaCgYKAeYSARISFQHUCsbCveW5LN-91MZF1t6ce0WcIg0165
 // authuser: "2"
 // expires_in : 3599
 // prompt: "none"
 // scope: "email profile https://www.googleapis.com/auth/userinfo.profile openid https://www.googleapis.com/auth/userinfo.email"
 // token_type : "Bearer)
-// send the access_token to this endpoint "https://oauth2.googleapis.com/tokeninfo?access_token=<access_token>" google api takeinfo endpoint 
-// you'll recieve : 
+// send the access_token to this endpoint "https://oauth2.googleapis.com/tokeninfo?access_token=<access_token>" google api takeinfo endpoint
+// you'll recieve :
 // {
 //   "azp": "798671795051-c95amd54jght2rvvkbnqog71ilut2kch.apps.googleusercontent.com",
 //   "aud": "798671795051-c95amd54jght2rvvkbnqog71ilut2kch.apps.googleusercontent.com",
@@ -85,14 +80,14 @@ export default Google;
 // check the expires_in , shouldn't be expired
 // validation should be made in the backend
 // 3. the user info are obtained from response = requests.get("https://oauth2.googleapis.com/tokeninfo?id_token=<token>",
-//  headers={"Authorization": "Bearer <access_token>"}) sent from django 
+//  headers={"Authorization": "Bearer <access_token>"}) sent from django
 // 4. django responds with a token after validation and creation of the user with a randomly genrated pass
-// 6. the token is used in other requests 
+// 6. the token is used in other requests
 
 //  using '@react-oauth/google' in frontend and django-oauth-toolkit in backend,
-//  onclick redirects the user automatically to the google sign in page 
+//  onclick redirects the user automatically to the google sign in page
 //  the credentials needed by the google api are already found in the developer console project created previously
-//  the redirect uri , is found also in the developer console, after the user chooses his account to login , the user is redirected to this 
+//  the redirect uri , is found also in the developer console, after the user chooses his account to login , the user is redirected to this
 //  uri with needed data (authorization grant) ,and then the endpoint responds with a access_token to be validated in the backend and exchanged
 //  with an authorization token or jwt.
 //  the access toke can be used alone without exchanging it for authorization token , and ProtectedResourceView is used to protect the view .

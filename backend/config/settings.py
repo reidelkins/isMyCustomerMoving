@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 import os
-import django_extensions
 import dotenv
 from pathlib import Path
 from common.utils import get_env_var
@@ -20,21 +19,14 @@ from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-# try:
-#     dotenv.load_dotenv(BASE_DIR / ".env.testing")
-# except:
-#     dotenv.load_dotenv(BASE_DIR / ".env")
-dotenv.load_dotenv(BASE_DIR / ".env")
-IS_HEROKU = False
-IS_GITHUB = False
-try:
-    IS_HEROKU = get_env_var("IS_HEROKU")
-except:
-    pass
-try:
-    IS_GITHUB = get_env_var("IS_GITHUB")
-except:
-    pass
+
+IS_HEROKU = os.environ.get("IS_HEROKU", False)
+IS_GITHUB = os.environ.get("IS_GITHUB", False)
+
+if IS_HEROKU or IS_GITHUB:
+    dotenv.load_dotenv(BASE_DIR / ".env")
+else:
+    dotenv.load_dotenv(BASE_DIR / ".env.testing")
 
 
 # this part will be executed if IS_POSTGRESQL = False
@@ -44,8 +36,8 @@ DATABASES = {
         "NAME": "IMCM",
         "USER": "admin",
         "PASSWORD": "password",
-        "HOST": "db",  # This is the service name you used in your docker-compose file
-        "PORT": 5432,
+        "HOST": "db",  # Changed from "db" to "localhost"
+        "PORT": 5432,  # This is the service name you used in your docker-compose file
     }
 }
 MAX_CONN_AGE = 600
@@ -73,6 +65,8 @@ if IS_HEROKU or IS_GITHUB:
         DATABASES["default"] = dj_database_url.config(
             conn_max_age=MAX_CONN_AGE, ssl_require=True
         )
+    elif IS_GITHUB:
+        DATABASES["default"]["HOST"] = "localhost"
     else:
         DATABASES["default"]["TEST"] = DATABASES["default"]
     CELERY_BROKER_URL = "{}?ssl_cert_reqs={}".format(
@@ -236,7 +230,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = "/static/"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_STORAGE = (
+    "whitenoise.storage.CompressedManifestStaticFilesStorage"
+)
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STATICFILES_DIRS = [
@@ -299,7 +295,7 @@ STRIPE_TEST_SECRET_KEY = get_env_var("STRIPE_SECRET_KEY_TEST")
 STRIPE_LIVE_SECRET_KEY = get_env_var("STRIPE_SECRET_KEY")
 STRIPE_LIVE_MODE = False
 
-DJSTRIPE_WEBHOOK_SECRET = "whsec_N8LMT9fUTcrtlEBvKaHLKTnXWLE2uybj"
+DJSTRIPE_WEBHOOK_SECRET = get_env_var("DJSTRIPE_WEBHOOK_SECRET")
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
 
 DJSTRIPE_WEBHOOK_VALIDATION = "retrieve_event"

@@ -1,22 +1,57 @@
 from django.core.management.base import BaseCommand
-from datetime import datetime
-
 from data.models import ZipCode, HomeListing
 
 
 class Command(BaseCommand):
-    help = 'Download recently sold data for a single zip code to a csv file'
+    help = "Download recently sold data for a single zip code to a csv file"
 
-    def add_arguments(self , parser):
-        parser.add_argument('-z', '--zip')
-    
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "-z",
+            "--zip",
+            type=str,
+            help="The zip code for which data is required.",
+        )
+
     def handle(self, *args, **options):
-        zip = options['zip']
-        if zip:
-            zipCode = ZipCode.objects.get(zipCode=zip)
-            listings = HomeListing.objects.filter(zipCode=zipCode, status='House Recently Sold (6)')
+        zip_code = options["zip"]
+        if zip_code:
+            try:
+                zip_code_obj = ZipCode.objects.get(zip_code=zip_code)
+            except ZipCode.DoesNotExist:
+                self.stdout.write(
+                    self.style.ERROR(
+                        f"No data found for zip code: {zip_code}"
+                    )
+                )
+                return
+
+            listings = HomeListing.objects.filter(
+                zip_code=zip_code_obj, status="House Recently Sold (6)"
+            )
+
             # save listings to a csv
-            with open(f'./downloadedData/{zip}.csv', 'w') as f:
-                f.write('Address,City,State,Zip Code,Sell Price,Date Listed\n')
+            with open(f"./downloaded_data/{zip_code}.csv", "w") as f:
+                f.write(
+                    "Address,City,State,Zip Code,Sell Price,Date Listed\n"
+                )
                 for listing in listings:
-                    f.write(f'{listing.address},{listing.city},{listing.state},{listing.zipCode.zipCode},{listing.price},{listing.listed}\n')
+                    f.write(
+                        f"{listing.address},"
+                        f"{listing.city},"
+                        f"{listing.state},"
+                        f"{listing.zip_code.zip_code},"
+                        f"{listing.price},"
+                        f"{listing.listed}\n"
+                    )
+
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Data for zip code: {zip_code} has been "
+                    f"successfully written to the csv file."
+                )
+            )
+        else:
+            self.stdout.write(
+                self.style.ERROR("Please provide a zip code with -z or --zip")
+            )

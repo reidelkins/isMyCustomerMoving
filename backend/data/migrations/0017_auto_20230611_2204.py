@@ -7,69 +7,92 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0016_auto_20230611_2026'),
+        ("data", "0016_auto_20230611_2026"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Realtor',
+            name="Realtor",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
-                ('name', models.CharField(max_length=100)),
-                ('company', models.CharField(max_length=100)),
-                ('phone', models.CharField(max_length=100)),
-                ('email', models.CharField(max_length=100)),
-                ('url', models.CharField(max_length=100)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("company", models.CharField(max_length=100)),
+                ("phone", models.CharField(max_length=100)),
+                ("email", models.CharField(max_length=100)),
+                ("url", models.CharField(max_length=100)),
             ],
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='cooling',
-            field=models.CharField(blank=True, default=' ', max_length=100, null=True),
+            model_name="homelisting",
+            name="cooling",
+            field=models.CharField(
+                blank=True, default=" ", max_length=100, null=True
+            ),
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='description',
-            field=models.TextField(blank=True, default=' ', null=True),
+            model_name="homelisting",
+            name="description",
+            field=models.TextField(blank=True, default=" ", null=True),
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='exterior',
-            field=models.CharField(blank=True, default=' ', max_length=100, null=True),
+            model_name="homelisting",
+            name="exterior",
+            field=models.CharField(
+                blank=True, default=" ", max_length=100, null=True
+            ),
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='fireplace',
-            field=models.CharField(blank=True, default=' ', max_length=100, null=True),
+            model_name="homelisting",
+            name="fireplace",
+            field=models.CharField(
+                blank=True, default=" ", max_length=100, null=True
+            ),
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='garage',
+            model_name="homelisting",
+            name="garage",
             field=models.IntegerField(blank=True, default=0, null=True),
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='garage_type',
-            field=models.CharField(blank=True, default=' ', max_length=100, null=True),
+            model_name="homelisting",
+            name="garage_type",
+            field=models.CharField(
+                blank=True, default=" ", max_length=100, null=True
+            ),
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='heating',
-            field=models.CharField(blank=True, default=' ', max_length=100, null=True),
+            model_name="homelisting",
+            name="heating",
+            field=models.CharField(
+                blank=True, default=" ", max_length=100, null=True
+            ),
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='pool',
-            field=models.CharField(blank=True, default=' ', max_length=100, null=True),
+            model_name="homelisting",
+            name="pool",
+            field=models.CharField(
+                blank=True, default=" ", max_length=100, null=True
+            ),
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='roofing',
-            field=models.CharField(blank=True, default=' ', max_length=100, null=True),
+            model_name="homelisting",
+            name="roofing",
+            field=models.CharField(
+                blank=True, default=" ", max_length=100, null=True
+            ),
         ),
         migrations.AddField(
-            model_name='homelisting',
-            name='year_renovated',
+            model_name="homelisting",
+            name="year_renovated",
             field=models.IntegerField(blank=True, default=0, null=True),
         ),
     ]

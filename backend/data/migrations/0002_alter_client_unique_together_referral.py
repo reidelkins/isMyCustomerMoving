@@ -8,23 +8,65 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0001_initial'),
+        ("data", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='client',
-            unique_together={('company', 'name', 'address')},
+            name="client",
+            unique_together={("company", "name", "address")},
         ),
         migrations.CreateModel(
-            name='Referral',
+            name="Referral",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
-                ('contacted', models.BooleanField(default=False)),
-                ('client', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='referralClient', to='data.client')),
-                ('franchise', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='accounts.franchise')),
-                ('referredFrom', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='referredFrom', to='accounts.company')),
-                ('referredTo', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='referredTo', to='accounts.company')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
+                ("contacted", models.BooleanField(default=False)),
+                (
+                    "client",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="referralClient",
+                        to="data.client",
+                    ),
+                ),
+                (
+                    "franchise",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="accounts.franchise",
+                    ),
+                ),
+                (
+                    "referredFrom",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="referredFrom",
+                        to="accounts.company",
+                    ),
+                ),
+                (
+                    "referredTo",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="referredTo",
+                        to="accounts.company",
+                    ),
+                ),
             ],
         ),
     ]

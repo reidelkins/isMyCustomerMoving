@@ -7,19 +7,19 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('djstripe', '0011_2_7'),
-        ('accounts', '0002_st_contacted'),
+        ("djstripe", "0011_2_7"),
+        ("accounts", "0002_st_contacted"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='company',
-            name='zapier_forSale',
+            model_name="company",
+            name="zapier_forSale",
             field=models.CharField(blank=True, max_length=100, null=True),
         ),
         migrations.AddField(
-            model_name='company',
-            name='zapier_sold',
+            model_name="company",
+            name="zapier_sold",
             field=models.CharField(blank=True, max_length=100, null=True),
         ),
     ]

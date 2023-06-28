@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0019_client_usps_address'),
+        ("data", "0019_client_usps_address"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='client',
-            name='usps_different',
+            model_name="client",
+            name="usps_different",
             field=models.BooleanField(default=False),
         ),
     ]

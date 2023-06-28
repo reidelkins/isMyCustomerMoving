@@ -6,13 +6,21 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0006_auto_20230526_0753'),
+        ("accounts", "0006_auto_20230526_0753"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='company',
-            name='serviceTitanCustomerSyncOption',
-            field=models.CharField(choices=[('option1', 'option1'), ('option2', 'option2'), ('option3', 'option3')], default='option1', max_length=100),
+            model_name="company",
+            name="serviceTitanCustomerSyncOption",
+            field=models.CharField(
+                choices=[
+                    ("option1", "option1"),
+                    ("option2", "option2"),
+                    ("option3", "option3"),
+                ],
+                default="option1",
+                max_length=100,
+            ),
         ),
     ]

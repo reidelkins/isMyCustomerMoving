@@ -4,9 +4,8 @@ import { createSlice } from '@reduxjs/toolkit';
 import { DOMAIN } from '../constants';
 import { logout, login } from './authActions';
 
-
 export const userSlice = createSlice({
-  name: "user",
+  name: 'user',
   initialState: {
     clientsInfo: {
       loading: false,
@@ -24,7 +23,6 @@ export const userSlice = createSlice({
       highestPage: 0,
       deleted: 0,
       message: null,
-      
     },
     usersInfo: {
       loading: false,
@@ -48,8 +46,7 @@ export const userSlice = createSlice({
     saveFilter: {
       success: false,
       error: null,
-      
-    }
+    },
   },
   reducers: {
     // -----------------  CLIENTS  -----------------
@@ -57,9 +54,9 @@ export const userSlice = createSlice({
       state.clientsInfo.CLIENTLIST = action.payload.results.clients;
       state.clientsInfo.count = action.payload.count;
       state.clientsInfo.forSale.current = action.payload.results.forSale;
-      state.clientsInfo.forSale.total = action.payload.results.forSaleAllTime;    
+      state.clientsInfo.forSale.total = action.payload.results.forSaleAllTime;
       state.clientsInfo.recentlySold.current = action.payload.results.recentlySold;
-      state.clientsInfo.recentlySold.total = action.payload.results.recentlySoldAllTime;   
+      state.clientsInfo.recentlySold.total = action.payload.results.recentlySoldAllTime;
       state.clientsInfo.loading = false;
       state.clientsInfo.error = null;
       state.clientsInfo.done = false;
@@ -126,7 +123,10 @@ export const userSlice = createSlice({
       state.recentlySoldInfo.highestPage = 0;
     },
     moreRecentlySold: (state, action) => {
-      state.recentlySoldInfo.RECENTLYSOLDLIST = [...state.recentlySoldInfo.RECENTLYSOLDLIST, ...action.payload.results.data];
+      state.recentlySoldInfo.RECENTLYSOLDLIST = [
+        ...state.recentlySoldInfo.RECENTLYSOLDLIST,
+        ...action.payload.results.data,
+      ];
       state.recentlySoldInfo.loading = false;
       state.recentlySoldInfo.error = null;
       state.recentlySoldInfo.count = action.payload.count;
@@ -185,7 +185,6 @@ export const userSlice = createSlice({
       state.referralInfo.highestPage = 0;
     },
 
-
     saveFilter: (state) => {
       state.saveFilter.success = true;
     },
@@ -195,18 +194,37 @@ export const userSlice = createSlice({
     saveFilterError: (state, action) => {
       state.saveFilter.error = action.payload;
       state.saveFilter.success = false;
-    }
-
+    },
   },
 });
 
-export const { clientsNotAdded, clients, moreClients, newPage, clientsUpload, clientsLoading, clientsNotLoading, clientsError,
-   users, usersLoading, usersError,
-   recentlySold, recentlySoldLoading, recentlySoldError, newRecentlySoldPage, moreRecentlySold,
-   referrals, referralsLoading, referralsError, moreReferrals, newReferralsPage,
-   logoutClients,
-   saveFilter, saveFilterLoading, saveFilterError
-  } = userSlice.actions;
+export const {
+  clientsNotAdded,
+  clients,
+  moreClients,
+  newPage,
+  clientsUpload,
+  clientsLoading,
+  clientsNotLoading,
+  clientsError,
+  users,
+  usersLoading,
+  usersError,
+  recentlySold,
+  recentlySoldLoading,
+  recentlySoldError,
+  newRecentlySoldPage,
+  moreRecentlySold,
+  referrals,
+  referralsLoading,
+  referralsError,
+  moreReferrals,
+  newReferralsPage,
+  logoutClients,
+  saveFilter,
+  saveFilterLoading,
+  saveFilterError,
+} = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
 export const selectRecentlySold = (state) => state.user.recentlySoldInfo;
 export const selectUsers = (state) => state.user.usersInfo;
@@ -214,6 +232,7 @@ export const selectReferrals = (state) => state.user.referralInfo;
 export const saveFilterSuccess = (state) => state.user.saveFilter.success;
 export default userSlice.reducer;
 
+// eslint-disable-next-line arrow-body-style
 export const getRefreshToken = (dispatch, func) => {
   return async (dispatch, getState) => {
     const reduxStore = getState();
@@ -234,20 +253,20 @@ export const getRefreshToken = (dispatch, func) => {
       dispatch(login(newUserInfo));
       dispatch(func);
     } catch (error) {
-      console.log("error", error);
+      console.log('error', error);
       dispatch(logout());
     }
-  }
+  };
 };
 
 export const usersAsync = () => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
+    const { userInfo } = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     dispatch(usersLoading());
@@ -266,13 +285,13 @@ export const usersAsync = () => async (dispatch, getState) => {
 export const deleteUserAsync = (ids) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
-    const {id: company} = userInfo.company;
+    const { userInfo } = reduxStore.auth.userInfo;
+    const { id: company } = userInfo.company;
 
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
       data: JSON.stringify(ids),
     };
@@ -287,54 +306,58 @@ export const deleteUserAsync = (ids) => async (dispatch, getState) => {
   }
 };
 
-export const clientsAsync = (page) => async (dispatch, getState) => {
-  try {
-    const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
-      },
-    };
-    
-    if (page === 1) {
-      dispatch(clientsLoading());
-    }
-    if (page > reduxStore.user.clientsInfo.highestPage || page === 1) {
-      const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/${userInfo.id}?page=${page}`, config);      
+export const clientsAsync =
+  (page, refreshed = false) =>
+  async (dispatch, getState) => {
+    try {
+      const reduxStore = getState();
+      const { userInfo } = reduxStore.auth.userInfo;
+      const config = {
+        headers: {
+          'Content-type': 'application/json',
+          Authorization: `Bearer ${userInfo.access_token}`,
+        },
+      };
+
       if (page === 1) {
-        dispatch(clients(data));        
-      } else {
-        dispatch(moreClients(data));
+        dispatch(clientsLoading());
       }
-      if (data.results.clients.length > 0) {
-        dispatch(newPage(page));
-        if (data.results.clients.length === 1000) {
-          dispatch(clientsAsync(page+1))
+      if (page > reduxStore.user.clientsInfo.highestPage || page === 1) {
+        const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/${userInfo.id}?page=${page}`, config);
+        if (page === 1) {
+          dispatch(clients(data));
+        } else {
+          dispatch(moreClients(data));
         }
+        if (data.results.clients.length > 0) {
+          dispatch(newPage(page));
+          if (data.results.clients.length === 1000) {
+            dispatch(clientsAsync(page + 1));
+          }
+        }
+      } else {
+        dispatch(clientsNotLoading());
       }
-    } else {
-      dispatch(clientsNotLoading());
+    } catch (error) {
+      // localStorage.removeItem('userInfo');
+      // dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+
+      if (error.response.status === 403 && !refreshed) {
+        dispatch(getRefreshToken(dispatch, clientsAsync(page, true)));
+      } else {
+        dispatch(logout());
+      }
     }
-  } catch (error) {
-    // localStorage.removeItem('userInfo');
-    // dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    // dispatch(logout());
-    if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, clientsAsync(page)));
-    }
-  }
-};
+  };
 
 export const deleteClientAsync = (ids) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
+    const { userInfo } = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     dispatch(clientsLoading());
@@ -343,12 +366,11 @@ export const deleteClientAsync = (ids) => async (dispatch, getState) => {
     for (i; i < ids.length; i += chunkSize) {
       const chunk = ids.slice(i, i + chunkSize);
 
-      await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, {'clients': chunk, 'type': 'delete'}, config);
-
+      await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, { clients: chunk, type: 'delete' }, config);
     }
     const chunk = ids.slice(i, i + chunkSize);
     if (chunk.length > 0) {
-      await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, {'clients': chunk, 'type': 'delete'}, config);
+      await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, { clients: chunk, type: 'delete' }, config);
     }
     dispatch(clientsAsync(1));
   } catch (error) {
@@ -359,41 +381,46 @@ export const deleteClientAsync = (ids) => async (dispatch, getState) => {
   }
 };
 
-export const updateClientAsync = (id, contacted, note, errorFlag, latitude, longitude) => async (dispatch, getState) => {
-  try {
-    const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
-      },
-    };
-    dispatch(clientsLoading());
-    await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, { 'clients': id, 'type': 'edit', contacted, note, errorFlag, latitude, longitude }, config);
-    dispatch(clientsAsync(1));
-  } catch (error) {
-    dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, updateClientAsync(id, contacted, note, errorFlag, latitude, longitude)));
+export const updateClientAsync =
+  (id, contacted, note, errorFlag, latitude, longitude) => async (dispatch, getState) => {
+    try {
+      const reduxStore = getState();
+      const { userInfo } = reduxStore.auth.userInfo;
+      const config = {
+        headers: {
+          'Content-type': 'application/json',
+          Authorization: `Bearer ${userInfo.access_token}`,
+        },
+      };
+      dispatch(clientsLoading());
+      await axios.put(
+        `${DOMAIN}/api/v1/data/updateclient/`,
+        { clients: id, type: 'edit', contacted, note, errorFlag, latitude, longitude },
+        config
+      );
+      dispatch(clientsAsync(1));
+    } catch (error) {
+      dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+      if (error.response.status === 403) {
+        dispatch(getRefreshToken(dispatch, updateClientAsync(id, contacted, note, errorFlag, latitude, longitude)));
+      }
     }
-  }
-};
+  };
 
 export const uploadClientsUpdateAsync = (id) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
+    const { userInfo } = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     const { data } = await axios.get(`${DOMAIN}/api/v1/data/upload/${id}/`, config);
     if (data.status === 'SUCCESS') {
-      dispatch(clientsUpload(data.data))
-      dispatch(clientsNotAdded(data.deleted))
+      dispatch(clientsUpload(data.data));
+      dispatch(clientsNotAdded(data.deleted));
       dispatch(clientsAsync(1));
     } else {
       setTimeout(() => {
@@ -411,20 +438,20 @@ export const uploadClientsUpdateAsync = (id) => async (dispatch, getState) => {
 export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
-    const {id: company} = userInfo.company;
+    const { userInfo } = reduxStore.auth.userInfo;
+    const { id: company } = userInfo.company;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
 
     dispatch(clientsLoading());
-    const {data} = await axios.put(`${DOMAIN}/api/v1/data/upload/${company}/`, customers, config);
+    const { data } = await axios.put(`${DOMAIN}/api/v1/data/upload/${company}/`, customers, config);
     dispatch(clientsUpload(data.data));
-    dispatch(uploadClientsUpdateAsync(data.task))
-    } catch (error) {
+    dispatch(uploadClientsUpdateAsync(data.task));
+  } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
     if (error.response.status === 403) {
       dispatch(getRefreshToken(dispatch, uploadClientsAsync(customers)));
@@ -432,61 +459,121 @@ export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
   }
 };
 
-export const filterClientsAsync = (statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, city, state, zipCode, customerSinceMin, customerSinceMax) => async (dispatch, getState) => {
-  try {
-    const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
-      },
-    };
-    let filters = ""
-    if (statusFilters.length > 0) {filters += `&status=${statusFilters.join(',')}`}
-    if (minPrice) {filters += `&min_price=${minPrice}` }
-    if (maxPrice) {filters += `&max_price=${maxPrice}` }
-    if (minYear) {filters += `&min_year=${minYear}` }
-    if (maxYear) {filters += `&max_year=${maxYear}` }
-    if (tagFilters.length > 0) {filters += `&tags=${tagFilters.join('&tags=')}` }
-    if (equipInstallDateMin) {filters += `&equip_install_date_min=${equipInstallDateMin}` }
-    if (equipInstallDateMax) {filters += `&equip_install_date_max=${equipInstallDateMax}` }
-    if (city) {filters += `&city=${city}` }
-    if (state) {filters += `&state=${state}` }
-    if (zipCode) {filters += `&zip_code=${zipCode}` }
-    if (customerSinceMin) {filters += `&customer_since_min=${customerSinceMin}` }
-    if (customerSinceMax) {filters += `&customer_since_max=${customerSinceMax}` }
-    const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/${userInfo.id}/?page=1${filters}`, config);
-    dispatch(clients(data));
-  } catch (error) {
-    dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, filterClientsAsync(statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax, city, state, zipCode, customerSinceMin, customerSinceMax)));
+export const filterClientsAsync =
+  (
+    statusFilters,
+    minPrice,
+    maxPrice,
+    minYear,
+    maxYear,
+    tagFilters,
+    equipInstallDateMin,
+    equipInstallDateMax,
+    city,
+    state,
+    zipCode,
+    customerSinceMin,
+    customerSinceMax
+  ) =>
+  async (dispatch, getState) => {
+    try {
+      const reduxStore = getState();
+      const { userInfo } = reduxStore.auth.userInfo;
+      const config = {
+        headers: {
+          'Content-type': 'application/json',
+          Authorization: `Bearer ${userInfo.access_token}`,
+        },
+      };
+      let filters = '';
+      if (statusFilters.length > 0) {
+        filters += `&status=${statusFilters.join(',')}`;
+      }
+      if (minPrice) {
+        filters += `&min_price=${minPrice}`;
+      }
+      if (maxPrice) {
+        filters += `&max_price=${maxPrice}`;
+      }
+      if (minYear) {
+        filters += `&min_year=${minYear}`;
+      }
+      if (maxYear) {
+        filters += `&max_year=${maxYear}`;
+      }
+      if (tagFilters.length > 0) {
+        filters += `&tags=${tagFilters.join('&tags=')}`;
+      }
+      if (equipInstallDateMin) {
+        filters += `&equip_install_date_min=${equipInstallDateMin}`;
+      }
+      if (equipInstallDateMax) {
+        filters += `&equip_install_date_max=${equipInstallDateMax}`;
+      }
+      if (city) {
+        filters += `&city=${city}`;
+      }
+      if (state) {
+        filters += `&state=${state}`;
+      }
+      if (zipCode) {
+        filters += `&zip_code=${zipCode}`;
+      }
+      if (customerSinceMin) {
+        filters += `&customer_since_min=${customerSinceMin}`;
+      }
+      if (customerSinceMax) {
+        filters += `&customer_since_max=${customerSinceMax}`;
+      }
+      const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/${userInfo.id}/?page=1${filters}`, config);
+      dispatch(clients(data));
+    } catch (error) {
+      dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+      if (error.response.status === 403) {
+        dispatch(
+          getRefreshToken(
+            dispatch,
+            filterClientsAsync(
+              statusFilters,
+              minPrice,
+              maxPrice,
+              minYear,
+              maxYear,
+              tagFilters,
+              equipInstallDateMin,
+              equipInstallDateMax,
+              city,
+              state,
+              zipCode,
+              customerSinceMin,
+              customerSinceMax
+            )
+          )
+        );
+      }
     }
-  }
-};
+  };
 
 export const serviceTitanUpdateAsync = (id) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
+    const { userInfo } = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
-    
+
     const { data } = await axios.get(`${DOMAIN}/api/v1/data/servicetitan/${id}/`, config);
     if (data.status === 'SUCCESS') {
-      dispatch(clientsNotAdded(data.deleted))
-      dispatch(clientsUpload(data.data))
+      dispatch(clientsNotAdded(data.deleted));
+      dispatch(clientsUpload(data.data));
       dispatch(clientsAsync(1));
-    } else {     
+    } else {
       setTimeout(() => {
         dispatch(serviceTitanUpdateAsync(id));
       }, 1000);
-      
     }
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
@@ -495,23 +582,22 @@ export const serviceTitanUpdateAsync = (id) => async (dispatch, getState) => {
     }
   }
 };
-        
+
 export const serviceTitanSync = (option) => async (dispatch, getState) => {
   try {
     dispatch(clientsLoading());
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
-    const {id: company} = userInfo.company;
+    const { userInfo } = reduxStore.auth.userInfo;
+    const { id: company } = userInfo.company;
 
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
-    const { data } = await axios.put(`${DOMAIN}/api/v1/data/servicetitan/${company}/`, {option}, config);
-    dispatch(serviceTitanUpdateAsync(data.task))
-    
+    const { data } = await axios.put(`${DOMAIN}/api/v1/data/servicetitan/${company}/`, { option }, config);
+    dispatch(serviceTitanUpdateAsync(data.task));
   } catch (error) {
     throw new Error(error);
     // dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
@@ -521,19 +607,18 @@ export const serviceTitanSync = (option) => async (dispatch, getState) => {
 export const salesForceSync = () => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
-    const {id: company} = userInfo.company;
+    const { userInfo } = reduxStore.auth.userInfo;
+    const { id: company } = userInfo.company;
 
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     // dispatch(clientsLoading());
     await axios.put(`${DOMAIN}/api/v1/data/salesforce/${company}/`, config);
-    dispatch(clientsAsync(1))
-    
+    dispatch(clientsAsync(1));
   } catch (error) {
     throw new Error(error);
     // dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
@@ -548,7 +633,7 @@ export const salesForceSync = () => async (dispatch, getState) => {
 //     const config = {
 //       headers: {
 //         'Content-type': 'application/json',
-//         Authorization: `Bearer ${userInfo.accessToken}`,
+//         Authorization: `Bearer ${userInfo.access_token}`,
 //       },
 //     };
 
@@ -566,64 +651,59 @@ export const salesForceSync = () => async (dispatch, getState) => {
 export const addUser = (email) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
+    const { userInfo } = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
 
-     dispatch(usersLoading());
-    const {data} = await axios.post(
+    dispatch(usersLoading());
+    const { data } = await axios.post(
       `${DOMAIN}/api/v1/accounts/manageuser/${userInfo.company.id}/`,
       { email },
       config
     );
     dispatch(users(data));
-
-    } catch (error) {
-      dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-      if (error.response.status === 403) {
-        dispatch(getRefreshToken(dispatch, addUser(email)));
-      }
+  } catch (error) {
+    dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    if (error.response.status === 403) {
+      dispatch(getRefreshToken(dispatch, addUser(email)));
+    }
   }
 };
 
 export const makeAdminAsync = (userId) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
+    const { userInfo } = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
 
     dispatch(usersLoading());
-    const {data} = await axios.post(
-      `${DOMAIN}/api/v1/accounts/manageuser/${userId}/`,
-      config
-    );
+    const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/manageuser/${userId}/`, {}, config);
     dispatch(users(data));
-
-    } catch (error) {
-      dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-      if (error.response.status === 403) {
-        dispatch(getRefreshToken(dispatch, makeAdminAsync(userId)));
-      }
+  } catch (error) {
+    dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    // if (error.response.status === 403) {
+    //   dispatch(getRefreshToken(dispatch, makeAdminAsync(userId)));
+    // }
   }
 };
 
 export const update = () => async (getState) => {
   try {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
+    const { userInfo } = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     await axios.get(`${DOMAIN}/api/v1/data/update/${userInfo.company.id}`, config);
@@ -635,207 +715,341 @@ export const update = () => async (getState) => {
 export const recentlySoldAsync = (page) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
+    const { userInfo } = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     if (page === 1) {
       dispatch(recentlySoldLoading());
     }
     if (page > reduxStore.user.recentlySoldInfo.highestPage) {
-      const { data } = await axios.get(`${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}?page=${page}`, config);
-      if (data.results.length > 0) {
+      const { data } = await axios.get(
+        `${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}?page=${page}`,
+        config
+      );
+      if (data.results.data.length > 0) {
         dispatch(newRecentlySoldPage(page));
+        if (data.results.data.length === 1000) {
+          dispatch(recentlySoldAsync(page + 1));
+        }
       }
       if (page === 1) {
-        dispatch(recentlySold(data));        
+        dispatch(recentlySold(data));
       } else {
         dispatch(moreRecentlySold(data));
       }
     }
   } catch (error) {
-    dispatch(recentlySoldError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    dispatch(
+      recentlySoldError(error.response && error.response.data.detail ? error.response.data.detail : error.message)
+    );
     if (error.response.status === 403) {
       dispatch(getRefreshToken(dispatch, recentlySoldAsync(page)));
     }
   }
-}
-
-export const filterRecentlySoldAsync = (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, savedFilter) => async (dispatch, getState) => {
-  try {
-    const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
-      },
-    };
-    dispatch(recentlySoldLoading());
-    let filters = ""
-    if (minPrice) { filters += `&min_price=${minPrice}` }  
-    if (maxPrice) { filters += `&max_price=${maxPrice}` }
-    if (minYear) { filters += `&min_year=${minYear}` }
-    if (maxYear) { filters += `&max_year=${maxYear}` }
-    if (minDaysAgo) { filters += `&min_days_ago=${minDaysAgo}` }
-    if (maxDaysAgo) { filters += `&max_days_ago=${maxDaysAgo}` }
-    if (tagFilters) { filters += `&tags=${tagFilters.join(',')}` }
-    if (city) { filters += `&city=${city}` }
-    if (state) { filters += `&state=${state}` }
-    if (zipCode) { filters += `&zip_code=${zipCode}` }
-    if (savedFilter) { filters += `&saved_filter=${savedFilter}` }
-    const { data } = await axios.get(`${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}/?page=1${filters}`, config);
-    dispatch(recentlySold(data));   
-  } catch (error) {
-    dispatch(recentlySoldError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, filterRecentlySoldAsync(minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, savedFilter)));
-    }
-  }
 };
+
+export const filterRecentlySoldAsync =
+  (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, savedFilter) =>
+  async (dispatch, getState) => {
+    try {
+      const reduxStore = getState();
+      const { userInfo } = reduxStore.auth.userInfo;
+      const config = {
+        headers: {
+          'Content-type': 'application/json',
+          Authorization: `Bearer ${userInfo.access_token}`,
+        },
+      };
+      dispatch(recentlySoldLoading());
+      let filters = '';
+      if (minPrice) {
+        filters += `&min_price=${minPrice}`;
+      }
+      if (maxPrice) {
+        filters += `&max_price=${maxPrice}`;
+      }
+      if (minYear) {
+        filters += `&min_year=${minYear}`;
+      }
+      if (maxYear) {
+        filters += `&max_year=${maxYear}`;
+      }
+      if (minDaysAgo) {
+        filters += `&min_days_ago=${minDaysAgo}`;
+      }
+      if (maxDaysAgo) {
+        filters += `&max_days_ago=${maxDaysAgo}`;
+      }
+      if (tagFilters) {
+        filters += `&tags=${tagFilters.join(',')}`;
+      }
+      if (city) {
+        filters += `&city=${city}`;
+      }
+      if (state) {
+        filters += `&state=${state}`;
+      }
+      if (zipCode) {
+        filters += `&zip_code=${zipCode}`;
+      }
+      if (savedFilter) {
+        filters += `&saved_filter=${savedFilter}`;
+      }
+      const { data } = await axios.get(
+        `${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}/?page=1${filters}`,
+        config
+      );
+      dispatch(recentlySold(data));
+    } catch (error) {
+      dispatch(
+        recentlySoldError(error.response && error.response.data.detail ? error.response.data.detail : error.message)
+      );
+      if (error.response.status === 403) {
+        dispatch(
+          getRefreshToken(
+            dispatch,
+            filterRecentlySoldAsync(
+              minPrice,
+              maxPrice,
+              minYear,
+              maxYear,
+              minDaysAgo,
+              maxDaysAgo,
+              tagFilters,
+              city,
+              state,
+              zipCode,
+              savedFilter
+            )
+          )
+        );
+      }
+    }
+  };
 
 export const makeReferralAsync = (id, area) => async (getState) => {
   try {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
+    const { userInfo } = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
-    await axios.post(`${DOMAIN}/api/v1/accounts/referrals/${userInfo.company.id}/`, {id, area}, config);
+    await axios.post(`${DOMAIN}/api/v1/accounts/referrals/${userInfo.company.id}/`, { id, area }, config);
   } catch (error) {
     throw new Error(error);
   }
-}
+};
 
 export const referralsAsync = (page) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
+    const { userInfo } = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     if (page === 1) {
       dispatch(referralsLoading());
     }
     if (page > reduxStore.user.referralInfo.highestPage) {
-      const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/referrals/${userInfo.company.id}?page=${page}`, config);
+      const { data } = await axios.get(
+        `${DOMAIN}/api/v1/accounts/referrals/${userInfo.company.id}?page=${page}`,
+        config
+      );
       if (data.results.length > 0) {
         dispatch(newReferralsPage(page));
       }
       if (page === 1) {
-        dispatch(referrals(data));        
+        dispatch(referrals(data));
       } else {
         dispatch(moreReferrals(data));
       }
     }
   } catch (error) {
-    console.log("error", error)
+    console.log('error', error);
     dispatch(referralsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
-}
+};
 
-export const getClientsCSV = (statusFilters, minPrice, maxPrice, minYear, maxYear, tagFilters, equipInstallDateMin, equipInstallDateMax) => {
+export const getClientsCSV = (
+  statusFilters,
+  minPrice,
+  maxPrice,
+  minYear,
+  maxYear,
+  tagFilters,
+  equipInstallDateMin,
+  equipInstallDateMax,
+  city,
+  state,
+  zipCode,
+  customerSinceMin,
+  customerSinceMax
+  // eslint-disable-next-line arrow-body-style
+) => {
   return async (dispatch, getState) => {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
+    const { userInfo } = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
-      responseType: 'blob' // Tell axios to expect a binary response
+      responseType: 'blob', // Tell axios to expect a binary response
     };
-    let filters = ""
+    let filters = '';
     if (statusFilters.length > 0) {
-      filters += `&status=${statusFilters.join(',')}`
+      filters += `&status=${statusFilters.join(',')}`;
     }
     if (minPrice) {
-      filters += `&min_price=${minPrice}`
+      filters += `&min_price=${minPrice}`;
     }
     if (maxPrice) {
-      filters += `&max_price=${maxPrice}`
+      filters += `&max_price=${maxPrice}`;
     }
     if (minYear) {
-      filters += `&min_price=${minYear}`
+      filters += `&min_year=${minYear}`;
     }
     if (maxYear) {
-      filters += `&max_price=${maxYear}`
+      filters += `&max_year=${maxYear}`;
+    }
+    if (tagFilters.length > 0) {
+      filters += `&tags=${tagFilters.join('&tags=')}`;
     }
     if (equipInstallDateMin) {
-      filters += `&install_date_min=${equipInstallDateMin}`
+      filters += `&equip_install_date_min=${equipInstallDateMin}`;
     }
     if (equipInstallDateMax) {
-      filters += `&install_date_max=${equipInstallDateMax}`
+      filters += `&equip_install_date_max=${equipInstallDateMax}`;
+    }
+    if (city) {
+      filters += `&city=${city}`;
+    }
+    if (state) {
+      filters += `&state=${state}`;
+    }
+    if (zipCode) {
+      filters += `&zip_code=${zipCode}`;
+    }
+    if (customerSinceMin) {
+      filters += `&customer_since_min=${customerSinceMin}`;
+    }
+    if (customerSinceMax) {
+      filters += `&customer_since_max=${customerSinceMax}`;
     }
     const response = await axios.get(`${DOMAIN}/api/v1/data/downloadclients/${userInfo.id}/?${filters}`, config);
-    const csvBlob = new Blob([response.data], {type: 'text/csv'}); // Convert binary response to a blob
+    const csvBlob = new Blob([response.data], { type: 'text/csv' }); // Convert binary response to a blob
     FileSaver.saveAs(csvBlob, 'clients.csv'); // Download the file using FileSaver
   };
 };
 
-export const getRecentlySoldCSV = (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters) => {
-  return async (dispatch, getState) => {
+export const getRecentlySoldCSV =
+  (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, savedFilter) =>
+  async (getState) => {
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
+    const { userInfo } = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
-    let filters = ""
+    let filters = '';
     if (minPrice) {
-      filters += `&min_price=${minPrice}`
+      filters += `&min_price=${minPrice}`;
     }
     if (maxPrice) {
-      filters += `&max_price=${maxPrice}`
+      filters += `&max_price=${maxPrice}`;
     }
     if (minYear) {
-      filters += `&min_year=${minYear}`
+      filters += `&min_year=${minYear}`;
     }
     if (maxYear) {
-      filters += `&max_year=${maxYear}`
+      filters += `&max_year=${maxYear}`;
     }
     if (minDaysAgo) {
-      filters += `&min_days_ago=${minDaysAgo}`
+      filters += `&min_days_ago=${minDaysAgo}`;
     }
     if (maxDaysAgo) {
-      filters += `&max_days_ago=${maxDaysAgo}`
+      filters += `&max_days_ago=${maxDaysAgo}`;
     }
     if (tagFilters) {
-      filters += `&tags=${tagFilters.join(',')}`
+      filters += `&tags=${tagFilters.join(',')}`;
     }
-    const response = await axios.get(`${DOMAIN}/api/v1/data/downloadrecentlysold/${userInfo.company.id}/?${filters}`, config);
-    const csvBlob = new Blob([response.data], {type: 'text/csv'}); // Convert binary response to a blob
+    if (city) {
+      filters += `&city=${city}`;
+    }
+    if (state) {
+      filters += `&state=${state}`;
+    }
+    if (zipCode) {
+      filters += `&zip_code=${zipCode}`;
+    }
+    if (savedFilter) {
+      filters += `&saved_filter=${savedFilter}`;
+    }
+    const response = await axios.get(
+      `${DOMAIN}/api/v1/data/downloadrecentlysold/${userInfo.company.id}/?${filters}`,
+      config
+    );
+    const csvBlob = new Blob([response.data], { type: 'text/csv' }); // Convert binary response to a blob
     FileSaver.saveAs(csvBlob, 'homelistings.csv'); // Download the file using FileSaver
-  }
-}
+  };
 
-export const saveFilterAsync = (filterName, minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, forZapier) => async (dispatch, getState) => {
-  try {
-    const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
-      },
-    };
-    const body = {filterName, minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, forZapier}
-    console.log(body)
-    dispatch(saveFilterLoading());    
-    await axios.post(`${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}/`, body, config);
-    dispatch(saveFilter());
-  } catch (error) {
-    dispatch(saveFilterError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-  }
-}
+export const saveFilterAsync =
+  (
+    filterName,
+    minPrice,
+    maxPrice,
+    minYear,
+    maxYear,
+    minDaysAgo,
+    maxDaysAgo,
+    tagFilters,
+    city,
+    state,
+    zipCode,
+    forZapier
+  ) =>
+  async (dispatch, getState) => {
+    try {
+      const reduxStore = getState();
+      const { userInfo } = reduxStore.auth.userInfo;
+      const config = {
+        headers: {
+          'Content-type': 'application/json',
+          Authorization: `Bearer ${userInfo.access_token}`,
+        },
+      };
+      const body = {
+        filter_name: filterName,
+        min_price: minPrice,
+        max_price: maxPrice,
+        min_year: minYear,
+        max_year: maxYear,
+        min_days_ago: minDaysAgo,
+        max_days_ago: maxDaysAgo,
+        tag_filters: tagFilters,
+        city,
+        state,
+        zip_code: zipCode,
+        for_zapier: forZapier,
+      };
+      dispatch(saveFilterLoading());
+      await axios.post(`${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}/`, body, config);
+      dispatch(saveFilter());
+    } catch (error) {
+      dispatch(
+        saveFilterError(error.response && error.response.data.detail ? error.response.data.detail : error.message)
+      );
+    }
+  };

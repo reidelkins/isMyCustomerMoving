@@ -14,7 +14,6 @@ import {
   Box,
   Fade,
   Modal,
-
 } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import Iconify from './Iconify';
@@ -27,10 +26,9 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: '5px'
+    borderRadius: '5px',
   },
 }));
-
 
 const FileUploader = () => {
   const dispatch = useDispatch();
@@ -57,18 +55,17 @@ const FileUploader = () => {
   const exportTemplate = () => {
     let csvContent = 'data:text/csv;charset=utf-8,';
     csvContent += 'Customer Name,Street Address,City,State,ZipCode\r\n';
-    csvContent += `Example Name, 123 Main St, Nashville, TN, 12345\r\n`
+    csvContent += `Example Name, 123 Main St, Nashville, TN, 12345\r\n`;
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    const docName = `isMyCustomerMoving_template`
+    const docName = `isMyCustomerMoving_template`;
     link.setAttribute('download', `${docName}.csv`);
     document.body.appendChild(link); // Required for FF
     link.click();
     document.body.removeChild(link);
     setUploadInfo(false);
   };
-
 
   const handleFileChange = async ({ target }) => {
     setFile(target.files[0]);
@@ -83,7 +80,6 @@ const FileUploader = () => {
         files: [file],
       },
     });
-    
   };
 
   const handleDragOver = (event) => {
@@ -91,20 +87,23 @@ const FileUploader = () => {
     event.preventDefault();
   };
 
-  useEffect(async () => {
-    if (!file) return;
-    const fileData = await readFile(file);
-    const lowerCaseHeaders = Object.keys(fileData[0]).map(header => header.toLowerCase());
-    setHeaders(lowerCaseHeaders);
-    const fileType = file.name.split('.').pop();
-    if (fileType !== 'csv' && fileType !== 'xlsx' && fileType !== 'xls' && fileType !== 'xlsm') {
-      setError('Invalid file type');
-      setFile(null);
-    } else {
-      setError(null);
+  useEffect(() => {
+    async function fetchData() {
+      if (!file) return;
+      const fileData = await readFile(file);
+      const lowerCaseHeaders = Object.keys(fileData[0]).map((header) => header.toLowerCase());
+      setHeaders(lowerCaseHeaders);
+      const fileType = file.name.split('.').pop();
+      if (fileType !== 'csv' && fileType !== 'xlsx' && fileType !== 'xls' && fileType !== 'xlsm') {
+        setError('Invalid file type');
+        setFile(null);
+      } else {
+        setError(null);
+      }
     }
-  }, [file]);
 
+    fetchData();
+  }, [file]);
 
   const handleHeaderMappingChange = (event) => {
     const { name, value } = event.target;
@@ -147,7 +146,7 @@ const FileUploader = () => {
         Object.keys(row).forEach((key) => {
           Object.keys(headerMappings).forEach((header) => {
             const selectElement = event.target.elements[header];
-            if (key.toLowerCase() === (selectElement.value).toLowerCase()) {
+            if (key.toLowerCase() === selectElement.value.toLowerCase()) {
               newRow[header] = row[key];
             }
           });
@@ -163,8 +162,8 @@ const FileUploader = () => {
   };
 
   const readFile = (file) => {
-    
-    return new Promise((resolve, reject) => {
+    // eslint-disable-next-line no-new
+    new Promise((resolve, reject) => {
       Papa.parse(file, {
         header: true,
         complete: (results) => {
@@ -178,7 +177,7 @@ const FileUploader = () => {
   };
 
   const sendData = (data) => {
-    dispatch(uploadClientsAsync(data))
+    dispatch(uploadClientsAsync(data));
   };
 
   return (
@@ -191,10 +190,10 @@ const FileUploader = () => {
               onDragOver={(event) => handleDragOver(event)}
               className={classes.uploaderDiv}
             >
-              <label htmlFor="file" style={{ cursor: 'pointer', textDecoration:'underline' }}>
+              <label htmlFor="file" style={{ cursor: 'pointer', textDecoration: 'underline' }}>
                 {!file && uploaded && `Success! ${fileName} has been uploaded.`}
                 {file && `Uploading ${fileName}`}
-                {!file && !uploaded && "Upload Your Client List"}
+                {!file && !uploaded && 'Upload Your Client List'}
               </label>
               <input
                 type="file"
@@ -205,14 +204,14 @@ const FileUploader = () => {
               />
             </div>
             <Grid container spacing={3}>
-              {file && (
+              {file &&
                 Object.keys(headerMappings).map((header) => (
                   <Grid item xs={12} sm={6} md={4} key={header}>
                     <Typography style={{ width: '100px' }}>{header}</Typography>
                     <div>
                       <FormControl>
                         <InputLabel id="inputLabel">
-                          { headers.includes(header.toLowerCase()) ? header : "Choose Header" }
+                          {headers.includes(header.toLowerCase()) ? header : 'Choose Header'}
                         </InputLabel>
                         <Select
                           labelId="inputLabel"
@@ -221,26 +220,23 @@ const FileUploader = () => {
                           value={headers.includes(header.toLowerCase()) ? header : headerMappings[header]}
                           style={{ minWidth: '200px' }}
                         >
-                          <MenuItem value={ headers.includes(header.toLowerCase()) ? header : "" }/>
-                          {header !== 'phone number' ? (
-                            headers.map((headerName) => (
-                              <MenuItem key={headerName} value={headerName}>
-                                {headerName}
-                              </MenuItem>
-                            ))
-                          ) : (
-                            [...headers, 'None'].map((headerName) => (
-                              <MenuItem key={headerName} value={headerName}>
-                                {headerName}
-                              </MenuItem>
-                            ))
-                          )}
+                          <MenuItem value={headers.includes(header.toLowerCase()) ? header : ''} />
+                          {header !== 'phone number'
+                            ? headers.map((headerName) => (
+                                <MenuItem key={headerName} value={headerName}>
+                                  {headerName}
+                                </MenuItem>
+                              ))
+                            : [...headers, 'None'].map((headerName) => (
+                                <MenuItem key={headerName} value={headerName}>
+                                  {headerName}
+                                </MenuItem>
+                              ))}
                         </Select>
                       </FormControl>
                     </div>
                   </Grid>
-                ))
-              )}
+                ))}
             </Grid>
 
             {file && (
@@ -250,14 +246,13 @@ const FileUploader = () => {
             )}
             {error && <p style={{ color: 'red' }}>{error}</p>}
           </form>
-          
-          <br/>
+
+          <br />
           {!file && !uploaded && (
-            <IconButton onClick={()=>setUploadInfo(true)} >
-                <Iconify icon="bi:question-circle-fill" />
+            <IconButton onClick={() => setUploadInfo(true)}>
+              <Iconify icon="bi:question-circle-fill" />
             </IconButton>
-            )
-          }
+          )}
         </>
       )}
       {/* {(progress.complete && progress.deleted > 0) && (
@@ -270,41 +265,56 @@ const FileUploader = () => {
           </Button>
         </div>
       )} */}
-      
-    <Modal
-          open={uploadInfo}
-          onClose={()=>setUploadInfo(false)}
-          closeAfterTransition
-          BackdropComponent={Backdrop}
-          BackdropProps={{
+
+      <Modal
+        open={uploadInfo}
+        onClose={() => setUploadInfo(false)}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
+        BackdropProps={{
           timeout: 500,
-          }}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-          padding='10'
+        }}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+        padding="10"
       >
-          <Fade in={uploadInfo}>
-          <Box sx={{position:'absolute', top:'50%', left:'50%', transform:'translate(-50%, -50%)', width:400, bgcolor:'white', border:'2px solid #000', boxShadow: '24px', p:'4%'}}>
-              <Typography id="modal-modal-title" variant="h5" component="h2">
+        <Fade in={uploadInfo}>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 400,
+              bgcolor: 'white',
+              border: '2px solid #000',
+              boxShadow: '24px',
+              p: '4%',
+            }}
+          >
+            <Typography id="modal-modal-title" variant="h5" component="h2">
               How To Upload Your Client List
-              </Typography>
-              <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-              Please upload a csv or excel file with the following columns:<br />
+            </Typography>
+            <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+              Please upload a csv or excel file with the following columns:
+              <br />
               <br />
               <b>Client Name</b> <br />
               <b>Street Address</b> <br />
               <b>City</b> <br />
               <b>State</b> <br />
               <b>Zip Code</b> <br />
-              <b>Phone Number (Optional)</b> <br /><br />
-              You can match your column headers to the above names after you choose your file and then just click submit! <br /><br />
-
-              </Typography>
-              <Button onClick={exportTemplate} variant="contained">
-                  Download Template Here
-              </Button>
+              <b>Phone Number (Optional)</b> <br />
+              <br />
+              You can match your column headers to the above names after you choose your file and then just click
+              submit! <br />
+              <br />
+            </Typography>
+            <Button onClick={exportTemplate} variant="contained">
+              Download Template Here
+            </Button>
           </Box>
-          </Fade>
+        </Fade>
       </Modal>
     </div>
   );

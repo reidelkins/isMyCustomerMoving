@@ -32,44 +32,71 @@ RecentlySoldListToolbar.propTypes = {
   setMaxDaysAgo: PropTypes.func,
   savedFilter: PropTypes.string,
   setSavedFilter: PropTypes.func,
-
+  tagFilters: PropTypes.array,
+  setTagFilters: PropTypes.func,
+  zipCode: PropTypes.string,
+  setZipCode: PropTypes.func,
+  city: PropTypes.string,
+  setCity: PropTypes.func,
+  state: PropTypes.string,
+  setState: PropTypes.func,
 };
 
 // ----------------------------------------------------------------------
-export default function RecentlySoldListToolbar({recentlySoldFilters, product, minPrice, setMinPrice, maxPrice, setMaxPrice, 
-  minYear, setMinYear, maxYear, setMaxYear, minDaysAgo, setMinDaysAgo, maxDaysAgo, setMaxDaysAgo, 
-  tagFilters, setTagFilters, zipCode, setZipCode, city, setCity, state, setState,
-  savedFilter, setSavedFilter}) {
-
+export default function RecentlySoldListToolbar({
+  recentlySoldFilters,
+  product,
+  minPrice,
+  setMinPrice,
+  maxPrice,
+  setMaxPrice,
+  minYear,
+  setMinYear,
+  maxYear,
+  setMaxYear,
+  minDaysAgo,
+  setMinDaysAgo,
+  maxDaysAgo,
+  setMaxDaysAgo,
+  tagFilters,
+  setTagFilters,
+  zipCode,
+  setZipCode,
+  city,
+  setCity,
+  state,
+  setState,
+  savedFilter,
+  setSavedFilter,
+}) {
   return (
-    <RootStyle>      
-        <RecentlySoldDataFilter
-          recentlySoldFilters={recentlySoldFilters}
-          product={product}
-          minPrice={minPrice}
-          setMinPrice={setMinPrice}
-          maxPrice={maxPrice}
-          setMaxPrice={setMaxPrice}
-          minYear={minYear}
-          setMinYear={setMinYear}
-          maxYear={maxYear}
-          setMaxYear={setMaxYear}
-          minDaysAgo={minDaysAgo}
-          setMinDaysAgo={setMinDaysAgo}
-          maxDaysAgo={maxDaysAgo}
-          setMaxDaysAgo={setMaxDaysAgo}
-          tagFilters={tagFilters}
-          setTagFilters={setTagFilters}
-          zipCode={zipCode}
-          setZipCode={setZipCode}
-          city={city}
-          setCity={setCity}
-          state={state}
-          setState={setState}
-          savedFilter={savedFilter}
-          setSavedFilter={setSavedFilter}
-
-        />
+    <RootStyle>
+      <RecentlySoldDataFilter
+        recentlySoldFilters={recentlySoldFilters}
+        product={product}
+        minPrice={minPrice}
+        setMinPrice={setMinPrice}
+        maxPrice={maxPrice}
+        setMaxPrice={setMaxPrice}
+        minYear={minYear}
+        setMinYear={setMinYear}
+        maxYear={maxYear}
+        setMaxYear={setMaxYear}
+        minDaysAgo={minDaysAgo}
+        setMinDaysAgo={setMinDaysAgo}
+        maxDaysAgo={maxDaysAgo}
+        setMaxDaysAgo={setMaxDaysAgo}
+        tagFilters={tagFilters}
+        setTagFilters={setTagFilters}
+        zipCode={zipCode}
+        setZipCode={setZipCode}
+        city={city}
+        setCity={setCity}
+        state={state}
+        setState={setState}
+        savedFilter={savedFilter}
+        setSavedFilter={setSavedFilter}
+      />
     </RootStyle>
   );
 }

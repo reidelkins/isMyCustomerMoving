@@ -4,7 +4,7 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import { Button, Typography, Container, Box } from '@mui/material';
 // components
-import Page from '../components/Page';
+import Page from '../../components/Page';
 
 // ----------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ const ContentStyle = styled('div')(({ theme }) => ({
   display: 'flex',
   justifyContent: 'center',
   flexDirection: 'column',
-  padding: theme.spacing(12, 0)
+  padding: theme.spacing(12, 0),
 }));
 
 // ----------------------------------------------------------------------
@@ -27,7 +27,7 @@ export default function Page404() {
       navigate('/login', { replace: true });
     }, 2000);
   }, [navigate]);
-    
+
   return (
     <Page title="404 Page Not Found">
       <Container>
@@ -37,8 +37,8 @@ export default function Page404() {
           </Typography>
 
           <Typography sx={{ color: 'text.secondary' }}>
-            Sorry, we couldn’t find the page you’re looking for. Perhaps you’ve mistyped the URL? Be
-            sure to check your spelling.
+            Sorry, we couldn’t find the page you’re looking for. Perhaps you’ve mistyped the URL? Be sure to check your
+            spelling.
           </Typography>
 
           <Box

@@ -14,25 +14,16 @@ Coded by www.creative-tim.com
 */
 
 // prop-types is a library for typechecking of props.
-import PropTypes from "prop-types";
+import PropTypes from 'prop-types';
 
 // react-countup component
-import CountUp from "react-countup";
+import CountUp from 'react-countup';
 
 // Material Kit 2 React components
-import {Box, Typography} from '@mui/material';
+import { Box, Typography } from '@mui/material';
 
 CounterCard.propTypes = {
-  color: PropTypes.oneOf([
-    "primary",
-    "secondary",
-    "info",
-    "success",
-    "warning",
-    "error",
-    "light",
-    "dark",
-  ]),
+  color: PropTypes.oneOf(['primary', 'secondary', 'info', 'success', 'warning', 'error', 'light', 'dark']),
   start: PropTypes.number.isRequired,
   end: PropTypes.number.isRequired,
   title: PropTypes.string,
