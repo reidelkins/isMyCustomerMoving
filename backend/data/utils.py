@@ -627,7 +627,10 @@ def get_service_titan_access_token(company):
 
     url = "https://auth.servicetitan.io/connect/token"
 
-    payload = f"grant_type=client_credentials&client_id={company.client_id}&client_secret={company.client_secret}"
+    payload = (
+        f"grant_type=client_credentials&"
+        f"client_id={company.client_id}&client_secret={company.client_secret}"
+    )
     headers = {
         "ST-App-Key": app_key,
         "Content-Type": "application/x-www-form-urlencoded",
@@ -1088,7 +1091,7 @@ def filter_recently_sold(query_params, queryset, company_id):
             queryset = queryset.filter(year_built__lte=query_params[param])
         elif param in ["min_days_ago", "max_days_ago"]:
             filter_key = (
-                f"listed__lte" if param == "min_days_ago" else f"listed__gte"
+                "listed__lte" if param == "min_days_ago" else "listed__gte"
             )
             queryset = queryset.filter(
                 **{
@@ -1169,9 +1172,9 @@ def filter_clients(query_params, queryset):
             queryset = queryset.filter(status__in=statuses)
         elif param in ["customer_since_min", "customer_since_max"]:
             filter_key = (
-                f"service_titan_customer_since__gte"
+                "service_titan_customer_since__gte"
                 if param.endswith("min")
-                else f"service_titan_customer_since__lte"
+                else "service_titan_customer_since__lte"
             )
             date_value = (
                 date(int(query_params[param]), 1, 1)

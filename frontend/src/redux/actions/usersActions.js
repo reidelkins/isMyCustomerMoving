@@ -306,45 +306,49 @@ export const deleteUserAsync = (ids) => async (dispatch, getState) => {
   }
 };
 
-export const clientsAsync = (page) => async (dispatch, getState) => {
-  try {
-    const reduxStore = getState();
-    const { userInfo } = reduxStore.auth.userInfo;
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access_token}`,
-      },
-    };
+export const clientsAsync =
+  (page, refreshed = false) =>
+  async (dispatch, getState) => {
+    try {
+      const reduxStore = getState();
+      const { userInfo } = reduxStore.auth.userInfo;
+      const config = {
+        headers: {
+          'Content-type': 'application/json',
+          Authorization: `Bearer ${userInfo.access_token}`,
+        },
+      };
 
-    if (page === 1) {
-      dispatch(clientsLoading());
-    }
-    if (page > reduxStore.user.clientsInfo.highestPage || page === 1) {
-      const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/${userInfo.id}?page=${page}`, config);
       if (page === 1) {
-        dispatch(clients(data));
-      } else {
-        dispatch(moreClients(data));
+        dispatch(clientsLoading());
       }
-      if (data.results.clients.length > 0) {
-        dispatch(newPage(page));
-        if (data.results.clients.length === 1000) {
-          dispatch(clientsAsync(page + 1));
+      if (page > reduxStore.user.clientsInfo.highestPage || page === 1) {
+        const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/${userInfo.id}?page=${page}`, config);
+        if (page === 1) {
+          dispatch(clients(data));
+        } else {
+          dispatch(moreClients(data));
         }
+        if (data.results.clients.length > 0) {
+          dispatch(newPage(page));
+          if (data.results.clients.length === 1000) {
+            dispatch(clientsAsync(page + 1));
+          }
+        }
+      } else {
+        dispatch(clientsNotLoading());
       }
-    } else {
-      dispatch(clientsNotLoading());
-    }
-  } catch (error) {
-    // localStorage.removeItem('userInfo');
-    // dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    } catch (error) {
+      // localStorage.removeItem('userInfo');
+      // dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
 
-    if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, clientsAsync(page)));
+      if (error.response.status === 403 && !refreshed) {
+        dispatch(getRefreshToken(dispatch, clientsAsync(page, true)));
+      } else {
+        dispatch(logout());
+      }
     }
-  }
-};
+  };
 
 export const deleteClientAsync = (ids) => async (dispatch, getState) => {
   try {

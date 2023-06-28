@@ -3,8 +3,8 @@ from config import settings
 from datetime import datetime, timedelta, timezone
 from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
-from django.http import JsonResponse, Http404, HttpResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.http import JsonResponse, Http404
+from django.shortcuts import get_object_or_404
 from django.template.loader import get_template
 from django.utils.timezone import make_aware
 from functools import wraps
@@ -18,7 +18,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view
 from rest_framework_simplejwt.views import TokenObtainPairView
 import logging
 
@@ -1009,7 +1008,8 @@ class CompanyView(APIView):
                 return Response(
                     "", status=status.HTTP_201_CREATED, headers=""
                 )
-            except:
+            except Exception as e:
+                logging.error(e)
                 return Response(comp, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(e)

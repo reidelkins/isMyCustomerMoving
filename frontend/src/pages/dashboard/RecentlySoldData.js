@@ -32,7 +32,7 @@ import Iconify from '../../components/Iconify';
 import { RecentlySoldListToolbar } from '../../sections/@dashboard/recentlySold';
 
 import RecentlySoldListCall from '../../redux/calls/RecentlySoldListCall';
-import { selectRecentlySold, recentlySoldAsync, getRecentlySoldCSV } from '../../redux/actions/usersActions';
+import { selectRecentlySold, getRecentlySoldCSV } from '../../redux/actions/usersActions';
 import { showLoginInfo } from '../../redux/actions/authActions';
 import { makeDate } from '../../utils/makeDate';
 
