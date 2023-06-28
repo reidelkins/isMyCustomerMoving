@@ -15,12 +15,12 @@ from .utils import del_variables
 
 zip_scrapflies = [
     ScrapflyClient(key=settings.SCRAPFLY_KEY, max_concurrency=1)
-    for _ in range(20)
+    for _ in range(1, 21)
 ]
 
 detail_scrapflies = [
     ScrapflyClient(key=settings.SCRAPFLY_KEY, max_concurrency=1)
-    for _ in range(20)
+    for _ in range(1, 21)
 ]
 
 
@@ -201,9 +201,14 @@ def get_scrapfly_scrape(scrapfly, page):
     Returns:
         Scrapfly's ScrapeConfig object
     """
-    return scrapfly.ScrapeConfig(
-        api_key=settings.SCRAPEFLY_API_KEY, url=page, return_steps=True
-    ).scrape()
+    return scrapfly.scrape(
+        ScrapeConfig(
+            url=page,
+            country="US",
+            asp=False,
+            proxy_pool="public_datacenter_pool",
+        )
+    )
 
 
 def parse_search(result, status):
