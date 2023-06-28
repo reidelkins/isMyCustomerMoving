@@ -30,6 +30,7 @@ class CompanySerializer(serializers.ModelSerializer):
     product = serializers.SerializerMethodField("get_product", read_only=True)
     tenant_id = serializers.CharField(max_length=100, required=False)
     client_id = serializers.CharField(max_length=100, required=False)
+    service_titan_app_version = serializers.IntegerField(required=False)
     service_titan_for_rent_tag_id = serializers.CharField(
         max_length=100, required=False
     )
@@ -74,6 +75,7 @@ class CompanySerializer(serializers.ModelSerializer):
             "clients_count",
             "service_titan_customer_sync_option",
             "product",
+            "service_titan_app_version",
         ]
 
     def create(self, validated_data):
@@ -142,7 +144,9 @@ class UserSerializer(serializers.Serializer):
     otp_base32 = serializers.CharField(read_only=True)
     otp_auth_url = serializers.CharField(read_only=True)
     is_enterprise_owner = serializers.BooleanField(read_only=True)
-    finished_st_integration = serializers.SerializerMethodField(read_only=True)
+    finished_st_integration = serializers.SerializerMethodField(
+        read_only=True
+    )
 
     def get_finished_st_integration(self, obj):
         return (

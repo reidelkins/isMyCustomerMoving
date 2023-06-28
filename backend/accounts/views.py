@@ -1,6 +1,6 @@
 # Import the required modules at the beginning of the script
 from config import settings
-import datetime
+from datetime import datetime, timedelta, timezone
 from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from django.http import JsonResponse, Http404, HttpResponse
@@ -22,6 +22,7 @@ from rest_framework.decorators import api_view
 from rest_framework_simplejwt.views import TokenObtainPairView
 import logging
 
+from djstripe import models as djstripe_models
 from .models import Company, CustomUser, Enterprise, InviteToken
 from .serializers import (
     UserSerializer,
@@ -30,7 +31,7 @@ from .serializers import (
     MyTokenObtainPairSerializer,
     EnterpriseSerializer,
 )
-from .utils import create_keap_user
+from .utils import create_keap_user, create_keap_company, make_company
 from .constants import INVITE_MESSAGE, INVITE_REMINDER_MESSAGE
 
 
@@ -87,7 +88,10 @@ class AcceptInvite(APIView):
             token = InviteToken.objects.get(
                 id=invite_token_id, email=request.data["email"]
             )
-            if token.expiration <= pytz.timezone.now():
+            # Assuming token.expiration is an aware datetime object
+            token_expiration = token.expiration.replace(tzinfo=timezone.utc)
+
+            if token_expiration <= datetime.now(timezone.utc):
                 return Response(
                     {"status": "Token Expired"},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -139,10 +143,12 @@ class ManageUserView(APIView):
         try:
             # Replaced the call to filter and get with a single get call.
             company = Company.objects.get(id=company_id)
-            admin = CustomUser.objects.get(company=company, status="admin")
+            admin = CustomUser.objects.filter(
+                company=company, status="admin"
+            ).first()
 
             # Simplified the creation of CustomUser and InviteToken objects.
-            user, created_user = CustomUser.objects.get_or_create(
+            _, _ = CustomUser.objects.get_or_create(
                 email=request.data["email"],
                 company=company,
                 status="pending",
@@ -157,7 +163,7 @@ class ManageUserView(APIView):
             )
             if not created_token:
                 token.expiration = make_aware(
-                    datetime.datetime.utcnow() + datetime.timedelta(days=1),
+                    datetime.utcnow() + timedelta(days=1),
                     timezone=pytz.UTC,
                 )
                 token.save()
@@ -166,7 +172,7 @@ class ManageUserView(APIView):
             self._send_email(
                 mail_subject, admin, token, request.data["email"]
             )
-            return self._get_response(company, user)
+            return self._get_response(company)
 
         except Exception as e:
             logging.error(e)
@@ -182,7 +188,7 @@ class ManageUserView(APIView):
             user.status = "admin"
             user.save()
 
-            return self._get_response(user.company, user)
+            return self._get_response(user.company)
 
         except Exception as e:
             logging.error(e)
@@ -201,50 +207,75 @@ class ManageUserView(APIView):
         send_mail(
             mail_subject,
             message_plain,
-            "your-email@example.com",  # Replace with your actual email
+            "reid@ismycustomermoving.com",  # Replace with your actual email
             [recipient],
             fail_silently=False,
             html_message=message_html,
         )
+        return self._get_response(admin.company)
 
+    def _get_response(self, company):
+        # return list of users that are part of the company using UserListSerializer
+        users = CustomUser.objects.filter(company=company)
+        serializer = UserListSerializer(users, many=True)
+        return Response(serializer.data)
 
-def put(self, request, *args, **kwargs):
-    try:
-        if CustomUser.objects.filter(id=self.kwargs["id"]).exists():
-            user = CustomUser.objects.get(id=self.kwargs["id"])
-            if user:
-                # Ensure provided email is not already in use by another user
-                if (
-                    CustomUser.objects.filter(email=request.data["email"])
-                    .exclude(id=user.id)
-                    .exists()
-                ):
-                    return Response(
-                        {"status": "Email already in use"},
-                        status=status.HTTP_400_BAD_REQUEST,
+    def put(self, request, *args, **kwargs):
+        try:
+            if CustomUser.objects.filter(id=self.kwargs["id"]).exists():
+                user = CustomUser.objects.get(id=self.kwargs["id"])
+                if user:
+                    # Ensure provided email is not already in use by another user
+                    if (
+                        CustomUser.objects.filter(email=request.data["email"])
+                        .exclude(id=user.id)
+                        .exists()
+                    ):
+                        return Response(
+                            {"status": "Email already in use"},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+                    user.first_name = request.data.get(
+                        "firstName", user.first_name
                     )
-
-                user.first_name = request.data.get(
-                    "firstName", user.first_name
+                    user.last_name = request.data.get(
+                        "lastName", user.last_name
+                    )
+                    user.email = request.data.get("email", user.email)
+                    if request.data.get("phone"):
+                        user.phone = request.data["phone"]
+                    user.save()
+                    create_keap_user(user.id)
+                serializer = UserSerializerWithToken(user, many=False)
+                return Response(serializer.data)
+            else:
+                return Response(
+                    {"status": "User Not Found"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
-                user.last_name = request.data.get("lastName", user.last_name)
-                user.email = request.data.get("email", user.email)
-                if request.data.get("phone"):
-                    user.phone = request.data["phone"]
-                user.save()
-                create_keap_user(user.id)
-            serializer = UserSerializerWithToken(user, many=False)
-            return Response(serializer.data)
-        else:
+        except Exception as e:
+            logging.error(e)
             return Response(
-                {"status": "User Not Found"},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST
             )
-    except Exception as e:
-        logging.error(e)
-        return Response(
-            {"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST
-        )
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            if CustomUser.objects.filter(id__in=request.data).exists():
+                users = CustomUser.objects.filter(id__in=request.data)
+                users.delete()
+                return self._get_response(request.user.company)
+            else:
+                return Response(
+                    {"status": "User Not Found"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        except Exception as e:
+            logging.error(e)
+            return Response(
+                {"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class RegisterView(APIView):
@@ -259,7 +290,7 @@ class RegisterView(APIView):
         email = data.get("email")
         password = data.get("password")
         company = data.get("company")
-        registrationToken = data.get("registrationToken")
+        registration_token = data.get("registrationToken")
         phone = data.get("phone")
         messages = {"errors": []}
         if first_name is None:
@@ -272,7 +303,7 @@ class RegisterView(APIView):
             messages["errors"].append("Password can't be empty")
         if company is None:
             messages["errors"].append("Company can't be empty")
-        if registrationToken is None:
+        if registration_token is None:
             messages["errors"].append("Registration Token can't be empty")
 
         if CustomUser.objects.filter(email=email).exists():
@@ -286,10 +317,10 @@ class RegisterView(APIView):
             )
         try:
             company = Company.objects.get(
-                name=company, accessToken=registrationToken
+                name=company, access_token=registration_token
             )
             noAdmin = CustomUser.objects.filter(
-                company=company, isVerified=True
+                company=company, is_verified=True
             )
             if len(noAdmin) == 0:
                 user = CustomUser.objects.create(
@@ -299,7 +330,7 @@ class RegisterView(APIView):
                     password=make_password(password, salt=uuid.uuid4().hex),
                     company=company,
                     status="admin",
-                    isVerified=True,
+                    is_verified=True,
                     phone=phone,
                 )
                 # user = CustomUser.objects.get(email=email)
@@ -338,36 +369,6 @@ class RegisterView(APIView):
                 {"detail": f"{e}"}, status=status.HTTP_400_BAD_REQUEST
             )
         return Response(serializer.data)
-
-
-@api_view(["GET"])
-def confirmation(request, pk, uid):
-    user = CustomUser.objects.get(id=uid)
-    token = jwt.decode(pk, settings.SECRET_KEY, algorithms=["HS256"])
-
-    if (
-        not user.isVerified
-        and datetime.datetime.fromtimestamp(token["exp"])
-        > datetime.datetime.now()
-    ):
-        user.isVerified = True
-        user.save()
-        return redirect("http://www.ismycustomermoving.com/login")
-
-    elif (
-        datetime.datetime.fromtimestamp(token["exp"])
-        < datetime.datetime.now()
-    ):
-        # For resending confirmation email
-        #  use send_mail with the following encryption
-        # print(jwt.encode({
-        # 'user_id': user.user.id,
-        #  'exp': datetime.datetime.now() + datetime.timedelta(days=1)},
-        #  settings.SECRET_KEY, algorithm='HS256'))
-
-        return HttpResponse("Your activation link has been expired")
-    else:
-        return redirect("http://www.ismycustomermoving.com/login")
 
 
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -534,7 +535,7 @@ class UserListView(generics.ListAPIView):
     serializer_class = UserListSerializer
 
     def get_queryset(self):
-        return CustomUser.objects.filter(company=self.kwargs["company_id"])
+        return CustomUser.objects.filter(company=self.kwargs["company"])
 
 
 # PEP8 compliance recommends using snake_case for variable names
@@ -938,3 +939,80 @@ class UserEnterpriseView(APIView):
         request.user.save()
         serializer = UserSerializerWithToken(request.user)
         return Response(serializer.data)
+
+
+class CompanyView(APIView):
+    """
+    An API view to handle the process related to Company.
+    """
+
+    def put(self, request, *args, **kwargs):
+        try:
+            company = Company.objects.get(id=request.data["company"])
+            if request.data["email"] != "":
+                company.email = request.data["email"]
+            if request.data["phone"] != "":
+                company.phone = request.data["phone"]
+            if request.data["tenantID"] != "":
+                company.tenant_id = request.data["tenantID"]
+            if request.data["clientID"] != "":
+                company.client_id = request.data["clientID"]
+                company.client_secret = request.data["clientSecret"]
+            if request.data["forSaleTag"] != "":
+                company.service_titan_for_sale_tag_id = request.data[
+                    "forSaleTag"
+                ]
+            if request.data["forRentTag"] != "":
+                company.service_titan_for_rent_tag_id = request.data[
+                    "forRentTag"
+                ]
+            if request.data["soldTag"] != "":
+                company.service_titan_recently_sold_tag_id = request.data[
+                    "soldTag"
+                ]
+            if request.data["soldContactedTag"] != "":
+                company.service_titan_recently_sold_contacted_tag_id = (
+                    request.data["soldContactedTag"]
+                )
+            if request.data["forSaleContactedTag"] != "":
+                company.service_titan_for_sale_contacted_tag_id = (
+                    request.data["forSaleContactedTag"]
+                )
+            if request.data["crm"] != "":
+                company.crm = request.data["crm"]
+            company.save()
+            user = CustomUser.objects.get(id=request.data["user"])
+            serializer = UserSerializerWithToken(user, many=False)
+            return Response(
+                serializer.data, status=status.HTTP_201_CREATED, headers=""
+            )
+        except Exception as e:
+            logging.error(e)
+            return Response(
+                {"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def post(self, request, *args, **kwargs):
+        try:
+            email = request.data["email"]
+            phone = request.data["phone"]
+            companyName = request.data["companyName"]
+            comp = make_company(companyName, email, phone)
+            try:
+                comp = Company.objects.get(id=comp)
+                freePlan = djstripe_models.Plan.objects.get(
+                    id="price_1MhxfPAkLES5P4qQbu8O45xy"
+                )
+                comp.product = freePlan
+                comp.save()
+                create_keap_company(comp.id)
+                return Response(
+                    "", status=status.HTTP_201_CREATED, headers=""
+                )
+            except:
+                return Response(comp, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logging.error(e)
+            return Response(
+                {"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST
+            )

@@ -17,7 +17,12 @@ def make_company(company_name, email, phone, stripe_id=None):
     Creates a new company and sends an email with the access token.
     """
     try:
-        comp_data = {"name": company_name, "phone": phone, "email": email}
+        comp_data = {
+            "name": company_name,
+            "phone": phone,
+            "email": email,
+            "service_titan_app_version": 2,
+        }
 
         if stripe_id:
             comp_data["stripe_id"] = stripe_id
@@ -237,3 +242,52 @@ def create_keap_user(user_id):
 
     except Exception as e:
         logging.error(f"Error in create_keap_user: {e}")
+
+
+def make_company(companyName, email, phone, stripeId=None):
+    try:
+        if stripeId:
+            comp = {
+                "name": companyName,
+                "phone": phone,
+                "email": email,
+                "stripeID": stripeId,
+            }
+        else:
+            comp = {"name": companyName, "phone": phone, "email": email}
+        serializer = CompanySerializer(data=comp)
+        if serializer.is_valid():
+            company = serializer.save()
+            if company:
+                mail_subject = "Access Token for Is My Customer Moving"
+                messagePlain = "Your access token is: " + company.access_token
+                messagePlain = (
+                    "Thank you for signing up for Is My Customer Moving. Your company name is: "
+                    + company.name
+                    + "and your access token is: "
+                    + company.access_token
+                    + ". Please use this info at https://app.ismycustomermoving.com/register to create your account."
+                )
+                message = get_template("registration.html").render(
+                    {
+                        "company": company.name,
+                        "access_token": company.access_token,
+                    }
+                )
+                send_mail(
+                    subject=mail_subject,
+                    message=messagePlain,
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[email],
+                    html_message=message,
+                    fail_silently=False,
+                )
+                return company.id
+            else:
+                return {"Error": "Company with that name already exists"}
+        else:
+            logging.error(serializer.errors)
+            return {"Error": "Serializer not valid"}
+    except Exception as e:
+        logging.error(e)
+        return {"Error": f"{e}"}

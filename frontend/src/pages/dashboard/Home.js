@@ -224,9 +224,9 @@ export default function HomePage() {
   };
   const handleChangePage = (event, newPage) => {
     // fetch new page if two away from needing to see new page
-    if (((newPage + 2) * rowsPerPage) % 1000 === 0) {
-      dispatch(clientsAsync(((newPage + 2) * rowsPerPage) / 1000 + 1));
-    }
+    // if (((newPage + 2) * rowsPerPage) % 1000 === 0) {
+    //   dispatch(clientsAsync(((newPage + 2) * rowsPerPage) / 1000 + 1));
+    // }
     setPage(newPage);
   };
   const handleChangeRowsPerPage = (event) => {
@@ -496,7 +496,7 @@ export default function HomePage() {
                                                   'success'
                                                 }
                                               >
-                                                {sentenceCase(status)}
+                                                {status === 'No Change' ? 'Off Market' : sentenceCase(status)}
                                               </Label>
                                             ) : (
                                               <Label variant="ghost" color="warning">

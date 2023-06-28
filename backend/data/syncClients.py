@@ -105,8 +105,10 @@ def get_service_titan_clients(
     page = 1
     while moreClients:
         response = requests.get(
-            f"""https://api.servicetitan.io/crm/
-            v2/tenant/{tenant}/locations?page={page}&pageSize=2500""",
+            url=(
+                f"https://api.servicetitan.io/crm/v2/tenant/"
+                f"{tenant}/locations?page={page}&pageSize=2500"
+            ),
             headers=headers,
             timeout=10,
         )
@@ -138,8 +140,10 @@ def get_service_titan_clients(
         while moreClients:
             page += 1
             response = requests.get(
-                f"""https://api.servicetitan.io/crm/
-                v2/tenant/{tenant}/export/customers/contacts?from={frm}""",
+                url=(
+                    f"https://api.servicetitan.io/crm/v2/tenant/"
+                    f"{tenant}/export/customers/contacts?from={frm}"
+                ),
                 headers=headers,
                 timeout=10,
             )

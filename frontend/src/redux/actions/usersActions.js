@@ -339,7 +339,7 @@ export const clientsAsync = (page) => async (dispatch, getState) => {
   } catch (error) {
     // localStorage.removeItem('userInfo');
     // dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    // dispatch(logout());
+
     if (error.response.status === 403) {
       dispatch(getRefreshToken(dispatch, clientsAsync(page)));
     }
@@ -682,13 +682,13 @@ export const makeAdminAsync = (userId) => async (dispatch, getState) => {
     };
 
     dispatch(usersLoading());
-    const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/manageuser/${userId}/`, config);
+    const { data } = await axios.post(`${DOMAIN}/api/v1/accounts/manageuser/${userId}/`, {}, config);
     dispatch(users(data));
   } catch (error) {
     dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, makeAdminAsync(userId)));
-    }
+    // if (error.response.status === 403) {
+    //   dispatch(getRefreshToken(dispatch, makeAdminAsync(userId)));
+    // }
   }
 };
 
@@ -726,8 +726,11 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
         `${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}?page=${page}`,
         config
       );
-      if (data.results.length > 0) {
+      if (data.results.data.length > 0) {
         dispatch(newRecentlySoldPage(page));
+        if (data.results.data.length === 1000) {
+          dispatch(recentlySoldAsync(page + 1));
+        }
       }
       if (page === 1) {
         dispatch(recentlySold(data));
@@ -881,7 +884,12 @@ export const getClientsCSV = (
   maxYear,
   tagFilters,
   equipInstallDateMin,
-  equipInstallDateMax
+  equipInstallDateMax,
+  city,
+  state,
+  zipCode,
+  customerSinceMin,
+  customerSinceMax
   // eslint-disable-next-line arrow-body-style
 ) => {
   return async (dispatch, getState) => {
@@ -905,16 +913,34 @@ export const getClientsCSV = (
       filters += `&max_price=${maxPrice}`;
     }
     if (minYear) {
-      filters += `&min_price=${minYear}`;
+      filters += `&min_year=${minYear}`;
     }
     if (maxYear) {
-      filters += `&max_price=${maxYear}`;
+      filters += `&max_year=${maxYear}`;
+    }
+    if (tagFilters.length > 0) {
+      filters += `&tags=${tagFilters.join('&tags=')}`;
     }
     if (equipInstallDateMin) {
-      filters += `&install_date_min=${equipInstallDateMin}`;
+      filters += `&equip_install_date_min=${equipInstallDateMin}`;
     }
     if (equipInstallDateMax) {
-      filters += `&install_date_max=${equipInstallDateMax}`;
+      filters += `&equip_install_date_max=${equipInstallDateMax}`;
+    }
+    if (city) {
+      filters += `&city=${city}`;
+    }
+    if (state) {
+      filters += `&state=${state}`;
+    }
+    if (zipCode) {
+      filters += `&zip_code=${zipCode}`;
+    }
+    if (customerSinceMin) {
+      filters += `&customer_since_min=${customerSinceMin}`;
+    }
+    if (customerSinceMax) {
+      filters += `&customer_since_max=${customerSinceMax}`;
     }
     const response = await axios.get(`${DOMAIN}/api/v1/data/downloadclients/${userInfo.id}/?${filters}`, config);
     const csvBlob = new Blob([response.data], { type: 'text/csv' }); // Convert binary response to a blob
@@ -923,7 +949,8 @@ export const getClientsCSV = (
 };
 
 export const getRecentlySoldCSV =
-  (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters) => async (dispatch, getState) => {
+  (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, savedFilter) =>
+  async (getState) => {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
     const config = {
@@ -953,6 +980,18 @@ export const getRecentlySoldCSV =
     }
     if (tagFilters) {
       filters += `&tags=${tagFilters.join(',')}`;
+    }
+    if (city) {
+      filters += `&city=${city}`;
+    }
+    if (state) {
+      filters += `&state=${state}`;
+    }
+    if (zipCode) {
+      filters += `&zip_code=${zipCode}`;
+    }
+    if (savedFilter) {
+      filters += `&saved_filter=${savedFilter}`;
     }
     const response = await axios.get(
       `${DOMAIN}/api/v1/data/downloadrecentlysold/${userInfo.company.id}/?${filters}`,
@@ -988,20 +1027,19 @@ export const saveFilterAsync =
         },
       };
       const body = {
-        filterName,
-        minPrice,
-        maxPrice,
-        minYear,
-        maxYear,
-        minDaysAgo,
-        maxDaysAgo,
-        tagFilters,
+        filter_name: filterName,
+        min_price: minPrice,
+        max_price: maxPrice,
+        min_year: minYear,
+        max_year: maxYear,
+        min_days_ago: minDaysAgo,
+        max_days_ago: maxDaysAgo,
+        tag_filters: tagFilters,
         city,
         state,
-        zipCode,
-        forZapier,
+        zip_code: zipCode,
+        for_zapier: forZapier,
       };
-      console.log(body);
       dispatch(saveFilterLoading());
       await axios.post(`${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}/`, body, config);
       dispatch(saveFilter());

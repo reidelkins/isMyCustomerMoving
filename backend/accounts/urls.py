@@ -55,7 +55,7 @@ urlpatterns = [
     path(
         "otp/generate/", views.OTPGenerateView.as_view(), name="otp-generate"
     ),
-    # path("company/", views.company, name="createCompany"),
+    path("company/", views.CompanyView.as_view(), name="createCompany"),
     path(
         "manageuser/<str:id>/",
         views.ManageUserView.as_view(),

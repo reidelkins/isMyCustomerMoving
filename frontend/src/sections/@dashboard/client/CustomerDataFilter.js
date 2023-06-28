@@ -205,7 +205,6 @@ export default function CustomerDataFilter({
     { value: 'For Sale', label: 'For Sale' },
     { value: 'Recently Sold', label: 'Recently Sold' },
     { value: 'Off Market', label: 'Off Market' },
-    { value: 'No Status', label: 'No Status' },
   ];
 
   const handleFilterSubmit = (event) => {

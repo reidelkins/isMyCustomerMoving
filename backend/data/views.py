@@ -172,7 +172,7 @@ class RecentlySoldView(generics.ListAPIView):
                 listed__gt=(
                     datetime.datetime.today() - datetime.timedelta(days=30)
                 ).strftime("%Y-%m-%d"),
-            ).order_by("listed")
+            ).order_by("-listed")
             return filter_recently_sold(query_params, queryset, company.id)
         else:
             return HomeListing.objects.none()
@@ -200,7 +200,7 @@ class RecentlySoldView(generics.ListAPIView):
         data = request.data
         company = Company.objects.get(id=company)
 
-        filterName = data["filterName"]
+        filterName = data["filter_name"]
 
         if SavedFilter.objects.filter(
             name=filterName, company=company, for_existing_client=True
@@ -211,24 +211,24 @@ class RecentlySoldView(generics.ListAPIView):
             )
         else:
             filters = {
-                "min_price": data["minPrice"],
-                "max_price": data["maxPrice"],
-                "min_year": data["minYear"],
-                "max_year": data["maxYear"],
-                "min_days_ago": data["minDaysAgo"],
-                "max_days_ago": data["maxDaysAgo"],
-                "tags": data["tagFilters"],
+                "min_price": data["min_price"],
+                "max_price": data["max_price"],
+                "min_year": data["min_year"],
+                "max_year": data["max_year"],
+                "min_days_ago": data["min_days_ago"],
+                "max_days_ago": data["max_days_ago"],
+                "tags": data["tag_filters"],
                 "city": data["city"],
                 "state": data["state"],
-                "zip_code": data["zipCode"],
+                "zip_code": data["zip_code"],
             }
 
-            forZapier = data["forZapier"]
+            forZapier = data["for_zapier"]
             SavedFilter.objects.create(
                 name=filterName,
                 company=company,
-                savedFilters=json.dumps(filters),
-                forZapier=forZapier,
+                saved_filters=json.dumps(filters),
+                for_zapier=forZapier,
             )
             return Response(
                 {"success": "Filter created successfully"},
@@ -237,7 +237,7 @@ class RecentlySoldView(generics.ListAPIView):
 
     def delete(self, request, company, format=None):
         data = request.data
-        filterName = data["filterName"]
+        filterName = data["filter_name"]
         company = Company.objects.get(id=company)
         SavedFilter.objects.filter(name=filterName, company=company).delete()
         return Response(
@@ -286,20 +286,21 @@ class AllRecentlySoldView(generics.ListAPIView):
             writer.writerow(row)
         return response
 
-    def get_queryset(self, company):
+    def get_queryset(self, company_id):
         query_params = self.request.query_params
-        company = Company.objects.get(id=company)
+        company = Company.objects.get(id=company_id)
         if company.recently_sold_purchased:
-            zip_code_objects = Client.objects.filter(company=company).values(
-                "zip_code"
-            )
+            zip_code_objects = Client.objects.filter(
+                company=company, active=True
+            ).values("zip_code")
             queryset = HomeListing.objects.filter(
                 zip_code__in=zip_code_objects,
+                status="House Recently Sold (6)",
                 listed__gt=(
                     datetime.datetime.today() - datetime.timedelta(days=30)
                 ).strftime("%Y-%m-%d"),
-            ).order_by("listed")
-            return filter_recently_sold(query_params, queryset)
+            ).order_by("-listed")
+            return filter_recently_sold(query_params, queryset, company_id)
         else:
             return HomeListing.objects.none()
 

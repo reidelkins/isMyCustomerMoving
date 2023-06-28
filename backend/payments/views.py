@@ -2,8 +2,8 @@ from django.conf import settings
 from django.template.loader import get_template
 from django.core.mail import send_mail
 from accounts.models import Company, CustomUser
-from accounts.utils import makeCompany, create_keap_company
-from data.utils import deleteExtraClients, reactivateClients
+from accounts.utils import make_company, create_keap_company
+from data.utils import delete_extra_clients, reactivate_clients
 
 from djstripe import webhooks, models as djstripe_models
 
@@ -141,7 +141,7 @@ def completed_checkout(event: djstripe_models.Event):
         obj = event.data["object"]
         phone = obj["customer_details"]["phone"]
         email = obj["customer_details"]["email"]
-        companyName = obj["custom_fields"][0]["text"]["value"]
+        company_name = obj["custom_fields"][0]["text"]["value"]
         stripeId = obj["customer"]
         subscription = djstripe_models.Subscription.objects.get(
             id=obj["subscription"]
@@ -149,7 +149,7 @@ def completed_checkout(event: djstripe_models.Event):
         plan = subscription.plan
         try:
             company = Company.objects.get(
-                name=companyName, email=email, stripeID=stripeId
+                name=company_name, email=email, stripeID=stripeId
             )
             company.stripe_id = stripeId
             company.product = plan
@@ -158,7 +158,7 @@ def completed_checkout(event: djstripe_models.Event):
             create_keap_company(company.id)
         except Company.DoesNotExist:
             try:
-                company = makeCompany(companyName, email, phone, stripeId)
+                company = make_company(company_name, email, phone, stripeId)
                 company = Company.objects.get(id=company)
                 company.product = plan
                 company.save()
@@ -168,9 +168,9 @@ def completed_checkout(event: djstripe_models.Event):
 
         users = CustomUser.objects.filter(company=company)
         for user in users:
-            user.isVerified = True
+            user.is_verified = True
             user.save()
-        deleteExtraClients(company.id)
+        delete_extra_clients(company.id)
     except Exception as e:
         logging.error(f"error: {e}")
 
@@ -189,7 +189,7 @@ def cancel_subscription(event: djstripe_models.Event):
         company.save()
         users = CustomUser.objects.filter(company=company)
         for user in users:
-            user.isVerified = False
+            user.is_verified = False
             user.save()
             mail_subject = "Subscription Ended: Is My Customer Moving"
             # send the endedSubscrition email to each user
@@ -228,8 +228,8 @@ def update_subscription(event: djstripe_models.Event):
         company.product = plan
         company.save()
         if plan != "price_1MhxfPAkLES5P4qQbu8O45xy":
-            deleteExtraClients(company.id)
-            reactivateClients(company.id)
+            delete_extra_clients(company.id)
+            reactivate_clients(company.id)
     except Exception as e:
         logging.error(e)
         logging.error("error")

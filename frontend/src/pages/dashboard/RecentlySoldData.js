@@ -116,9 +116,9 @@ export default function RecentlySoldData() {
 
   const handleChangePage = (event, newPage) => {
     // fetch new page if two away from needing to see new page
-    if (((newPage + 2) * rowsPerPage) % 1000 === 0) {
-      dispatch(recentlySoldAsync(((newPage + 2) * rowsPerPage) / 1000 + 1));
-    }
+    // if (((newPage + 2) * rowsPerPage) % 1000 === 0) {
+    //   dispatch(recentlySoldAsync(((newPage + 2) * rowsPerPage) / 1000 + 1));
+    // }
     setPage(newPage);
   };
   const handleChangeRowsPerPage = (event) => {
@@ -182,7 +182,21 @@ export default function RecentlySoldData() {
   };
 
   const exportCSV = () => {
-    dispatch(getRecentlySoldCSV(minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters));
+    dispatch(
+      getRecentlySoldCSV(
+        minPrice,
+        maxPrice,
+        minYear,
+        maxYear,
+        minDaysAgo,
+        maxDaysAgo,
+        tagFilters,
+        city,
+        state,
+        zipCode,
+        savedFilter
+      )
+    );
   };
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - RECENTLYSOLDLIST.length) : 0;

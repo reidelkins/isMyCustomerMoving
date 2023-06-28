@@ -3,7 +3,7 @@ import { Navigate, useRoutes } from 'react-router-dom';
 import DashboardLayout from './layouts/dashboard';
 import LogoOnlyLayout from './layouts/LogoOnlyLayout';
 //
-import Home from './pages/dashboard/Home';
+import HomePage from './pages/dashboard/Home';
 import RecentlySoldData from './pages/dashboard/RecentlySoldData';
 import Login from './pages/root/Login';
 import Logout from './pages/root/Logout';
@@ -45,7 +45,7 @@ export default function Router() {
         </ProtectedRoute>
       ),
       children: [
-        { path: '', element: <Home /> },
+        { path: '', element: <HomePage /> },
         { path: 'settings/user', element: <ProfileSettings /> },
         { path: 'settings/enterprise', element: <EnterpriseSettings /> },
         { path: 'recentlysold', element: <RecentlySoldData /> },

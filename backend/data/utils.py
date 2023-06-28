@@ -97,11 +97,12 @@ def reactivate_clients(company_id):
     if client_ceiling > clients.count():
         clients.update(active=True)
     else:
-        to_reactive_count = client_ceiling - \
-            clients.filter(active=True).count()
-        clients.filter(active=False).order_by("id")[:to_reactive_count].update(
-            active=True
+        to_reactive_count = (
+            client_ceiling - clients.filter(active=True).count()
         )
+        clients.filter(active=False).order_by("id")[
+            :to_reactive_count
+        ].update(active=True)
 
 
 @shared_task
@@ -328,14 +329,16 @@ def update_client_list(numbers):
     phone_numbers = {}
     for number in numbers:
         try:
-            phone_numbers[number["customerId"]] = number["phoneSettings"][
-                "phone_number"
-            ]
+            if number.get("phoneSettings") is not None:
+                phone_numbers[number["customerId"]] = number[
+                    "phoneSettings"
+                ].get("phoneNumber")
         except Exception as e:
             logging.error(f"update error {e}")
             continue
     clients = Client.objects.filter(
-        serv_titan_id__in=list(phone_numbers.keys()))
+        serv_titan_id__in=list(phone_numbers.keys())
+    )
     for client in clients:
         client.phone_number = phone_numbers[client.serv_titan_id]
         client.save()
@@ -440,7 +443,9 @@ def update_status(zip_code, company_id, status):
 
     clients_to_update = [
         client
-        for client in clients_to_update.values_list("serv_titan_id", flat=True)
+        for client in clients_to_update.values_list(
+            "serv_titan_id", flat=True
+        )
         if client
     ]
 
@@ -619,24 +624,25 @@ def get_service_titan_access_token(company):
         app_key = settings.ST_APP_KEY_2
     else:
         app_key = settings.ST_APP_KEY
+
+    url = "https://auth.servicetitan.io/connect/token"
+
+    payload = f"grant_type=client_credentials&client_id={company.client_id}&client_secret={company.client_secret}"
     headers = {
+        "ST-App-Key": app_key,
         "Content-Type": "application/x-www-form-urlencoded",
     }
-    data = f"""grant_type=client_credentials&
-        client_id={company.client_id}&
-        client_secret={company.client_secret}"""
-    response = requests.post(
-        "https://auth.servicetitan.io/connect/token",
-        headers=headers,
-        data=data,
-        timeout=10,
-    )
-    headers = {
-        "Authorization": response.json()["access_token"],
+
+    response = requests.post(url, headers=headers, data=payload)
+    response_data = response.json()
+    access_token = response_data["access_token"]
+    header = {
+        "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json",
         "ST-App-Key": app_key,
     }
-    return headers
+
+    return header
 
 
 def process_client_tags(client_id):
@@ -829,7 +835,9 @@ def update_service_titan_client_tags(for_sale, company, status):
                 for_sale_to_remove = for_sale
                 payload = {
                     "customerIds": for_sale_to_remove,
-                    "tagTypeIds": [str(company.service_titan_for_sale_tag_id)],
+                    "tagTypeIds": [
+                        str(company.service_titan_for_sale_tag_id)
+                    ],
                 }
                 response = handle_tag_deletion_request(
                     payload, headers, company, for_sale_to_remove
@@ -870,8 +878,10 @@ def add_service_titan_contacted_tag(client, tagId):
     headers = get_service_titan_access_token(client.company.id)
     payload = {"customerIds": [str(client.id)], "tagTypeIds": [str(tagId)]}
     requests.put(
-        f"""https://api.servicetitan.io/crm/
-        v2/tenant/{str(client.company.tenant_id)}/tags""",
+        url=(
+            f"https://api.servicetitan.io/crm/v2/tenant/"
+            f"{str(client.company.tenant_id)}/tags"
+        ),
         headers=headers,
         json=payload,
         timeout=10,
@@ -920,7 +930,7 @@ def remove_all_service_titan_tags(company=None, client=None):
                             time_limit = datetime.now()
 
                         client_subset = clients[
-                            i * 250: (i + 1) * 250  # noqa: E203
+                            i * 250 : (i + 1) * 250  # noqa: E203
                         ]
                         payload = {
                             "customerIds": client_subset,
@@ -955,8 +965,10 @@ def update_service_titan_tasks(clients, company, status):
         try:
             headers = get_service_titan_access_token(company.id)
             response = requests.get(
-                f"""https://api.servicetitan.io/taskmanagement/
-                v2/tenant/{str(company.tenant_id)}/data""",
+                url=(
+                    f"https://api.servicetitan.io/taskmanagement/"
+                    f"v2/tenant/{str(company.tenant_id)}/data"
+                ),
                 headers=headers,
                 timeout=10,
             )
@@ -997,7 +1009,7 @@ def update_service_titan_tasks(clients, company, status):
 def send_update_email(templateName):
     try:
         users = list(
-            CustomUser.objects.filter(isVerified=True).values_list(
+            CustomUser.objects.filter(is_verified=True).values_list(
                 "email", flat=True
             )
         )
@@ -1062,13 +1074,22 @@ def filter_recently_sold(query_params, queryset, company_id):
         ).saved_filters
         query_params = json.loads(query_params)
         query_params = {k: v for k, v in query_params.items() if v != ""}
+        if "tags" in query_params:
+            query_params["tags"] = "".join(query_params["tags"])
 
     for param in query_params:
-        if param in ["min_price", "max_price", "min_year", "max_year"]:
-            filter_key = f"{param.split('_')[1]}__{param.split('_')[0]}"
-            queryset = queryset.filter(**{filter_key: query_params[param]})
+        if param == "min_price":
+            queryset = queryset.filter(price__gte=query_params[param])
+        elif param == "max_price":
+            queryset = queryset.filter(price__lte=query_params[param])
+        elif param == "min_year":
+            queryset = queryset.filter(year_built__gte=query_params[param])
+        elif param == "max_year":
+            queryset = queryset.filter(year_built__lte=query_params[param])
         elif param in ["min_days_ago", "max_days_ago"]:
-            filter_key = f"listed__{param.split('_')[1]}"
+            filter_key = (
+                f"listed__lte" if param == "min_days_ago" else f"listed__gte"
+            )
             queryset = queryset.filter(
                 **{
                     filter_key: (
@@ -1077,11 +1098,15 @@ def filter_recently_sold(query_params, queryset, company_id):
                     ).strftime("%Y-%m-%d")
                 }
             )
+
         elif param == "tags":
             try:
                 tags = query_params[param].split(",")
-                matching_tags = HomeListingTags.objects.filter(tag__in=tags)
-                queryset = queryset.filter(tag__in=matching_tags)
+                if tags[0]:
+                    matching_tags = HomeListingTags.objects.filter(
+                        tag__in=tags
+                    )
+                    queryset = queryset.filter(tag__in=matching_tags)
             except Exception as e:
                 logging.error(e)
         elif param in ["state", "city"]:
@@ -1091,7 +1116,6 @@ def filter_recently_sold(query_params, queryset, company_id):
             zip_code = ZipCode.objects.filter(zip_code=query_params[param])
             if zip_code.exists():
                 queryset = queryset.filter(zip_code=zip_code.first())
-
     return queryset
 
 
@@ -1107,16 +1131,22 @@ def filter_clients(query_params, queryset):
     queryset: Filtered QuerySet.
     """
     for param in query_params:
-        if param in [
-            "min_price",
-            "max_price",
-            "min_year",
-            "max_year",
-            "equip_install_date_min",
-            "equip_install_date_max",
-        ]:
-            filter_key = f"{param.split('_')[1]}__{param.split('_')[0]}"
-            queryset = queryset.filter(**{filter_key: query_params[param]})
+        if param == "min_price":
+            queryset = queryset.filter(price__gte=query_params[param])
+        elif param == "max_price":
+            queryset = queryset.filter(price__lte=query_params[param])
+        elif param == "min_year":
+            queryset = queryset.filter(year_built__gte=query_params[param])
+        elif param == "max_year":
+            queryset = queryset.filter(year_built__lte=query_params[param])
+        elif param == "equip_install_date_min":
+            queryset = queryset.filter(
+                equipment_installed_date__gte=query_params[param]
+            )
+        elif param == "equip_install_date_max":
+            queryset = queryset.filter(
+                equipment_installed_date__lte=query_params[param]
+            )
         elif param in ["state", "city"]:
             filter_key = f"{param}__iexact"
             queryset = queryset.filter(**{filter_key: query_params[param]})
@@ -1134,9 +1164,15 @@ def filter_clients(query_params, queryset):
                 statuses.append("House For Sale")
             if "Recently Sold" in query_params[param]:
                 statuses.append("House Recently Sold (6)")
+            if "Off Market" in query_params[param]:
+                statuses.append("No Change")
             queryset = queryset.filter(status__in=statuses)
         elif param in ["customer_since_min", "customer_since_max"]:
-            filter_key = f"service_titanCustomerSince__{param.split('_')[2]}"
+            filter_key = (
+                f"service_titan_customer_since__gte"
+                if param.endswith("min")
+                else f"service_titan_customer_since__lte"
+            )
             date_value = (
                 date(int(query_params[param]), 1, 1)
                 if param.endswith("min")
