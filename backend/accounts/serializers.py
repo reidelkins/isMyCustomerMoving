@@ -118,12 +118,8 @@ class EnterpriseSerializer(serializers.ModelSerializer):
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         try:
-            print("Validating")
-            print(attrs)
             data = super().validate(attrs)
-            print("After super")
             serializer = UserSerializerWithToken(self.user).data
-            print("After Serializer")
             update_last_login(None, self.user)
             for k, v in serializer.items():
                 data[k] = v
