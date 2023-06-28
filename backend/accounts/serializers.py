@@ -117,19 +117,23 @@ class EnterpriseSerializer(serializers.ModelSerializer):
 # Serializer for generating JWT token pairs
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
-        print("Validating")
-        print(attrs)
-        data = super().validate(attrs)
-        print("After super")
-        serializer = UserSerializerWithToken(self.user).data
-        print("After Serializer")
-        update_last_login(None, self.user)
-        for k, v in serializer.items():
-            data[k] = v
-        if not self.user.is_verified:
-            logging.error("User is not verified")
-            raise serializers.ValidationError("User is not verified")
-        return data
+        try:
+            print("Validating")
+            print(attrs)
+            data = super().validate(attrs)
+            print("After super")
+            serializer = UserSerializerWithToken(self.user).data
+            print("After Serializer")
+            update_last_login(None, self.user)
+            for k, v in serializer.items():
+                data[k] = v
+            if not self.user.is_verified:
+                logging.error("User is not verified")
+                raise serializers.ValidationError("User is not verified")
+            return data
+        except Exception as e:
+            logging.exception("An error occurred during validation")
+            raise e
 
 
 # Serializer for User model
