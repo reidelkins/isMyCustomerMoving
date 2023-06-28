@@ -134,6 +134,7 @@ ROOT_URLCONF = "config.urls"
 CORS_ALLOWED_ORIGINS = [
     CLIENT_ORIGIN_URL,
     CLIENT_FRONEND_URL,
+    "http://localhost:3000"
     # STRIPE
     "https://3.18.12.63",
     "https://3.130.192.231",
