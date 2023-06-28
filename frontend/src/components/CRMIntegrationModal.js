@@ -340,7 +340,7 @@ const Selected = () => (
 const CRMIntegrationModal = ({ user }) => {
   const [open, setOpen] = useState(false);
   const [stOpen, setStOpen] = useState(false);
-  const [sfOpen, setSfOpen] = useState(false);
+  // const [sfOpen, setSfOpen] = useState(false);
   const [hsOpen, setHsOpen] = useState(false);
   const [zohoOpen, setZohoOpen] = useState(false);
 
@@ -387,7 +387,7 @@ const CRMIntegrationModal = ({ user }) => {
         setStOpen(true);
       } else if (name === 'Salesforce') {
         setOpen(false);
-        setSfOpen(true);
+        // setSfOpen(true);
         // window.location.href = `https://login.salesforce.com/services/oauth2/authorize?response_type=code+token&client_id=${salesForce.key}&redirect_uri=${window.location.href}&scope=full%20refresh_token%20offline_access`;
       } else if (name === 'salesforce') {
         window.location.href = `https://login.salesforce.com/services/oauth2/authorize?response_type=code&client_id=${salesForce.key}&redirect_uri=${window.location.href}&scope=full%20refresh_token%20offline_access`;
