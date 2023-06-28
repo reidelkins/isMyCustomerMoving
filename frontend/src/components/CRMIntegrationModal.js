@@ -140,134 +140,134 @@ ServiceTitan.propTypes = {
 };
 
 // Dialog for Salesforce Integration
-const Salesforce = ({ open, setOpen, dispatch }) => {
-  const [integrateInfo, setIntegrateInfo] = useState(false);
-  const handleClose = () => {
-    setOpen(false);
-  };
-  const IntegrateSTSchema = Yup.object().shape({
-    baseURL: Yup.string().required('Salesforce Base URL is required'),
-    clientID: Yup.string().required('Salesforce Client ID is required'),
-    clientSecret: Yup.string().required('Salesforce Client Secret is required'),
-  });
+// const Salesforce = ({ open, setOpen, dispatch }) => {
+//   const [integrateInfo, setIntegrateInfo] = useState(false);
+//   const handleClose = () => {
+//     setOpen(false);
+//   };
+//   const IntegrateSTSchema = Yup.object().shape({
+//     baseURL: Yup.string().required('Salesforce Base URL is required'),
+//     clientID: Yup.string().required('Salesforce Client ID is required'),
+//     clientSecret: Yup.string().required('Salesforce Client Secret is required'),
+//   });
 
-  const formik = useFormik({
-    initialValues: {
-      baseURL: '',
-      clientID: '',
-      clientSecret: '',
-    },
-    validationSchema: IntegrateSTSchema,
-    onSubmit: () => {
-      setOpen(false);
-      dispatch(
-        companyAsync(
-          '',
-          '',
-          '',
-          '',
-          '',
-          '',
-          '',
-          '',
-          '',
-          '',
-          'Salesforce',
-          values.baseURL,
-          values.clientID,
-          values.clientSecret
-        )
-      );
-    },
-  });
+//   const formik = useFormik({
+//     initialValues: {
+//       baseURL: '',
+//       clientID: '',
+//       clientSecret: '',
+//     },
+//     validationSchema: IntegrateSTSchema,
+//     onSubmit: () => {
+//       setOpen(false);
+//       dispatch(
+//         companyAsync(
+//           '',
+//           '',
+//           '',
+//           '',
+//           '',
+//           '',
+//           '',
+//           '',
+//           '',
+//           '',
+//           'Salesforce',
+//           values.baseURL,
+//           values.clientID,
+//           values.clientSecret
+//         )
+//       );
+//     },
+//   });
 
-  const { errors, touched, values, handleSubmit, getFieldProps } = formik;
-  return (
-    <div>
-      <Dialog open={open} onClose={handleClose} sx={{ padding: '2px' }}>
-        <DialogTitle>Service Titan</DialogTitle>
-        <Divider />
-        <DialogContent>
-          <p>
-            To get started with Service Titan, submit your tenant ID.
-            <span>
-              <IconButton onClick={() => setIntegrateInfo(true)}>
-                <Iconify icon="bi:question-circle-fill" />
-              </IconButton>
-            </span>
-          </p>
-          <FormikProvider value={formik}>
-            <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
-              <Stack spacing={3}>
-                <TextField
-                  fullWidth
-                  label=""
-                  placeholder="998190247"
-                  {...getFieldProps('tenantID')}
-                  error={Boolean(touched.tenantID && errors.tenantID)}
-                  helperText={touched.tenantID && errors.tenantID}
-                />
-              </Stack>
-            </Form>
-          </FormikProvider>
-          <Stack direction="row" justifyContent="right">
-            <Button color="error" onClick={handleClose}>
-              Cancel
-            </Button>
-            <Button onClick={handleSubmit}>Submit</Button>
-          </Stack>
-        </DialogContent>
-      </Dialog>
-      <Modal
-        open={integrateInfo}
-        onClose={() => setIntegrateInfo(false)}
-        closeAfterTransition
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-        padding="10"
-      >
-        <Fade in={integrateInfo}>
-          <Box
-            sx={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: 400,
-              bgcolor: 'white',
-              border: '2px solid #000',
-              boxShadow: '24px',
-              p: '4%',
-            }}
-          >
-            <Typography id="modal-modal-title" variant="h5" component="h2">
-              Integrate IMCM With Your Service Titan Account
-            </Typography>
-            <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-              1. The first step is to submit your Tenant ID. This can be found in your Service Titan account under
-              Settings `{'>'}` Integrations `{'>'}` API Application Access. <br />
-              <br />
-              2. Once you submit your Tenant ID, we will add your ID to our Application and send an email to notify you
-              that has been completed. <br />
-              <br />
-              3. You will then need to enable the IMCM application in your Service Titan account. <br />
-              <br />
-              4. At this point, you will see the Client ID and Client Secret in your Service Titan account. <br />
-              <br />
-              5. Submit those here and then you will be able to use IMCM with your Service Titan account. <br />
-            </Typography>
-          </Box>
-        </Fade>
-      </Modal>
-    </div>
-  );
-};
+//   const { errors, touched, values, handleSubmit, getFieldProps } = formik;
+//   return (
+//     <div>
+//       <Dialog open={open} onClose={handleClose} sx={{ padding: '2px' }}>
+//         <DialogTitle>Service Titan</DialogTitle>
+//         <Divider />
+//         <DialogContent>
+//           <p>
+//             To get started with Service Titan, submit your tenant ID.
+//             <span>
+//               <IconButton onClick={() => setIntegrateInfo(true)}>
+//                 <Iconify icon="bi:question-circle-fill" />
+//               </IconButton>
+//             </span>
+//           </p>
+//           <FormikProvider value={formik}>
+//             <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
+//               <Stack spacing={3}>
+//                 <TextField
+//                   fullWidth
+//                   label=""
+//                   placeholder="998190247"
+//                   {...getFieldProps('tenantID')}
+//                   error={Boolean(touched.tenantID && errors.tenantID)}
+//                   helperText={touched.tenantID && errors.tenantID}
+//                 />
+//               </Stack>
+//             </Form>
+//           </FormikProvider>
+//           <Stack direction="row" justifyContent="right">
+//             <Button color="error" onClick={handleClose}>
+//               Cancel
+//             </Button>
+//             <Button onClick={handleSubmit}>Submit</Button>
+//           </Stack>
+//         </DialogContent>
+//       </Dialog>
+//       <Modal
+//         open={integrateInfo}
+//         onClose={() => setIntegrateInfo(false)}
+//         closeAfterTransition
+//         aria-labelledby="modal-modal-title"
+//         aria-describedby="modal-modal-description"
+//         padding="10"
+//       >
+//         <Fade in={integrateInfo}>
+//           <Box
+//             sx={{
+//               position: 'absolute',
+//               top: '50%',
+//               left: '50%',
+//               transform: 'translate(-50%, -50%)',
+//               width: 400,
+//               bgcolor: 'white',
+//               border: '2px solid #000',
+//               boxShadow: '24px',
+//               p: '4%',
+//             }}
+//           >
+//             <Typography id="modal-modal-title" variant="h5" component="h2">
+//               Integrate IMCM With Your Service Titan Account
+//             </Typography>
+//             <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+//               1. The first step is to submit your Tenant ID. This can be found in your Service Titan account under
+//               Settings `{'>'}` Integrations `{'>'}` API Application Access. <br />
+//               <br />
+//               2. Once you submit your Tenant ID, we will add your ID to our Application and send an email to notify you
+//               that has been completed. <br />
+//               <br />
+//               3. You will then need to enable the IMCM application in your Service Titan account. <br />
+//               <br />
+//               4. At this point, you will see the Client ID and Client Secret in your Service Titan account. <br />
+//               <br />
+//               5. Submit those here and then you will be able to use IMCM with your Service Titan account. <br />
+//             </Typography>
+//           </Box>
+//         </Fade>
+//       </Modal>
+//     </div>
+//   );
+// };
 
-Salesforce.propTypes = {
-  open: PropTypes.bool.isRequired,
-  setOpen: PropTypes.func.isRequired,
-  dispatch: PropTypes.func.isRequired,
-};
+// Salesforce.propTypes = {
+//   open: PropTypes.bool.isRequired,
+//   setOpen: PropTypes.func.isRequired,
+//   dispatch: PropTypes.func.isRequired,
+// };
 
 const ComingSoon = () => (
   <div
@@ -420,8 +420,8 @@ const CRMIntegrationModal = ({ user }) => {
           <Typography variant="h6" color="textSecondary">
             You've Chosen Service Titan
           </Typography>
-          {!user.company.clientID && user.company.tenantID && <AddSecretModal />}
-          {user.company.clientID && <ServiceTitanTagsModal userInfo={user} />}
+          {!user.company.client_id && user.company.tenant_id && <AddSecretModal />}
+          {user.company.client_id && <ServiceTitanTagsModal userInfo={user} />}
         </div>
       )}
       {user.company.crm === 'Salesforce' && (
@@ -492,7 +492,7 @@ const CRMIntegrationModal = ({ user }) => {
         </DialogContent>
       </Dialog>
       <ServiceTitan open={stOpen} setOpen={setStOpen} dispatch={dispatch} sx={{ margin: '12px' }} />
-      <Salesforce open={sfOpen} setOpen={setSfOpen} sx={{ margin: '12px' }} />
+      {/* <Salesforce open={sfOpen} setOpen={setSfOpen} sx={{ margin: '12px' }} /> */}
       {/* <Hubspot open={hsOpen} setOpen={setHsOpen} sx={{margin:"12px"}}/>
         <Zoho open={zohoOpen} setOpen={setZohoOpen} sx={{margin:"12px"}}/> */}
     </div>
