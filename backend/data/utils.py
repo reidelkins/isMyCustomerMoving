@@ -199,7 +199,6 @@ def parse_streets(street):
         "Sw": "SW",
         "Se": "SE",
     }
-
     for word in street.split():
         if word in conversions:
             street = street.replace(word, conversions[word])
@@ -1252,7 +1251,6 @@ def verify_address(client_id):
         city = address_element.find("City").text.title()
         state = address_element.find("State").text
         zip5 = address_element.find("Zip5").text
-
         if (
             address2 != client.address
             or state != client.state

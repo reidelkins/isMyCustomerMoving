@@ -163,7 +163,6 @@ def find_data(zip_code, i, status, url, extra):
                 results = parsed["properties"]
             else:
                 results = parsed["results"]
-
             create_home_listings(results, status)
 
     except Exception as e:
