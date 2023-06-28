@@ -636,7 +636,7 @@ def get_service_titan_access_token(company):
         "Content-Type": "application/x-www-form-urlencoded",
     }
 
-    response = requests.post(url, headers=headers, data=payload)
+    response = requests.post(url, headers=headers, data=payload, timeout=5)
     response_data = response.json()
     access_token = response_data["access_token"]
     header = {

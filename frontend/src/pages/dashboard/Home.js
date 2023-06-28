@@ -52,7 +52,6 @@ import {
   update,
   updateClientAsync,
   salesForceSync,
-  clientsAsync,
   getClientsCSV,
 } from '../../redux/actions/usersActions';
 import { showLoginInfo } from '../../redux/actions/authActions';
