@@ -105,6 +105,7 @@ const FileUploader = () => {
     fetchData();
   }, [file]);
 
+  // eslint-disable-next-line arrow-body-style
   const readFile = (file) => {
     return new Promise((resolve, reject) => {
       Papa.parse(file, {
