@@ -148,6 +148,7 @@ class Company(models.Model):
     service_titan_recently_sold_contacted_tag_id = models.IntegerField(
         blank=True, null=True
     )
+    for_sale_purchased = models.BooleanField(default=False)
     recently_sold_purchased = models.BooleanField(default=False)
     service_titan_customer_sync_option = models.CharField(
         max_length=100, choices=CLIENT_OPTIONS, default="option1"

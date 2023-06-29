@@ -25,9 +25,9 @@ import {
 
 import Iconify from '../../../components/Iconify';
 import {
-  filterRecentlySoldAsync,
-  recentlySoldAsync,
-  saveRecentlySoldFilterAsync,
+  filterForSaleAsync,
+  forSaleAsync,
+  saveForSaleFilterAsync,
   saveFilterSuccess,
 } from '../../../redux/actions/usersActions';
 
@@ -53,7 +53,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-RecentlySoldDataFilter.propTypes = {
+ForSaleDataFilter.propTypes = {
   minPrice: PropTypes.string,
   setMinPrice: PropTypes.func,
   maxPrice: PropTypes.string,
@@ -76,10 +76,10 @@ RecentlySoldDataFilter.propTypes = {
   setState: PropTypes.func,
   savedFilter: PropTypes.string,
   setSavedFilter: PropTypes.func,
-  recentlySoldFilters: PropTypes.array,
+  forSaleFilters: PropTypes.array,
 };
 
-export default function RecentlySoldDataFilter({
+export default function ForSaleDataFilter({
   minPrice,
   setMinPrice: handleChangeMinPrice,
   maxPrice,
@@ -102,7 +102,7 @@ export default function RecentlySoldDataFilter({
   setState: handleChangeState,
   savedFilter,
   setSavedFilter: handleChangeSavedFilter,
-  recentlySoldFilters,
+  forSaleFilters,
 }) {
   const classes = useStyles();
   const [showFilters, setShowFilters] = useState(false);
@@ -171,7 +171,7 @@ export default function RecentlySoldDataFilter({
     handleClearFilters();
     handleChangeSavedFilter('');
     setError('');
-    dispatch(recentlySoldAsync(1));
+    dispatch(forSaleAsync(1));
   };
 
   const handleSavedFilterChange = (event) => {
@@ -250,7 +250,7 @@ export default function RecentlySoldDataFilter({
       setError('Min days ago sold must be less than max days ago sold');
     } else {
       dispatch(
-        filterRecentlySoldAsync(
+        filterForSaleAsync(
           minPrice,
           maxPrice,
           minYear,
@@ -283,7 +283,7 @@ export default function RecentlySoldDataFilter({
     setAlertOpen(true);
     setShowSaveFilter(false);
     dispatch(
-      saveRecentlySoldFilterAsync(
+      saveForSaleFilterAsync(
         filterName,
         minPrice,
         maxPrice,
@@ -330,14 +330,14 @@ export default function RecentlySoldDataFilter({
                             <Typography variant="h5">Select Filters</Typography>                        
                         </Box> */}
               <Grid container spacing={2}>
-                {recentlySoldFilters && (
+                {forSaleFilters && (
                   <Grid item xs={12}>
                     <FormControl component="fieldset">
                       <Typography variant="h6" mb={2}>
                         Saved Filters
                       </Typography>
                       <Grid container spacing={1}>
-                        {recentlySoldFilters.map((option) => (
+                        {forSaleFilters.map((option) => (
                           <FormControlLabel
                             key={option}
                             control={

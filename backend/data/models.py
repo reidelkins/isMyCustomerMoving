@@ -13,6 +13,12 @@ STATUS = [
     ("No Change", "No Change"),
 ]
 
+SAVED_FILTER_TYPE = [
+    ("Recently Sold", "Recently Sold"),
+    ("For Sale", "For Sale"),
+    ("Client", "Client"),
+]
+
 
 # Function to return yesterday's date
 def zip_time():
@@ -298,10 +304,12 @@ class SavedFilter(models.Model):
     company = models.ForeignKey(
         "accounts.Company", on_delete=models.CASCADE, blank=True, null=True
     )
-    for_existing_client = models.BooleanField(default=False)
+    filter_type = models.CharField(
+        max_length=25, choices=SAVED_FILTER_TYPE, default="Client"
+    )
     saved_filters = models.CharField(max_length=1000, blank=True, null=True)
     service_titan_tag = models.IntegerField(blank=True, null=True)
     for_zapier = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ("name", "company", "for_existing_client")
+        unique_together = ("name", "company", "filter_type")

@@ -4,6 +4,7 @@ import DashboardLayout from './layouts/dashboard';
 import LogoOnlyLayout from './layouts/LogoOnlyLayout';
 //
 import HomePage from './pages/dashboard/Home';
+import ForSaleData from './pages/dashboard/ForSaleData';
 import RecentlySoldData from './pages/dashboard/RecentlySoldData';
 import Login from './pages/root/Login';
 import Logout from './pages/root/Logout';
@@ -48,6 +49,7 @@ export default function Router() {
         { path: '', element: <HomePage /> },
         { path: 'settings/user', element: <ProfileSettings /> },
         { path: 'settings/enterprise', element: <EnterpriseSettings /> },
+        { path: 'forsale', element: <ForSaleData /> },
         { path: 'recentlysold', element: <RecentlySoldData /> },
         { path: 'referrals', element: <Referrals /> },
         { path: 'adduser', element: <AddUser /> },
