@@ -54,8 +54,8 @@ const FileUploader = () => {
 
   const exportTemplate = () => {
     let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += 'Customer Name,Street Address,City,State,ZipCode\r\n';
-    csvContent += `Example Name, 123 Main St, Nashville, TN, 12345\r\n`;
+    csvContent += 'Customer Name,Street Address,City,State,ZipCode,Phone\r\n';
+    csvContent += `Example Name, 123 Main St, Nashville, TN, 12345, 8882224444\r\n`;
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
@@ -104,6 +104,20 @@ const FileUploader = () => {
 
     fetchData();
   }, [file]);
+
+  const readFile = (file) => {
+    return new Promise((resolve, reject) => {
+      Papa.parse(file, {
+        header: true,
+        complete: (results) => {
+          resolve(results.data);
+        },
+        error: (error) => {
+          reject(error);
+        },
+      });
+    });
+  };
 
   const handleHeaderMappingChange = (event) => {
     const { name, value } = event.target;
@@ -159,21 +173,6 @@ const FileUploader = () => {
     } catch (err) {
       setError('Error reading file');
     }
-  };
-
-  const readFile = (file) => {
-    // eslint-disable-next-line no-new
-    new Promise((resolve, reject) => {
-      Papa.parse(file, {
-        header: true,
-        complete: (results) => {
-          resolve(results.data);
-        },
-        error: (error) => {
-          reject(error);
-        },
-      });
-    });
   };
 
   const sendData = (data) => {

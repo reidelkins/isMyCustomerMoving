@@ -257,12 +257,22 @@ def save_client_list(clients, company_id, task=None):
             if (
                 is_service_titan and client["active"]
             ) or not is_service_titan:
-                street = parse_streets(client["address"]["street"].title())
+                name = client["name"]
+                if is_service_titan:
+                    street = parse_streets(
+                        client["address"]["street"].title()
+                    )
+                    zip_code = format_zip(client["address"]["zip"])
+                    city = client["address"]["city"]
+                    state = client["address"]["state"]
+                else:
+                    street = parse_streets(client["address"].title())
+                    zip_code = format_zip(client["zip code"])
+                    city = client["city"]
+                    state = client["state"]
 
                 if street.lower() in bad_streets or "tbd" in street.lower():
                     continue
-
-                zip_code = format_zip(client["address"]["zip"])
 
                 if int(zip_code) < 500 or int(zip_code) > 99951:
                     continue
@@ -270,9 +280,6 @@ def save_client_list(clients, company_id, task=None):
                 zip_code_obj = ZipCode.objects.get_or_create(
                     zip_code=str(zip_code)
                 )[0]
-                city = client["address"]["city"]
-                state = client["address"]["state"]
-                name = client["name"]
 
                 if is_service_titan:
                     clients_to_add.append(
@@ -287,12 +294,11 @@ def save_client_list(clients, company_id, task=None):
                         )
                     )
                 else:
-                    if i % 1000 == 0:
+                    if i % 1000 == 0 and i != 0:
                         Client.objects.bulk_create(
                             clients_to_add, ignore_conflicts=True
                         )
                         clients_to_add = []
-                        print(i)
 
                     phone_number = (
                         sub("[^0-9]", "", client["phone number"])
@@ -316,9 +322,9 @@ def save_client_list(clients, company_id, task=None):
 
     Client.objects.bulk_create(clients_to_add, ignore_conflicts=True)
 
-    if task:
-        delete_extra_clients.delay(company_id, task)
-        do_it_all.delay(company_id)
+    # if task:
+    #     delete_extra_clients.delay(company_id, task)
+    #     do_it_all.delay(company_id)
     del clients_to_add, clients, company, company_id, bad_streets
 
 
