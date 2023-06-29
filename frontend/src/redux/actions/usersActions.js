@@ -37,6 +37,14 @@ export const userSlice = createSlice({
       highestPage: 0,
       count: 0,
     },
+    forSaleInfo: {
+      loading: false,
+      error: null,
+      FORSALELIST: [],
+      forSaleFilters: [],
+      highestPage: 0,
+      count: 0,
+    },
     referralInfo: {
       loading: false,
       error: null,
@@ -136,6 +144,35 @@ export const userSlice = createSlice({
       state.recentlySoldInfo.highestPage = action.payload;
     },
 
+    // -----------------  FOR SALE  -----------------
+    forSale: (state, action) => {
+      state.forSaleInfo.FORSALELIST = action.payload.results.data;
+      state.forSaleInfo.loading = false;
+      state.forSaleInfo.error = null;
+      state.forSaleInfo.count = action.payload.count;
+      state.forSaleInfo.forSaleFilters = action.payload.results.savedFilters;
+    },
+    forSaleError: (state, action) => {
+      state.forSaleInfo.error = action.payload;
+      state.forSaleInfo.loading = false;
+      state.forSaleInfo.FORSALELIST = [];
+    },
+    forSaleLoading: (state) => {
+      state.forSaleInfo.loading = true;
+      state.forSaleInfo.FORSALELIST = [];
+      state.forSaleInfo.highestPage = 0;
+    },
+    moreForSale: (state, action) => {
+      state.forSaleInfo.FORSALELIST = [...state.forSaleInfo.FORSALELIST, ...action.payload.results.data];
+      state.forSaleInfo.loading = false;
+      state.forSaleInfo.error = null;
+      state.forSaleInfo.count = action.payload.count;
+    },
+
+    newForSalePage: (state, action) => {
+      state.forSaleInfo.highestPage = action.payload;
+    },
+
     // -----------------  REFERRALS  -----------------
     referrals: (state, action) => {
       state.referralInfo.REFERRALLIST = action.payload;
@@ -174,6 +211,11 @@ export const userSlice = createSlice({
       state.usersInfo.USERLIST = [];
       state.usersInfo.loading = false;
       state.usersInfo.error = null;
+      state.forSaleInfo.FORSALELIST = [];
+      state.forSaleInfo.loading = false;
+      state.forSaleInfo.error = null;
+      state.forSaleInfo.count = 0;
+      state.forSaleInfo.highestPage = 0;
       state.recentlySoldInfo.RECENTLYSOLDLIST = [];
       state.recentlySoldInfo.loading = false;
       state.recentlySoldInfo.error = null;
@@ -215,6 +257,11 @@ export const {
   recentlySoldError,
   newRecentlySoldPage,
   moreRecentlySold,
+  forSale,
+  forSaleLoading,
+  forSaleError,
+  newForSalePage,
+  moreForSale,
   referrals,
   referralsLoading,
   referralsError,
@@ -227,6 +274,7 @@ export const {
 } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
 export const selectRecentlySold = (state) => state.user.recentlySoldInfo;
+export const selectForSale = (state) => state.user.forSaleInfo;
 export const selectUsers = (state) => state.user.usersInfo;
 export const selectReferrals = (state) => state.user.referralInfo;
 export const saveFilterSuccess = (state) => state.user.saveFilter.success;
@@ -712,6 +760,118 @@ export const update = () => async (getState) => {
   }
 };
 
+export const forSaleAsync = (page) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const { userInfo } = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access_token}`,
+      },
+    };
+    if (page === 1) {
+      dispatch(forSaleLoading());
+    }
+    if (page > reduxStore.user.forSaleInfo.highestPage) {
+      const { data } = await axios.get(`${DOMAIN}/api/v1/data/forsale/${userInfo.company.id}?page=${page}`, config);
+      if (data.results.data.length > 0) {
+        dispatch(newForSalePage(page));
+        if (data.results.data.length === 1000) {
+          dispatch(forSaleAsync(page + 1));
+        }
+      }
+      if (page === 1) {
+        dispatch(forSale(data));
+      } else {
+        dispatch(moreForSale(data));
+      }
+    }
+  } catch (error) {
+    dispatch(forSaleError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    if (error.response.status === 403) {
+      dispatch(getRefreshToken(dispatch, forSaleAsync(page)));
+    }
+  }
+};
+
+export const filterForSaleAsync =
+  (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, savedFilter) =>
+  async (dispatch, getState) => {
+    try {
+      const reduxStore = getState();
+      const { userInfo } = reduxStore.auth.userInfo;
+      const config = {
+        headers: {
+          'Content-type': 'application/json',
+          Authorization: `Bearer ${userInfo.access_token}`,
+        },
+      };
+      dispatch(forSaleLoading());
+      let filters = '';
+      if (minPrice) {
+        filters += `&min_price=${minPrice}`;
+      }
+      if (maxPrice) {
+        filters += `&max_price=${maxPrice}`;
+      }
+      if (minYear) {
+        filters += `&min_year=${minYear}`;
+      }
+      if (maxYear) {
+        filters += `&max_year=${maxYear}`;
+      }
+      if (minDaysAgo) {
+        filters += `&min_days_ago=${minDaysAgo}`;
+      }
+      if (maxDaysAgo) {
+        filters += `&max_days_ago=${maxDaysAgo}`;
+      }
+      if (tagFilters) {
+        filters += `&tags=${tagFilters.join(',')}`;
+      }
+      if (city) {
+        filters += `&city=${city}`;
+      }
+      if (state) {
+        filters += `&state=${state}`;
+      }
+      if (zipCode) {
+        filters += `&zip_code=${zipCode}`;
+      }
+      if (savedFilter) {
+        filters += `&saved_filter=${savedFilter}`;
+      }
+      const { data } = await axios.get(
+        `${DOMAIN}/api/v1/data/forsale/${userInfo.company.id}/?page=1${filters}`,
+        config
+      );
+      dispatch(forSale(data));
+    } catch (error) {
+      dispatch(forSaleError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+      if (error.response.status === 403) {
+        dispatch(
+          getRefreshToken(
+            dispatch,
+            filterForSaleAsync(
+              minPrice,
+              maxPrice,
+              minYear,
+              maxYear,
+              minDaysAgo,
+              maxDaysAgo,
+              tagFilters,
+              city,
+              state,
+              zipCode,
+              savedFilter
+            )
+          )
+        );
+      }
+    }
+  };
+
 export const recentlySoldAsync = (page) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
@@ -896,7 +1056,7 @@ export const getClientsCSV = (
   customerSinceMax
   // eslint-disable-next-line arrow-body-style
 ) => {
-  return async (dispatch, getState) => {
+  return async (getState) => {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
     const config = {
@@ -962,6 +1122,7 @@ export const getRecentlySoldCSV =
         'Content-type': 'application/json',
         Authorization: `Bearer ${userInfo.access_token}`,
       },
+      responseType: 'blob', // Tell axios to expect a binary response
     };
     let filters = '';
     if (minPrice) {
@@ -1005,7 +1166,62 @@ export const getRecentlySoldCSV =
     FileSaver.saveAs(csvBlob, 'homelistings.csv'); // Download the file using FileSaver
   };
 
-export const saveFilterAsync =
+export const getForSaleCSV =
+  (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, savedFilter) =>
+  async (getState) => {
+    const reduxStore = getState();
+    const { userInfo } = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access_token}`,
+      },
+      responseType: 'blob', // Tell axios to expect a binary response
+    };
+    console.log(3);
+    let filters = '';
+    if (minPrice) {
+      filters += `&min_price=${minPrice}`;
+    }
+    if (maxPrice) {
+      filters += `&max_price=${maxPrice}`;
+    }
+    if (minYear) {
+      filters += `&min_year=${minYear}`;
+    }
+    if (maxYear) {
+      filters += `&max_year=${maxYear}`;
+    }
+    if (minDaysAgo) {
+      filters += `&min_days_ago=${minDaysAgo}`;
+    }
+    if (maxDaysAgo) {
+      filters += `&max_days_ago=${maxDaysAgo}`;
+    }
+    if (tagFilters) {
+      filters += `&tags=${tagFilters.join(',')}`;
+    }
+    if (city) {
+      filters += `&city=${city}`;
+    }
+    if (state) {
+      filters += `&state=${state}`;
+    }
+    if (zipCode) {
+      filters += `&zip_code=${zipCode}`;
+    }
+    if (savedFilter) {
+      filters += `&saved_filter=${savedFilter}`;
+    }
+    const response = await axios.get(
+      `${DOMAIN}/api/v1/data/downloadforsale/${userInfo.company.id}/?${filters}`,
+      config
+    );
+    const csvBlob = new Blob([response.data], { type: 'text/csv' }); // Convert binary response to a blob
+    FileSaver.saveAs(csvBlob, 'homelistings.csv'); // Download the file using FileSaver
+  };
+
+export const saveRecentlySoldFilterAsync =
   (
     filterName,
     minPrice,
@@ -1046,6 +1262,55 @@ export const saveFilterAsync =
       };
       dispatch(saveFilterLoading());
       await axios.post(`${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}/`, body, config);
+      dispatch(saveFilter());
+    } catch (error) {
+      dispatch(
+        saveFilterError(error.response && error.response.data.detail ? error.response.data.detail : error.message)
+      );
+    }
+  };
+
+export const saveForSaleFilterAsync =
+  (
+    filterName,
+    minPrice,
+    maxPrice,
+    minYear,
+    maxYear,
+    minDaysAgo,
+    maxDaysAgo,
+    tagFilters,
+    city,
+    state,
+    zipCode,
+    forZapier
+  ) =>
+  async (dispatch, getState) => {
+    try {
+      const reduxStore = getState();
+      const { userInfo } = reduxStore.auth.userInfo;
+      const config = {
+        headers: {
+          'Content-type': 'application/json',
+          Authorization: `Bearer ${userInfo.access_token}`,
+        },
+      };
+      const body = {
+        filter_name: filterName,
+        min_price: minPrice,
+        max_price: maxPrice,
+        min_year: minYear,
+        max_year: maxYear,
+        min_days_ago: minDaysAgo,
+        max_days_ago: maxDaysAgo,
+        tag_filters: tagFilters,
+        city,
+        state,
+        zip_code: zipCode,
+        for_zapier: forZapier,
+      };
+      dispatch(saveFilterLoading());
+      await axios.post(`${DOMAIN}/api/v1/data/forsale/${userInfo.company.id}/`, body, config);
       dispatch(saveFilter());
     } catch (error) {
       dispatch(

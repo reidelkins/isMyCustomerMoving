@@ -17,6 +17,11 @@ export const enterpriseNavConfig = [
     icon: getIcon('ri:share-forward-fill'),
   },
   {
+    title: 'For Sale Data',
+    path: '/dashboard/forsale',
+    icon: getIcon('material-symbols:house'),
+  },
+  {
     title: 'Recently Sold Data',
     path: '/dashboard/recentlysold',
     icon: getIcon('material-symbols:house'),
@@ -49,8 +54,8 @@ export const navConfig = [
     icon: getIcon('ri:share-forward-fill'),
   },
   {
-    title: 'Recently Sold Data',
-    path: '/dashboard/recentlysold',
+    title: 'For Sale Data',
+    path: '/dashboard/forsale',
     icon: getIcon('material-symbols:house'),
   },
   {

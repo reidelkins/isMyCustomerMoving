@@ -1054,9 +1054,9 @@ def do_it_all(company):
         logging.error(traceback.format_exc())
 
 
-def filter_recently_sold(query_params, queryset, company_id):
+def filter_home_listings(query_params, queryset, company_id, filter_type):
     """
-    Filter recently sold properties based on the provided query parameters.
+    Filter all home listings based on the provided query parameters.
 
     Parameters:
     query_params (dict): Parameters to filter the queryset.
@@ -1072,7 +1072,7 @@ def filter_recently_sold(query_params, queryset, company_id):
         query_params = SavedFilter.objects.get(
             name=query_params["saved_filter"],
             company=company,
-            for_existing_client=False,
+            filter_type=filter_type,
         ).saved_filters
         query_params = json.loads(query_params)
         query_params = {k: v for k, v in query_params.items() if v != ""}
@@ -1294,7 +1294,7 @@ def send_zapier_recently_sold(company_id):
     ).order_by("listed")
 
     saved_filters = SavedFilter.objects.filter(
-        company=company, for_existing_client=False, for_zapier=True
+        company=company, filter_type="Recently Sold", for_zapier=True
     )
 
     for saved_filter in saved_filters:
@@ -1303,8 +1303,8 @@ def send_zapier_recently_sold(company_id):
             for k, v in json.loads(saved_filter.saved_filters).items()
             if v != ""
         }
-        filtered_home_listings = filter_recently_sold(
-            query_params, home_listings, company_id
+        filtered_home_listings = filter_home_listings(
+            query_params, home_listings, company_id, "Recently Sold"
         )
 
         if filtered_home_listings:

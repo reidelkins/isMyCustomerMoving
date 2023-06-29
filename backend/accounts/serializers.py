@@ -25,6 +25,7 @@ class CompanySerializer(serializers.ModelSerializer):
     phone = serializers.CharField(max_length=20)
     email = serializers.EmailField(max_length=100)
     stripe_id = serializers.CharField(max_length=100, required=False)
+    for_sale_purchased = serializers.BooleanField(default=False)
     recently_sold_purchased = serializers.BooleanField(default=False)
     crm = serializers.CharField(max_length=100, required=False)
     product = serializers.SerializerMethodField("get_product", read_only=True)
@@ -67,6 +68,7 @@ class CompanySerializer(serializers.ModelSerializer):
             "service_titan_for_rent_tag_id",
             "service_titan_for_sale_tag_id",
             "service_titan_recently_sold_tag_id",
+            "for_sale_purchased",
             "recently_sold_purchased",
             "service_titan_for_sale_contacted_tag_id",
             "service_titan_sold_contacted_tag_id",
@@ -166,7 +168,6 @@ class UserSerializerWithToken(UserSerializer):
     refresh_token = serializers.SerializerMethodField(read_only=True)
 
     def get_access_token(self, obj):
-        print("Getting access token")
         token = RefreshToken.for_user(obj)
         return str(token.access_token)
 

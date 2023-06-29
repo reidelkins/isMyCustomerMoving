@@ -82,6 +82,7 @@ class CompanyAdmin(admin.ModelAdmin):
         "name",
         "crm",
         "recently_sold_purchased",
+        "for_sale_purchased",
         "product",
         "enterprise",
     )

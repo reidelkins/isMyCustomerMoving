@@ -16,11 +16,23 @@ urlpatterns = [
         name="all-recently-sold",
     ),
     path(
+        "forsale/<str:company>/",
+        views.ForSaleView.as_view(),
+        name="for-sale",
+    ),
+    path(
+        "downloadforsale/<str:company>/",
+        views.AllForSaleView.as_view(),
+        name="all-for-sale",
+    ),
+    path(
         "update/<str:company>/",
         views.UpdateStatusView.as_view(),
         name="update-status",
     ),
-    path("updateclient/", views.UpdateClientView.as_view(), name="updateclient"),
+    path(
+        "updateclient/", views.UpdateClientView.as_view(), name="updateclient"
+    ),
     path(
         "upload/<str:company>/",
         views.UploadFileView.as_view(),

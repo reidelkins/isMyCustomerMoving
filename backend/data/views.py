@@ -22,7 +22,7 @@ from .realtor import get_all_zipcodes
 from .utils import (
     save_client_list,
     add_service_titan_contacted_tag,
-    filter_recently_sold,
+    filter_home_listings,
     filter_clients,
     remove_all_service_titan_tags,
 )
@@ -173,7 +173,9 @@ class RecentlySoldView(generics.ListAPIView):
                     datetime.datetime.today() - datetime.timedelta(days=30)
                 ).strftime("%Y-%m-%d"),
             ).order_by("-listed")
-            return filter_recently_sold(query_params, queryset, company.id)
+            return filter_home_listings(
+                query_params, queryset, company.id, "Recently Sold"
+            )
         else:
             return HomeListing.objects.none()
 
@@ -181,7 +183,7 @@ class RecentlySoldView(generics.ListAPIView):
         queryset = self.get_queryset()
         savedFilters = list(
             SavedFilter.objects.filter(
-                company=company, for_existing_client=False
+                company=company, filter_type="Recently Sold"
             ).values_list("name", flat=True)
         )
         page = self.paginate_queryset(queryset)
@@ -203,7 +205,7 @@ class RecentlySoldView(generics.ListAPIView):
         filterName = data["filter_name"]
 
         if SavedFilter.objects.filter(
-            name=filterName, company=company, for_existing_client=True
+            name=filterName, company=company, filter_type="Recently Sold"
         ).exists():
             return Response(
                 {"error": "A filter with that name already exists"},
@@ -229,6 +231,7 @@ class RecentlySoldView(generics.ListAPIView):
                 company=company,
                 saved_filters=json.dumps(filters),
                 for_zapier=forZapier,
+                filter_type="Recently Sold",
             )
             return Response(
                 {"success": "Filter created successfully"},
@@ -300,7 +303,165 @@ class AllRecentlySoldView(generics.ListAPIView):
                     datetime.datetime.today() - datetime.timedelta(days=30)
                 ).strftime("%Y-%m-%d"),
             ).order_by("-listed")
-            return filter_recently_sold(query_params, queryset, company_id)
+            return filter_home_listings(
+                query_params, queryset, company_id, "Recently Sold"
+            )
+        else:
+            return HomeListing.objects.none()
+
+
+class ForSaleView(generics.ListAPIView):
+    serializer_class = HomeListingSerializer
+    pagination_class = CustomPagination
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        query_params = self.request.query_params
+        company = Company.objects.get(id=self.kwargs["company"])
+        if company.for_sale_purchased:
+            zip_code_objects = Client.objects.filter(company=company).values(
+                "zip_code"
+            )
+            queryset = HomeListing.objects.filter(
+                zip_code__in=zip_code_objects,
+                status="House For Sale",
+                listed__gt=(
+                    datetime.datetime.today() - datetime.timedelta(days=30)
+                ).strftime("%Y-%m-%d"),
+            ).order_by("-listed")
+            return filter_home_listings(
+                query_params, queryset, company.id, "For Sale"
+            )
+        else:
+            return HomeListing.objects.none()
+
+    def get(self, request, company, format=None):
+        queryset = self.get_queryset()
+        savedFilters = list(
+            SavedFilter.objects.filter(
+                company=company, filter_type="For Sale"
+            ).values_list("name", flat=True)
+        )
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            forSale = serializer.data
+            return self.get_paginated_response(
+                {"data": forSale, "savedFilters": savedFilters}
+            )
+
+        serializer = self.get_serializer(queryset, many=True)
+        forSale = serializer.data
+        return Response({"data": forSale, "savedFilters": savedFilters})
+
+    def post(self, request, company, format=None):
+        data = request.data
+        company = Company.objects.get(id=company)
+
+        filterName = data["filter_name"]
+
+        if SavedFilter.objects.filter(
+            name=filterName, company=company, filter_type="For Sale"
+        ).exists():
+            return Response(
+                {"error": "A filter with that name already exists"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        else:
+            filters = {
+                "min_price": data["min_price"],
+                "max_price": data["max_price"],
+                "min_year": data["min_year"],
+                "max_year": data["max_year"],
+                "min_days_ago": data["min_days_ago"],
+                "max_days_ago": data["max_days_ago"],
+                "tags": data["tag_filters"],
+                "city": data["city"],
+                "state": data["state"],
+                "zip_code": data["zip_code"],
+            }
+
+            forZapier = data["for_zapier"]
+            SavedFilter.objects.create(
+                name=filterName,
+                company=company,
+                saved_filters=json.dumps(filters),
+                for_zapier=forZapier,
+                filter_type="For Sale",
+            )
+            return Response(
+                {"success": "Filter created successfully"},
+                status=status.HTTP_200_OK,
+            )
+
+    def delete(self, request, company, format=None):
+        data = request.data
+        filterName = data["filter_name"]
+        company = Company.objects.get(id=company)
+        SavedFilter.objects.filter(name=filterName, company=company).delete()
+        return Response(
+            {"success": "Filter deleted successfully"},
+            status=status.HTTP_200_OK,
+        )
+
+    class Meta:
+        unique_together = ("name", "company")
+
+
+class AllForSaleView(generics.ListAPIView):
+    """
+    An API view that allows users to download all for sale home listings
+    as a CSV file.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, company, format=None):
+        queryset = self.get_queryset(company)
+        header = [
+            "address",
+            "city",
+            "state",
+            "zip_code",
+            "listing_price",
+            "year_built",
+        ]
+        response = HttpResponse(content_type="text/csv")
+        response[
+            "Content-Disposition"
+        ] = 'attachment; filename="HomeListings.csv"'
+        writer = csv.writer(response)
+        writer.writerow(header)
+
+        for home_listing in queryset:
+            row = [
+                home_listing.address,
+                home_listing.city,
+                home_listing.state,
+                home_listing.zip_code.zip_code,
+                home_listing.price,
+                home_listing.year_built,
+            ]
+            writer.writerow(row)
+        return response
+
+    def get_queryset(self, company_id):
+        query_params = self.request.query_params
+        company = Company.objects.get(id=company_id)
+        if company.for_sale_purchased:
+            zip_code_objects = Client.objects.filter(
+                company=company, active=True
+            ).values("zip_code")
+            queryset = HomeListing.objects.filter(
+                zip_code__in=zip_code_objects,
+                status="House For Sale",
+                listed__gt=(
+                    datetime.datetime.today() - datetime.timedelta(days=30)
+                ).strftime("%Y-%m-%d"),
+            ).order_by("-listed")
+            return filter_home_listings(
+                query_params, queryset, company_id, "For Sale"
+            )
         else:
             return HomeListing.objects.none()
 
