@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+
 // @mui
 import { alpha } from '@mui/material/styles';
 import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton } from '@mui/material';
@@ -11,23 +12,7 @@ import MenuPopover from '../../components/MenuPopover';
 
 // ----------------------------------------------------------------------
 
-const MENU_OPTIONS = [
-  {
-    label: 'Home',
-    icon: 'eva:home-fill',
-    linkTo: '/',
-  },
-  // {
-  //   label: 'Profile',
-  //   icon: 'eva:person-fill',
-  //   linkTo: '',
-  // },
-  {
-    label: 'Settings',
-    icon: 'eva:settings-2-fill',
-    linkTo: '/dashboard/settings',
-  },
-];
+const MENU_OPTIONS = [];
 
 // ----------------------------------------------------------------------
 
@@ -49,18 +34,15 @@ export default function AccountPopover() {
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
 
-  // useEffect(() => {
-  //   if (!userInfo) {
-  //     navigate('/login', { replace: true });
-  //   }
-  // }, [navigate, userInfo]);
-
   const logoutHandler = () => {
     dispatch(logout());
-    navigate('/login', { replace: true });
+    navigate('/logout', { replace: true });
   };
 
-  const initials = userInfo?.name?.split(' ').map((n) => n[0]).join('');
+  const initials = userInfo?.name
+    ?.split(' ')
+    .map((n) => n[0])
+    .join('');
   return (
     <>
       <IconButton
@@ -100,7 +82,14 @@ export default function AccountPopover() {
       >
         <Box sx={{ my: 1.5, px: 2.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {userInfo ? <>{(userInfo.first_name).charAt(0).toUpperCase()+(userInfo.first_name).slice(1)} {(userInfo.last_name).charAt(0).toUpperCase()+(userInfo.last_name).slice(1)}</> : 'John Doe'}
+            {userInfo ? (
+              <>
+                {userInfo.first_name.charAt(0).toUpperCase() + userInfo.first_name.slice(1)}{' '}
+                {userInfo.last_name.charAt(0).toUpperCase() + userInfo.last_name.slice(1)}
+              </>
+            ) : (
+              'John Doe'
+            )}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
             {userInfo ? <>{userInfo.email}</> : 'email@email.com'}

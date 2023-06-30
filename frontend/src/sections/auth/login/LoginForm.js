@@ -47,9 +47,9 @@ export default function LoginForm() {
   useEffect(() => {
     if (userInfo) {
       if (userInfo.otp_enabled) {
-        navigate('/validate2fa', { replace: true });
+        navigate('/account/validate2fa', { replace: true });
       } else {
-        navigate('/dashboard/customers', { replace: true });
+        navigate('/dashboard', { replace: true });
       }
     }
   }, [navigate, userInfo]);

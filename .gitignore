@@ -5,6 +5,7 @@ backend/payments/__pycache__/
 backend/payments/migrations/__pycache__/
 backend/accounts/management/commands/__pycache__/
 backend/accounts/migrations/__pycache__/
+backend/accounts/migrations1/
 backend/accounts/tests/__pycache__/
 backend/data/__pycache__/
 backend/data/migrations/__pycache__/
@@ -114,7 +115,7 @@ backend/*.sage.py
 # Environments
 backend/config/.env
 backend/.venv
-backend/env/
+backend/env
 backend/venv/
 backend/ENV/
 backend/env.bak/
@@ -189,4 +190,17 @@ backend/twoFactor/__pycache__/__init__.cpython-310.pyc
 backend/twoFactor/__pycache__/admin.cpython-310.pyc
 backend/twoFactor/__pycache__/apps.cpython-310.pyc
 backend/twoFactor/__pycache__/models.cpython-310.pyc
-.gitignore
+backend/authz/__pycache__/
+backend/authz/__pycache__/
+backend/common/utils/__pycache__/
+backend/requirements_old.txt
+.env.testing
+backend/__pycache__/conftest.cpython-310-pytest-7.2.2.pyc
+backend/conftest.py
+backend/.env
+backend/.env.testing
+
+backend/downloadedData/
+
+data/db/
+backend/*.json
