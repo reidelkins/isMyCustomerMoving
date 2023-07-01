@@ -153,6 +153,7 @@ frontend/.pnp
 frontend/.pnp.js
 
 # testing
+frontend/cypress/videos
 frontend/coverage
 
 # production
