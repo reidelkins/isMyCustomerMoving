@@ -17,7 +17,7 @@ describe('login at /login', () => {
     it('login', () => {
         // Fill out the form
         cy.get('input[name=email]').type(EMAIL)
-        cy.get('input[name=password]').type(PASSWORD)
+        cy.get('input[name=password]').type(PASSWORD, {log: false})
 
         // Submit the form
         cy.get("[data-cy=login-form]").submit()
