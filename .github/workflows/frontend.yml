@@ -14,6 +14,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       
+      - name: Move to frontend directory
+        run: cd frontend
+      
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
