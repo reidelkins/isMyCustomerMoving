@@ -37,4 +37,5 @@ jobs:
       - name: Run tests
         run: |
           cd frontend
+          yarn start &
           yarn test
