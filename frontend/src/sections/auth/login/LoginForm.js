@@ -55,7 +55,7 @@ export default function LoginForm() {
   }, [navigate, userInfo]);
   return (
     <FormikProvider value={formik}>
-      <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
+      <Form autoComplete="off" noValidate onSubmit={handleSubmit} data-cy="login-form">
         <Stack spacing={3}>
           <TextField
             fullWidth
@@ -93,7 +93,7 @@ export default function LoginForm() {
           </Link>
         </Stack>
         {loginError ? (
-          <Alert severity="error">
+          <Alert severity="error" data-cy="login-alert">
             <AlertTitle>Login Error</AlertTitle>
             {loginError}
           </Alert>
