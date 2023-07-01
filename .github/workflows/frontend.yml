@@ -1,4 +1,4 @@
-name: Cypress Tests
+name: Frontend
 
 on:
   push:
@@ -34,8 +34,18 @@ jobs:
           cd frontend
           yarn build
 
+      - name: Start dev server
+        run: |
+          cd frontend
+          yarn start
+
+      - name: Wait for dev server
+        uses: cypress-io/wait-on@v3
+        with:
+          url: http://localhost:3000
+          timeout: 30000
+
       - name: Run tests
         run: |
           cd frontend
-          yarn start &
           yarn test
