@@ -55,7 +55,7 @@ export default function LoginForm() {
   }, [navigate, userInfo]);
   return (
     <FormikProvider value={formik}>
-      <Form autoComplete="off" noValidate onSubmit={handleSubmit} data-cy="login-form">
+      <Form autoComplete="off" noValidate onSubmit={handleSubmit} data-testid="login-form">
         <Stack spacing={3}>
           <TextField
             fullWidth
