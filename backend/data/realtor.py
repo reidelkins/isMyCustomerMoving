@@ -272,7 +272,8 @@ def create_home_listings(results, status, resp=None):
                             date_compare = datetime.strptime(
                                 list_type, "%Y-%m-%dT%H:%M:%SZ"
                             )
-                        except:
+                        except Exception as e:
+                            logging.error(e)
                             date_compare = datetime.strptime(
                                 list_type, "%Y-%m-%d"
                             )
