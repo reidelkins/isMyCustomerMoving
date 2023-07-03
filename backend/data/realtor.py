@@ -1,7 +1,7 @@
 import json
 import logging
 import math
-from datetime import datetime
+from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 from celery import shared_task
 from django.core.exceptions import MultipleObjectsReturned
@@ -11,7 +11,7 @@ from scrapfly import ScrapeConfig, ScrapflyClient
 from config import settings
 from accounts.models import Company
 from .models import Client, HomeListing, ZipCode, HomeListingTags, Realtor
-from .utils import del_variables
+from .utils import del_variables, parse_streets
 
 zip_scrapflies = [
     ScrapflyClient(key=settings.SCRAPFLY_KEY, max_concurrency=1)
@@ -101,10 +101,26 @@ def find_data(zip_code, i, status, url, extra):
     try:
         # Fetch the first page and results
         first_page = f"{url}/{zip_code}/{extra}"
-        first_result = get_scrapfly_scrape(scrapfly, first_page)
+        # first_result = get_scrapfly_scrape(scrapfly, first_page)
+        first_result = scrapfly.scrape(
+            ScrapeConfig(
+                first_page,
+                country="US",
+                asp=False,
+                proxy_pool="public_datacenter_pool",
+            )
+        )
         if first_result.status_code >= 400:
             scrapfly = zip_scrapflies[(i + 5) % 20]
-            first_result = get_scrapfly_scrape(scrapfly, first_page)
+            # first_result = get_scrapfly_scrape(scrapfly, first_page)
+            first_result = scrapfly.scrape(
+                ScrapeConfig(
+                    first_page,
+                    country="US",
+                    asp=False,
+                    proxy_pool="public_datacenter_pool",
+                )
+            )
 
         # Parse the first page
         content = first_result.scrape_result["content"]
@@ -121,23 +137,12 @@ def find_data(zip_code, i, status, url, extra):
             return
 
         # Process data based on status
-        if status == "For Rent":
-            results = first_data["properties"]
-            total = int(
-                soup.find("div", {"data-testid": "total-results"}).text
-            )
-            count = len(results)
-            url += "/pg-1"
-        else:
-            results = first_data["results"]
-            total = int(
-                soup.find("span", {"class": "result-count"}).text.split(" ")[
-                    0
-                ]
-            )
-            count = first_data["count"]
+        total = int(
+            soup.find("span", {"class": "result-count"}).text.split(" ")[0]
+        )
+        count = len(first_data)
 
-        create_home_listings(results, status)
+        create_home_listings(first_data, status)
         if count == 0 or total == 0:
             return
 
@@ -159,11 +164,17 @@ def find_data(zip_code, i, status, url, extra):
 
             content = new_results.scrape_result["content"]
             parsed = parse_search(new_results, status)
-            if status == "For Rent":
-                results = parsed["properties"]
-            else:
-                results = parsed["results"]
-            create_home_listings(results, status)
+            if not parsed:
+                return
+
+            # Process data based on status
+            total = int(
+                soup.find("span", {"class": "result-count"}).text.split(" ")[
+                    0
+                ]
+            )
+            count = len(parsed)
+            create_home_listings(parsed, status)
 
     except Exception as e:
         logging.error(
@@ -210,117 +221,173 @@ def get_scrapfly_scrape(scrapfly, page):
     )
 
 
-def parse_search(result, status):
-    """
-    This function parses the page's content and returns the parsed data.
+def parse_search(result, search_type: str):
+    data = result.selector.css("script#__NEXT_DATA__::text").get()
+    if not data:
+        logging.error(
+            f"page {result.context['url']} is not a property listing page: Not Data"
+        )
+        return
 
-    Args:
-        result (ScrapeResult): the page's content
-        status (str): status of property (for sale, rent, etc.)
-
-    Returns:
-        dict: parsed data
-    """
-    content = result.scrape_result["content"]
-    soup = BeautifulSoup(content, features="html.parser")
-    if status == "For Rent":
-        return parse_properties(soup, result)
-    else:
-        return parse_for_sale(soup, result)
-
-
-def parse_property(property_card, result):
-    """
-    This function parses an individual property card.
-
-    Args:
-        property_card (bs4.element.Tag):
-        a BeautifulSoup element representing a property card
-        result (ScrapeResult): the page's content
-
-    Returns:
-        dict: property details
-    """
-    property_details = {
-        "address": property_card.find("div", class_="property-address").text,
-        "price": property_card.find("div", class_="property-price").text,
-        # More fields here...
-        # TODO
-    }
-
-    return property_details
-
-
-def parse_listing(listing, result):
-    """
-    This function parses an individual listing.
-
-    Args:
-        listing (bs4.element.Tag): a BeautifulSoup element representing a listing
-        result (ScrapeResult): the page's content
-
-    Returns:
-        dict: listing details
-    """
-    listing_details = {
-        "address": listing.find("div", class_="listing-address").text,
-        "price": listing.find("div", class_="listing-price").text,
-        # More fields here...
-        # TODO
-    }
-
-    return listing_details
-
-
-def parse_properties(soup, result):
-    """
-    This function parses properties and their details.
-
-    Args:
-        soup (BeautifulSoup): parsed HTML content
-        result (ScrapeResult): the page's content
-
-    Returns:
-        dict: properties and their details
-    """
-    properties = soup.find_all("div", {"data-testid": "property-card"})
-    return {"properties": [parse_property(p, result) for p in properties]}
-
-
-def parse_for_sale(soup, result):
-    """
-    This function parses the details for properties for sale.
-
-    Args:
-        soup (BeautifulSoup): parsed HTML content
-        result (ScrapeResult): the page's content
-
-    Returns:
-        dict: details of properties for sale
-    """
-    listings = soup.find_all("li", {"class": "component_property-card"})
-    return {
-        "results": [parse_listing(listing, result) for listing in listings],
-        "count": len(listings),
-    }
-
-
-def create_home_listings(results, status):
-    """
-    This function creates home listings and adds them to the database.
-
-    Args:
-        results (list): parsed data from the page's content
-        status (str): status of property (for sale, rent, etc.)
-
-    Returns:
-        None
-    """
-    for result in results:
+    data = dict(json.loads(data))
+    try:
+        data = data["props"]["pageProps"]["searchResults"]["home_search"][
+            "results"
+        ]
+        return data
+    except KeyError:
         try:
-            HomeListing.objects.create(**result)
+            data = data["props"]["pageProps"]["properties"]
+            return data
+        except KeyError as e:
+            logging.error(
+                f"page {result.context['url']} is not a property listing page: KeyError"
+            )
+            logging.error(f"KeyError: {e}")
+            return False
+
+
+def create_home_listings(results, status, resp=None):
+    zip_object, created, list_type, home_listing, curr_tag = (
+        "",
+        "",
+        "",
+        "",
+        "",
+    )
+    two_years_ago = datetime.now() - timedelta(days=365 * 2)
+    for listing in results:
+        zip_object, created = ZipCode.objects.get_or_create(
+            zip_code=listing["location"]["address"]["postal_code"]
+        )
+        try:
+            if status == "House Recently Sold (6)":
+                if listing["description"]["sold_date"] is not None:
+                    list_type = listing["description"]["sold_date"]
+                elif listing["last_update_date"] is not None:
+                    list_type = listing["last_update_date"]
+                elif listing["list_date"] is not None:
+                    list_type = listing["list_date"]
+                else:
+                    list_type = None
+                    list_type = listing["description"]["sold_date"]
+                    if list_type is not None:
+                        try:
+                            date_compare = datetime.strptime(
+                                list_type, "%Y-%m-%dT%H:%M:%SZ"
+                            )
+                        except:
+                            date_compare = datetime.strptime(
+                                list_type, "%Y-%m-%d"
+                            )
+                        if date_compare < two_years_ago:
+                            continue
+            else:
+                list_type = listing["list_date"]
+            if list_type == None:
+                list_type = "2022-01-01"
+            price = (
+                listing["list_price"]
+                if listing["list_price"]
+                else listing["description"].get("sold_price", 0)
+            )
+            year_built = listing["description"].get("year_built", 0)
+
+            # Assume the values are in the 'description' dictionary
+            beds = listing["description"].get("beds", 0)
+            baths = listing["description"].get("baths", 0)
+            cooling = listing["description"].get("cooling", "")
+            heating = listing["description"].get("heating", "")
+            sqft = listing["description"].get("sqft", 0)
+
+            # Check if the HomeListing already exists
+            try:
+                home_listing = HomeListing.objects.get(
+                    zip_code=zip_object,
+                    address=parse_streets(
+                        (listing["location"]["address"]["line"]).title()
+                    ),
+                    city=listing["location"]["address"]["city"],
+                    state=listing["location"]["address"]["state_code"],
+                )
+                # Update all the fields if it already exists
+                home_listing.status = status
+                home_listing.listed = list_type[:10]
+                home_listing.price = price
+                home_listing.housing_type = listing["description"]["type"]
+                home_listing.year_built = year_built
+                home_listing.latitude = listing["location"]["address"][
+                    "coordinate"
+                ]["lat"]
+                home_listing.longitude = listing["location"]["address"][
+                    "coordinate"
+                ]["lon"]
+                home_listing.permalink = listing["permalink"]
+                home_listing.lot_sqft = listing["description"].get(
+                    "lot_sqft", 0
+                )
+                home_listing.bedrooms = beds
+                home_listing.bathrooms = baths
+                home_listing.cooling = cooling
+                home_listing.heating = heating
+                home_listing.sqft = sqft
+                home_listing.save()
+
+            except HomeListing.DoesNotExist:
+                # Create a new HomeListing if it doesn't exist
+                home_listing = HomeListing.objects.create(
+                    zip_code=zip_object,
+                    address=parse_streets(
+                        (listing["location"]["address"]["line"]).title()
+                    ),
+                    status=status,
+                    listed=list_type[:10],
+                    price=price,
+                    housing_type=listing["description"]["type"],
+                    year_built=year_built,
+                    state=listing["location"]["address"]["state_code"],
+                    city=listing["location"]["address"]["city"],
+                    latitude=listing["location"]["address"]["coordinate"][
+                        "lat"
+                    ],
+                    longitude=listing["location"]["address"]["coordinate"][
+                        "lon"
+                    ],
+                    permalink=listing["permalink"],
+                    lot_sqft=listing["description"].get("lot_sqft", 0),
+                    bedrooms=beds,
+                    bathrooms=baths,
+                    cooling=cooling,
+                    heating=heating,
+                    sqft=sqft,
+                )
+
+            if "tags" in listing:
+                if listing["tags"] is not None:
+                    for tag in listing["tags"]:
+                        curr_tag, _ = HomeListingTags.objects.get_or_create(
+                            tag=tag
+                        )
+                        home_listing.tag.add(curr_tag)
+
+            if "branding" in listing:
+                if listing["branding"] is not None:
+                    try:
+                        for brand in listing["branding"]:
+                            realtor, _ = Realtor.objects.get_or_create(
+                                name=brand["name"]
+                            )
+                            home_listing.realtor = realtor
+                            home_listing.save()
+                    except Exception:
+                        pass
+
         except Exception as e:
-            logging.error(f"Failed to create listing: {e}. Result: {result}")
+            logging.error(f"Listing: {listing['location']['address']}")
+            logging.error(e)
+    del_variables(
+        [zip_object, created, list_type, home_listing, curr_tag, results]
+    )
 
 
 def create_url(city, state, street, page):
