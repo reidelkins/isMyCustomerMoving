@@ -69,7 +69,7 @@ Protego==0.2.1
 psycopg2==2.9.5
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
-pycparser==2.20
+pycparser==2.21
 PyDispatcher==2.0.7
 PyJWT==2.2.0
 pyOpenSSL==23.1.1
