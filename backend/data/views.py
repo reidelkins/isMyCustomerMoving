@@ -475,10 +475,16 @@ class UpdateStatusView(APIView):
 
     def get(self, request, *args, **kwargs):
         try:
+            Company.objects.get(id=self.kwargs["company"])
             get_all_zipcodes.delay(self.kwargs["company"])
         except Exception as e:
             logging.error(f"ERROR: Update Status View: {e}")
-        return Response("", status=status.HTTP_201_CREATED, headers="")
+            return Response(
+                "ERROR: Invalid Company ID",
+                status=status.HTTP_400_BAD_REQUEST,
+                headers="",
+            )
+        return Response("", status=status.HTTP_200_OK, headers="")
 
 
 class UploadFileView(generics.ListAPIView):
