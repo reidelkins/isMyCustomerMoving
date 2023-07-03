@@ -224,9 +224,7 @@ def get_scrapfly_scrape(scrapfly, page):
 def parse_search(result, search_type: str):
     data = result.selector.css("script#__NEXT_DATA__::text").get()
     if not data:
-        logging.error(
-            f"page {result.context['url']} is not a property listing page: Not Data"
-        )
+        logging.error(f"page {result.context['url']}: Not Data")
         return
 
     data = dict(json.loads(data))
@@ -240,9 +238,7 @@ def parse_search(result, search_type: str):
             data = data["props"]["pageProps"]["properties"]
             return data
         except KeyError as e:
-            logging.error(
-                f"page {result.context['url']} is not a property listing page: KeyError"
-            )
+            logging.error(f"page {result.context['url']}: KeyError")
             logging.error(f"KeyError: {e}")
             return False
 
@@ -284,7 +280,7 @@ def create_home_listings(results, status, resp=None):
                             continue
             else:
                 list_type = listing["list_date"]
-            if list_type == None:
+            if list_type is None:
                 list_type = "2022-01-01"
             price = (
                 listing["list_price"]
@@ -379,8 +375,8 @@ def create_home_listings(results, status, resp=None):
                             )
                             home_listing.realtor = realtor
                             home_listing.save()
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logging.error(e)
 
         except Exception as e:
             logging.error(f"Listing: {listing['location']['address']}")
