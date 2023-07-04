@@ -85,6 +85,9 @@ class Client(models.Model):
     class Meta:
         unique_together = ("company", "name", "address")
 
+    def __str__(self):
+        return f"{self.name}_{self.company}"
+
 
 # Function to return today's date
 def format_today():
@@ -109,8 +112,8 @@ class ClientUpdate(models.Model):
     )
     listed = models.CharField(max_length=30, blank=True, null=True)
     note = models.TextField(default="", blank=True, null=True)
-    contacted = models.BooleanField(blank=True, null=True)
-    error_flag = models.BooleanField(blank=True, null=True)
+    contacted = models.BooleanField(blank=True, null=True, default=False)
+    error_flag = models.BooleanField(blank=True, null=True, default=False)
 
 
 # ScrapeResponse model
@@ -160,13 +163,6 @@ class HomeListing(models.Model):
         max_length=25, choices=STATUS, default="Off Market"
     )
     listed = models.CharField(max_length=30, default=" ")
-    # scrape_response = models.ForeignKey(
-    #     ScrapeResponse,
-    #     blank=True,
-    #     null=True,
-    #     on_delete=models.SET_NULL,
-    #     related_name="home_listing_scrape_response",
-    # )
     price = models.IntegerField(default=0, blank=True, null=True)
     housing_type = models.CharField(
         max_length=100, default=" ", blank=True, null=True
@@ -218,6 +214,9 @@ class HomeListing(models.Model):
 
     class Meta:
         unique_together = ("address", "status", "city", "state")
+
+    def __str__(self):
+        return f"{self.address}_{self.status}"
 
 
 # HomeListingTags model

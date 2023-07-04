@@ -3,6 +3,7 @@ from rest_framework import status, generics
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 import datetime
 import logging
@@ -32,8 +33,8 @@ from .utils import (
 class DownloadClientView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, user, format=None):
-        queryset = self.get_queryset(user)
+    def get(self, request, format=None):
+        queryset = self.get_queryset()
         header = [
             "name",
             "address",
@@ -61,9 +62,9 @@ class DownloadClientView(APIView):
             writer.writerow(row)
         return response
 
-    def get_queryset(self, user):
+    def get_queryset(self):
         query_params = self.request.query_params
-        user = CustomUser.objects.get(id=user)
+        user = self.request.user
         queryset = Client.objects.filter(
             company=user.company, active=True
         ).order_by("status")
@@ -80,7 +81,7 @@ class ClientListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = CustomUser.objects.get(id=self.kwargs["user"])
+        user = self.request.user
         query_params = self.request.query_params
         queryset = Client.objects.prefetch_related(
             "client_updates_client"
@@ -109,7 +110,7 @@ class ClientListView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        user = CustomUser.objects.get(id=self.kwargs["user"])
+        user = self.request.user
         allClients = Client.objects.filter(company=user.company, active=True)
         forSale = allClients.filter(
             status="House For Sale", contacted=False
@@ -150,7 +151,8 @@ class ClientListView(generics.ListAPIView):
                 "recentlySoldAllTime": recentlySoldAllTime,
                 "recentlySold": recentlySold,
                 "clients": clients,
-            }
+            },
+            status=status.HTTP_200_OK,
         )
 
 
@@ -161,7 +163,7 @@ class RecentlySoldView(generics.ListAPIView):
 
     def get_queryset(self):
         query_params = self.request.query_params
-        company = Company.objects.get(id=self.kwargs["company"])
+        company = self.request.user.company
         if company.recently_sold_purchased:
             zip_code_objects = Client.objects.filter(company=company).values(
                 "zip_code"
@@ -179,8 +181,9 @@ class RecentlySoldView(generics.ListAPIView):
         else:
             return HomeListing.objects.none()
 
-    def get(self, request, company, format=None):
+    def get(self, request, format=None):
         queryset = self.get_queryset()
+        company = self.request.user.company
         savedFilters = list(
             SavedFilter.objects.filter(
                 company=company, filter_type="Recently Sold"
@@ -198,51 +201,64 @@ class RecentlySoldView(generics.ListAPIView):
         recentlySold = serializer.data
         return Response({"data": recentlySold, "savedFilters": savedFilters})
 
-    def post(self, request, company, format=None):
-        data = request.data
-        company = Company.objects.get(id=company)
+    def post(self, request, format=None):
+        try:
+            data = request.data
+            company = self.request.user.company
 
-        filterName = data["filter_name"]
+            filterName = data["filter_name"]
 
-        if SavedFilter.objects.filter(
-            name=filterName, company=company, filter_type="Recently Sold"
-        ).exists():
+            if SavedFilter.objects.filter(
+                name=filterName, company=company, filter_type="Recently Sold"
+            ).exists():
+                return Response(
+                    {"error": "A filter with that name already exists"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            else:
+                filters = {
+                    "min_price": data["min_price"],
+                    "max_price": data["max_price"],
+                    "min_year": data["min_year"],
+                    "max_year": data["max_year"],
+                    "min_days_ago": data["min_days_ago"],
+                    "max_days_ago": data["max_days_ago"],
+                    "tags": data["tag_filters"],
+                    "city": data["city"],
+                    "state": data["state"],
+                    "zip_code": data["zip_code"],
+                }
+
+                forZapier = data["for_zapier"]
+                SavedFilter.objects.create(
+                    name=filterName,
+                    company=company,
+                    saved_filters=json.dumps(filters),
+                    for_zapier=forZapier,
+                    filter_type="Recently Sold",
+                )
+                return Response(
+                    {"success": "Filter created successfully"},
+                    status=status.HTTP_200_OK,
+                )
+        except KeyError:
             return Response(
-                {"error": "A filter with that name already exists"},
+                {"Error": "Request body did not include correct information"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        else:
-            filters = {
-                "min_price": data["min_price"],
-                "max_price": data["max_price"],
-                "min_year": data["min_year"],
-                "max_year": data["max_year"],
-                "min_days_ago": data["min_days_ago"],
-                "max_days_ago": data["max_days_ago"],
-                "tags": data["tag_filters"],
-                "city": data["city"],
-                "state": data["state"],
-                "zip_code": data["zip_code"],
-            }
 
-            forZapier = data["for_zapier"]
-            SavedFilter.objects.create(
-                name=filterName,
-                company=company,
-                saved_filters=json.dumps(filters),
-                for_zapier=forZapier,
-                filter_type="Recently Sold",
+    def delete(self, request, format=None, **kwargs):
+        filter_name = kwargs["filter"]
+        try:
+            filter = SavedFilter.objects.get(
+                name=filter_name, company=request.user.company
             )
+            filter.delete()
+        except ObjectDoesNotExist:
             return Response(
-                {"success": "Filter created successfully"},
-                status=status.HTTP_200_OK,
+                {"Error": "Filter and company combination does not exist"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-
-    def delete(self, request, company, format=None):
-        data = request.data
-        filterName = data["filter_name"]
-        company = Company.objects.get(id=company)
-        SavedFilter.objects.filter(name=filterName, company=company).delete()
         return Response(
             {"success": "Filter deleted successfully"},
             status=status.HTTP_200_OK,
@@ -260,8 +276,8 @@ class AllRecentlySoldView(generics.ListAPIView):
 
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, company, format=None):
-        queryset = self.get_queryset(company)
+    def get(self, request, format=None):
+        queryset = self.get_queryset()
         header = [
             "address",
             "city",
@@ -289,9 +305,9 @@ class AllRecentlySoldView(generics.ListAPIView):
             writer.writerow(row)
         return response
 
-    def get_queryset(self, company_id):
+    def get_queryset(self):
         query_params = self.request.query_params
-        company = Company.objects.get(id=company_id)
+        company = self.request.user.company
         if company.recently_sold_purchased:
             zip_code_objects = Client.objects.filter(
                 company=company, active=True
@@ -317,7 +333,7 @@ class ForSaleView(generics.ListAPIView):
 
     def get_queryset(self):
         query_params = self.request.query_params
-        company = Company.objects.get(id=self.kwargs["company"])
+        company = self.request.user.company
         if company.for_sale_purchased:
             zip_code_objects = Client.objects.filter(company=company).values(
                 "zip_code"
@@ -335,8 +351,9 @@ class ForSaleView(generics.ListAPIView):
         else:
             return HomeListing.objects.none()
 
-    def get(self, request, company, format=None):
+    def get(self, request, format=None):
         queryset = self.get_queryset()
+        company = self.request.user.company
         savedFilters = list(
             SavedFilter.objects.filter(
                 company=company, filter_type="For Sale"
@@ -354,51 +371,64 @@ class ForSaleView(generics.ListAPIView):
         forSale = serializer.data
         return Response({"data": forSale, "savedFilters": savedFilters})
 
-    def post(self, request, company, format=None):
-        data = request.data
-        company = Company.objects.get(id=company)
+    def post(self, request, format=None):
+        try:
+            data = request.data
+            company = self.request.user.company
 
-        filterName = data["filter_name"]
+            filterName = data["filter_name"]
 
-        if SavedFilter.objects.filter(
-            name=filterName, company=company, filter_type="For Sale"
-        ).exists():
+            if SavedFilter.objects.filter(
+                name=filterName, company=company, filter_type="For Sale"
+            ).exists():
+                return Response(
+                    {"error": "A filter with that name already exists"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            else:
+                filters = {
+                    "min_price": data["min_price"],
+                    "max_price": data["max_price"],
+                    "min_year": data["min_year"],
+                    "max_year": data["max_year"],
+                    "min_days_ago": data["min_days_ago"],
+                    "max_days_ago": data["max_days_ago"],
+                    "tags": data["tag_filters"],
+                    "city": data["city"],
+                    "state": data["state"],
+                    "zip_code": data["zip_code"],
+                }
+
+                forZapier = data["for_zapier"]
+                SavedFilter.objects.create(
+                    name=filterName,
+                    company=company,
+                    saved_filters=json.dumps(filters),
+                    for_zapier=forZapier,
+                    filter_type="For Sale",
+                )
+                return Response(
+                    {"success": "Filter created successfully"},
+                    status=status.HTTP_200_OK,
+                )
+        except KeyError:
             return Response(
-                {"error": "A filter with that name already exists"},
+                {"Error": "Request body did not include correct information"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        else:
-            filters = {
-                "min_price": data["min_price"],
-                "max_price": data["max_price"],
-                "min_year": data["min_year"],
-                "max_year": data["max_year"],
-                "min_days_ago": data["min_days_ago"],
-                "max_days_ago": data["max_days_ago"],
-                "tags": data["tag_filters"],
-                "city": data["city"],
-                "state": data["state"],
-                "zip_code": data["zip_code"],
-            }
 
-            forZapier = data["for_zapier"]
-            SavedFilter.objects.create(
-                name=filterName,
-                company=company,
-                saved_filters=json.dumps(filters),
-                for_zapier=forZapier,
-                filter_type="For Sale",
+    def delete(self, request, format=None, **kwargs):
+        filter_name = kwargs["filter"]
+        try:
+            filter = SavedFilter.objects.get(
+                name=filter_name, company=request.user.company
             )
+            filter.delete()
+        except ObjectDoesNotExist:
             return Response(
-                {"success": "Filter created successfully"},
-                status=status.HTTP_200_OK,
+                {"Error": "Filter and company combination does not exist"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-
-    def delete(self, request, company, format=None):
-        data = request.data
-        filterName = data["filter_name"]
-        company = Company.objects.get(id=company)
-        SavedFilter.objects.filter(name=filterName, company=company).delete()
         return Response(
             {"success": "Filter deleted successfully"},
             status=status.HTTP_200_OK,
@@ -416,8 +446,8 @@ class AllForSaleView(generics.ListAPIView):
 
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, company, format=None):
-        queryset = self.get_queryset(company)
+    def get(self, request, format=None):
+        queryset = self.get_queryset()
         header = [
             "address",
             "city",
@@ -445,9 +475,9 @@ class AllForSaleView(generics.ListAPIView):
             writer.writerow(row)
         return response
 
-    def get_queryset(self, company_id):
+    def get_queryset(self):
         query_params = self.request.query_params
-        company = Company.objects.get(id=company_id)
+        company = self.request.user.company
         if company.for_sale_purchased:
             zip_code_objects = Client.objects.filter(
                 company=company, active=True
@@ -475,8 +505,8 @@ class UpdateStatusView(APIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            Company.objects.get(id=self.kwargs["company"])
-            get_all_zipcodes.delay(self.kwargs["company"])
+            company = self.request.user.company
+            get_all_zipcodes.delay(company.id)
         except Exception as e:
             logging.error(f"ERROR: Update Status View: {e}")
             return Response(
@@ -497,7 +527,7 @@ class UploadFileView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         try:
             try:
-                task = Task.objects.get(id=self.kwargs["company"])
+                task = Task.objects.get(id=kwargs["task"])
                 if task.completed:
                     deleted = task.deleted_clients
                     # task.delete()
@@ -529,23 +559,14 @@ class UploadFileView(generics.ListAPIView):
             )
 
     def put(self, request, *args, **kwargs):
-        company_id = self.kwargs["company"]
-        try:
-            Company.objects.get(id=company_id)
-        except Exception as e:
-            logging.error(e)
-            return Response(
-                {"status": "Company Error"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         try:
             task = Task.objects.create()
-            save_client_list.delay(request.data, company_id, task=task.id)
+            save_client_list.delay(
+                request.data, self.request.user.company.id, task=task.id
+            )
         except Exception as e:
             logging.error(e)
-            return Response(
-                {"status": "File Error"}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"status": e}, status=status.HTTP_400_BAD_REQUEST)
         return Response(
             {
                 "data": """Clients Uploaded!
@@ -644,7 +665,7 @@ class ServiceTitanView(APIView):
     def get(self, request, *args, **kwargs):
         try:
             try:
-                task = Task.objects.get(id=self.kwargs["company"])
+                task = Task.objects.get(id=kwargs["task"])
                 if task.completed:
                     deleted = task.deletedClients
                     task.delete()
@@ -689,17 +710,8 @@ class ServiceTitanView(APIView):
             )
 
     def put(self, request, *args, **kwargs):
-        company_id = self.kwargs["company"]
+        company_id = self.request.user.company.id
         option = request.data.get("option", "")
-        try:
-            Company.objects.get(id=company_id)
-        except Company.DoesNotExist:
-            logging.error(f"Company with id {company_id} does not exist.")
-            return Response(
-                {"status": "Company Error"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         try:
             task = Task.objects.create()
             get_service_titan_clients.delay(company_id, task.id, option)
@@ -715,7 +727,7 @@ class ServiceTitanView(APIView):
             )
 
 
-class SalesforceConsumerView(APIView):
+class SalesforceView(APIView):
     """
     An API view to handle interactions with Salesforce, including
     retrieving consumer keys and handling post requests.
@@ -730,7 +742,7 @@ class SalesforceConsumerView(APIView):
                     "consumer_key": settings.SALESFORCE_CONSUMER_KEY,
                     "consumer_secret": settings.SALESFORCE_CONSUMER_SECRET,
                 },
-                status=status.HTTP_201_CREATED,
+                status=status.HTTP_200_OK,
                 headers="",
             )
         except Exception as e:
@@ -739,39 +751,30 @@ class SalesforceConsumerView(APIView):
                 {"status": "error"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-    def post(self, request, *args, **kwargs):
-        company_id = self.kwargs["company"]
-        try:
-            company = Company.objects.get(id=company_id)
-        except Company.DoesNotExist:
-            logging.error(f"Company with id {company_id} does not exist.")
-            return Response(
-                {"status": "Company Error"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+    # def post(self, *args, **kwargs):
+    #     company_id = self.request.user.company.id
+    #     try:
+    #         company = Company.objects.get(id=company_id)
+    #     except Company.DoesNotExist:
+    #         logging.error(f"Company with id {company_id} does not exist.")
+    #         return Response(
+    #             {"status": "Company Error"},
+    #             status=status.HTTP_400_BAD_REQUEST,
+    #         )
 
-        company.crm = "Salesforce"
-        # code = request.data.get("code", "")
-        # headers = {
-        #     "Content-type": "application/x-www-form-urlencoded",
-        # }
+    #     company.crm = "Salesforce"
+    #     # code = request.data.get("code", "")
+    #     # headers = {
+    #     #     "Content-type": "application/x-www-form-urlencoded",
+    #     # }
 
-    def put(self, request, *args, **kwargs):
-        company_id = self.kwargs["company"]
+    def put(self, *args, **kwargs):
+        company_id = self.request.user.company.id
         try:
-            Company.objects.get(id=company_id)
-        except Company.DoesNotExist:
-            logging.error(f"Company with id {company_id} does not exist.")
-            return Response(
-                {"status": "Company Error"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            get_salesforce_clients(company_id)
+            get_salesforce_clients.delay(company_id)
             return Response(
                 {"status": "Success"},
-                status=status.HTTP_201_CREATED,
+                status=status.HTTP_200_OK,
                 headers="",
             )
         except Exception as e:

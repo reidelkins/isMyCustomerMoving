@@ -9,12 +9,12 @@ from rest_framework.test import APIClient
 
 from accounts.models import InviteToken, CustomUser, Company
 
-from accounts.utils import makeCompany
+from accounts.utils import make_company
 
 
 @pytest.fixture
 def company():
-    return makeCompany(
+    return make_company(
         "Test Company",
         "testcompany@gmail.com",
         "8881234567",
@@ -46,7 +46,9 @@ def authenticated_user(api_client, company):
 @pytest.fixture
 def invited_info(company):
     email = "anothertest@gmail.com"
-    user = CustomUser.objects.create(email=email, company=company, status="pending")
+    user = CustomUser.objects.create(
+        email=email, company=company, status="pending"
+    )
     inviteToken = InviteToken.objects.create(company=company, email=email)
     return (inviteToken, user)
 
@@ -249,7 +251,9 @@ def test_get_users(api_client, authenticated_user, invited_info):
 def test_make_extra_user(api_client, authenticated_user, invited_info):
     EMAIL = "anothertest@gmail.com"
     # Test Invite User
-    url = reverse("manageuser", kwargs={"id": str(authenticated_user.company.id)})
+    url = reverse(
+        "manageuser", kwargs={"id": str(authenticated_user.company.id)}
+    )
     data = {
         "email": EMAIL,
     }
@@ -350,7 +354,9 @@ def test_delete_user(api_client, authenticated_user, invited_info):
     assert CustomUser.objects.count() == 2
     secondUser = invited_info[1]
     # Test Delete Single User
-    url = reverse("manageuser", kwargs={"id": str(authenticated_user.company.id)})
+    url = reverse(
+        "manageuser", kwargs={"id": str(authenticated_user.company.id)}
+    )
     data = [secondUser.id]
     response = api_client.delete(url, data, format="json")
     assert response.status_code == status.HTTP_200_OK

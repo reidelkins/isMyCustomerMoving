@@ -242,7 +242,7 @@ def password_reset_token_created(
         email=reset_password_token.user.email
     ).exists():
         subject = "Password Reset: IsMyCustomerMoving.com"
-        message = get_template("reset_password.html").render(
+        message = get_template("resetPassword.html").render(
             {"token": reset_password_token.key}
         )
 
