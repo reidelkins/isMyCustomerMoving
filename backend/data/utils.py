@@ -610,16 +610,15 @@ def auto_update(company_id=None, zip=None):
         companies = Company.objects.all()
         for company in companies:
             try:
-                logging.error(
-                    f"Auto Update: {company.product} {company.name}"
-                )
                 if company.product.id != "price_1MhxfPAkLES5P4qQbu8O45xy":
-                    logging.error("In the if statement")
                     get_all_zipcodes(company.id)
                 else:
                     logging.error("free tier")
             except Exception as e:
                 logging.error(f"Auto Update Error: {e}")
+                logging.error(
+                    f"Auto Update: {company.product} {company.name}"
+                )
         del_variables([company, companies])
 
 
