@@ -1056,169 +1056,181 @@ export const getClientsCSV = (
   customerSinceMax
   // eslint-disable-next-line arrow-body-style
 ) => {
-  return async (getState) => {
-    const reduxStore = getState();
-    const { userInfo } = reduxStore.auth.userInfo;
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access_token}`,
-      },
-      responseType: 'blob', // Tell axios to expect a binary response
-    };
-    let filters = '';
-    if (statusFilters.length > 0) {
-      filters += `&status=${statusFilters.join(',')}`;
+  return async (dispatch, getState) => {
+    try {
+      const reduxStore = getState();
+      const { userInfo } = reduxStore.auth.userInfo;
+      const config = {
+        headers: {
+          'Content-type': 'application/json',
+          Authorization: `Bearer ${userInfo.access_token}`,
+        },
+        responseType: 'blob', // Tell axios to expect a binary response
+      };
+      let filters = '';
+      if (statusFilters.length > 0) {
+        filters += `&status=${statusFilters.join(',')}`;
+      }
+      if (minPrice) {
+        filters += `&min_price=${minPrice}`;
+      }
+      if (maxPrice) {
+        filters += `&max_price=${maxPrice}`;
+      }
+      if (minYear) {
+        filters += `&min_year=${minYear}`;
+      }
+      if (maxYear) {
+        filters += `&max_year=${maxYear}`;
+      }
+      if (tagFilters.length > 0) {
+        filters += `&tags=${tagFilters.join('&tags=')}`;
+      }
+      if (equipInstallDateMin) {
+        filters += `&equip_install_date_min=${equipInstallDateMin}`;
+      }
+      if (equipInstallDateMax) {
+        filters += `&equip_install_date_max=${equipInstallDateMax}`;
+      }
+      if (city) {
+        filters += `&city=${city}`;
+      }
+      if (state) {
+        filters += `&state=${state}`;
+      }
+      if (zipCode) {
+        filters += `&zip_code=${zipCode}`;
+      }
+      if (customerSinceMin) {
+        filters += `&customer_since_min=${customerSinceMin}`;
+      }
+      if (customerSinceMax) {
+        filters += `&customer_since_max=${customerSinceMax}`;
+      }
+      const response = await axios.get(`${DOMAIN}/api/v1/data/downloadclients/${userInfo.id}/?${filters}`, config);
+      const csvBlob = new Blob([response.data], { type: 'text/csv' }); // Convert binary response to a blob
+      FileSaver.saveAs(csvBlob, 'clients.csv'); // Download the file using FileSaver
+    } catch (error) {
+      console.log(error);
     }
-    if (minPrice) {
-      filters += `&min_price=${minPrice}`;
-    }
-    if (maxPrice) {
-      filters += `&max_price=${maxPrice}`;
-    }
-    if (minYear) {
-      filters += `&min_year=${minYear}`;
-    }
-    if (maxYear) {
-      filters += `&max_year=${maxYear}`;
-    }
-    if (tagFilters.length > 0) {
-      filters += `&tags=${tagFilters.join('&tags=')}`;
-    }
-    if (equipInstallDateMin) {
-      filters += `&equip_install_date_min=${equipInstallDateMin}`;
-    }
-    if (equipInstallDateMax) {
-      filters += `&equip_install_date_max=${equipInstallDateMax}`;
-    }
-    if (city) {
-      filters += `&city=${city}`;
-    }
-    if (state) {
-      filters += `&state=${state}`;
-    }
-    if (zipCode) {
-      filters += `&zip_code=${zipCode}`;
-    }
-    if (customerSinceMin) {
-      filters += `&customer_since_min=${customerSinceMin}`;
-    }
-    if (customerSinceMax) {
-      filters += `&customer_since_max=${customerSinceMax}`;
-    }
-    const response = await axios.get(`${DOMAIN}/api/v1/data/downloadclients/${userInfo.id}/?${filters}`, config);
-    const csvBlob = new Blob([response.data], { type: 'text/csv' }); // Convert binary response to a blob
-    FileSaver.saveAs(csvBlob, 'clients.csv'); // Download the file using FileSaver
   };
 };
 
 export const getRecentlySoldCSV =
   (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, savedFilter) =>
-  async (getState) => {
-    const reduxStore = getState();
-    const { userInfo } = reduxStore.auth.userInfo;
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access_token}`,
-      },
-      responseType: 'blob', // Tell axios to expect a binary response
-    };
-    let filters = '';
-    if (minPrice) {
-      filters += `&min_price=${minPrice}`;
+  async (dispatch, getState) => {
+    try {
+      const reduxStore = getState();
+      const { userInfo } = reduxStore.auth.userInfo;
+      const config = {
+        headers: {
+          'Content-type': 'application/json',
+          Authorization: `Bearer ${userInfo.access_token}`,
+        },
+        responseType: 'blob', // Tell axios to expect a binary response
+      };
+      let filters = '';
+      if (minPrice) {
+        filters += `&min_price=${minPrice}`;
+      }
+      if (maxPrice) {
+        filters += `&max_price=${maxPrice}`;
+      }
+      if (minYear) {
+        filters += `&min_year=${minYear}`;
+      }
+      if (maxYear) {
+        filters += `&max_year=${maxYear}`;
+      }
+      if (minDaysAgo) {
+        filters += `&min_days_ago=${minDaysAgo}`;
+      }
+      if (maxDaysAgo) {
+        filters += `&max_days_ago=${maxDaysAgo}`;
+      }
+      if (tagFilters) {
+        filters += `&tags=${tagFilters.join(',')}`;
+      }
+      if (city) {
+        filters += `&city=${city}`;
+      }
+      if (state) {
+        filters += `&state=${state}`;
+      }
+      if (zipCode) {
+        filters += `&zip_code=${zipCode}`;
+      }
+      if (savedFilter) {
+        filters += `&saved_filter=${savedFilter}`;
+      }
+      const response = await axios.get(
+        `${DOMAIN}/api/v1/data/downloadrecentlysold/${userInfo.company.id}/?${filters}`,
+        config
+      );
+      const csvBlob = new Blob([response.data], { type: 'text/csv' }); // Convert binary response to a blob
+      FileSaver.saveAs(csvBlob, 'homelistings.csv'); // Download the file using FileSaver
+    } catch (error) {
+      console.log(error);
     }
-    if (maxPrice) {
-      filters += `&max_price=${maxPrice}`;
-    }
-    if (minYear) {
-      filters += `&min_year=${minYear}`;
-    }
-    if (maxYear) {
-      filters += `&max_year=${maxYear}`;
-    }
-    if (minDaysAgo) {
-      filters += `&min_days_ago=${minDaysAgo}`;
-    }
-    if (maxDaysAgo) {
-      filters += `&max_days_ago=${maxDaysAgo}`;
-    }
-    if (tagFilters) {
-      filters += `&tags=${tagFilters.join(',')}`;
-    }
-    if (city) {
-      filters += `&city=${city}`;
-    }
-    if (state) {
-      filters += `&state=${state}`;
-    }
-    if (zipCode) {
-      filters += `&zip_code=${zipCode}`;
-    }
-    if (savedFilter) {
-      filters += `&saved_filter=${savedFilter}`;
-    }
-    const response = await axios.get(
-      `${DOMAIN}/api/v1/data/downloadrecentlysold/${userInfo.company.id}/?${filters}`,
-      config
-    );
-    const csvBlob = new Blob([response.data], { type: 'text/csv' }); // Convert binary response to a blob
-    FileSaver.saveAs(csvBlob, 'homelistings.csv'); // Download the file using FileSaver
   };
 
 export const getForSaleCSV =
   (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, savedFilter) =>
-  async (getState) => {
-    const reduxStore = getState();
-    const { userInfo } = reduxStore.auth.userInfo;
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.access_token}`,
-      },
-      responseType: 'blob', // Tell axios to expect a binary response
-    };
-    console.log(3);
-    let filters = '';
-    if (minPrice) {
-      filters += `&min_price=${minPrice}`;
+  async (dispatch, getState) => {
+    try {
+      const reduxStore = getState();
+      const { userInfo } = reduxStore.auth.userInfo;
+      const config = {
+        headers: {
+          'Content-type': 'application/json',
+          Authorization: `Bearer ${userInfo.access_token}`,
+        },
+        responseType: 'blob', // Tell axios to expect a binary response
+      };
+      console.log(3);
+      let filters = '';
+      if (minPrice) {
+        filters += `&min_price=${minPrice}`;
+      }
+      if (maxPrice) {
+        filters += `&max_price=${maxPrice}`;
+      }
+      if (minYear) {
+        filters += `&min_year=${minYear}`;
+      }
+      if (maxYear) {
+        filters += `&max_year=${maxYear}`;
+      }
+      if (minDaysAgo) {
+        filters += `&min_days_ago=${minDaysAgo}`;
+      }
+      if (maxDaysAgo) {
+        filters += `&max_days_ago=${maxDaysAgo}`;
+      }
+      if (tagFilters) {
+        filters += `&tags=${tagFilters.join(',')}`;
+      }
+      if (city) {
+        filters += `&city=${city}`;
+      }
+      if (state) {
+        filters += `&state=${state}`;
+      }
+      if (zipCode) {
+        filters += `&zip_code=${zipCode}`;
+      }
+      if (savedFilter) {
+        filters += `&saved_filter=${savedFilter}`;
+      }
+      const response = await axios.get(
+        `${DOMAIN}/api/v1/data/downloadforsale/${userInfo.company.id}/?${filters}`,
+        config
+      );
+      const csvBlob = new Blob([response.data], { type: 'text/csv' }); // Convert binary response to a blob
+      FileSaver.saveAs(csvBlob, 'forsale.csv'); // Download the file using FileSaver
+    } catch (error) {
+      console.log(error);
     }
-    if (maxPrice) {
-      filters += `&max_price=${maxPrice}`;
-    }
-    if (minYear) {
-      filters += `&min_year=${minYear}`;
-    }
-    if (maxYear) {
-      filters += `&max_year=${maxYear}`;
-    }
-    if (minDaysAgo) {
-      filters += `&min_days_ago=${minDaysAgo}`;
-    }
-    if (maxDaysAgo) {
-      filters += `&max_days_ago=${maxDaysAgo}`;
-    }
-    if (tagFilters) {
-      filters += `&tags=${tagFilters.join(',')}`;
-    }
-    if (city) {
-      filters += `&city=${city}`;
-    }
-    if (state) {
-      filters += `&state=${state}`;
-    }
-    if (zipCode) {
-      filters += `&zip_code=${zipCode}`;
-    }
-    if (savedFilter) {
-      filters += `&saved_filter=${savedFilter}`;
-    }
-    const response = await axios.get(
-      `${DOMAIN}/api/v1/data/downloadforsale/${userInfo.company.id}/?${filters}`,
-      config
-    );
-    const csvBlob = new Blob([response.data], { type: 'text/csv' }); // Convert binary response to a blob
-    FileSaver.saveAs(csvBlob, 'homelistings.csv'); // Download the file using FileSaver
   };
 
 export const saveRecentlySoldFilterAsync =
