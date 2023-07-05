@@ -7,7 +7,9 @@ from data.utils import update_clients_statuses
 
 
 class Command(BaseCommand):
-    help = "Update client statuses for a specific company or for all companies."
+    help = (
+        "Update client statuses for a specific company or for all companies."
+    )
 
     def add_arguments(self, parser):
         parser.add_argument("-c", "--company")
@@ -21,7 +23,9 @@ class Command(BaseCommand):
             # Define the days to run this command
             days_to_run = [0, 1, 2, 3, 4]  # Weekdays
             current_day = datetime.now().weekday()
+            print("Current day: ", current_day)
 
             # Check if current day is in the list of days to run
             if current_day in days_to_run:
+                print(f"Updating client statuses...")
                 update_clients_statuses.delay()
