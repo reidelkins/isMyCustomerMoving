@@ -371,11 +371,12 @@ def create_home_listings(results, status, resp=None):
                 if listing["branding"] is not None:
                     try:
                         for brand in listing["branding"]:
-                            realtor, _ = Realtor.objects.get_or_create(
-                                name=brand["name"]
-                            )
-                            home_listing.realtor = realtor
-                            home_listing.save()
+                            if brand["name"] is not None:
+                                realtor, _ = Realtor.objects.get_or_create(
+                                    name=brand["name"]
+                                )
+                                home_listing.realtor = realtor
+                                home_listing.save()
                     except Exception as e:
                         logging.error(e)
 

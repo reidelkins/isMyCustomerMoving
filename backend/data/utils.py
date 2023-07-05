@@ -834,9 +834,8 @@ def update_service_titan_client_tags(for_sale, company, status):
             company.service_titan_recently_sold_tag_id,
         ]
         tag_ids = [str(tag_id) for tag_id in tag_ids if tag_id]
-
+        headers = get_service_titan_access_token(company.id)
         if for_sale and tag_ids:
-            headers = get_service_titan_access_token(company.id)
             tag_type = determine_tag_type(company, status)
 
             if status == "House Recently Sold (6)":
