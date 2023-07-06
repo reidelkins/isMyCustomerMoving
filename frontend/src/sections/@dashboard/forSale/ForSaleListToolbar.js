@@ -40,6 +40,22 @@ ForSaleListToolbar.propTypes = {
   setCity: PropTypes.func,
   state: PropTypes.string,
   setState: PropTypes.func,
+  minRooms: PropTypes.string,
+  setMinRooms: PropTypes.func,
+  maxRooms: PropTypes.string,
+  setMaxRooms: PropTypes.func,
+  minBaths: PropTypes.string,
+  setMinBaths: PropTypes.func,
+  maxBaths: PropTypes.string,
+  setMaxBaths: PropTypes.func,
+  minSqft: PropTypes.string,
+  setMinSqft: PropTypes.func,
+  maxSqft: PropTypes.string,
+  setMaxSqft: PropTypes.func,
+  minLotSqft: PropTypes.string,
+  setMinLotSqft: PropTypes.func,
+  maxLotSqft: PropTypes.string,
+  setMaxLotSqft: PropTypes.func,
 };
 
 // ----------------------------------------------------------------------
@@ -66,6 +82,22 @@ export default function ForSaleListToolbar({
   setCity,
   state,
   setState,
+  minRooms,
+  setMinRooms,
+  maxRooms,
+  setMaxRooms,
+  minBaths,
+  setMinBaths,
+  maxBaths,
+  setMaxBaths,
+  minSqft,
+  setMinSqft,
+  maxSqft,
+  setMaxSqft,
+  minLotSqft,
+  setMinLotSqft,
+  maxLotSqft,
+  setMaxLotSqft,
   savedFilter,
   setSavedFilter,
 }) {
@@ -94,6 +126,22 @@ export default function ForSaleListToolbar({
         setCity={setCity}
         state={state}
         setState={setState}
+        minRooms={minRooms}
+        setMinRooms={setMinRooms}
+        maxRooms={maxRooms}
+        setMaxRooms={setMaxRooms}
+        minBaths={minBaths}
+        setMinBaths={setMinBaths}
+        maxBaths={maxBaths}
+        setMaxBaths={setMaxBaths}
+        minSqft={minSqft}
+        setMinSqft={setMinSqft}
+        maxSqft={maxSqft}
+        setMaxSqft={setMaxSqft}
+        minLotSqft={minLotSqft}
+        setMinLotSqft={setMinLotSqft}
+        maxLotSqft={maxLotSqft}
+        setMaxLotSqft={setMaxLotSqft}
         savedFilter={savedFilter}
         setSavedFilter={setSavedFilter}
       />

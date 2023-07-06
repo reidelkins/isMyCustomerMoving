@@ -79,6 +79,25 @@ ClientListToolbar.propTypes = {
   setCustomerSinceMin: PropTypes.func,
   customerSinceMax: PropTypes.string,
   setCustomerSinceMax: PropTypes.func,
+  minRooms: PropTypes.string,
+  setMinRooms: PropTypes.func,
+  maxRooms: PropTypes.string,
+  setMaxRooms: PropTypes.func,
+  minBaths: PropTypes.string,
+  setMinBaths: PropTypes.func,
+  maxBaths: PropTypes.string,
+  setMaxBaths: PropTypes.func,
+  minSqft: PropTypes.string,
+  setMinSqft: PropTypes.func,
+  maxSqft: PropTypes.string,
+  setMaxSqft: PropTypes.func,
+  minLotSqft: PropTypes.string,
+  setMinLotSqft: PropTypes.func,
+  maxLotSqft: PropTypes.string,
+  setMaxLotSqft: PropTypes.func,
+  savedFilter: PropTypes.string,
+  setSavedFilter: PropTypes.func,
+  customerDataFilters: PropTypes.array,
 };
 
 export default function ClientListToolbar({
@@ -115,6 +134,25 @@ export default function ClientListToolbar({
   setCustomerSinceMin,
   customerSinceMax,
   setCustomerSinceMax,
+  minRooms,
+  setMinRooms,
+  maxRooms,
+  setMaxRooms,
+  minBaths,
+  setMinBaths,
+  maxBaths,
+  setMaxBaths,
+  minSqft,
+  setMinSqft,
+  maxSqft,
+  setMaxSqft,
+  minLotSqft,
+  setMinLotSqft,
+  maxLotSqft,
+  setMaxLotSqft,
+  savedFilter,
+  setSavedFilter,
+  customerDataFilters,
 }) {
   const dispatch = useDispatch();
   const [showAlert, setShowAlert] = useState(false);
@@ -181,6 +219,7 @@ export default function ClientListToolbar({
         </Tooltip>
       ) : (
         <CustomerDataFilter
+          customerDataFilters={customerDataFilters}
           product={product}
           minPrice={minPrice}
           setMinPrice={setMinPrice}
@@ -208,6 +247,24 @@ export default function ClientListToolbar({
           setCustomerSinceMin={setCustomerSinceMin}
           customerSinceMax={customerSinceMax}
           setCustomerSinceMax={setCustomerSinceMax}
+          minRooms={minRooms}
+          setMinRooms={setMinRooms}
+          maxRooms={maxRooms}
+          setMaxRooms={setMaxRooms}
+          minBaths={minBaths}
+          setMinBaths={setMinBaths}
+          maxBaths={maxBaths}
+          setMaxBaths={setMaxBaths}
+          minSqft={minSqft}
+          setMinSqft={setMinSqft}
+          maxSqft={maxSqft}
+          setMaxSqft={setMaxSqft}
+          minLotSqft={minLotSqft}
+          setMinLotSqft={setMinLotSqft}
+          maxLotSqft={maxLotSqft}
+          setMaxLotSqft={setMaxLotSqft}
+          savedFilter={savedFilter}
+          setSavedFilter={setSavedFilter}
         />
       )}
       {showAlert && (

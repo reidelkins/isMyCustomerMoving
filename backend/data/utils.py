@@ -1094,6 +1094,22 @@ def filter_home_listings(query_params, queryset, company_id, filter_type):
             queryset = queryset.filter(year_built__gte=query_params[param])
         elif param == "max_year":
             queryset = queryset.filter(year_built__lte=query_params[param])
+        elif param == "min_beds":
+            queryset = queryset.filter(bedrooms__gte=query_params[param])
+        elif param == "max_beds":
+            queryset = queryset.filter(bedrooms__lte=query_params[param])
+        elif param == "min_baths":
+            queryset = queryset.filter(bathrooms__gte=query_params[param])
+        elif param == "max_baths":
+            queryset = queryset.filter(bathrooms__lte=query_params[param])
+        elif param == "min_sqft":
+            queryset = queryset.filter(sqft__gte=query_params[param])
+        elif param == "max_sqft":
+            queryset = queryset.filter(sqft__lte=query_params[param])
+        elif param == "min_lot_sqft":
+            queryset = queryset.filter(lot_sqft__gte=query_params[param])
+        elif param == "max_lot_sqft":
+            queryset = queryset.filter(lot_sqft__lte=query_params[param])
         elif param in ["min_days_ago", "max_days_ago"]:
             filter_key = (
                 "listed__lte" if param == "min_days_ago" else "listed__gte"
@@ -1127,7 +1143,7 @@ def filter_home_listings(query_params, queryset, company_id, filter_type):
     return queryset
 
 
-def filter_clients(query_params, queryset):
+def filter_clients(query_params, queryset, company_id):
     """
     Filter clients based on the provided query parameters.
 
@@ -1138,6 +1154,18 @@ def filter_clients(query_params, queryset):
     Returns:
     queryset: Filtered QuerySet.
     """
+    company = Company.objects.get(id=company_id)
+    if "saved_filter" in query_params:
+        query_params = SavedFilter.objects.get(
+            name=query_params["saved_filter"],
+            company=company,
+            filter_type="Client",
+        ).saved_filters
+        query_params = json.loads(query_params)
+        query_params = {k: v for k, v in query_params.items() if v != ""}
+        if "tags" in query_params:
+            query_params["tags"] = "".join(query_params["tags"])
+
     for param in query_params:
         if param == "min_price":
             queryset = queryset.filter(price__gte=query_params[param])
@@ -1147,6 +1175,22 @@ def filter_clients(query_params, queryset):
             queryset = queryset.filter(year_built__gte=query_params[param])
         elif param == "max_year":
             queryset = queryset.filter(year_built__lte=query_params[param])
+        elif param == "min_beds":
+            queryset = queryset.filter(bedrooms__gte=query_params[param])
+        elif param == "max_beds":
+            queryset = queryset.filter(bedrooms__lte=query_params[param])
+        elif param == "min_baths":
+            queryset = queryset.filter(bathrooms__gte=query_params[param])
+        elif param == "max_baths":
+            queryset = queryset.filter(bathrooms__lte=query_params[param])
+        elif param == "min_sqft":
+            queryset = queryset.filter(sqft__gte=query_params[param])
+        elif param == "max_sqft":
+            queryset = queryset.filter(sqft__lte=query_params[param])
+        elif param == "min_lot_sqft":
+            queryset = queryset.filter(lot_sqft__gte=query_params[param])
+        elif param == "max_lot_sqft":
+            queryset = queryset.filter(lot_sqft__lte=query_params[param])
         elif param == "equip_install_date_min":
             queryset = queryset.filter(
                 equipment_installed_date__gte=query_params[param]

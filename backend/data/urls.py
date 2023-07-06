@@ -1,8 +1,21 @@
-from django.urls import path
+from django.urls import path, include
 from rest_framework import routers
 from . import views
 
 router = routers.DefaultRouter()
+
+client_patterns = [
+    path(
+        "<str:user>/",
+        views.ClientListView.as_view(),
+        name="client-list",
+    ),
+    path(
+        "",
+        views.ClientListView.as_view(),
+        name="save-client-filter",
+    ),
+]
 
 urlpatterns = [
     path(
@@ -43,11 +56,7 @@ urlpatterns = [
         views.DownloadClientView.as_view(),
         name="all-client-list",
     ),
-    path(
-        "clients/<str:user>/",
-        views.ClientListView.as_view(),
-        name="client-list",
-    ),
+    path("clients/", include(client_patterns)),
     path(
         "salesforce/<str:company>/",
         views.SalesforceConsumerView.as_view(),
