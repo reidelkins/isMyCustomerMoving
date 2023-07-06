@@ -74,6 +74,22 @@ RecentlySoldDataFilter.propTypes = {
   setCity: PropTypes.func,
   state: PropTypes.string,
   setState: PropTypes.func,
+  minRooms: PropTypes.string,
+  setMinRooms: PropTypes.func,
+  maxRooms: PropTypes.string,
+  setMaxRooms: PropTypes.func,
+  minBaths: PropTypes.string,
+  setMinBaths: PropTypes.func,
+  maxBaths: PropTypes.string,
+  setMaxBaths: PropTypes.func,
+  minSqft: PropTypes.string,
+  setMinSqft: PropTypes.func,
+  maxSqft: PropTypes.string,
+  setMaxSqft: PropTypes.func,
+  minLotSqft: PropTypes.string,
+  setMinLotSqft: PropTypes.func,
+  maxLotSqft: PropTypes.string,
+  setMaxLotSqft: PropTypes.func,
   savedFilter: PropTypes.string,
   setSavedFilter: PropTypes.func,
   recentlySoldFilters: PropTypes.array,
@@ -100,6 +116,22 @@ export default function RecentlySoldDataFilter({
   setCity: handleChangeCity,
   state,
   setState: handleChangeState,
+  minRooms,
+  setMinRooms: handleChangeMinRooms,
+  maxRooms,
+  setMaxRooms: handleChangeMaxRooms,
+  minBaths,
+  setMinBaths: handleChangeMinBaths,
+  maxBaths,
+  setMaxBaths: handleChangeMaxBaths,
+  minSqft,
+  setMinSqft: handleChangeMinSqft,
+  maxSqft,
+  setMaxSqft: handleChangeMaxSqft,
+  minLotSqft,
+  setMinLotSqft: handleChangeMinLotSqft,
+  maxLotSqft,
+  setMaxLotSqft: handleChangeMaxLotSqft,
   savedFilter,
   setSavedFilter: handleChangeSavedFilter,
   recentlySoldFilters,
@@ -146,13 +178,41 @@ export default function RecentlySoldDataFilter({
       zipCode ||
       city ||
       state ||
+      minRooms ||
+      maxRooms ||
+      minBaths ||
+      maxBaths ||
+      minSqft ||
+      maxSqft ||
+      minLotSqft ||
+      maxLotSqft ||
       savedFilter
     ) {
       setShowClearFilters(true);
     } else {
       setShowClearFilters(false);
     }
-  }, [minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, zipCode, city, state, savedFilter]);
+  }, [
+    minPrice,
+    maxPrice,
+    minYear,
+    maxYear,
+    minDaysAgo,
+    maxDaysAgo,
+    tagFilters,
+    zipCode,
+    city,
+    state,
+    minRooms,
+    maxRooms,
+    minBaths,
+    maxBaths,
+    minSqft,
+    maxSqft,
+    minLotSqft,
+    maxLotSqft,
+    savedFilter,
+  ]);
 
   const handleClearFilters = () => {
     handleChangeMinPrice('');
@@ -165,6 +225,15 @@ export default function RecentlySoldDataFilter({
     handleChangeZipCode('');
     handleChangeCity('');
     handleChangeState('');
+    handleChangeMinRooms('');
+    handleChangeMaxRooms('');
+    handleChangeMinBaths('');
+    handleChangeMaxBaths('');
+    handleChangeMinSqft('');
+    handleChangeMaxSqft('');
+    handleChangeMinLotSqft('');
+    handleChangeMaxLotSqft('');
+    handleChangeSavedFilter('');
   };
 
   const handleClearFilterButtonPressed = () => {
@@ -261,6 +330,14 @@ export default function RecentlySoldDataFilter({
           city,
           state,
           zipCode,
+          minRooms,
+          maxRooms,
+          minBaths,
+          maxBaths,
+          minSqft,
+          maxSqft,
+          minLotSqft,
+          maxLotSqft,
           savedFilter
         )
       );
@@ -295,6 +372,14 @@ export default function RecentlySoldDataFilter({
         city,
         state,
         zipCode,
+        minRooms,
+        maxRooms,
+        minBaths,
+        maxBaths,
+        minSqft,
+        maxSqft,
+        minLotSqft,
+        maxLotSqft,
         forZapier
       )
     );
@@ -465,6 +550,114 @@ export default function RecentlySoldDataFilter({
                             type="number"
                             value={maxYear}
                             onChange={(event) => handleChangeMaxYear(event.target.value)}
+                          />
+                        </FormControl>
+                      </Stack>
+                    </Box>
+                  </Tooltip>
+                </Grid>
+                <Grid item xs={12}>
+                  <Tooltip title="How many bedrooms the house has">
+                    <Box mt={2}>
+                      <Typography variant="h6" mb={2}>
+                        Bedrooms
+                      </Typography>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <FormControl fullWidth>
+                          <InputLabel>Min Bedrooms</InputLabel>
+                          <Input
+                            type="number"
+                            value={minRooms}
+                            onChange={(event) => handleChangeMinRooms(event.target.value)}
+                          />
+                        </FormControl>
+                        <FormControl fullWidth>
+                          <InputLabel>Max Bedrooms</InputLabel>
+                          <Input
+                            type="number"
+                            value={maxRooms}
+                            onChange={(event) => handleChangeMaxRooms(event.target.value)}
+                          />
+                        </FormControl>
+                      </Stack>
+                    </Box>
+                  </Tooltip>
+                </Grid>
+                <Grid item xs={12}>
+                  <Tooltip title="How many bathrooms the house has">
+                    <Box mt={2}>
+                      <Typography variant="h6" mb={2}>
+                        Bathrooms
+                      </Typography>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <FormControl fullWidth>
+                          <InputLabel>Min Bathrooms</InputLabel>
+                          <Input
+                            type="number"
+                            value={minBaths}
+                            onChange={(event) => handleChangeMinBaths(event.target.value)}
+                          />
+                        </FormControl>
+                        <FormControl fullWidth>
+                          <InputLabel>Max Bathrooms</InputLabel>
+                          <Input
+                            type="number"
+                            value={maxBaths}
+                            onChange={(event) => handleChangeMaxBaths(event.target.value)}
+                          />
+                        </FormControl>
+                      </Stack>
+                    </Box>
+                  </Tooltip>
+                </Grid>
+                <Grid item xs={12}>
+                  <Tooltip title="How many square feet the house is">
+                    <Box mt={2}>
+                      <Typography variant="h6" mb={2}>
+                        Square Feet
+                      </Typography>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <FormControl fullWidth>
+                          <InputLabel>Min Square Feet</InputLabel>
+                          <Input
+                            type="number"
+                            value={minSqft}
+                            onChange={(event) => handleChangeMinSqft(event.target.value)}
+                          />
+                        </FormControl>
+                        <FormControl fullWidth>
+                          <InputLabel>Max Square Feet</InputLabel>
+                          <Input
+                            type="number"
+                            value={maxSqft}
+                            onChange={(event) => handleChangeMaxSqft(event.target.value)}
+                          />
+                        </FormControl>
+                      </Stack>
+                    </Box>
+                  </Tooltip>
+                </Grid>
+                <Grid item xs={12}>
+                  <Tooltip title="How large the lot size is for the property. This is based off square feet">
+                    <Box mt={2}>
+                      <Typography variant="h6" mb={2}>
+                        Lot Size
+                      </Typography>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <FormControl fullWidth>
+                          <InputLabel>Min Lot Size</InputLabel>
+                          <Input
+                            type="number"
+                            value={minLotSqft}
+                            onChange={(event) => handleChangeMinLotSqft(event.target.value)}
+                          />
+                        </FormControl>
+                        <FormControl fullWidth>
+                          <InputLabel>Max Lot Size</InputLabel>
+                          <Input
+                            type="number"
+                            value={maxLotSqft}
+                            onChange={(event) => handleChangeMaxLotSqft(event.target.value)}
                           />
                         </FormControl>
                       </Stack>

@@ -136,7 +136,47 @@ export default function ForSaleData() {
   const [zipCode, setZipCode] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
+  const [minRooms, setMinRooms] = useState('');
+  const [maxRooms, setMaxRooms] = useState('');
+  const [minBaths, setMinBaths] = useState('');
+  const [maxBaths, setMaxBaths] = useState('');
+  const [minSqft, setMinSqft] = useState('');
+  const [maxSqft, setMaxSqft] = useState('');
+  const [minLotSqft, setMinLotSqft] = useState('');
+  const [maxLotSqft, setMaxLotSqft] = useState('');
   const [savedFilter, setSavedFilter] = useState('');
+  const handleMinRoomsChange = (newMinRooms) => {
+    setMinRooms(newMinRooms);
+    setSavedFilter('');
+  };
+  const handleMaxRoomsChange = (newMaxRooms) => {
+    setMaxRooms(newMaxRooms);
+    setSavedFilter('');
+  };
+  const handleMinBathsChange = (newMinBaths) => {
+    setMinBaths(newMinBaths);
+    setSavedFilter('');
+  };
+  const handleMaxBathsChange = (newMaxBaths) => {
+    setMaxBaths(newMaxBaths);
+    setSavedFilter('');
+  };
+  const handleMinSqftChange = (newMinSqft) => {
+    setMinSqft(newMinSqft);
+    setSavedFilter('');
+  };
+  const handleMaxSqftChange = (newMaxSqft) => {
+    setMaxSqft(newMaxSqft);
+    setSavedFilter('');
+  };
+  const handleMinLotSqftChange = (newMinLotSqft) => {
+    setMinLotSqft(newMinLotSqft);
+    setSavedFilter('');
+  };
+  const handleMaxLotSqftChange = (newMaxLotSqft) => {
+    setMaxLotSqft(newMaxLotSqft);
+    setSavedFilter('');
+  };
   const handleMinPriceChange = (newMinPrice) => {
     setMinPrice(newMinPrice);
     setSavedFilter('');
@@ -195,6 +235,14 @@ export default function ForSaleData() {
         city,
         state,
         zipCode,
+        minRooms,
+        maxRooms,
+        minBaths,
+        maxBaths,
+        minSqft,
+        maxSqft,
+        minLotSqft,
+        maxLotSqft,
         savedFilter
       )
     );
@@ -250,6 +298,22 @@ export default function ForSaleData() {
                     setCity={handleCityChange}
                     state={state}
                     setState={handleStateChange}
+                    minRooms={minRooms}
+                    setMinRooms={handleMinRoomsChange}
+                    maxRooms={maxRooms}
+                    setMaxRooms={handleMaxRoomsChange}
+                    minBaths={minBaths}
+                    setMinBaths={handleMinBathsChange}
+                    maxBaths={maxBaths}
+                    setMaxBaths={handleMaxBathsChange}
+                    minSqft={minSqft}
+                    setMinSqft={handleMinSqftChange}
+                    maxSqft={maxSqft}
+                    setMaxSqft={handleMaxSqftChange}
+                    minLotSqft={minLotSqft}
+                    setMinLotSqft={handleMinLotSqftChange}
+                    maxLotSqft={maxLotSqft}
+                    setMaxLotSqft={handleMaxLotSqftChange}
                     savedFilter={savedFilter}
                     setSavedFilter={handleSavedFilterChange}
                   />

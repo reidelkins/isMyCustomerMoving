@@ -112,7 +112,7 @@ export default function HomePage() {
   }, [userInfo]);
 
   const listClient = useSelector(selectClients);
-  const { loading, CLIENTLIST, forSale, recentlySold, count, message, deleted } = listClient;
+  const { loading, CLIENTLIST, forSale, recentlySold, count, message, deleted, customerDataFilters } = listClient;
   useEffect(() => {
     if (message) {
       setAlertOpen(true);
@@ -266,46 +266,103 @@ export default function HomePage() {
   const [zipCode, setZipCode] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
+  const [minRooms, setMinRooms] = useState('');
+  const [maxRooms, setMaxRooms] = useState('');
+  const [minBaths, setMinBaths] = useState('');
+  const [maxBaths, setMaxBaths] = useState('');
+  const [minSqft, setMinSqft] = useState('');
+  const [maxSqft, setMaxSqft] = useState('');
+  const [minLotSqft, setMinLotSqft] = useState('');
+  const [maxLotSqft, setMaxLotSqft] = useState('');
   const [customerSinceMin, setCustomerSinceMin] = useState('');
   const [customerSinceMax, setCustomerSinceMax] = useState('');
+  const [savedFilter, setSavedFilter] = useState('');
+  const handleMinRoomsChange = (newMinRooms) => {
+    setMinRooms(newMinRooms);
+    setSavedFilter('');
+  };
+  const handleMaxRoomsChange = (newMaxRooms) => {
+    setMaxRooms(newMaxRooms);
+    setSavedFilter('');
+  };
+  const handleMinBathsChange = (newMinBaths) => {
+    setMinBaths(newMinBaths);
+    setSavedFilter('');
+  };
+  const handleMaxBathsChange = (newMaxBaths) => {
+    setMaxBaths(newMaxBaths);
+    setSavedFilter('');
+  };
+  const handleMinSqftChange = (newMinSqft) => {
+    setMinSqft(newMinSqft);
+    setSavedFilter('');
+  };
+  const handleMaxSqftChange = (newMaxSqft) => {
+    setMaxSqft(newMaxSqft);
+    setSavedFilter('');
+  };
+  const handleMinLotSqftChange = (newMinLotSqft) => {
+    setMinLotSqft(newMinLotSqft);
+    setSavedFilter('');
+  };
+  const handleMaxLotSqftChange = (newMaxLotSqft) => {
+    setMaxLotSqft(newMaxLotSqft);
+    setSavedFilter('');
+  };
   const handleStatusFiltersChange = (newFilters) => {
     setStatusFilters(newFilters);
+    setSavedFilter('');
   };
   const handleMinPriceChange = (newMinPrice) => {
     setMinPrice(newMinPrice);
+    setSavedFilter('');
   };
   const handleMaxPriceChange = (newMaxPrice) => {
     setMaxPrice(newMaxPrice);
+    setSavedFilter('');
   };
   const handleMinYearChange = (newMinYear) => {
     setMinYear(newMinYear);
+    setSavedFilter('');
   };
   const handleMaxYearChange = (newMaxYear) => {
     setMaxYear(newMaxYear);
+    setSavedFilter('');
   };
   const handleEquipInstallDateMin = (newEquipInstallDateMin) => {
     setEquipInstallDateMin(newEquipInstallDateMin);
+    setSavedFilter('');
   };
   const handleEquipInstallDateMax = (newEquipInstallDateMax) => {
     setEquipInstallDateMax(newEquipInstallDateMax);
+    setSavedFilter('');
   };
   const handleZipCodeChange = (newZipCode) => {
     setZipCode(newZipCode);
+    setSavedFilter('');
   };
   const handleCityChange = (newCity) => {
     setCity(newCity);
+    setSavedFilter('');
   };
   const handleStateChange = (newState) => {
     setState(newState);
+    setSavedFilter('');
   };
   const handleTagFiltersChange = (newTagFilters) => {
     setTagFilters(newTagFilters);
+    setSavedFilter('');
   };
   const handleCustomerSinceMin = (newCustomerSinceMin) => {
     setCustomerSinceMin(newCustomerSinceMin);
+    setSavedFilter('');
   };
   const handleCustomerSinceMax = (newCustomerSinceMax) => {
     setCustomerSinceMax(newCustomerSinceMax);
+    setSavedFilter('');
+  };
+  const handleSavedFilterChange = (newSavedFilter) => {
+    setSavedFilter(newSavedFilter);
   };
 
   const exportCSV = () => {
@@ -318,7 +375,16 @@ export default function HomePage() {
         maxYear,
         tagFilters,
         equipInstallDateMin,
-        equipInstallDateMax
+        equipInstallDateMax,
+        minRooms,
+        maxRooms,
+        minBaths,
+        maxBaths,
+        minSqft,
+        maxSqft,
+        minLotSqft,
+        maxLotSqft,
+        savedFilter
       )
     );
   };
@@ -373,6 +439,7 @@ export default function HomePage() {
                     setSelected
                     setSelectedClients
                     product={userInfo.company.product}
+                    customerDataFilters={customerDataFilters}
                     minPrice={minPrice}
                     setMinPrice={handleMinPriceChange}
                     maxPrice={maxPrice}
@@ -401,6 +468,24 @@ export default function HomePage() {
                     setCustomerSinceMin={handleCustomerSinceMin}
                     customerSinceMax={customerSinceMax}
                     setCustomerSinceMax={handleCustomerSinceMax}
+                    minRooms={minRooms}
+                    setMinRooms={handleMinRoomsChange}
+                    maxRooms={maxRooms}
+                    setMaxRooms={handleMaxRoomsChange}
+                    minBaths={minBaths}
+                    setMinBaths={handleMinBathsChange}
+                    maxBaths={maxBaths}
+                    setMaxBaths={handleMaxBathsChange}
+                    minSqft={minSqft}
+                    setMinSqft={handleMinSqftChange}
+                    maxSqft={maxSqft}
+                    setMaxSqft={handleMaxSqftChange}
+                    minLotSqft={minLotSqft}
+                    setMinLotSqft={handleMinLotSqftChange}
+                    maxLotSqft={maxLotSqft}
+                    setMaxLotSqft={handleMaxLotSqftChange}
+                    savedFilter={savedFilter}
+                    setSavedFilter={handleSavedFilterChange}
                   />
                   {loading ? (
                     <Box sx={{ width: '100%' }}>
