@@ -4,9 +4,9 @@ from rest_framework import routers
 router = routers.DefaultRouter()
 
 urlpatterns = [
-    # path('save-stripe-info/', views.save_stripe_info, name='save-stripe-info'),
-    # path('setup-intent/', views.setup_intent, name='setup_intent'),
-    # path('publishable-key/', views.publishable_key, name='publishable-key'),
-    path("stripe/", include("djstripe.urls", namespace="djstripe")),
+    path(
+        "stripe/webhook/97eb874d-ad5d-4b4b-8889-5eb7c31f83d5/",
+        include("djstripe.urls", namespace="djstripe"),
+    ),
     path("", include(router.urls)),
 ]

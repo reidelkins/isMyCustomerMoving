@@ -11,17 +11,20 @@ import logging
 import stripe
 
 stripe.api_key = settings.STRIPE_LIVE_SECRET_KEY
+logger = logging.getLogger(__name__)
 
 
 @webhooks.handler_all
 def log_all_events(event: djstripe_models.Event):
     print(f"Received Stripe event: {event}")
+    logger.info(f"Received Stripe event: {event}")
 
 
 # when customer/subscription created
 @webhooks.handler("customer.created")
 def create_customer(event: djstripe_models.Event):
     print("customer created")
+    logger.info("customer created")
 
     # obj = event.data["object"]
     # company = obj["name"]
