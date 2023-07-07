@@ -21,6 +21,45 @@ export default function Home() {
             {userInfo.last_name.charAt(0).toUpperCase() + userInfo.last_name.slice(1)} 👋
           </Typography>
         </Stack>
+        {/* <Grid container spacing={1}>
+          <Grid item xs={6} md={3}>
+            <DashboardData
+              mainText="$162299"
+              topText="Total Revenue"
+              bottomText={`36765 in The Past 30 Days`}
+              color="#85bb65"
+              icon="/static/icons/revenue.svg"
+            />
+          </Grid>
+          <Grid item xs={6} md={3}>
+            <DashboardData
+              mainText="819"
+              topText="Total Leads Found"
+              bottomText={`177 The Past 30 Days`}
+              color="#7BAFD4"
+              icon="/static/icons/lead.svg"
+            />
+          </Grid>
+          <Grid item xs={6} md={3}>
+            <DashboardData
+              mainText="509"
+              topText="Customers Moved"
+              bottomText={`95 The Past 30 Days`}
+              color="#FFC107"
+              icon="/static/icons/home.svg"
+            />
+          </Grid>
+          <Grid item xs={6} md={3}>
+            <DashboardData
+              mainText="310"
+              topText="Customers Selling"
+              bottomText={`82 The Past 30 Days`}
+              color="#FF8200"
+              icon="/static/icons/for-sale.svg"
+            />
+          </Grid>
+        </Grid>
+         */}
         <Stack direction="row" spacing={2} marginBottom={8}>
           <DashboardData
             mainText="$162299"
@@ -59,10 +98,14 @@ export default function Home() {
             <StateRevenueDonut />
           </Grid>
           <Grid item xs={12} md={6}>
-            <BarChart title={'Recently Moved Customers'} values={[93, 51, 81, 59, 65, 35, 125]} />
+            <BarChart
+              title={'Recently Moved Customers'}
+              values={[93, 51, 81, 59, 65, 35, 125]}
+              dataLabel={'Recently Moved'}
+            />
           </Grid>
           <Grid item xs={12} md={6}>
-            <BarChart title={'Customers Moving'} values={[15, 25, 11, 39, 53, 41, 126]} />
+            <BarChart title={'Customers Moving'} values={[15, 25, 11, 39, 53, 41, 126]} dataLabel={'Moving'} />
           </Grid>
         </Grid>
       </Container>

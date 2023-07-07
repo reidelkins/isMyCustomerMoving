@@ -12,13 +12,13 @@ Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 //   values: PropTypes.arrayOf(PropTypes.number).isRequired,
 // };
 
-const BarChart = ({ title, values }) => {
+const BarChart = ({ title, values, dataLabel }) => {
   const labels = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
   const data = {
     labels,
     datasets: [
       {
-        label: 'dataset',
+        label: dataLabel,
 
         data: values,
         backgroundColor: [
