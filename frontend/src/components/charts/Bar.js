@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Bar } from 'react-chartjs-2';
 import { Chart, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import PropTypes from 'prop-types';
@@ -7,10 +7,11 @@ import homeStyle from '../../theme/Home.module.css';
 
 Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-// BarChart.propTypes = {
-//   title: PropTypes.string.isRequired,
-//   values: PropTypes.arrayOf(PropTypes.number).isRequired,
-// };
+BarChart.propTypes = {
+  title: PropTypes.string.isRequired,
+  values: PropTypes.arrayOf(PropTypes.number).isRequired,
+  dataLabel: PropTypes.string.isRequired,
+};
 
 const BarChart = ({ title, values, dataLabel }) => {
   const labels = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];

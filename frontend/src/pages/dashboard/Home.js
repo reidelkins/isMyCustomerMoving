@@ -1,6 +1,6 @@
 import React from 'react';
 import { Grid, Stack, Container, Typography } from '@mui/material';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 import { showLoginInfo } from '../../redux/actions/authActions';
 import Page from '../../components/Page';

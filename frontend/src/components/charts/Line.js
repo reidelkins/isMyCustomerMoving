@@ -51,13 +51,11 @@ const data = {
   ],
 };
 
-const LineChart = () => {
-  return (
-    <div className={homeStyle.main}>
-      <h2>Attributed Revenue</h2>
-      <Line options={options} data={data} />
-    </div>
-  );
-};
+const LineChart = () => (
+  <div className={homeStyle.main}>
+    <h2>Attributed Revenue</h2>
+    <Line options={options} data={data} />
+  </div>
+);
 
 export default LineChart;

@@ -106,26 +106,22 @@ const options = {
   },
 };
 
-const Donut = () => {
-  return (
-    <div className={homeStyle.main}>
-      <h2>Bar Sample with Next.js</h2>
-      <Doughnut
-        data={data}
-        options={{
-          maintainAspectRatio: false,
-        }}
-      />
-    </div>
-  );
-};
+const Donut = () => (
+  <div className={homeStyle.main}>
+    <h2>Bar Sample with Next.js</h2>
+    <Doughnut
+      data={data}
+      options={{
+        maintainAspectRatio: false,
+      }}
+    />
+  </div>
+);
 export default Donut;
 
-export const StateRevenueDonut = () => {
-  return (
-    <div className={homeStyle.main}>
-      <h2>Revenue by City</h2>
-      <Pie data={data} options={options} />
-    </div>
-  );
-};
+export const StateRevenueDonut = () => (
+  <div className={homeStyle.main}>
+    <h2>Revenue by City</h2>
+    <Pie data={data} options={options} />
+  </div>
+);
