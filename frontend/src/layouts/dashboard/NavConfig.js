@@ -7,8 +7,13 @@ const getIcon = (name) => <Iconify icon={name} width={22} height={22} />;
 
 export const enterpriseNavConfig = [
   {
-    title: 'Customer Data',
+    title: 'Home',
     path: '/dashboard',
+    icon: getIcon('ci:main-component'),
+  },
+  {
+    title: 'Customer Data',
+    path: '/dashboard/customers',
     icon: getIcon('eva:people-fill'),
   },
   {
@@ -44,8 +49,13 @@ export const enterpriseNavConfig = [
 
 export const navConfig = [
   {
-    title: 'Customer Data',
+    title: 'Home',
     path: '/dashboard',
+    icon: getIcon('ci:main-component'),
+  },
+  {
+    title: 'Customer Data',
+    path: '/dashboard/customers',
     icon: getIcon('eva:people-fill'),
   },
   {
