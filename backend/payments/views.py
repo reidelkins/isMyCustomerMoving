@@ -10,8 +10,14 @@ from djstripe import webhooks, models as djstripe_models
 import logging
 import stripe
 
-stripe.api_key = settings.STRIPE_LIVE_SECRET_KEY
+# stripe.api_key = settings.STRIPE_LIVE_SECRET_KEY
+stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
 logger = logging.getLogger(__name__)
+
+
+@webhooks.handler("customer.created")
+def my_handler(event, **kwargs):
+    print("We should probably notify the user at this point")
 
 
 @webhooks.handler_all
@@ -21,21 +27,21 @@ def log_all_events(event: djstripe_models.Event):
 
 
 # when customer/subscription created
-@webhooks.handler("customer.created")
-def create_customer(event: djstripe_models.Event):
-    print("customer created")
-    logger.info("customer created")
+# @webhooks.handler("customer.created")
+# def create_customer(event: djstripe_models.Event):
+#     print("customer created")
+#     logger.info("customer created")
 
-    # obj = event.data["object"]
-    # company = obj["name"]
-    # email = obj["email"]
-    # stripeID = obj["id"]
-    # phone = obj["phone"]
-    # try:
-    #     Company.objects.get(name=company, email=email, stripeID=stripeID)
-    # except:
-    #     makeCompany(company, email, phone, stripeID)
-    # print("done")
+#     # obj = event.data["object"]
+#     # company = obj["name"]
+#     # email = obj["email"]
+#     # stripeID = obj["id"]
+#     # phone = obj["phone"]
+#     # try:
+#     #     Company.objects.get(name=company, email=email, stripeID=stripeID)
+#     # except:
+#     #     makeCompany(company, email, phone, stripeID)
+#     # print("done")
 
 
 # # important in the case that company adds back a canceled subscription
