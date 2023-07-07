@@ -10,20 +10,15 @@ from djstripe import webhooks, models as djstripe_models
 import logging
 import stripe
 
-# stripe.api_key = settings.STRIPE_LIVE_SECRET_KEY
-stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
+stripe.api_key = settings.STRIPE_LIVE_SECRET_KEY
+# stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
 logger = logging.getLogger(__name__)
 
 
-@webhooks.handler("customer.created")
+@webhooks.handler("customer")
 def my_handler(event, **kwargs):
     print("We should probably notify the user at this point")
-
-
-@webhooks.handler_all
-def log_all_events(event: djstripe_models.Event):
-    print(f"Received Stripe event: {event}")
-    logger.info(f"Received Stripe event: {event}")
+    logging.error("customer error")
 
 
 # when customer/subscription created
