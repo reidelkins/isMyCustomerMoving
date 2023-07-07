@@ -27,7 +27,7 @@ decorator==5.1.1
 defusedxml==0.7.1
 Deprecated==1.2.13
 dj-database-url==1.2.0
-dj-stripe==2.8.1
+dj-stripe==2.7.1
 Django==3.2.8
 django-braces==1.15.0
 django-cors-headers==3.10.0
@@ -95,7 +95,7 @@ social-auth-app-django==5.2.0
 social-auth-core==4.4.1
 soupsieve==2.4
 sqlparse==0.4.2
-stripe==4.2.0
+stripe== 5.4.0
 tldextract==3.4.0
 tomli==2.0.1
 Twisted==22.10.0
