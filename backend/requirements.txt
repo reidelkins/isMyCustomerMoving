@@ -95,7 +95,7 @@ social-auth-app-django==5.2.0
 social-auth-core==4.4.1
 soupsieve==2.4
 sqlparse==0.4.2
-stripe== 5.4.0
+stripe==4.2.0
 tldextract==3.4.0
 tomli==2.0.1
 Twisted==22.10.0
