@@ -138,6 +138,7 @@ def create_subscription(event: djstripe_models.Event):
 @webhooks.handler("checkout.session.completed")
 def completed_checkout(event: djstripe_models.Event):
     try:
+        logging.info("checkout session completed")
         obj = event.data["object"]
         phone = obj["customer_details"]["phone"]
         email = obj["customer_details"]["email"]
@@ -147,21 +148,26 @@ def completed_checkout(event: djstripe_models.Event):
             id=obj["subscription"]
         )
         plan = subscription.plan
+        logging.info(f"company name: {company_name}")
         try:
             company = Company.objects.get(
                 name=company_name, email=email, stripeID=stripeId
             )
+            logging.info(f"company in try retrieved: {company}")
             company.stripe_id = stripeId
             company.product = plan
             company.phone = phone
             company.save()
+            logging.info(f"company in try updated: {company}")
             create_keap_company(company.id)
         except Company.DoesNotExist:
             try:
                 company = make_company(company_name, email, phone, stripeId)
+                logging.info(f"company in except: {company}")
                 company = Company.objects.get(id=company)
                 company.product = plan
                 company.save()
+                logging.info(f"company in except created: {company}")
                 create_keap_company(company.id)
             except Exception as e:
                 logging.error(f"error: {e}")
