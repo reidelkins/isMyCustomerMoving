@@ -438,7 +438,7 @@ export default function HomePage() {
                     selectedClients={selectedClients}
                     setSelected
                     setSelectedClients
-                    product={userInfo.company.product}
+                    product={userInfo.company.product.id}
                     customerDataFilters={customerDataFilters}
                     minPrice={minPrice}
                     setMinPrice={handleMinPriceChange}
@@ -571,7 +571,7 @@ export default function HomePage() {
                                           <TableCell align="left">{state}</TableCell>
                                           <TableCell align="left">{zipCode}</TableCell>
                                           <TableCell align="left">
-                                            {userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy' ? (
+                                            {userInfo.company.product.id !== 'price_1MhxfPAkLES5P4qQbu8O45xy' ? (
                                               <Label
                                                 variant="ghost"
                                                 color={
@@ -592,7 +592,7 @@ export default function HomePage() {
                                             {(() => {
                                               if (
                                                 status !== 'No Change' &&
-                                                userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy'
+                                                userInfo.company.product.id !== 'price_1MhxfPAkLES5P4qQbu8O45xy'
                                               ) {
                                                 if (contacted) {
                                                   return (
@@ -649,7 +649,7 @@ export default function HomePage() {
                                         </TableRow>
                                       </Tooltip>
                                       {expandedRow === id &&
-                                        userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy' && (
+                                        userInfo.company.product.id !== 'price_1MhxfPAkLES5P4qQbu8O45xy' && (
                                           <TableRow style={{ position: 'relative', left: '10%' }}>
                                             <TableCell colSpan={6}>
                                               <Stack
@@ -788,7 +788,7 @@ export default function HomePage() {
                           </Button>
                         )
                       : userInfo.status === 'admin' &&
-                        userInfo.company.product !== 'price_1MhxfPAkLES5P4qQbu8O45xy' && (
+                        userInfo.company.product.id !== 'price_1MhxfPAkLES5P4qQbu8O45xy' && (
                           <Button
                             onClick={exportCSV}
                             variant="contained"
@@ -799,7 +799,7 @@ export default function HomePage() {
                             Download To CSV
                           </Button>
                         )}
-                    {userInfo.company.product === 'price_1MhxfPAkLES5P4qQbu8O45xy' && <UpgradeFromFree />}
+                    {userInfo.company.product.id === 'price_1MhxfPAkLES5P4qQbu8O45xy' && <UpgradeFromFree />}
                   </Stack>
                 )}
 

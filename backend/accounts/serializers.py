@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import CustomUser, Company, Enterprise
 from data.models import ClientUpdate, Client
+from payments.serializers import ProductSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.utils.crypto import get_random_string
@@ -28,7 +29,7 @@ class CompanySerializer(serializers.ModelSerializer):
     for_sale_purchased = serializers.BooleanField(default=False)
     recently_sold_purchased = serializers.BooleanField(default=False)
     crm = serializers.CharField(max_length=100, required=False)
-    product = serializers.SerializerMethodField("get_product", read_only=True)
+    product = ProductSerializer(read_only=True)
     tenant_id = serializers.CharField(max_length=100, required=False)
     client_id = serializers.CharField(max_length=100, required=False)
     service_titan_app_version = serializers.IntegerField(required=False)
@@ -86,12 +87,6 @@ class CompanySerializer(serializers.ModelSerializer):
         return Company.objects.create(
             **validated_data, access_token=get_random_string(length=32)
         )
-
-    def get_product(self, obj):
-        if obj.product:
-            return obj.product.id
-        else:
-            return "No product"
 
     def get_users_count(self, obj):
         return CustomUser.objects.filter(company=obj).count()

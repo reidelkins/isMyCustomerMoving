@@ -104,7 +104,6 @@ INSTALLED_APPS = [
     "accounts",
     "payments",
     "data",
-    "djstripe",
     "social_django",
     "rest_framework_social_oauth2",
     "oauth2_provider",
@@ -291,12 +290,6 @@ SIMPLE_JWT = {
 
 STRIPE_LIVE_SECRET_KEY = get_env_var("STRIPE_SECRET_KEY")
 STRIPE_TEST_SECRET_KEY = get_env_var("STRIPE_SECRET_KEY_TEST")
-STRIPE_LIVE_MODE = True
-DJSTRIPE_WEBHOOK_SECRET = "whsec_ncrqV1HsXfPOWp0EDZVtzpDK38wlF6Jm"  # get_env_var("DJSTRIPE_WEBHOOK_SECRET")
-DJSTRIPE_USE_NATIVE_JSONFIELD = True
-DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
-
-# DJSTRIPE_WEBHOOK_VALIDATION = "retrieve_event"
 
 # CELERY_BROKER_URL = CELERY_RESULT_BACKEND + "?ssl_cert_reqs=CERT_NONE"
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL

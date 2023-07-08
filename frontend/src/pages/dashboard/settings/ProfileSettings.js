@@ -325,7 +325,7 @@ export default function ProfileSettings() {
           <>
             <NewUserModal />
             <br />
-            {userInfo.company.product === 'price_1MhxfPAkLES5P4qQbu8O45xy' ? (
+            {userInfo.company.product.id === 'price_1MhxfPAkLES5P4qQbu8O45xy' ? (
               <UpgradeFromFree />
             ) : (
               <Button variant="contained" color="primary" aria-label="Create Company" component="label">
