@@ -1,6 +1,12 @@
 name: IMCM CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches-ignore:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
 
 env:
   DJANGO_SECRET_KEY: ${{secrets.DJANGO_SECRET_KEY}}
@@ -65,8 +71,9 @@ jobs:
       - name: Run Tests and Code Coverage        
         run: |
           cd backend
-          coverage run -m pytest
-          coverage report -m
+          pytest
+      #    coverage run -m pytest
+      #    coverage report -m
       # - name: Run Integration Tests
       #   run: |
       #     cd backend
