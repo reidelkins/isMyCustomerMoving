@@ -490,7 +490,7 @@ class AllForSaleView(generics.ListAPIView):
                 ).strftime("%Y-%m-%d"),
             ).order_by("-listed")
             return filter_home_listings(
-                query_params, queryset, company_id, "For Sale"
+                query_params, queryset, company.id, "For Sale"
             )
         else:
             return HomeListing.objects.none()
@@ -616,6 +616,7 @@ class UpdateClientView(APIView):
                     if request.data["contacted"] and client.serv_titan_id:
                         if (
                             client.status == "House For Sale"
+                            and client.serv_titan_id  # noqa
                             and client.company.service_titan_for_sale_contacted_tag_id  # noqa
                         ):
                             add_service_titan_contacted_tag.delay(
@@ -624,6 +625,7 @@ class UpdateClientView(APIView):
                             )
                         elif (
                             client.status == "House Recently Sold (6)"
+                            and client.serv_titan_id  # noqa
                             and client.company.service_titan_recently_sold_contacted_tag_id  # noqa
                         ):
                             add_service_titan_contacted_tag.delay(

@@ -44,7 +44,7 @@ class CompanySerializer(serializers.ModelSerializer):
     service_titan_for_sale_contacted_tag_id = serializers.CharField(
         max_length=100, required=False
     )
-    service_titan_sold_contacted_tag_id = serializers.CharField(
+    service_titan_recently_sold_contacted_tag_id = serializers.CharField(
         max_length=100, required=False
     )
     service_titan_customer_sync_option = serializers.CharField(
@@ -71,7 +71,7 @@ class CompanySerializer(serializers.ModelSerializer):
             "for_sale_purchased",
             "recently_sold_purchased",
             "service_titan_for_sale_contacted_tag_id",
-            "service_titan_sold_contacted_tag_id",
+            "service_titan_recently_sold_contacted_tag_id",
             "users_count",
             "leads_count",
             "clients_count",
