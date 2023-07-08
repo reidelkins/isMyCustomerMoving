@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from django.core.exceptions import ValidationError
 from django.test import TestCase
 from data.models import (
     ZipCode,

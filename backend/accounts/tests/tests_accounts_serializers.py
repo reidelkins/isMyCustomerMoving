@@ -1,10 +1,9 @@
 from django.contrib.auth import get_user_model
-from rest_framework.exceptions import AuthenticationFailed, ValidationError
+from rest_framework.exceptions import AuthenticationFailed
 from django.test import TestCase
 from accounts.models import Company, CustomUser, Enterprise
 from accounts.serializers import (BasicCompanySerializer, CompanySerializer, EnterpriseSerializer,
                                   MyTokenObtainPairSerializer, UserSerializer, UserSerializerWithToken, UserListSerializer)
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import serializers
 
 

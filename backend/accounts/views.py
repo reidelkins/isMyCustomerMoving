@@ -22,7 +22,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 import logging
 
-from djstripe import models as djstripe_models
+from payments.models import Product
 from .models import Company, CustomUser, Enterprise, InviteToken
 from .serializers import (
     UserSerializer,
@@ -974,7 +974,7 @@ class CompanyView(APIView):
             comp = make_company(companyName, email, phone)
             try:
                 comp = Company.objects.get(id=comp)
-                freePlan = djstripe_models.Plan.objects.get(
+                freePlan = Product.objects.get(
                     id="price_1MhxfPAkLES5P4qQbu8O45xy"
                 )
                 comp.product = freePlan

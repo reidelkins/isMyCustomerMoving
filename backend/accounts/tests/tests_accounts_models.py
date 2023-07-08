@@ -2,7 +2,7 @@ from django.db import IntegrityError
 from django.test import TestCase
 from datetime import datetime
 from accounts.models import InviteToken, Enterprise, Company, CustomUser
-from djstripe.models import Plan, Product
+from payments.models import Product
 
 
 class TestInviteTokenModel(TestCase):
@@ -70,33 +70,8 @@ class TestEnterpriseModel(TestCase):
 
 class TestCompanyModel(TestCase):
     def setUp(self):
-        # self.product = Product.objects.create(
-        #     id="123", amount=150.0, interval="month", name="Product1"
-        # )
-        product = Product.objects.create(
-            id="prod_NStSQWVbXAgtY8",
-            livemode=True,
-            created=datetime.strptime(
-                "2023-03-04T16:10:37Z", "%Y-%m-%dT%H:%M:%SZ"),
-            description="Basic tier to see how many leads they would have but that's all",
-            name="Free Tier",
-            type="service",
-            active=False,
-        )
-        self.product = Plan.objects.create(
-            id="price_1MhxfPAkLES5P4qQbu8O45xy",
-            livemode=True,
-            # Convert string to datetime
-            created=datetime.strptime(
-                "2023-03-04T16:10:37Z", "%Y-%m-%dT%H:%M:%SZ"),
-            description="",
-            active=True,
-            billing_scheme="per_unit",
-            currency="usd",
-            interval="year",
-            interval_count=1,
-            product=product,
-            usage_type="licensed"
+        self.product = Product.objects.create(
+            id="123", amount=150.0, interval="month", name="Product1"
         )
 
         self.enterprise = Enterprise.objects.create(name="Enterprise1")
