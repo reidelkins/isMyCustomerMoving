@@ -272,7 +272,10 @@ class TestCustomUserModel(TestCase):
             last_name="Two",
             enterprise=self.enterprise,
         )
-        self.assertEqual(list(self.enterprise.users.all()), [user1, user2])
+
+        users = set(self.enterprise.users.all())
+        expected_users = {user1, user2}
+        self.assertEqual(users, expected_users)
 
     def test_user_save_method(self):
         """

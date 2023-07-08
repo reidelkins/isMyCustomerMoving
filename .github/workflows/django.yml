@@ -62,17 +62,12 @@ jobs:
           cd backend
           python manage.py makemigrations
           python manage.py migrate
-      # TODO
-      # - name: Run Tests and Code Coverage
-      #   env:
-      #     # Add necessary environment variables for testing
-      #     DJANGO_SECRET_KEY: ${{secrets.DJANGO_SECRET_KEY}}
-      #     EMAIL: ${{secrets.EMAIL}}
-      #     # ...
-      #   run: |
-      #     cd backend
-      #     coverage run --source='.' manage.py test
-      #     coverage report -m
+      TODO
+      - name: Run Tests and Code Coverage        
+        run: |
+          cd backend
+          coverage run -m pytest
+          coverage report -m
       # - name: Run Integration Tests
       #   run: |
       #     cd backend

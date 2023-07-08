@@ -64,7 +64,7 @@ class DownloadClientView(APIView):
         queryset = Client.objects.filter(
             company=user.company, active=True
         ).order_by("status")
-        return filter_clients(query_params, queryset)
+        return filter_clients(query_params, queryset, user.company.id)
 
 
 class CustomPagination(PageNumberPagination):
@@ -158,51 +158,58 @@ class ClientListView(generics.ListAPIView):
         )
 
     def post(self, request, format=None):
-        data = request.data
-        company = self.request.user.company
+        try:
+            data = request.data
+            company = self.request.user.company
 
-        filterName = data["filter_name"]
+            filterName = data["filter_name"]
 
-        if SavedFilter.objects.filter(
-            name=filterName, company=company, filter_type="Client"
-        ).exists():
+            if SavedFilter.objects.filter(
+                name=filterName, company=company, filter_type="Client"
+            ).exists():
+                return Response(
+                    {"error": "A filter with that name already exists"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            else:
+                filters = {
+                    "min_price": data["min_price"],
+                    "max_price": data["max_price"],
+                    "min_year": data["min_year"],
+                    "max_year": data["max_year"],
+                    "min_beds": data["min_beds"],
+                    "max_beds": data["max_beds"],
+                    "min_baths": data["min_baths"],
+                    "max_baths": data["max_baths"],
+                    "min_sqft": data["min_sqft"],
+                    "max_sqft": data["max_sqft"],
+                    "min_lot_sqft": data["min_lot_sqft"],
+                    "max_lot_sqft": data["max_lot_sqft"],
+                    "equip_install_date_min": data["equip_install_date_min"],
+                    "equip_install_date_max": data["equip_install_date_max"],
+                    "tags": data["tag_filters"],
+                    "city": data["city"],
+                    "state": data["state"],
+                    "zip_code": data["zip_code"],
+                }
+
+                forZapier = data["for_zapier"]
+                SavedFilter.objects.create(
+                    name=filterName,
+                    company=company,
+                    saved_filters=json.dumps(filters),
+                    for_zapier=forZapier,
+                    filter_type="Client",
+                )
+                return Response(
+                    {"success": "Filter created successfully"},
+                    status=status.HTTP_200_OK,
+                )
+        except Exception as e:
+            logging.error(e)
             return Response(
-                {"error": "A filter with that name already exists"},
+                {"error": "Something went wrong"},
                 status=status.HTTP_400_BAD_REQUEST,
-            )
-        else:
-            filters = {
-                "min_price": data["min_price"],
-                "max_price": data["max_price"],
-                "min_year": data["min_year"],
-                "max_year": data["max_year"],
-                "min_beds": data["min_beds"],
-                "max_beds": data["max_beds"],
-                "min_baths": data["min_baths"],
-                "max_baths": data["max_baths"],
-                "min_sqft": data["min_sqft"],
-                "max_sqft": data["max_sqft"],
-                "min_lot_sqft": data["min_lot_sqft"],
-                "max_lot_sqft": data["max_lot_sqft"],
-                "equip_install_date_min": data["equip_install_date_min"],
-                "equip_install_date_max": data["equip_install_date_max"],
-                "tags": data["tag_filters"],
-                "city": data["city"],
-                "state": data["state"],
-                "zip_code": data["zip_code"],
-            }
-
-            forZapier = data["for_zapier"]
-            SavedFilter.objects.create(
-                name=filterName,
-                company=company,
-                saved_filters=json.dumps(filters),
-                for_zapier=forZapier,
-                filter_type="Client",
-            )
-            return Response(
-                {"success": "Filter created successfully"},
-                status=status.HTTP_200_OK,
             )
 
 

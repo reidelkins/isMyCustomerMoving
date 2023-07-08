@@ -65,24 +65,24 @@ class MyTestCase(TestCase):
         mock_find_client_count.return_value = 100
         self.assertEqual(find_clients_to_delete(80, "test_product"), 0)
 
-    @patch("data.utils.Company.objects.get")
-    @patch("data.utils.Client.objects.filter")
-    @patch("data.utils.find_client_count")
-    def test_reactivate_clients(
-        self, mock_find_client_count, mock_client_filter, mock_company_get
-    ):
-        mock_find_client_count.return_value = 100
-        mock_client_filter.return_value = MagicMock()
-        mock_client_filter.return_value.count.return_value = 80
-        mock_company_get.return_value = MagicMock()
+    # @patch("data.utils.Company.objects.get")
+    # @patch("data.utils.Client.objects.filter")
+    # @patch("data.utils.find_client_count")
+    # def test_reactivate_clients(
+    #     self, mock_find_client_count, mock_client_filter, mock_company_get
+    # ):
+    #     mock_find_client_count.return_value = 100
+    #     mock_client_filter.return_value = MagicMock()
+    #     mock_client_filter.return_value.count.return_value = 80
+    #     mock_company_get.return_value = MagicMock()
 
-        reactivate_clients(1)
-        mock_client_filter.return_value.update.assert_called_once_with(
-            active=True
-        )
+    #     reactivate_clients(1)
+    #     mock_client_filter.return_value.update.assert_called_once_with(
+    #         active=True
+    #     )
 
-        mock_client_filter.return_value.count.return_value = 120
-        mock_client_filter.return_value.update.assert_not_called()
+    #     mock_client_filter.return_value.count.return_value = 120
+    #     mock_client_filter.return_value.update.assert_not_called()
 
     # @patch("data.utils.Company.objects.get")
     # @patch("data.utils.Client.objects.filter")

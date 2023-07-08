@@ -7,15 +7,15 @@ router = routers.DefaultRouter()
 
 client_patterns = [
     path(
-        "<str:user>/",
+        "",
         views.ClientListView.as_view(),
         name="client-list",
     ),
-    path(
-        "",
-        views.ClientListView.as_view(),
-        name="save-client-filter",
-    ),
+    # path(
+    #     "",
+    #     views.ClientListView.as_view(),
+    #     name="save-client-filter",
+    # ),
 ]
 
 recently_sold_patterns = [

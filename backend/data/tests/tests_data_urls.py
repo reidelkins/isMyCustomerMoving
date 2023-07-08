@@ -311,16 +311,16 @@ class UrlsTestCase(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 403)
 
-    def test_client_list_url_put(self):
-        url = reverse("client-list")
-        headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
-        response = self.client.put(url, data={}, **headers)
-        self.assertEqual(response.status_code, 405)
-
     def test_client_list_url_post(self):
         url = reverse("client-list")
         headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
         response = self.client.post(url, data={}, **headers)
+        self.assertEqual(response.status_code, 400)
+
+    def test_client_list_url_put(self):
+        url = reverse("client-list")
+        headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
+        response = self.client.put(url, data={}, **headers)
         self.assertEqual(response.status_code, 405)
 
     def test_client_list_url_delete(self):
