@@ -50,7 +50,7 @@ jobs:
       - name: Run Static Code Analysis
         run: |
           pip install flake8 black
-          flake8 backend --exclude=backend/accounts/migrations,backend/data/migrations,backend/accounts/migrations1,backend/data/migrations1,backend/manage.py,backend/accounts/tests,backend/data/tests,backend/payments/tests,backend/config/settings.py --max-line-length=85
+          flake8 backend --exclude=backend/accounts/migrations,backend/data/migrations,backend/accounts/migrations1,backend/data/migrations1,backend/payments/migrations,backend/manage.py,backend/accounts/tests,backend/data/tests,backend/payments/tests,backend/config/settings.py --max-line-length=85
       # black --check --line-length 85 backend
       - name: Database Setup
         run: |
