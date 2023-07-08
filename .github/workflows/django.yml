@@ -1,10 +1,6 @@
 name: IMCM CI
 
-on:
-  push:
-    branches: ["master", "pipeline-work"]
-  pull_request:
-    branches: ["master", "pipeline-work"]
+on: [push, pull_request]
 
 env:
   DJANGO_SECRET_KEY: ${{secrets.DJANGO_SECRET_KEY}}

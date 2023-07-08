@@ -10,6 +10,7 @@ from django.utils.crypto import get_random_string
 from django.conf import settings
 from django.template.loader import get_template
 from django.db import transaction
+from payments.models import Product
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 from rest_framework_simplejwt.exceptions import TokenError
@@ -114,7 +115,7 @@ class Company(models.Model):
         default=create_access_token, max_length=100
     )
     product = models.ForeignKey(
-        "djstripe.Plan",
+        Product,
         blank=True,
         null=True,
         on_delete=models.SET_NULL,

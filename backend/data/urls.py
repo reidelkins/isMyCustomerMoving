@@ -4,6 +4,20 @@ from . import views
 
 router = routers.DefaultRouter()
 
+
+client_patterns = [
+    path(
+        "<str:user>/",
+        views.ClientListView.as_view(),
+        name="client-list",
+    ),
+    path(
+        "",
+        views.ClientListView.as_view(),
+        name="save-client-filter",
+    ),
+]
+
 recently_sold_patterns = [
     path("", views.RecentlySoldView.as_view(), name="recently-sold"),
     path(
@@ -77,11 +91,7 @@ urlpatterns = [
         views.DownloadClientView.as_view(),
         name="all-client-list",
     ),
-    path(
-        "clients/",
-        views.ClientListView.as_view(),
-        name="client-list",
-    ),
+    path("clients/", include(client_patterns)),
     path(
         "salesforce/",
         views.SalesforceView.as_view(),

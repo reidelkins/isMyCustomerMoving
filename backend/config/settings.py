@@ -104,7 +104,6 @@ INSTALLED_APPS = [
     "accounts",
     "payments",
     "data",
-    "djstripe",
     "social_django",
     "rest_framework_social_oauth2",
     "oauth2_provider",
@@ -289,15 +288,8 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
 }
 
-
-STRIPE_TEST_SECRET_KEY = get_env_var("STRIPE_SECRET_KEY_TEST")
 STRIPE_LIVE_SECRET_KEY = get_env_var("STRIPE_SECRET_KEY")
-STRIPE_LIVE_MODE = False
-
-DJSTRIPE_WEBHOOK_SECRET = get_env_var("DJSTRIPE_WEBHOOK_SECRET")
-DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
-
-DJSTRIPE_WEBHOOK_VALIDATION = "retrieve_event"
+STRIPE_TEST_SECRET_KEY = get_env_var("STRIPE_SECRET_KEY_TEST")
 
 # CELERY_BROKER_URL = CELERY_RESULT_BACKEND + "?ssl_cert_reqs=CERT_NONE"
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL

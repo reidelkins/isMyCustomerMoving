@@ -11,6 +11,7 @@ export const userSlice = createSlice({
       loading: false,
       error: null,
       CLIENTLIST: [],
+      customerDataFilters: [],
       count: 0,
       forSale: {
         current: 0,
@@ -65,6 +66,7 @@ export const userSlice = createSlice({
       state.clientsInfo.forSale.total = action.payload.results.forSaleAllTime;
       state.clientsInfo.recentlySold.current = action.payload.results.recentlySold;
       state.clientsInfo.recentlySold.total = action.payload.results.recentlySoldAllTime;
+      state.clientsInfo.customerDataFilters = action.payload.results.savedFilters;
       state.clientsInfo.loading = false;
       state.clientsInfo.error = null;
       state.clientsInfo.done = false;
@@ -520,7 +522,16 @@ export const filterClientsAsync =
     state,
     zipCode,
     customerSinceMin,
-    customerSinceMax
+    customerSinceMax,
+    minRooms,
+    maxRooms,
+    minBaths,
+    maxBaths,
+    minSqft,
+    maxSqft,
+    minLotSqft,
+    maxLotSqft,
+    savedFilter
   ) =>
   async (dispatch, getState) => {
     try {
@@ -571,6 +582,33 @@ export const filterClientsAsync =
       }
       if (customerSinceMax) {
         filters += `&customer_since_max=${customerSinceMax}`;
+      }
+      if (minRooms) {
+        filters += `&min_beds=${minRooms}`;
+      }
+      if (maxRooms) {
+        filters += `&max_beds=${maxRooms}`;
+      }
+      if (minBaths) {
+        filters += `&min_baths=${minBaths}`;
+      }
+      if (maxBaths) {
+        filters += `&max_baths=${maxBaths}`;
+      }
+      if (minSqft) {
+        filters += `&min_sqft=${minSqft}`;
+      }
+      if (maxSqft) {
+        filters += `&max_sqft=${maxSqft}`;
+      }
+      if (minLotSqft) {
+        filters += `&min_lot_sqft=${minLotSqft}`;
+      }
+      if (maxLotSqft) {
+        filters += `&max_lot_sqft=${maxLotSqft}`;
+      }
+      if (savedFilter) {
+        filters += `&saved_filter=${savedFilter}`;
       }
       const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients?page=1${filters}`, config);
       dispatch(clients(data));
@@ -770,7 +808,27 @@ export const forSaleAsync = (page) => async (dispatch, getState) => {
 };
 
 export const filterForSaleAsync =
-  (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, savedFilter) =>
+  (
+    minPrice,
+    maxPrice,
+    minYear,
+    maxYear,
+    minDaysAgo,
+    maxDaysAgo,
+    tagFilters,
+    city,
+    state,
+    zipCode,
+    minRooms,
+    maxRooms,
+    minBaths,
+    maxBaths,
+    minSqft,
+    maxSqft,
+    minLotSqft,
+    maxLotSqft,
+    savedFilter
+  ) =>
   async (dispatch, getState) => {
     try {
       const reduxStore = getState();
@@ -812,6 +870,30 @@ export const filterForSaleAsync =
       }
       if (zipCode) {
         filters += `&zip_code=${zipCode}`;
+      }
+      if (minRooms) {
+        filters += `&min_beds=${minRooms}`;
+      }
+      if (maxRooms) {
+        filters += `&max_beds=${maxRooms}`;
+      }
+      if (minBaths) {
+        filters += `&min_baths=${minBaths}`;
+      }
+      if (maxBaths) {
+        filters += `&max_baths=${maxBaths}`;
+      }
+      if (minSqft) {
+        filters += `&min_sqft=${minSqft}`;
+      }
+      if (maxSqft) {
+        filters += `&max_sqft=${maxSqft}`;
+      }
+      if (minLotSqft) {
+        filters += `&min_lot_sqft=${minLotSqft}`;
+      }
+      if (maxLotSqft) {
+        filters += `&max_lot_sqft=${maxLotSqft}`;
       }
       if (savedFilter) {
         filters += `&saved_filter=${savedFilter}`;
@@ -881,7 +963,27 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
 };
 
 export const filterRecentlySoldAsync =
-  (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, savedFilter) =>
+  (
+    minPrice,
+    maxPrice,
+    minYear,
+    maxYear,
+    minDaysAgo,
+    maxDaysAgo,
+    tagFilters,
+    city,
+    state,
+    zipCode,
+    minRooms,
+    maxRooms,
+    minBaths,
+    maxBaths,
+    minSqft,
+    maxSqft,
+    minLotSqft,
+    maxLotSqft,
+    savedFilter
+  ) =>
   async (dispatch, getState) => {
     try {
       const reduxStore = getState();
@@ -923,6 +1025,30 @@ export const filterRecentlySoldAsync =
       }
       if (zipCode) {
         filters += `&zip_code=${zipCode}`;
+      }
+      if (minRooms) {
+        filters += `&min_beds=${minRooms}`;
+      }
+      if (maxRooms) {
+        filters += `&max_beds=${maxRooms}`;
+      }
+      if (minBaths) {
+        filters += `&min_baths=${minBaths}`;
+      }
+      if (maxBaths) {
+        filters += `&max_baths=${maxBaths}`;
+      }
+      if (minSqft) {
+        filters += `&min_sqft=${minSqft}`;
+      }
+      if (maxSqft) {
+        filters += `&max_sqft=${maxSqft}`;
+      }
+      if (minLotSqft) {
+        filters += `&min_lot_sqft=${minLotSqft}`;
+      }
+      if (maxLotSqft) {
+        filters += `&max_lot_sqft=${maxLotSqft}`;
       }
       if (savedFilter) {
         filters += `&saved_filter=${savedFilter}`;
@@ -1015,7 +1141,16 @@ export const getClientsCSV = (
   state,
   zipCode,
   customerSinceMin,
-  customerSinceMax
+  customerSinceMax,
+  minRooms,
+  maxRooms,
+  minBaths,
+  maxBaths,
+  minSqft,
+  maxSqft,
+  minLotSqft,
+  maxLotSqft,
+  savedFilter
   // eslint-disable-next-line arrow-body-style
 ) => {
   return async (dispatch, getState) => {
@@ -1069,6 +1204,33 @@ export const getClientsCSV = (
       if (customerSinceMax) {
         filters += `&customer_since_max=${customerSinceMax}`;
       }
+      if (minRooms) {
+        filters += `&min_beds=${minRooms}`;
+      }
+      if (maxRooms) {
+        filters += `&max_beds=${maxRooms}`;
+      }
+      if (minBaths) {
+        filters += `&min_baths=${minBaths}`;
+      }
+      if (maxBaths) {
+        filters += `&max_baths=${maxBaths}`;
+      }
+      if (minSqft) {
+        filters += `&min_sqft=${minSqft}`;
+      }
+      if (maxSqft) {
+        filters += `&max_sqft=${maxSqft}`;
+      }
+      if (minLotSqft) {
+        filters += `&min_lot_sqft=${minLotSqft}`;
+      }
+      if (maxLotSqft) {
+        filters += `&max_lot_sqft=${maxLotSqft}`;
+      }
+      if (savedFilter) {
+        filters += `&saved_filter=${savedFilter}`;
+      }
       const response = await axios.get(`${DOMAIN}/api/v1/data/downloadclients?${filters}`, config);
       const csvBlob = new Blob([response.data], { type: 'text/csv' }); // Convert binary response to a blob
       FileSaver.saveAs(csvBlob, 'clients.csv'); // Download the file using FileSaver
@@ -1079,7 +1241,27 @@ export const getClientsCSV = (
 };
 
 export const getRecentlySoldCSV =
-  (minPrice, maxPrice, minYear, maxYear, minDaysAgo, maxDaysAgo, tagFilters, city, state, zipCode, savedFilter) =>
+  (
+    minPrice,
+    maxPrice,
+    minYear,
+    maxYear,
+    minDaysAgo,
+    maxDaysAgo,
+    tagFilters,
+    city,
+    state,
+    zipCode,
+    minRooms,
+    maxRooms,
+    minBaths,
+    maxBaths,
+    minSqft,
+    maxSqft,
+    minLotSqft,
+    maxLotSqft,
+    savedFilter
+  ) =>
   async (dispatch, getState) => {
     try {
       const reduxStore = getState();
@@ -1121,6 +1303,30 @@ export const getRecentlySoldCSV =
       }
       if (zipCode) {
         filters += `&zip_code=${zipCode}`;
+      }
+      if (minRooms) {
+        filters += `&min_beds=${minRooms}`;
+      }
+      if (maxRooms) {
+        filters += `&max_beds=${maxRooms}`;
+      }
+      if (minBaths) {
+        filters += `&min_baths=${minBaths}`;
+      }
+      if (maxBaths) {
+        filters += `&max_baths=${maxBaths}`;
+      }
+      if (minSqft) {
+        filters += `&min_sqft=${minSqft}`;
+      }
+      if (maxSqft) {
+        filters += `&max_sqft=${maxSqft}`;
+      }
+      if (minLotSqft) {
+        filters += `&min_lot_sqft=${minLotSqft}`;
+      }
+      if (maxLotSqft) {
+        filters += `&max_lot_sqft=${maxLotSqft}`;
       }
       if (savedFilter) {
         filters += `&saved_filter=${savedFilter}`;
@@ -1190,6 +1396,71 @@ export const getForSaleCSV =
     }
   };
 
+export const saveCustomerDataFilterAsync =
+  (
+    filterName,
+    minPrice,
+    maxPrice,
+    minYear,
+    maxYear,
+    equipInstallDateMin,
+    equipInstallDateMax,
+    tagFilters,
+    city,
+    state,
+    zipCode,
+    minRooms,
+    maxRooms,
+    minBaths,
+    maxBaths,
+    minSqft,
+    maxSqft,
+    minLotSqft,
+    maxLotSqft,
+    forZapier
+  ) =>
+  async (dispatch, getState) => {
+    try {
+      const reduxStore = getState();
+      const { userInfo } = reduxStore.auth.userInfo;
+      const config = {
+        headers: {
+          'Content-type': 'application/json',
+          Authorization: `Bearer ${userInfo.access_token}`,
+        },
+      };
+      const body = {
+        filter_name: filterName,
+        min_price: minPrice,
+        max_price: maxPrice,
+        min_year: minYear,
+        max_year: maxYear,
+        equip_install_date_min: equipInstallDateMin,
+        equip_install_date_max: equipInstallDateMax,
+        tag_filters: tagFilters,
+        city,
+        state,
+        zip_code: zipCode,
+        min_beds: minRooms,
+        max_beds: maxRooms,
+        min_baths: minBaths,
+        max_baths: maxBaths,
+        min_sqft: minSqft,
+        max_sqft: maxSqft,
+        min_lot_sqft: minLotSqft,
+        max_lot_sqft: maxLotSqft,
+        for_zapier: forZapier,
+      };
+      dispatch(saveFilterLoading());
+      await axios.post(`${DOMAIN}/api/v1/data/clients/`, body, config);
+      dispatch(saveFilter());
+    } catch (error) {
+      dispatch(
+        saveFilterError(error.response && error.response.data.detail ? error.response.data.detail : error.message)
+      );
+    }
+  };
+
 export const saveRecentlySoldFilterAsync =
   (
     filterName,
@@ -1203,6 +1474,14 @@ export const saveRecentlySoldFilterAsync =
     city,
     state,
     zipCode,
+    minRooms,
+    maxRooms,
+    minBaths,
+    maxBaths,
+    minSqft,
+    maxSqft,
+    minLotSqft,
+    maxLotSqft,
     forZapier
   ) =>
   async (dispatch, getState) => {
@@ -1227,6 +1506,14 @@ export const saveRecentlySoldFilterAsync =
         city,
         state,
         zip_code: zipCode,
+        min_beds: minRooms,
+        max_beds: maxRooms,
+        min_baths: minBaths,
+        max_baths: maxBaths,
+        min_sqft: minSqft,
+        max_sqft: maxSqft,
+        min_lot_sqft: minLotSqft,
+        max_lot_sqft: maxLotSqft,
         for_zapier: forZapier,
       };
       dispatch(saveFilterLoading());
@@ -1252,6 +1539,14 @@ export const saveForSaleFilterAsync =
     city,
     state,
     zipCode,
+    minRooms,
+    maxRooms,
+    minBaths,
+    maxBaths,
+    minSqft,
+    maxSqft,
+    minLotSqft,
+    maxLotSqft,
     forZapier
   ) =>
   async (dispatch, getState) => {
@@ -1276,6 +1571,14 @@ export const saveForSaleFilterAsync =
         city,
         state,
         zip_code: zipCode,
+        min_beds: minRooms,
+        max_beds: maxRooms,
+        min_baths: minBaths,
+        max_baths: maxBaths,
+        min_sqft: minSqft,
+        max_sqft: maxSqft,
+        min_lot_sqft: minLotSqft,
+        max_lot_sqft: maxLotSqft,
         for_zapier: forZapier,
       };
       dispatch(saveFilterLoading());

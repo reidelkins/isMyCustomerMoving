@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import { makeStyles } from '@mui/styles';
 import {
+  Alert,
   Box,
   Button,
   Checkbox,
@@ -24,7 +25,12 @@ import {
 } from '@mui/material';
 
 import Iconify from '../../../components/Iconify';
-import { filterClientsAsync, clientsAsync } from '../../../redux/actions/usersActions';
+import {
+  filterClientsAsync,
+  clientsAsync,
+  saveCustomerDataFilterAsync,
+  saveFilterSuccess,
+} from '../../../redux/actions/usersActions';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -76,6 +82,25 @@ CustomerDataFilter.propTypes = {
   setCustomerSinceMin: PropTypes.func,
   customerSinceMax: PropTypes.string,
   setCustomerSinceMax: PropTypes.func,
+  minRooms: PropTypes.string,
+  setMinRooms: PropTypes.func,
+  maxRooms: PropTypes.string,
+  setMaxRooms: PropTypes.func,
+  minBaths: PropTypes.string,
+  setMinBaths: PropTypes.func,
+  maxBaths: PropTypes.string,
+  setMaxBaths: PropTypes.func,
+  minSqft: PropTypes.string,
+  setMinSqft: PropTypes.func,
+  maxSqft: PropTypes.string,
+  setMaxSqft: PropTypes.func,
+  minLotSqft: PropTypes.string,
+  setMinLotSqft: PropTypes.func,
+  maxLotSqft: PropTypes.string,
+  setMaxLotSqft: PropTypes.func,
+  savedFilter: PropTypes.string,
+  setSavedFilter: PropTypes.func,
+  customerDataFilters: PropTypes.array,
 };
 
 export default function CustomerDataFilter({
@@ -106,11 +131,37 @@ export default function CustomerDataFilter({
   setCustomerSinceMin: handleCustomerSinceMin,
   customerSinceMax,
   setCustomerSinceMax: handleCustomerSinceMax,
+  minRooms,
+  setMinRooms: handleChangeMinRooms,
+  maxRooms,
+  setMaxRooms: handleChangeMaxRooms,
+  minBaths,
+  setMinBaths: handleChangeMinBaths,
+  maxBaths,
+  setMaxBaths: handleChangeMaxBaths,
+  minSqft,
+  setMinSqft: handleChangeMinSqft,
+  maxSqft,
+  setMaxSqft: handleChangeMaxSqft,
+  minLotSqft,
+  setMinLotSqft: handleChangeMinLotSqft,
+  maxLotSqft,
+  setMaxLotSqft: handleChangeMaxLotSqft,
+  savedFilter,
+  setSavedFilter: handleChangeSavedFilter,
+  customerDataFilters,
 }) {
   const classes = useStyles();
   const [showFilters, setShowFilters] = useState(false);
   const [showClearFilters, setShowClearFilters] = useState(false);
+  const [showSaveFilter, setShowSaveFilter] = useState(false);
+  const [forZapier, setForZapier] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [error, setError] = useState('');
+  const [filterName, setFilterName] = useState('');
   const dispatch = useDispatch();
+
+  const filterSuccess = useSelector(saveFilterSuccess);
 
   const handleChangeTagFilter = (event) => {
     const { value } = event.target;
@@ -120,6 +171,14 @@ export default function CustomerDataFilter({
       }
       return [...prevFilters, value];
     });
+  };
+
+  const handleYesChange = () => {
+    setForZapier(true);
+  };
+
+  const handleNoChange = () => {
+    setForZapier(false);
   };
 
   useEffect(() => {
@@ -134,7 +193,16 @@ export default function CustomerDataFilter({
       statusFilters.length > 0 ||
       zipCode ||
       city ||
-      state
+      state ||
+      minRooms ||
+      maxRooms ||
+      minBaths ||
+      maxBaths ||
+      minSqft ||
+      maxSqft ||
+      minLotSqft ||
+      maxLotSqft ||
+      savedFilter
     ) {
       setShowClearFilters(true);
     } else {
@@ -152,6 +220,15 @@ export default function CustomerDataFilter({
     zipCode,
     city,
     state,
+    minRooms,
+    maxRooms,
+    minBaths,
+    maxBaths,
+    minSqft,
+    maxSqft,
+    minLotSqft,
+    maxLotSqft,
+    savedFilter,
   ]);
 
   const tagOptions = [
@@ -224,14 +301,23 @@ export default function CustomerDataFilter({
         state,
         zipCode,
         customerSinceMin,
-        customerSinceMax
+        customerSinceMax,
+        minRooms,
+        maxRooms,
+        minBaths,
+        maxBaths,
+        minSqft,
+        maxSqft,
+        minLotSqft,
+        maxLotSqft,
+        savedFilter
       )
     );
     setShowFilters(false);
   };
 
   const handleShowFilters = () => {
-    if (product.product === 'price_1MhxfPAkLES5P4qQbu8O45xy') {
+    if (product === 'price_1MhxfPAkLES5P4qQbu8O45xy') {
       // eslint-disable-next-line no-alert
       alert('Please upgrade your plan to access this feature');
     } else {
@@ -253,7 +339,64 @@ export default function CustomerDataFilter({
     handleEquipInstallDateMin('');
     handleCustomerSinceMin('');
     handleCustomerSinceMax('');
+    handleChangeMinRooms('');
+    handleChangeMaxRooms('');
+    handleChangeMinBaths('');
+    handleChangeMaxBaths('');
+    handleChangeMinSqft('');
+    handleChangeMaxSqft('');
+    handleChangeMinLotSqft('');
+    handleChangeMaxLotSqft('');
+    handleChangeSavedFilter('');
     dispatch(clientsAsync(1));
+  };
+
+  const handleSavedFilterChange = (event) => {
+    // First clear all filters
+    handleClearFilters();
+
+    // Then update the saved filter
+    handleChangeSavedFilter(event.target.value);
+  };
+
+  const handleOpenSaveFilter = () => {
+    setShowFilters(false);
+    setShowSaveFilter(true);
+  };
+
+  const handleSaveFilter = (event) => {
+    event.preventDefault();
+    if (filterName === '') {
+      setError('Please enter a filter name');
+      return;
+    }
+    setError('');
+    setAlertOpen(true);
+    setShowSaveFilter(false);
+    dispatch(
+      saveCustomerDataFilterAsync(
+        filterName,
+        minPrice,
+        maxPrice,
+        minYear,
+        maxYear,
+        equipInstallDateMin,
+        equipInstallDateMax,
+        tagFilters,
+        city,
+        state,
+        zipCode,
+        minRooms,
+        maxRooms,
+        minBaths,
+        maxBaths,
+        minSqft,
+        maxSqft,
+        minLotSqft,
+        maxLotSqft,
+        forZapier
+      )
+    );
   };
 
   return (
@@ -307,6 +450,30 @@ export default function CustomerDataFilter({
                     ))}
                   </Grid>
                 </Tooltip>
+                {customerDataFilters && (
+                  <Grid item xs={12}>
+                    <FormControl component="fieldset">
+                      <Typography variant="h6" mb={2}>
+                        Saved Filters
+                      </Typography>
+                      <Grid container spacing={1}>
+                        {customerDataFilters.map((option) => (
+                          <FormControlLabel
+                            key={option}
+                            control={
+                              <Checkbox
+                                checked={savedFilter === option}
+                                onChange={handleSavedFilterChange}
+                                value={option}
+                              />
+                            }
+                            label={option}
+                          />
+                        ))}
+                      </Grid>
+                    </FormControl>
+                  </Grid>
+                )}
                 <Grid item xs={12}>
                   <Tooltip title="This will filter for the city state and zip of the home">
                     <Box mt={2}>
@@ -449,6 +616,114 @@ export default function CustomerDataFilter({
                   </Tooltip>
                 </Grid>
                 <Grid item xs={12}>
+                  <Tooltip title="How many bedrooms the house has">
+                    <Box mt={2}>
+                      <Typography variant="h6" mb={2}>
+                        Bedrooms
+                      </Typography>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <FormControl fullWidth>
+                          <InputLabel>Min Bedrooms</InputLabel>
+                          <Input
+                            type="number"
+                            value={minRooms}
+                            onChange={(event) => handleChangeMinRooms(event.target.value)}
+                          />
+                        </FormControl>
+                        <FormControl fullWidth>
+                          <InputLabel>Max Bedrooms</InputLabel>
+                          <Input
+                            type="number"
+                            value={maxRooms}
+                            onChange={(event) => handleChangeMaxRooms(event.target.value)}
+                          />
+                        </FormControl>
+                      </Stack>
+                    </Box>
+                  </Tooltip>
+                </Grid>
+                <Grid item xs={12}>
+                  <Tooltip title="How many bathrooms the house has">
+                    <Box mt={2}>
+                      <Typography variant="h6" mb={2}>
+                        Bathrooms
+                      </Typography>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <FormControl fullWidth>
+                          <InputLabel>Min Bathrooms</InputLabel>
+                          <Input
+                            type="number"
+                            value={minBaths}
+                            onChange={(event) => handleChangeMinBaths(event.target.value)}
+                          />
+                        </FormControl>
+                        <FormControl fullWidth>
+                          <InputLabel>Max Bathrooms</InputLabel>
+                          <Input
+                            type="number"
+                            value={maxBaths}
+                            onChange={(event) => handleChangeMaxBaths(event.target.value)}
+                          />
+                        </FormControl>
+                      </Stack>
+                    </Box>
+                  </Tooltip>
+                </Grid>
+                <Grid item xs={12}>
+                  <Tooltip title="How many square feet the house is">
+                    <Box mt={2}>
+                      <Typography variant="h6" mb={2}>
+                        Square Feet
+                      </Typography>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <FormControl fullWidth>
+                          <InputLabel>Min Square Feet</InputLabel>
+                          <Input
+                            type="number"
+                            value={minSqft}
+                            onChange={(event) => handleChangeMinSqft(event.target.value)}
+                          />
+                        </FormControl>
+                        <FormControl fullWidth>
+                          <InputLabel>Max Square Feet</InputLabel>
+                          <Input
+                            type="number"
+                            value={maxSqft}
+                            onChange={(event) => handleChangeMaxSqft(event.target.value)}
+                          />
+                        </FormControl>
+                      </Stack>
+                    </Box>
+                  </Tooltip>
+                </Grid>
+                <Grid item xs={12}>
+                  <Tooltip title="How large the lot size is for the property. This is based off square feet">
+                    <Box mt={2}>
+                      <Typography variant="h6" mb={2}>
+                        Lot Size
+                      </Typography>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <FormControl fullWidth>
+                          <InputLabel>Min Lot Size</InputLabel>
+                          <Input
+                            type="number"
+                            value={minLotSqft}
+                            onChange={(event) => handleChangeMinLotSqft(event.target.value)}
+                          />
+                        </FormControl>
+                        <FormControl fullWidth>
+                          <InputLabel>Max Lot Size</InputLabel>
+                          <Input
+                            type="number"
+                            value={maxLotSqft}
+                            onChange={(event) => handleChangeMaxLotSqft(event.target.value)}
+                          />
+                        </FormControl>
+                      </Stack>
+                    </Box>
+                  </Tooltip>
+                </Grid>
+                <Grid item xs={12}>
                   <FormControl component="fieldset">
                     <FormLabel component="legend">Tags</FormLabel>
                     <Grid container spacing={1}>
@@ -469,14 +744,85 @@ export default function CustomerDataFilter({
                   </FormControl>
                 </Grid>
               </Grid>
-              <Box mt={2}>
-                <Button type="submit" variant="contained" color="primary">
-                  Apply Filters
+              <Box mt={2} alignItems="center" display="flex" justifyContent="space-between">
+                <Button onClick={handleOpenSaveFilter} variant="contained" color="primary">
+                  Save Filter
+                </Button>
+                <Box ml={2}>
+                  <Button type="submit" variant="contained" color="primary">
+                    Apply Filters
+                  </Button>
+                </Box>
+              </Box>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
+      {showSaveFilter && (
+        <Dialog
+          sx={{ padding: '200px' }}
+          className={classes.filterBox}
+          open={showSaveFilter}
+          onClose={() => setShowSaveFilter(false)}
+        >
+          <DialogTitle>Save Filter</DialogTitle>
+          <Divider />
+          <DialogContent>
+            <form onSubmit={handleSaveFilter}>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Tooltip title="What Do You Want To Name The Filter">
+                    <Box mt={2}>
+                      <Typography variant="h6" mb={2}>
+                        Filter Name<span style={{ color: 'red' }}> *</span>
+                      </Typography>
+                      {error && (
+                        <Grid item xs={12}>
+                          <Typography color="error">{error}</Typography>
+                        </Grid>
+                      )}
+                      <FormControl fullWidth>
+                        <InputLabel>Name</InputLabel>
+                        <Input
+                          type="string"
+                          value={filterName}
+                          onChange={(event) => setFilterName(event.target.value)}
+                        />
+                      </FormControl>
+                    </Box>
+                  </Tooltip>
+                </Grid>
+                <Grid item xs={12}>
+                  <Tooltip title="Do you want new listing instances that match this filter to be sent to Zapier?">
+                    <Box mt={2}>
+                      <Typography variant="h6" mb={2}>
+                        Trigger Zapier Automation
+                      </Typography>
+                      <FormControlLabel
+                        control={<Checkbox checked={forZapier} onChange={handleYesChange} />}
+                        label="Yes"
+                      />
+                      <FormControlLabel
+                        control={<Checkbox checked={!forZapier} onChange={handleNoChange} />}
+                        label="No"
+                      />
+                    </Box>
+                  </Tooltip>
+                </Grid>
+              </Grid>
+              <Box mt={2} alignItems="center" display="flex" justifyContent="space-between">
+                <Button onClick={handleSaveFilter} variant="contained" color="primary">
+                  Save Filter
                 </Button>
               </Box>
             </form>
           </DialogContent>
         </Dialog>
+      )}
+      {alertOpen && filterSuccess && (
+        <Alert severity="success" onClose={() => setAlertOpen(false)}>
+          Filter Saved!
+        </Alert>
       )}
     </div>
   );

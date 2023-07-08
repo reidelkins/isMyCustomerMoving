@@ -81,6 +81,10 @@ class Client(models.Model):
     service_titan_customer_since = models.DateField(blank=True, null=True)
     usps_address = models.CharField(max_length=100, blank=True, null=True)
     usps_different = models.BooleanField(default=False)
+    bedrooms = models.IntegerField(default=0, blank=True, null=True)
+    bathrooms = models.IntegerField(default=0, blank=True, null=True)
+    sqft = models.IntegerField(default=0, blank=True, null=True)
+    lot_sqft = models.IntegerField(default=0, blank=True, null=True)
 
     class Meta:
         unique_together = ("company", "name", "address")
