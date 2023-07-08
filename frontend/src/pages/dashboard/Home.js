@@ -513,7 +513,7 @@ export default function HomePage() {
                                                   return (
                                                     <IconButton
                                                       color="success"
-                                                      aria-label="View/Edit Note"
+                                                      aria-label="Contacted"
                                                       component="label"
                                                       onClick={(event) => updateContacted(event, id, false)}
                                                     >
@@ -524,7 +524,7 @@ export default function HomePage() {
                                                 return (
                                                   <IconButton
                                                     color="error"
-                                                    aria-label="View/Edit Note"
+                                                    aria-label="Not Contacted"
                                                     component="label"
                                                     onClick={(event) => updateContacted(event, id, true)}
                                                   >

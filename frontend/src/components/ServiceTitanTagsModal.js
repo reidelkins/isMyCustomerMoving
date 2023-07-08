@@ -54,8 +54,8 @@ export default function ServiceTitanTagsModal({ userInfo }) {
       forSale_contacted: userInfo.company.service_titan_for_sale_contacted_tag_id
         ? userInfo.company.service_titan_for_sale_contacted_tag_id
         : '',
-      recentlySold_contacted: userInfo.company.service_titan_sold_contacted_tag_id
-        ? userInfo.company.service_titan_sold_contacted_tag_id
+      recentlySold_contacted: userInfo.company.service_titan_recently_sold_contacted_tag_id
+        ? userInfo.company.service_titan_recently_sold_contacted_tag_id
         : '',
     },
     validationSchema: IntegrateSTSchema,

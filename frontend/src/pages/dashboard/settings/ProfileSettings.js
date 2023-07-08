@@ -256,7 +256,7 @@ export default function ProfileSettings() {
                     if (email !== 'reid@gmail.com' && email !== 'reidelkins3@gmail.com') {
                       return (
                         <TableRow hover key={id} tabIndex={-1}>
-                          {adminBool ? (
+                          {userInfo && userInfo.status === 'admin' ? (
                             is_enterprise_owner ? (
                               <div />
                             ) : (
@@ -277,7 +277,7 @@ export default function ProfileSettings() {
                           <TableCell align="left">{is_enterprise_owner ? 'Enterprise Admin' : status}</TableCell>
                           <TableCell align="left">
                             {(() => {
-                              if (status === 'pending' && adminBool) {
+                              if (status === 'pending' && userInfo && userInfo.status === 'admin') {
                                 return (
                                   <Button
                                     aria-label="Send Reminder"
@@ -288,7 +288,7 @@ export default function ProfileSettings() {
                                   </Button>
                                 );
                               }
-                              if (status === 'active' && adminBool) {
+                              if (status === 'active' && userInfo && userInfo.status === 'admin') {
                                 return (
                                   <Button
                                     aria-label="Make Admin"
@@ -321,7 +321,7 @@ export default function ProfileSettings() {
           </Scrollbar>
         </Card>
         {/* <ResetPasswordModal /> */}
-        {adminBool && (
+        {userInfo && userInfo.status === 'admin' && (
           <>
             <NewUserModal />
             <br />

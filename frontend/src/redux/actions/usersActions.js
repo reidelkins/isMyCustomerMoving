@@ -318,7 +318,7 @@ export const usersAsync = () => async (dispatch, getState) => {
       },
     };
     dispatch(usersLoading());
-    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/users/${userInfo.company.id}`, config);
+    const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/users/`, config);
     dispatch(users(data));
   } catch (error) {
     dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
@@ -371,7 +371,7 @@ export const clientsAsync =
         dispatch(clientsLoading());
       }
       if (page > reduxStore.user.clientsInfo.highestPage || page === 1) {
-        const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/${userInfo.id}?page=${page}`, config);
+        const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients?page=${page}`, config);
         if (page === 1) {
           dispatch(clients(data));
         } else {
@@ -487,7 +487,6 @@ export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
-    const { id: company } = userInfo.company;
     const config = {
       headers: {
         'Content-type': 'application/json',
@@ -496,7 +495,7 @@ export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
     };
 
     dispatch(clientsLoading());
-    const { data } = await axios.put(`${DOMAIN}/api/v1/data/upload/${company}/`, customers, config);
+    const { data } = await axios.put(`${DOMAIN}/api/v1/data/upload/`, customers, config);
     dispatch(clientsUpload(data.data));
     dispatch(uploadClientsUpdateAsync(data.task));
   } catch (error) {
@@ -573,7 +572,7 @@ export const filterClientsAsync =
       if (customerSinceMax) {
         filters += `&customer_since_max=${customerSinceMax}`;
       }
-      const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/${userInfo.id}/?page=1${filters}`, config);
+      const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients?page=1${filters}`, config);
       dispatch(clients(data));
     } catch (error) {
       dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
@@ -636,7 +635,6 @@ export const serviceTitanSync = (option) => async (dispatch, getState) => {
     dispatch(clientsLoading());
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
-    const { id: company } = userInfo.company;
 
     const config = {
       headers: {
@@ -644,7 +642,7 @@ export const serviceTitanSync = (option) => async (dispatch, getState) => {
         Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
-    const { data } = await axios.put(`${DOMAIN}/api/v1/data/servicetitan/${company}/`, { option }, config);
+    const { data } = await axios.put(`${DOMAIN}/api/v1/data/servicetitan/`, { option }, config);
     dispatch(serviceTitanUpdateAsync(data.task));
   } catch (error) {
     throw new Error(error);
@@ -656,7 +654,6 @@ export const salesForceSync = () => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
-    const { id: company } = userInfo.company;
 
     const config = {
       headers: {
@@ -665,36 +662,13 @@ export const salesForceSync = () => async (dispatch, getState) => {
       },
     };
     // dispatch(clientsLoading());
-    await axios.put(`${DOMAIN}/api/v1/data/salesforce/${company}/`, config);
+    await axios.put(`${DOMAIN}/api/v1/data/salesforce/`, config);
     dispatch(clientsAsync(1));
   } catch (error) {
     throw new Error(error);
     // dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 };
-
-// export const createCompany = (company, email) => async () => {
-//   try {
-
-//     const reduxStore = getState();
-//     const {userInfo} = reduxStore.auth.userInfo;
-//     const config = {
-//       headers: {
-//         'Content-type': 'application/json',
-//         Authorization: `Bearer ${userInfo.access_token}`,
-//       },
-//     };
-
-//     await axios.post(
-//       `${DOMAIN}/api/v1/accounts/createCompany/`,
-//       { 'name': company, email},
-//       config
-//     );
-
-//   } catch (error) {
-//     throw new Error(error);
-//   }
-// };
 
 export const addUser = (email) => async (dispatch, getState) => {
   try {
@@ -754,7 +728,7 @@ export const update = () => async (getState) => {
         Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
-    await axios.get(`${DOMAIN}/api/v1/data/update/${userInfo.company.id}`, config);
+    await axios.get(`${DOMAIN}/api/v1/data/update/`, config);
   } catch (error) {
     throw new Error(error);
   }
@@ -774,7 +748,7 @@ export const forSaleAsync = (page) => async (dispatch, getState) => {
       dispatch(forSaleLoading());
     }
     if (page > reduxStore.user.forSaleInfo.highestPage) {
-      const { data } = await axios.get(`${DOMAIN}/api/v1/data/forsale/${userInfo.company.id}?page=${page}`, config);
+      const { data } = await axios.get(`${DOMAIN}/api/v1/data/forsale?page=${page}`, config);
       if (data.results.data.length > 0) {
         dispatch(newForSalePage(page));
         if (data.results.data.length === 1000) {
@@ -842,10 +816,7 @@ export const filterForSaleAsync =
       if (savedFilter) {
         filters += `&saved_filter=${savedFilter}`;
       }
-      const { data } = await axios.get(
-        `${DOMAIN}/api/v1/data/forsale/${userInfo.company.id}/?page=1${filters}`,
-        config
-      );
+      const { data } = await axios.get(`${DOMAIN}/api/v1/data/forsale?page=1${filters}`, config);
       dispatch(forSale(data));
     } catch (error) {
       dispatch(forSaleError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
@@ -886,10 +857,7 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
       dispatch(recentlySoldLoading());
     }
     if (page > reduxStore.user.recentlySoldInfo.highestPage) {
-      const { data } = await axios.get(
-        `${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}?page=${page}`,
-        config
-      );
+      const { data } = await axios.get(`${DOMAIN}/api/v1/data/recentlysold?page=${page}`, config);
       if (data.results.data.length > 0) {
         dispatch(newRecentlySoldPage(page));
         if (data.results.data.length === 1000) {
@@ -959,10 +927,7 @@ export const filterRecentlySoldAsync =
       if (savedFilter) {
         filters += `&saved_filter=${savedFilter}`;
       }
-      const { data } = await axios.get(
-        `${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}/?page=1${filters}`,
-        config
-      );
+      const { data } = await axios.get(`${DOMAIN}/api/v1/data/recentlysold?page=1${filters}`, config);
       dispatch(recentlySold(data));
     } catch (error) {
       dispatch(
@@ -1001,7 +966,7 @@ export const makeReferralAsync = (id, area) => async (getState) => {
         Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
-    await axios.post(`${DOMAIN}/api/v1/accounts/referrals/${userInfo.company.id}/`, { id, area }, config);
+    await axios.post(`${DOMAIN}/api/v1/accounts/referrals/`, { id, area }, config);
   } catch (error) {
     throw new Error(error);
   }
@@ -1021,10 +986,7 @@ export const referralsAsync = (page) => async (dispatch, getState) => {
       dispatch(referralsLoading());
     }
     if (page > reduxStore.user.referralInfo.highestPage) {
-      const { data } = await axios.get(
-        `${DOMAIN}/api/v1/accounts/referrals/${userInfo.company.id}?page=${page}`,
-        config
-      );
+      const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/referrals?page=${page}`, config);
       if (data.results.length > 0) {
         dispatch(newReferralsPage(page));
       }
@@ -1107,7 +1069,7 @@ export const getClientsCSV = (
       if (customerSinceMax) {
         filters += `&customer_since_max=${customerSinceMax}`;
       }
-      const response = await axios.get(`${DOMAIN}/api/v1/data/downloadclients/${userInfo.id}/?${filters}`, config);
+      const response = await axios.get(`${DOMAIN}/api/v1/data/downloadclients?${filters}`, config);
       const csvBlob = new Blob([response.data], { type: 'text/csv' }); // Convert binary response to a blob
       FileSaver.saveAs(csvBlob, 'clients.csv'); // Download the file using FileSaver
     } catch (error) {
@@ -1163,10 +1125,7 @@ export const getRecentlySoldCSV =
       if (savedFilter) {
         filters += `&saved_filter=${savedFilter}`;
       }
-      const response = await axios.get(
-        `${DOMAIN}/api/v1/data/downloadrecentlysold/${userInfo.company.id}/?${filters}`,
-        config
-      );
+      const response = await axios.get(`${DOMAIN}/api/v1/data/downloadrecentlysold?${filters}`, config);
       const csvBlob = new Blob([response.data], { type: 'text/csv' }); // Convert binary response to a blob
       FileSaver.saveAs(csvBlob, 'homelistings.csv'); // Download the file using FileSaver
     } catch (error) {
@@ -1187,7 +1146,6 @@ export const getForSaleCSV =
         },
         responseType: 'blob', // Tell axios to expect a binary response
       };
-      console.log(3);
       let filters = '';
       if (minPrice) {
         filters += `&min_price=${minPrice}`;
@@ -1222,10 +1180,9 @@ export const getForSaleCSV =
       if (savedFilter) {
         filters += `&saved_filter=${savedFilter}`;
       }
-      const response = await axios.get(
-        `${DOMAIN}/api/v1/data/downloadforsale/${userInfo.company.id}/?${filters}`,
-        config
-      );
+      console.log(filters);
+      console.log(`${DOMAIN}/api/v1/data/downloadforsale?${filters}`);
+      const response = await axios.get(`${DOMAIN}/api/v1/data/downloadforsale?${filters}`, config);
       const csvBlob = new Blob([response.data], { type: 'text/csv' }); // Convert binary response to a blob
       FileSaver.saveAs(csvBlob, 'forsale.csv'); // Download the file using FileSaver
     } catch (error) {
@@ -1273,7 +1230,7 @@ export const saveRecentlySoldFilterAsync =
         for_zapier: forZapier,
       };
       dispatch(saveFilterLoading());
-      await axios.post(`${DOMAIN}/api/v1/data/recentlysold/${userInfo.company.id}/`, body, config);
+      await axios.post(`${DOMAIN}/api/v1/data/recentlysold/`, body, config);
       dispatch(saveFilter());
     } catch (error) {
       dispatch(
@@ -1322,7 +1279,7 @@ export const saveForSaleFilterAsync =
         for_zapier: forZapier,
       };
       dispatch(saveFilterLoading());
-      await axios.post(`${DOMAIN}/api/v1/data/forsale/${userInfo.company.id}/`, body, config);
+      await axios.post(`${DOMAIN}/api/v1/data/forsale/`, body, config);
       dispatch(saveFilter());
     } catch (error) {
       dispatch(
