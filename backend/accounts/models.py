@@ -109,7 +109,7 @@ class Company(models.Model):
     id = models.UUIDField(
         primary_key=True, unique=True, default=uuid.uuid4, editable=False
     )
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     access_token = models.CharField(
         default=create_access_token, max_length=100
     )
