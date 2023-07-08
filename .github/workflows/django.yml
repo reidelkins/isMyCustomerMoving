@@ -103,7 +103,7 @@ jobs:
           pip install bandit safety
       - name: Security Checks
         run: |
-          bandit -r backend -x backend/accounts/tests.py,backend/data/tests.py,backend/payments/tests.py
+          bandit -r backend -x backend/accounts/tests,backend/data/tests,backend/payments/tests
         # safety check -r backend/requirements.txt
 
   build-frontend:
