@@ -8,11 +8,7 @@ from django.http import HttpResponse
 import datetime
 import logging
 import json
-
-# import requests
 import csv
-
-from accounts.models import CustomUser, Company
 
 # from accounts.serializers import UserSerializerWithToken
 from config import settings
@@ -382,7 +378,7 @@ class AllRecentlySoldView(generics.ListAPIView):
                 ).strftime("%Y-%m-%d"),
             ).order_by("-listed")
             return filter_home_listings(
-                query_params, queryset, company_id, "Recently Sold"
+                query_params, queryset, company.id, "Recently Sold"
             )
         else:
             return HomeListing.objects.none()

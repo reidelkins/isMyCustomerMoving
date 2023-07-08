@@ -360,7 +360,7 @@ class RegisterView(APIView):
                     {"detail": f"{e}"}, status=status.HTTP_400_BAD_REQUEST
                 )
             return Response(serializer.data)
-        except ValueError:
+        except ValueError as e:
             return Response(
                 {"detail": f"{e}"}, status=status.HTTP_400_BAD_REQUEST
             )

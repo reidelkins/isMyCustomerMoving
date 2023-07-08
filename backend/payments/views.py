@@ -133,7 +133,8 @@ class StripeWebhook:
                     user.save()
                     mail_subject = "Subscription Ended: Is My Customer Moving"
                     # send the endedSubscrition email to each user
-                    messagePlain = f"Your subscription to Is My Customer Moving has ended. Please contact us at reid@ismycustomermoving.com to reactivate your subscription."
+                    messagePlain = """Your subscription to Is My Customer Moving has ended.
+                        Please contact us at reid@ismycustomermoving.com to reactivate your subscription."""
                     message = get_template("endedSubscription.html").render(
                         {"email": user.email}
                     )
