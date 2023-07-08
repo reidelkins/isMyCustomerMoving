@@ -1,16 +1,16 @@
-from django.conf import settings
-from django.template.loader import get_template
-from django.core.mail import send_mail
-from accounts.models import Company, CustomUser
-from accounts.utils import make_company
-from data.utils import delete_extra_clients
-from datetime import datetime, timedelta
+# from django.conf import settings
+# from django.template.loader import get_template
+# from django.core.mail import send_mail
+# from accounts.models import Company, CustomUser
+# from accounts.utils import make_company
+# from data.utils import delete_extra_clients
+# from datetime import datetime, timedelta
 
-from djstripe import webhooks, models as djstripe_models
+from djstripe import webhooks
 
-import stripe
+# import stripe
 
-stripe.api_key = settings.STRIPE_LIVE_SECRET_KEY
+# stripe.api_key = settings.STRIPE_LIVE_SECRET_KEY
 
 # @api_view(['POST' ])
 # def save_stripe_info(request):
@@ -85,7 +85,7 @@ stripe.api_key = settings.STRIPE_LIVE_SECRET_KEY
 
 # when customer/subscription created
 @webhooks.handler("customer.created")
-def create_customer(event: djstripe_models.Event):
+def create_customer():
     print("customer created")
 
 
@@ -102,9 +102,9 @@ def create_customer(event: djstripe_models.Event):
 
 
 # # important in the case that company adds back a canceled subscription
-@webhooks.handler("customer.subscription.created")
-def create_subscription(event: djstripe_models.Event):
-    print("subscription created")
+# @webhooks.handler("customer.subscription.created")
+# def create_subscription(event: djstripe_models.Event):
+#     print("subscription created")
 
 
 #     try:
