@@ -30,4 +30,14 @@ class Migration(migrations.Migration):
             name='sqft',
             field=models.IntegerField(blank=True, default=0, null=True),
         ),
+        migrations.AlterField(
+            model_name='clientupdate',
+            name='contacted',
+            field=models.BooleanField(blank=True, default=False, null=True),
+        ),
+        migrations.AlterField(
+            model_name='clientupdate',
+            name='error_flag',
+            field=models.BooleanField(blank=True, default=False, null=True),
+        ),
     ]

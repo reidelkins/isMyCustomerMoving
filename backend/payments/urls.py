@@ -13,6 +13,6 @@ urlpatterns = [
         views.StripeWebhook.as_view(),
         name="webhook_by_uuid",
     ),
-    path("stripe/webhook/$", views.StripeWebhook.as_view(), name="webhook"),
+    path("stripe/webhook/", views.StripeWebhook.as_view(), name="webhook"),
     path("", include(router.urls)),
 ]

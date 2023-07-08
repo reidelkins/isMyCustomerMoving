@@ -6,8 +6,7 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("djstripe", "0011_2_7"),
+    dependencies = [        
         ("accounts", "0002_st_contacted"),
     ]
 
