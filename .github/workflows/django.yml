@@ -61,8 +61,7 @@ jobs:
         run: |
           cd backend
           python manage.py makemigrations
-          python manage.py migrate
-      TODO
+          python manage.py migrate      
       - name: Run Tests and Code Coverage        
         run: |
           cd backend
