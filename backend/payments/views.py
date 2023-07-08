@@ -1,14 +1,14 @@
 from django.conf import settings
-from django.template.loader import get_template
-from django.core.mail import send_mail
+# from django.template.loader import get_template
+# from django.core.mail import send_mail
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.models import Company, CustomUser
-from accounts.utils import make_company, create_keap_company
-from data.utils import delete_extra_clients
-from .models import Product
+# from accounts.models import Company, CustomUser
+# from accounts.utils import make_company, create_keap_company
+# from data.utils import delete_extra_clients
+# from .models import Product
 from .serializers import ProductSerializer
 
 # from datetime import datetime, timedelta
