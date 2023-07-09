@@ -21,7 +21,7 @@ client_patterns = [
 recently_sold_patterns = [
     path("", views.RecentlySoldView.as_view(), name="recently-sold"),
     path(
-        "recentlysold/<str:filter>/",
+        "<str:filter>/",
         views.RecentlySoldView.as_view(),
         name="delete-recently-sold-filter",
     ),
@@ -30,7 +30,7 @@ recently_sold_patterns = [
 for_sale_patterns = [
     path("", views.ForSaleView.as_view(), name="for-sale"),
     path(
-        "forsale/<str:filter>/",
+        "<str:filter>/",
         views.ForSaleView.as_view(),
         name="delete-for-sale-filter",
     ),
@@ -38,12 +38,12 @@ for_sale_patterns = [
 
 service_titan_patterns = [
     path(
-        "servicetitan/",
+        "",
         views.ServiceTitanView.as_view(),
         name="servicetitan",
     ),
     path(
-        "servicetitan/<str:task>/",
+        "<str:task>/",
         views.ServiceTitanView.as_view(),
         name="servicetitan-with-task",
     ),
@@ -51,25 +51,25 @@ service_titan_patterns = [
 
 upload_file_patterns = [
     path(
-        "upload/",
+        "",
         views.UploadFileView.as_view(),
         name="upload-file",
     ),
     path(
-        "upload/<str:task>/",
+        "<str:task>/",
         views.UploadFileView.as_view(),
         name="upload-file-check",
     ),
 ]
 
 urlpatterns = [
-    path("recentlysold", include(recently_sold_patterns)),
+    path("recentlysold/", include(recently_sold_patterns)),
     path(
         "downloadrecentlysold/",
         views.AllRecentlySoldView.as_view(),
         name="all-recently-sold",
     ),
-    path("forsale", include(for_sale_patterns)),
+    path("forsale/", include(for_sale_patterns)),
     path(
         "downloadforsale/",
         views.AllForSaleView.as_view(),
