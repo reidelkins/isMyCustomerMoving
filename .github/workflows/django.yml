@@ -1,12 +1,13 @@
 name: IMCM CI
 
-on:
-  push:
-    branches-ignore:
-      - '*', '!main', '!master'
-  pull_request:
-    branches:
-      - '*'
+on: [push, pull_request]
+  # push:
+  #   branches-ignore:
+  #     # ignore all except master
+  #     - '*' # 'master'      
+  # pull_request:
+  #   branches:
+  #     - '*'
 
 env:
   DJANGO_SECRET_KEY: ${{secrets.DJANGO_SECRET_KEY}}
