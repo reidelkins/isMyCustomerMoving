@@ -277,7 +277,7 @@ export default function ForSaleData() {
                 <Scrollbar>
                   <ForSaleListToolbar
                     forSaleFilters={forSaleFilters}
-                    product={userInfo.company.product}
+                    product={userInfo.company.product.id}
                     minPrice={minPrice}
                     setMinPrice={handleMinPriceChange}
                     maxPrice={maxPrice}

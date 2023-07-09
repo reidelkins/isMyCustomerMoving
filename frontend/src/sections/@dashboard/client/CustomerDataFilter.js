@@ -317,7 +317,7 @@ export default function CustomerDataFilter({
   };
 
   const handleShowFilters = () => {
-    if (product.product === 'price_1MhxfPAkLES5P4qQbu8O45xy') {
+    if (product === 'price_1MhxfPAkLES5P4qQbu8O45xy') {
       // eslint-disable-next-line no-alert
       alert('Please upgrade your plan to access this feature');
     } else {

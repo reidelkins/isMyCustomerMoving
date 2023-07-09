@@ -884,7 +884,10 @@ def update_service_titan_client_tags(for_sale, company, status):
 def add_service_titan_contacted_tag(client, tagId):
     client = Client.objects.get(id=client)
     headers = get_service_titan_access_token(client.company.id)
-    payload = {"customerIds": [str(client.id)], "tagTypeIds": [str(tagId)]}
+    payload = {
+        "customerIds": [str(client.serv_titan_id)],
+        "tagTypeIds": [str(tagId)],
+    }
     requests.put(
         url=(
             f"https://api.servicetitan.io/crm/v2/tenant/"
