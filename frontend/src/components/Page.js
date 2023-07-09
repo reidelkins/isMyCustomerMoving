@@ -15,7 +15,7 @@ const Page = forwardRef(({ children, userInfo = null, title = '', meta, ...other
     </Helmet>
 
     <Box ref={ref} {...other}>
-      {userInfo && userInfo.company.product === 'price_1MhxfPAkLES5P4qQbu8O45xy' && (
+      {userInfo && userInfo.company.product.id === 'price_1MhxfPAkLES5P4qQbu8O45xy' && (
         <Alert sx={{ mb: 2, mx: 'auto', width: '100%' }} variant="filled" severity="info">
           You do not get access to which customers are moving or have recently moved or any of our other premium
           features because you are signed up for the free tier. <br />
