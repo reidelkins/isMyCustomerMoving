@@ -86,10 +86,11 @@ class StripeWebhook(APIView):
 
         elif event_type == "price.created":
             try:
+                price = request.data["data"]["object"]["unit_amount_decimal"]
                 Product.objects.create(
                     id=request.data["data"]["object"]["id"],
                     amount=(
-                        float(request.data["data"]["object"]["unit_amount_decimal"])/100),
+                        float(price)/100),
                     interval=request.data["data"]["object"]["recurring"]["interval"]
                 )
                 return Response(status=status.HTTP_200_OK)
