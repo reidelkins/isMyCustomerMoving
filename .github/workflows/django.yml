@@ -69,11 +69,12 @@ jobs:
           cd backend
           python manage.py makemigrations
           python manage.py migrate      
-      # - name: Run Tests and Code Coverage        
-      #   run: |
-      #     cd backend          
-      #    coverage run -m pytest
-      #    coverage report -m
+      - name: Run Tests and Code Coverage        
+        run: |
+          cd backend
+          coverage run -m pytest
+          coverage report -m         
+          
       # - name: Run Integration Tests
       #   run: |
       #     cd backend
