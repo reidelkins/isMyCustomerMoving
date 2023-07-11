@@ -1,0 +1,111 @@
+{
+  "id": "evt_1MiJlxAkLES5P4qQwXq1z9pU",
+  "object": "event",
+  "api_version": "2022-11-15",
+  "created": 1678031212,
+  "data": {
+    "object": {
+      "id": "cs_live_a1wzgQhRiONDChfgHvENvWOBAMBQPwUaEBlobG7mfFWsyt3Fxu0ucAb7kV",
+      "object": "checkout.session",
+      "after_expiration": null,
+      "allow_promotion_codes": false,
+      "amount_subtotal": 0,
+      "amount_total": 0,
+      "automatic_tax": {
+        "enabled": true,
+        "status": "complete"
+      },
+      "billing_address_collection": "auto",
+      "cancel_url": "https://stripe.com",
+      "client_reference_id": null,
+      "consent": null,
+      "consent_collection": {
+        "promotions": "none",
+        "terms_of_service": "none"
+      },
+      "created": 1678030001,
+      "currency": "usd",
+      "custom_fields": [
+        {
+          "dropdown": null,
+          "key": "companyname",
+          "label": {
+            "custom": "Company Name",
+            "type": "custom"
+          },
+          "numeric": null,
+          "optional": false,
+          "text": {
+            "value": "Reid Test Business"
+          },
+          "type": "text"
+        }
+      ],
+      "custom_text": {
+        "shipping_address": null,
+        "submit": null
+      },
+      "customer": "cus_NTGI37iPfu9MdD",
+      "customer_creation": "if_required",
+      "customer_details": {
+        "address": {
+          "city": "San Antonio",
+          "country": "US",
+          "line1": "14914 Palmer Creek",
+          "line2": null,
+          "postal_code": "78217",
+          "state": "TX"
+        },
+        "email": "reidelkins@outlook.com",
+        "name": "James R Elkins",
+        "phone": "+18659240039",
+        "tax_exempt": "none",
+        "tax_ids": []
+      },
+      "customer_email": null,
+      "expires_at": 1678116401,
+      "invoice": "in_1MiJluAkLES5P4qQReibz6GO",
+      "invoice_creation": null,
+      "livemode": true,
+      "locale": "auto",
+      "metadata": {},
+      "mode": "subscription",
+      "payment_intent": null,
+      "payment_link": "plink_1MWBd9AkLES5P4qQ8IPLif0A",
+      "payment_method_collection": "always",
+      "payment_method_options": {
+        "us_bank_account": {
+          "verification_method": "automatic"
+        }
+      },
+      "payment_method_types": ["card", "us_bank_account"],
+      "payment_status": "paid",
+      "phone_number_collection": {
+        "enabled": true
+      },
+      "recovered_from": null,
+      "setup_intent": null,
+      "shipping_address_collection": null,
+      "shipping_cost": null,
+      "shipping_details": null,
+      "shipping_options": [],
+      "status": "complete",
+      "submit_type": "auto",
+      "subscription": "sub_1MiJluAkLES5P4qQlcqqr1OI",
+      "success_url": "https://stripe.com",
+      "total_details": {
+        "amount_discount": 0,
+        "amount_shipping": 0,
+        "amount_tax": 0
+      },
+      "url": null
+    }
+  },
+  "livemode": true,
+  "pending_webhooks": 1,
+  "request": {
+    "id": null,
+    "idempotency_key": null
+  },
+  "type": "checkout.session.completed"
+}

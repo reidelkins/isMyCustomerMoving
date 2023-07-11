@@ -1,13 +1,36 @@
-name: Django CI
+name: IMCM CI
 
-on:
-  push:
-    branches: ["master"]
-  pull_request:
-    branches: ["master"]
+on: [push, pull_request]
+  # push:
+  #   branches-ignore:
+  #     # ignore all except master
+  #     - '*' # 'master'      
+  # pull_request:
+  #   branches:
+  #     - '*'
+
+env:
+  DJANGO_SECRET_KEY: ${{secrets.DJANGO_SECRET_KEY}}
+  EMAIL: ${{secrets.EMAIL}}
+  EMAIL_PASSWD: ${{secrets.EMAIL_PASSWD}}
+  GOOGLE_CLIENT_ID: ${{secrets.GOOGLE_CLIENT_ID}}
+  GOOGLE_CLIENT_SECRET: ${{secrets.GOOGLE_CLIENT_SECRET}}
+  KEAP_API_KEY: ${{secrets.KEAP_API_KEY}}
+  REDIS_URL: ${{secrets.REDIS_URL}}
+  SALESFORCE_CONSUMER_KEY: ${{secrets.SALESFORCE_CONSUMER_KEY}}
+  SALESFORCE_CONSUMER_SECRET: ${{secrets.SALESFORCE_CONSUMER_SECRET}}
+  SCRAPFLY_KEY: ${{secrets.SCRAPFLY_KEY}}
+  ST_APP_KEY: ${{secrets.ST_APP_KEY}}
+  ST_APP_KEY_2: ${{secrets.ST_APP_KEY_2}}
+  STRIPE_SECRET_KEY: ${{secrets.STRIPE_SECRET_KEY }}
+  STRIPE_SECRET_KEY_TEST: ${{secrets.STRIPE_SECRET_KEY_TEST }}
+  STRIPE_PUBLIC_KEY: ${{secrets.STRIPE_PUBLIC_KEY }}
+  STRIPE_PUBLIC_KEY_TEST: ${{secrets.STRIPE_PUBLIC_KEY_TEST }}
+  USPS_USER_ID: ${{secrets.USPS_USER_ID }}
+  IS_GITHUB: True
 
 jobs:
-  build:
+  build-backend:
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 4
@@ -31,26 +54,88 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
-      - name: Run Tests
-        env:          
-          DJANGO_SECRET_KEY: ${{secrets.DJANGO_SECRET_KEY}}
-          EMAIL: ${{secrets.EMAIL}}
-          EMAIL_PASSWD: ${{secrets.EMAIL_PASSWD}}
-          GOOGLE_CLIENT_ID: ${{secrets.GOOGLE_CLIENT_ID}}
-          GOOGLE_CLIENT_SECRET: ${{secrets.GOOGLE_CLIENT_SECRET}}
-          REDIS_URL: ${{secrets.REDIS_URL}}
-          SALESFORCE_CONSUMER_KEY: ${{secrets.SALESFORCE_CONSUMER_KEY}}
-          SALESFORCE_CONSUMER_SECRET: ${{secrets.SALESFORCE_CONSUMER_SECRET}}
-          SCRAPFLY_KEY: ${{secrets.SCRAPFLY_KEY}}
-          ST_APP_KEY: ${{secrets.ST_APP_KEY}}
-          ST_APP_KEY_2: ${{secrets.ST_APP_KEY_2}}
-          STRIPE_SECRET_KEY: ${{secrets.STRIPE_SECRET_KEY }}
-          STRIPE_SECRET_KEY_TEST: ${{secrets.STRIPE_SECRET_KEY_TEST }}
-          STRIPE_PUBLIC_KEY: ${{secrets.STRIPE_PUBLIC_KEY }}
-          STRIPE_PUBLIC_KEY_TEST: ${{secrets.STRIPE_PUBLIC_KEY_TEST }}
-          IS_GITHUB: True
-          
+      - name: Run Static Code Analysis
+        run: |
+          pip install flake8 black
+          flake8 backend --exclude=backend/accounts/migrations,backend/data/migrations,backend/accounts/migrations1,backend/data/migrations1,backend/payments/migrations,backend/manage.py,backend/accounts/tests,backend/data/tests,backend/payments/tests,backend/config/settings.py --max-line-length=85
+      # black --check --line-length 85 backend
+      - name: Database Setup
+        run: |
+          echo "Setting up test database..."
+          docker run --name db -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=password -e POSTGRES_DB=IMCM -p 5432:5432 -d postgres:latest
+          echo "Database setup complete."
+      - name: Apply Database Migrations
         run: |
           cd backend
           python manage.py makemigrations
-          pytest
+          python manage.py migrate      
+      - name: Run Tests and Code Coverage        
+        run: |
+          cd backend
+          coverage run -m pytest
+          coverage report -m         
+          
+      # - name: Run Integration Tests
+      #   run: |
+      #     cd backend
+      #     # Add commands to run your integration tests
+
+      # - name: Deployment
+      #   run: |
+      #     # Add commands to deploy your application to the production environment
+      #     # If everything passes, heroku is notified and the application is deployed
+      # - name: Notify Status
+      #   run: |
+      #     # Add commands to send notifications about the CI/CD pipeline status
+      #     # Heroku already sends a notification if the deployment fails
+
+  backend-security-check:
+    needs: build-backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety
+      - name: Security Checks
+        run: |
+          bandit -r backend -x backend/accounts/tests,backend/data/tests,backend/payments/tests
+        # safety check -r backend/requirements.txt
+
+  build-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          yarn install --frozen-lockfile
+
+      - name: Lint with ESLint
+        run: |
+          cd frontend
+          yarn lint
+
+      - name: Build
+        run: |
+          cd frontend
+          yarn build
+
+      - name: Run tests
+        run: |
+          cd frontend
+          yarn test --passWithNoTests

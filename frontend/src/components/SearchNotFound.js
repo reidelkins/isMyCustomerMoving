@@ -6,7 +6,7 @@ import { Paper, Typography } from '@mui/material';
 
 SearchNotFound.propTypes = {
   searchQuery: PropTypes.string,
-  tipe: PropTypes.string
+  tipe: PropTypes.string,
 };
 
 export default function SearchNotFound({ tipe, searchQuery = '', ...other }) {
@@ -20,12 +20,11 @@ export default function SearchNotFound({ tipe, searchQuery = '', ...other }) {
           No results found for &nbsp;
           <strong>&quot;{searchQuery}&quot;</strong>. Try checking for typos or using complete words.
         </Typography>
-      ):(
+      ) : (
         <Typography variant="body2" align="center">
           No events available
         </Typography>
       )}
-        
     </Paper>
   );
 }

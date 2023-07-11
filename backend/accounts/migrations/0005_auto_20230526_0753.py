@@ -7,24 +7,33 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0004_auto_20230525_0223'),
+        ("accounts", "0004_auto_20230525_0223"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Enterprise',
+            name="Enterprise",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
-                ('name', models.CharField(max_length=100)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
             ],
         ),
         migrations.RemoveField(
-            model_name='franchise',
-            name='mainCompany',
+            model_name="franchise",
+            name="mainCompany",
         ),
         migrations.AddField(
-            model_name='customuser',
-            name='is_enterprise_owner',
+            model_name="customuser",
+            name="is_enterprise_owner",
             field=models.BooleanField(default=False),
         ),
     ]

@@ -5,6 +5,7 @@ backend/payments/__pycache__/
 backend/payments/migrations/__pycache__/
 backend/accounts/management/commands/__pycache__/
 backend/accounts/migrations/__pycache__/
+backend/accounts/migrations1/
 backend/accounts/tests/__pycache__/
 backend/data/__pycache__/
 backend/data/migrations/__pycache__/
@@ -200,3 +201,6 @@ backend/.env
 backend/.env.testing
 
 backend/downloadedData/
+
+data/db/
+backend/*.json

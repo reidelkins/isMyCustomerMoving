@@ -24,7 +24,7 @@ ClientListHead.propTypes = {
   numSelected: PropTypes.number,
   onRequestSort: PropTypes.func,
   onSelectAllClick: PropTypes.func,
-  checkbox: PropTypes.number
+  checkbox: PropTypes.number,
 };
 
 export default function ClientListHead({
@@ -35,7 +35,7 @@ export default function ClientListHead({
   numSelected,
   onRequestSort,
   onSelectAllClick,
-  checkbox
+  checkbox,
 }) {
   const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);

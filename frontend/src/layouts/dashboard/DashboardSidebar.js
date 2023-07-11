@@ -6,7 +6,6 @@ import { useSelector } from 'react-redux';
 import { styled } from '@mui/material/styles';
 import { Box, Drawer } from '@mui/material';
 
-
 // hooks
 import useResponsive from '../../hooks/useResponsive';
 // components
@@ -15,7 +14,7 @@ import Scrollbar from '../../components/Scrollbar';
 import NavSection from '../../components/NavSection';
 import { showLoginInfo } from '../../redux/actions/authActions';
 //
-import {navConfig, enterpriseNavConfig} from './NavConfig';
+import { navConfig, enterpriseNavConfig } from './NavConfig';
 
 // ----------------------------------------------------------------------
 
@@ -62,10 +61,9 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
       </Box>
       {userInfo && userInfo.is_enterprise_owner ? (
         <NavSection navConfig={enterpriseNavConfig} />
-      ):(
+      ) : (
         <NavSection navConfig={navConfig} />
       )}
-      
 
       <Box sx={{ flexGrow: 1 }} />
     </Scrollbar>
