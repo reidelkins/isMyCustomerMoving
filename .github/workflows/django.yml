@@ -72,9 +72,10 @@ jobs:
       - name: Run Tests and Code Coverage        
         run: |
           cd backend
-          pytest          
-          coverage run -m pytest
+          pytest --durations=0 
           coverage report -m
+        #   coverage run -m pytest
+          
       # - name: Run Integration Tests
       #   run: |
       #     cd backend
