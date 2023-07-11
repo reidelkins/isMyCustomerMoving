@@ -1,8 +1,8 @@
 from django.core.management.base import BaseCommand
 from datetime import datetime
 from accounts.models import Company
+from payments.models import Product
 from data.syncClients import get_service_titan_clients
-from djstripe import models as djstripe_models
 
 
 class Command(BaseCommand):
@@ -20,7 +20,7 @@ class Command(BaseCommand):
             current_datetime = datetime.now()
             current_weekday = current_datetime.weekday()
             if current_weekday in days_to_run:
-                free_plan = djstripe_models.Plan.objects.get(
+                free_plan = Product.objects.get(
                     id="price_1MhxfPAkLES5P4qQbu8O45xy"
                 )
                 companies = Company.objects.filter(crm="ServiceTitan").exclude(

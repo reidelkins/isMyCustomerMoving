@@ -3,11 +3,10 @@ from datetime import datetime
 from django.core.management.base import BaseCommand
 
 from accounts.models import Company
+from payments.models import Product
 from data.sync_clients import (
     get_service_titan_invoices,
-)  # Renamed to match PEP8
-
-from djstripe import models as djstripe_models
+)
 
 
 class Command(BaseCommand):
@@ -27,7 +26,7 @@ class Command(BaseCommand):
 
             # Check if current day is in the list of days to run
             if current_day in days_to_run:
-                free_plan = djstripe_models.Plan.objects.get(
+                free_plan = Product.objects.get(
                     id="price_1MhxfPAkLES5P4qQbu8O45xy"
                 )
                 companies = Company.objects.filter(crm="ServiceTitan").exclude(

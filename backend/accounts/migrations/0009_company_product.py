@@ -7,7 +7,6 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("djstripe", "0011_2_7"),
         ("accounts", "0008_company_zapier_recentlysold"),
     ]
 
@@ -20,7 +19,7 @@ class Migration(migrations.Migration):
                 default=None,
                 null=True,
                 on_delete=django.db.models.deletion.SET_NULL,
-                to="djstripe.plan",
+                to="accounts.CustomUser",
             ),
         ),
     ]

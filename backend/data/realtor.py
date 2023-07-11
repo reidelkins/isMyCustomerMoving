@@ -136,10 +136,15 @@ def find_data(zip_code, i, status, url, extra):
         if not first_data:
             return
 
-        # Process data based on status
-        total = int(
-            soup.find("span", {"class": "result-count"}).text.split(" ")[0]
-        )
+        total = 0
+        val = soup.find("div", attrs={"data-testid": "total-results"})
+        if val:
+            total = int(val.text)
+        else:
+            newVal = soup.find("span", {"class": "result-count"})
+            if newVal:
+                total = int(newVal.text.split(" ")[0])
+
         count = len(first_data)
 
         create_home_listings(first_data, status)
@@ -167,12 +172,6 @@ def find_data(zip_code, i, status, url, extra):
             if not parsed:
                 return
 
-            # Process data based on status
-            total = int(
-                soup.find("span", {"class": "result-count"}).text.split(" ")[
-                    0
-                ]
-            )
             count = len(parsed)
             create_home_listings(parsed, status)
 
@@ -297,6 +296,17 @@ def create_home_listings(results, status, resp=None):
             heating = listing["description"].get("heating", "")
             sqft = listing["description"].get("sqft", 0)
 
+            if listing.get("location", {}).get("address", {}).get("coordinate"):
+                latitude = listing["location"]["address"]["coordinate"].get(
+                    "lat"
+                )
+                longitude = listing["location"]["address"]["coordinate"].get(
+                    "lon"
+                )
+            else:
+                latitude = 0
+                longitude = 0
+
             # Check if the HomeListing already exists
             try:
                 home_listing = HomeListing.objects.get(
@@ -313,12 +323,8 @@ def create_home_listings(results, status, resp=None):
                 home_listing.price = price
                 home_listing.housing_type = listing["description"]["type"]
                 home_listing.year_built = year_built
-                home_listing.latitude = listing["location"]["address"][
-                    "coordinate"
-                ]["lat"]
-                home_listing.longitude = listing["location"]["address"][
-                    "coordinate"
-                ]["lon"]
+                home_listing.latitude = latitude
+                home_listing.longitude = longitude
                 home_listing.permalink = listing["permalink"]
                 home_listing.lot_sqft = listing["description"].get(
                     "lot_sqft", 0
@@ -344,12 +350,8 @@ def create_home_listings(results, status, resp=None):
                     year_built=year_built,
                     state=listing["location"]["address"]["state_code"],
                     city=listing["location"]["address"]["city"],
-                    latitude=listing["location"]["address"]["coordinate"][
-                        "lat"
-                    ],
-                    longitude=listing["location"]["address"]["coordinate"][
-                        "lon"
-                    ],
+                    latitude=latitude,
+                    longitude=longitude,
                     permalink=listing["permalink"],
                     lot_sqft=listing["description"].get("lot_sqft", 0),
                     bedrooms=beds,
@@ -371,11 +373,12 @@ def create_home_listings(results, status, resp=None):
                 if listing["branding"] is not None:
                     try:
                         for brand in listing["branding"]:
-                            realtor, _ = Realtor.objects.get_or_create(
-                                name=brand["name"]
-                            )
-                            home_listing.realtor = realtor
-                            home_listing.save()
+                            if brand["name"] is not None:
+                                realtor, _ = Realtor.objects.get_or_create(
+                                    name=brand["name"]
+                                )
+                                home_listing.realtor = realtor
+                                home_listing.save()
                     except Exception as e:
                         logging.error(e)
 
@@ -596,13 +599,11 @@ def update_listing_data(listing, data):
         if data.get("tags"):
             update_listing_tags(listing, data["tags"])
 
-        extras = []
         for extra in description.get("details", []):
-            if extra.get("category") in [
-                "Interior Features",
-                "Heating and Cooling",
-            ]:
-                extras.extend(extra.get("text", []))
+            if extra.get("category") == "Interior Features":
+                listing.interiorFeaturesDescription = extra.get("text")
+            elif extra.get("category") == "Heating and Cooling":
+                listing.heatingCoolingDescription = extra.get("text")
 
         if data.get("advertisers"):
             update_advertiser(listing, data["advertisers"][0])
@@ -610,7 +611,6 @@ def update_listing_data(listing, data):
         listing.save()
     except Exception as e:
         logging.error(e)
-        logging.error(data)
         logging.error(f"ERROR: {listing.permalink}")
 
 
