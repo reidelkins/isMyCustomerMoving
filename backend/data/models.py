@@ -209,6 +209,10 @@ class HomeListing(models.Model):
     cooling = models.CharField(
         max_length=100, default=" ", blank=True, null=True
     )
+    heatingCoolingDescription = models.TextField(
+        default=" ", blank=True, null=True)
+    interiorFeaturesDescription = models.TextField(
+        default=" ", blank=True, null=True)
     exterior = models.CharField(
         max_length=100, default=" ", blank=True, null=True
     )
