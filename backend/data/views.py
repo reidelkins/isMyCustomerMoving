@@ -191,6 +191,11 @@ class ClientListView(generics.ListAPIView):
                     "city": data["city"],
                     "state": data["state"],
                     "zip_code": data["zip_code"],
+                    "customer_since_min": data["customer_since_min"],
+                    "customer_since_max": data["customer_since_max"],
+                    "status": data["status_filters"],
+                    "usps_changed": data["usps_changed"],
+
                 }
 
                 forZapier = data["for_zapier"]

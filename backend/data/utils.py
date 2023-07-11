@@ -22,7 +22,7 @@ import requests
 import traceback
 from defusedxml.ElementTree import fromstring
 
-
+from django.db.models import Q
 from django.template.loader import get_template
 from django.core.mail import EmailMessage, send_mail
 
@@ -939,7 +939,7 @@ def remove_all_service_titan_tags(company=None, client=None):
                             time_limit = datetime.now()
 
                         client_subset = clients[
-                            i * 250 : (i + 1) * 250  # noqa: E203
+                            i * 250: (i + 1) * 250  # noqa: E203
                         ]
                         payload = {
                             "customerIds": client_subset,
@@ -1232,6 +1232,9 @@ def filter_clients(query_params, queryset, company_id):
                 else date(int(query_params[param]), 12, 31)
             )
             queryset = queryset.filter(**{filter_key: date_value})
+        elif param == 'usps_changed':
+            queryset = queryset.filter(
+                Q(usps_different=True) | Q(usps_address="Error"))
 
     return queryset
 
@@ -1299,6 +1302,7 @@ def verify_address(client_id):
         usps_address = "Error"
     else:
         address2 = address_element.find("Address2").text.title()
+        address2 = parse_streets(address2)
         city = address_element.find("City").text.title()
         state = address_element.find("State").text
         zip5 = address_element.find("Zip5").text

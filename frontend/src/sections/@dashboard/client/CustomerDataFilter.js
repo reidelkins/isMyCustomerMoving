@@ -101,6 +101,8 @@ CustomerDataFilter.propTypes = {
   savedFilter: PropTypes.string,
   setSavedFilter: PropTypes.func,
   customerDataFilters: PropTypes.array,
+  uspsChanged: PropTypes.bool,
+  setUspsChanged: PropTypes.func,
 };
 
 export default function CustomerDataFilter({
@@ -150,6 +152,8 @@ export default function CustomerDataFilter({
   savedFilter,
   setSavedFilter: handleChangeSavedFilter,
   customerDataFilters,
+  uspsChanged,
+  setUspsChanged: handleUspsChanged,
 }) {
   const classes = useStyles();
   const [showFilters, setShowFilters] = useState(false);
@@ -202,7 +206,10 @@ export default function CustomerDataFilter({
       maxSqft ||
       minLotSqft ||
       maxLotSqft ||
-      savedFilter
+      savedFilter || 
+      customerSinceMin ||
+      customerSinceMax ||
+      uspsChanged
     ) {
       setShowClearFilters(true);
     } else {
@@ -229,6 +236,9 @@ export default function CustomerDataFilter({
     minLotSqft,
     maxLotSqft,
     savedFilter,
+    customerSinceMin,
+    customerSinceMax,
+    uspsChanged,
   ]);
 
   const tagOptions = [
@@ -310,7 +320,8 @@ export default function CustomerDataFilter({
         maxSqft,
         minLotSqft,
         maxLotSqft,
-        savedFilter
+        savedFilter,
+        uspsChanged
       )
     );
     setShowFilters(false);
@@ -348,6 +359,7 @@ export default function CustomerDataFilter({
     handleChangeMinLotSqft('');
     handleChangeMaxLotSqft('');
     handleChangeSavedFilter('');
+    handleUspsChanged(false);
     dispatch(clientsAsync(1));
   };
 
@@ -372,7 +384,7 @@ export default function CustomerDataFilter({
     }
     setError('');
     setAlertOpen(true);
-    setShowSaveFilter(false);
+    setShowSaveFilter(false);    
     dispatch(
       saveCustomerDataFilterAsync(
         filterName,
@@ -394,7 +406,11 @@ export default function CustomerDataFilter({
         maxSqft,
         minLotSqft,
         maxLotSqft,
-        forZapier
+        forZapier,
+        customerSinceMin,
+        customerSinceMax,
+        statusFilters,
+        uspsChanged
       )
     );
   };
@@ -504,6 +520,20 @@ export default function CustomerDataFilter({
                       </Stack>
                     </Box>
                   </Tooltip>
+                </Grid>
+                <Grid item xs={12}>
+                    <Tooltip title="Click this to see all the addresses which have been verified as incorrect by USPS">
+                        <Box mt={2}>
+                            <Typography variant="h6" mb={2}>USPS Verified</Typography>
+                            <Stack direction="row" spacing={2} alignItems="space-between">
+                                <Checkbox
+                                    checked={uspsChanged}
+                                    onChange={handleUspsChanged}
+                                    value={uspsChanged}
+                                />
+                            </Stack>
+                        </Box>
+                    </Tooltip>
                 </Grid>
                 <Grid item xs={12}>
                   <Tooltip title="This will filter for the price that the house was either sold or listed for">

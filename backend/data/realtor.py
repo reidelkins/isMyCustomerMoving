@@ -599,13 +599,11 @@ def update_listing_data(listing, data):
         if data.get("tags"):
             update_listing_tags(listing, data["tags"])
 
-        extras = []
         for extra in description.get("details", []):
-            if extra.get("category") in [
-                "Interior Features",
-                "Heating and Cooling",
-            ]:
-                extras.extend(extra.get("text", []))
+            if extra.get("category") == "Interior Features":
+                listing.interiorFeaturesDescription = extra.get("text")
+            elif extra.get("category") == "Heating and Cooling":
+                listing.heatingCoolingDescription = extra.get("text")
 
         if data.get("advertisers"):
             update_advertiser(listing, data["advertisers"][0])
@@ -613,7 +611,6 @@ def update_listing_data(listing, data):
         listing.save()
     except Exception as e:
         logging.error(e)
-        logging.error(data)
         logging.error(f"ERROR: {listing.permalink}")
 
 
