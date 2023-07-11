@@ -58,43 +58,43 @@ import { showLoginInfo } from '../../redux/actions/authActions';
 
 import '../../theme/map.css';
 
+const commonFields = [
+  { id: 'name', label: 'Name', alignRight: false },
+  { id: 'address', label: 'Address', alignRight: false },
+  { id: 'city', label: 'City', alignRight: false },
+  { id: 'state', label: 'State', alignRight: false },
+  { id: 'zipCode', label: 'Zip Code', alignRight: false },
+  { id: 'status', label: 'Status', alignRight: false },
+  { id: 'contacted', label: 'Contacted', alignRight: false },
+  { id: 'note', label: 'Note', alignRight: false },
+  { id: 'phone', label: 'Phone Number', alignRight: false },
+  { id: 'usps_flag', label: 'USPS Flag', alignRight: false },
+  { id: 'usps_address', label: 'USPS Address', alignRight: false }
+];
+
 export default function HomePage() {
   const dispatch = useDispatch();
 
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
 
-  const commonFields = [
-     { id: 'name', label: 'Name', alignRight: false },
-     { id: 'address', label: 'Address', alignRight: false },
-     { id: 'city', label: 'City', alignRight: false },
-     { id: 'state', label: 'State', alignRight: false },
-     { id: 'zipCode', label: 'Zip Code', alignRight: false },
-     { id: 'status', label: 'Status', alignRight: false },
-     { id: 'contacted', label: 'Contacted', alignRight: false },
-     { id: 'note', label: 'Note', alignRight: false },
-     { id: 'phone', label: 'Phone Number', alignRight: false },
-     { id: 'usps_flag', label: 'USPS Flag', alignRight: false },
-     { id: 'usps_address', label: 'USPS Address', alignRight: false }
-   ];
-
   const [TABLE_HEAD, setTABLE_HEAD] = useState(commonFields);
 
   useEffect(() => {
     const updatedFields = [...commonFields];
 
-    if (userInfo &&  userInfo.company.crm === 'ServiceTitan') {
+    if (userInfo && userInfo.company.crm === 'ServiceTitan') {
       updatedFields.unshift({ id: 'serviceTitanCustomerSinceYear', label: 'Customer Since', alignRight: false });
     }
     if (userInfo && (userInfo.company.enterprise || userInfo.email === 'reid@gmail.com' ||
       userInfo.email === 'reid@ismycustomermoving.com' ||
-      userInfo.email === 'jb@aquaclearws.com') ) {
-        updatedFields.push({ id: 'referral', label: 'Refer', alignRight: false });
+      userInfo.email === 'jb@aquaclearws.com')) {
+      updatedFields.push({ id: 'referral', label: 'Refer', alignRight: false });
     }
 
     setTABLE_HEAD(updatedFields);
 
-  }, [userInfo, commonFields]);
+  }, [userInfo]);
 
   const listClient = useSelector(selectClients);
   const { loading, CLIENTLIST, forSale, recentlySold, count, message, deleted, customerDataFilters } = listClient;
