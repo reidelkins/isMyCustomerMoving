@@ -8,23 +8,40 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0008_company_zapier_recentlysold'),
-        ('data', '0020_client_usps_different'),
+        ("accounts", "0008_company_zapier_recentlysold"),
+        ("data", "0020_client_usps_different"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='SavedFilter',
+            name="SavedFilter",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
-                ('name', models.CharField(max_length=100)),
-                ('forExistingClient', models.BooleanField(default=False)),
-                ('serviceTitanTag', models.IntegerField(blank=True, null=True)),
-                ('forZapier', models.BooleanField(default=False)),
-                ('company', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='accounts.company')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("forExistingClient", models.BooleanField(default=False)),
+                ("serviceTitanTag", models.IntegerField(blank=True, null=True)),
+                ("forZapier", models.BooleanField(default=False)),
+                (
+                    "company",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="accounts.company",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('name', 'company', 'forExistingClient')},
+                "unique_together": {("name", "company", "forExistingClient")},
             },
         ),
     ]

@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0010_alter_homelistingtags_tag'),
+        ("data", "0010_alter_homelistingtags_tag"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='client',
-            name='error_flag',
+            model_name="client",
+            name="error_flag",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='clientupdate',
-            name='error_flag',
+            model_name="clientupdate",
+            name="error_flag",
             field=models.BooleanField(blank=True, null=True),
         ),
     ]

@@ -2,11 +2,11 @@ import axios from 'axios';
 import { createSlice } from '@reduxjs/toolkit';
 
 import { DOMAIN } from '../constants';
-import { getRefreshToken } from './usersActions'
+import { getRefreshToken } from './usersActions';
 import { login, loginError, loginLoading } from './authActions';
 
 export const enterpriseSlice = createSlice({
-  name: "enterprise",
+  name: 'enterprise',
   initialState: {
     enterprise: {
       name: null,
@@ -14,7 +14,6 @@ export const enterpriseSlice = createSlice({
       error: null,
       companies: [],
     },
-    
   },
   reducers: {
     enterpriseRequest: (state) => {
@@ -28,58 +27,59 @@ export const enterpriseSlice = createSlice({
     enterpriseFail: (state, action) => {
       state.enterprise.loading = false;
       state.enterprise.error = action.payload;
-    }
-
-    
+    },
   },
-
-  
 });
 
 export const switchCompany = (company) => async (dispatch, getState) => {
   try {
     dispatch(loginLoading());
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
+    const { userInfo } = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
-    
+
     const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/enterprise/`, { company }, config);
     dispatch(login(data));
     localStorage.setItem('userInfo', JSON.stringify(data));
     dispatch(enterpriseAsync());
   } catch (error) {
-    console.log(error.response.data)
-    // eslint-disable-next-line no-nested-ternary    
-    dispatch(loginError(error.response && error.response.data.non_field_errors ? error.response.data.non_field_errors[0] : 
-      (error.response && error.response.data.detail ? error.response.data.detail : error.message)));
+    console.log(error.response.data);
+
+    dispatch(
+      loginError(
+        // eslint-disable-next-line no-nested-ternary
+        error.response && error.response.data.non_field_errors
+          ? error.response.data.non_field_errors[0]
+          : error.response && error.response.data.detail
+          ? error.response.data.detail
+          : error.message
+      )
+    );
   }
 };
-
 
 export const enterpriseAsync = () => async (dispatch, getState) => {
   try {
     dispatch(enterpriseRequest());
     const reduxStore = getState();
-    const {userInfo} = reduxStore.auth.userInfo;
+    const { userInfo } = reduxStore.auth.userInfo;
     const config = {
       headers: {
         'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.accessToken}`,
+        Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
     const { data } = await axios.get(`${DOMAIN}/api/v1/accounts/enterprise/`, config);
     dispatch(enterpriseSuccess(data));
-
-    
   } catch (error) {
     dispatch(enterpriseFail(error.response && error.response.data.detail ? error.response.data.detail : error.message));
     if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, enterpriseAsync()))
+      dispatch(getRefreshToken(dispatch, enterpriseAsync()));
     }
   }
 };

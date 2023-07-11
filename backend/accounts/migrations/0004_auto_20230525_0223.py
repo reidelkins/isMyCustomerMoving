@@ -6,15 +6,14 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('djstripe', '0011_2_7'),
-        ('accounts', '0003_auto_20230512_0431'),
+    dependencies = [        
+        ("accounts", "0003_auto_20230512_0431"),
     ]
 
-    operations = [        
+    operations = [
         migrations.AddField(
-            model_name='company',
-            name='serviceTitanAppVersion',
+            model_name="company",
+            name="serviceTitanAppVersion",
             field=models.IntegerField(blank=True, null=True),
         ),
     ]

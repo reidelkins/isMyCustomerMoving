@@ -14,10 +14,10 @@ import { resetAsync, showLoginInfo, showRegisterInfo } from '../../../redux/acti
 // ----------------------------------------------------------------------
 
 ResetPasswordForm.propTypes = {
-  setSubmitted: PropTypes.func
+  setSubmitted: PropTypes.func,
 };
 
-export default function ResetPasswordForm({setSubmitted}) {
+export default function ResetPasswordForm({ setSubmitted }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 

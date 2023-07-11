@@ -202,5 +202,5 @@ backend/.env.testing
 
 backend/downloadedData/
 
-data/
+data/db/
 backend/*.json

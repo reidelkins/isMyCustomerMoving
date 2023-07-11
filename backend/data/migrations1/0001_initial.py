@@ -11,171 +11,482 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('accounts', '0001_initial'),
+        ("accounts", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Client',
+            name="Client",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
-                ('name', models.CharField(max_length=100)),
-                ('address', models.CharField(max_length=100)),
-                ('status', models.CharField(choices=[('House For Sale', 'House For Sale'), ('House For Rent', 'House For Rent'), ('House Recently Sold (6)', 'House Recently Sold (6)'), ('Recently Sold (12)', 'Recently Sold (12)'), ('Taken Off Market', 'Taken Off Market'), ('No Change', 'No Change')], default='No Change', max_length=25)),
-                ('city', models.CharField(blank=True, max_length=40, null=True)),
-                ('state', models.CharField(blank=True, max_length=31, null=True)),
-                ('contacted', models.BooleanField(default=False)),
-                ('note', models.TextField(blank=True, default='', null=True)),
-                ('servTitanID', models.IntegerField(blank=True, null=True)),
-                ('phoneNumber', models.CharField(blank=True, max_length=100, null=True)),
-                ('price', models.IntegerField(blank=True, default=0, null=True)),
-                ('housingType', models.CharField(blank=True, default=' ', max_length=100, null=True)),
-                ('year_built', models.IntegerField(blank=True, default=0, null=True)),
-                ('equipmentInstalledDate', models.DateField(blank=True, null=True)),
-                ('active', models.BooleanField(default=True)),
-                ('error_flag', models.BooleanField(default=False)),
-                ('latitude', models.FloatField(blank=True, null=True)),
-                ('longitude', models.FloatField(blank=True, null=True)),
-                ('revenue', models.IntegerField(blank=True, default=0, null=True)),
-                ('serviceTitanCustomerSince', models.DateField(blank=True, null=True)),
-                ('usps_address', models.CharField(blank=True, max_length=100, null=True)),
-                ('usps_different', models.BooleanField(default=False)),
-                ('company', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='client_company', to='accounts.company')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("address", models.CharField(max_length=100)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("House For Sale", "House For Sale"),
+                            ("House For Rent", "House For Rent"),
+                            ("House Recently Sold (6)", "House Recently Sold (6)"),
+                            ("Recently Sold (12)", "Recently Sold (12)"),
+                            ("Taken Off Market", "Taken Off Market"),
+                            ("No Change", "No Change"),
+                        ],
+                        default="No Change",
+                        max_length=25,
+                    ),
+                ),
+                ("city", models.CharField(blank=True, max_length=40, null=True)),
+                ("state", models.CharField(blank=True, max_length=31, null=True)),
+                ("contacted", models.BooleanField(default=False)),
+                ("note", models.TextField(blank=True, default="", null=True)),
+                ("servTitanID", models.IntegerField(blank=True, null=True)),
+                (
+                    "phoneNumber",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
+                ("price", models.IntegerField(blank=True, default=0, null=True)),
+                (
+                    "housingType",
+                    models.CharField(
+                        blank=True, default=" ", max_length=100, null=True
+                    ),
+                ),
+                (
+                    "year_built",
+                    models.IntegerField(blank=True, default=0, null=True),
+                ),
+                ("equipmentInstalledDate", models.DateField(blank=True, null=True)),
+                ("active", models.BooleanField(default=True)),
+                ("error_flag", models.BooleanField(default=False)),
+                ("latitude", models.FloatField(blank=True, null=True)),
+                ("longitude", models.FloatField(blank=True, null=True)),
+                ("revenue", models.IntegerField(blank=True, default=0, null=True)),
+                (
+                    "serviceTitanCustomerSince",
+                    models.DateField(blank=True, null=True),
+                ),
+                (
+                    "usps_address",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
+                ("usps_different", models.BooleanField(default=False)),
+                (
+                    "company",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="client_company",
+                        to="accounts.company",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='HomeListingTags',
+            name="HomeListingTags",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
-                ('tag', models.CharField(max_length=100, unique=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
+                ("tag", models.CharField(max_length=100, unique=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Realtor',
+            name="Realtor",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
-                ('name', models.CharField(max_length=100)),
-                ('company', models.CharField(max_length=100)),
-                ('phone', models.CharField(max_length=100)),
-                ('email', models.CharField(max_length=100)),
-                ('url', models.CharField(max_length=100)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("company", models.CharField(max_length=100)),
+                ("phone", models.CharField(max_length=100)),
+                ("email", models.CharField(max_length=100)),
+                ("url", models.CharField(max_length=100)),
             ],
         ),
         migrations.CreateModel(
-            name='ScrapeResponse',
+            name="ScrapeResponse",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
-                ('date', models.DateField(default=data.models.formatToday)),
-                ('response', models.TextField(default='')),
-                ('zip', models.IntegerField(blank=True, null=True)),
-                ('status', models.CharField(blank=True, choices=[('House For Sale', 'House For Sale'), ('House For Rent', 'House For Rent'), ('House Recently Sold (6)', 'House Recently Sold (6)'), ('Recently Sold (12)', 'Recently Sold (12)'), ('Taken Off Market', 'Taken Off Market'), ('No Change', 'No Change')], default='No Change', max_length=25, null=True)),
-                ('url', models.CharField(blank=True, max_length=100, null=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
+                ("date", models.DateField(default=data.models.formatToday)),
+                ("response", models.TextField(default="")),
+                ("zip", models.IntegerField(blank=True, null=True)),
+                (
+                    "status",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("House For Sale", "House For Sale"),
+                            ("House For Rent", "House For Rent"),
+                            ("House Recently Sold (6)", "House Recently Sold (6)"),
+                            ("Recently Sold (12)", "Recently Sold (12)"),
+                            ("Taken Off Market", "Taken Off Market"),
+                            ("No Change", "No Change"),
+                        ],
+                        default="No Change",
+                        max_length=25,
+                        null=True,
+                    ),
+                ),
+                ("url", models.CharField(blank=True, max_length=100, null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Task',
+            name="Task",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
-                ('completed', models.BooleanField(default=False)),
-                ('deletedClients', models.IntegerField(default=0)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
+                ("completed", models.BooleanField(default=False)),
+                ("deletedClients", models.IntegerField(default=0)),
             ],
         ),
         migrations.CreateModel(
-            name='ZipCode',
+            name="ZipCode",
             fields=[
-                ('zipCode', models.CharField(max_length=5, primary_key=True, serialize=False, unique=True)),
-                ('lastUpdated', models.DateField(default=data.models.zipTime)),
+                (
+                    "zipCode",
+                    models.CharField(
+                        max_length=5, primary_key=True, serialize=False, unique=True
+                    ),
+                ),
+                ("lastUpdated", models.DateField(default=data.models.zipTime)),
             ],
         ),
         migrations.CreateModel(
-            name='Referral',
+            name="Referral",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
-                ('contacted', models.BooleanField(default=False)),
-                ('client', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='referralClient', to='data.client')),
-                ('enterprise', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='accounts.enterprise')),
-                ('referredFrom', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='referredFrom', to='accounts.company')),
-                ('referredTo', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='referredTo', to='accounts.company')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
+                ("contacted", models.BooleanField(default=False)),
+                (
+                    "client",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="referralClient",
+                        to="data.client",
+                    ),
+                ),
+                (
+                    "enterprise",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="accounts.enterprise",
+                    ),
+                ),
+                (
+                    "referredFrom",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="referredFrom",
+                        to="accounts.company",
+                    ),
+                ),
+                (
+                    "referredTo",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="referredTo",
+                        to="accounts.company",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='ClientUpdate',
+            name="ClientUpdate",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
-                ('date', models.DateField(default=data.models.formatToday)),
-                ('status', models.CharField(blank=True, choices=[('House For Sale', 'House For Sale'), ('House For Rent', 'House For Rent'), ('House Recently Sold (6)', 'House Recently Sold (6)'), ('Recently Sold (12)', 'Recently Sold (12)'), ('Taken Off Market', 'Taken Off Market'), ('No Change', 'No Change')], default='No Change', max_length=25, null=True)),
-                ('listed', models.CharField(blank=True, max_length=30, null=True)),
-                ('note', models.TextField(blank=True, default='', null=True)),
-                ('contacted', models.BooleanField(blank=True, null=True)),
-                ('error_flag', models.BooleanField(blank=True, null=True)),
-                ('client', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='clientUpdates_client', to='data.client')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
+                ("date", models.DateField(default=data.models.formatToday)),
+                (
+                    "status",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("House For Sale", "House For Sale"),
+                            ("House For Rent", "House For Rent"),
+                            ("House Recently Sold (6)", "House Recently Sold (6)"),
+                            ("Recently Sold (12)", "Recently Sold (12)"),
+                            ("Taken Off Market", "Taken Off Market"),
+                            ("No Change", "No Change"),
+                        ],
+                        default="No Change",
+                        max_length=25,
+                        null=True,
+                    ),
+                ),
+                ("listed", models.CharField(blank=True, max_length=30, null=True)),
+                ("note", models.TextField(blank=True, default="", null=True)),
+                ("contacted", models.BooleanField(blank=True, null=True)),
+                ("error_flag", models.BooleanField(blank=True, null=True)),
+                (
+                    "client",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="clientUpdates_client",
+                        to="data.client",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='client',
-            name='tag',
-            field=models.ManyToManyField(blank=True, related_name='client_tags', to='data.HomeListingTags'),
+            model_name="client",
+            name="tag",
+            field=models.ManyToManyField(
+                blank=True, related_name="client_tags", to="data.HomeListingTags"
+            ),
         ),
         migrations.AddField(
-            model_name='client',
-            name='zipCode',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='client_zipCode', to='data.zipcode'),
+            model_name="client",
+            name="zipCode",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="client_zipCode",
+                to="data.zipcode",
+            ),
         ),
         migrations.CreateModel(
-            name='SavedFilter',
+            name="SavedFilter",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
-                ('name', models.CharField(max_length=100)),
-                ('forExistingClient', models.BooleanField(default=False)),
-                ('savedFilters', models.CharField(blank=True, max_length=1000, null=True)),
-                ('serviceTitanTag', models.IntegerField(blank=True, null=True)),
-                ('forZapier', models.BooleanField(default=False)),
-                ('company', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='accounts.company')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("forExistingClient", models.BooleanField(default=False)),
+                (
+                    "savedFilters",
+                    models.CharField(blank=True, max_length=1000, null=True),
+                ),
+                ("serviceTitanTag", models.IntegerField(blank=True, null=True)),
+                ("forZapier", models.BooleanField(default=False)),
+                (
+                    "company",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="accounts.company",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('name', 'company', 'forExistingClient')},
+                "unique_together": {("name", "company", "forExistingClient")},
             },
         ),
         migrations.CreateModel(
-            name='HomeListing',
+            name="HomeListing",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
-                ('address', models.CharField(max_length=100)),
-                ('status', models.CharField(choices=[('House For Sale', 'House For Sale'), ('House For Rent', 'House For Rent'), ('House Recently Sold (6)', 'House Recently Sold (6)'), ('Recently Sold (12)', 'Recently Sold (12)'), ('Taken Off Market', 'Taken Off Market'), ('No Change', 'No Change')], default='Off Market', max_length=25)),
-                ('listed', models.CharField(default=' ', max_length=30)),
-                ('price', models.IntegerField(default=0)),
-                ('housingType', models.CharField(default=' ', max_length=100)),
-                ('year_built', models.IntegerField(default=0)),
-                ('city', models.CharField(blank=True, max_length=40, null=True)),
-                ('state', models.CharField(blank=True, max_length=31, null=True)),
-                ('bedrooms', models.IntegerField(default=0)),
-                ('bathrooms', models.IntegerField(default=0)),
-                ('sqft', models.IntegerField(default=0)),
-                ('lot_sqft', models.IntegerField(default=0)),
-                ('latitude', models.FloatField(blank=True, null=True)),
-                ('longitude', models.FloatField(blank=True, null=True)),
-                ('permalink', models.CharField(blank=True, max_length=100, null=True)),
-                ('year_renovated', models.IntegerField(blank=True, default=0, null=True)),
-                ('roofing', models.CharField(blank=True, default=' ', max_length=100, null=True)),
-                ('garage_type', models.CharField(blank=True, default=' ', max_length=100, null=True)),
-                ('garage', models.IntegerField(blank=True, default=0, null=True)),
-                ('heating', models.CharField(blank=True, default=' ', max_length=100, null=True)),
-                ('cooling', models.CharField(blank=True, default=' ', max_length=100, null=True)),
-                ('exterior', models.CharField(blank=True, default=' ', max_length=100, null=True)),
-                ('pool', models.CharField(blank=True, default=' ', max_length=100, null=True)),
-                ('fireplace', models.CharField(blank=True, default=' ', max_length=100, null=True)),
-                ('description', models.TextField(blank=True, default=' ', null=True)),
-                ('ScrapeResponse', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='homeListing_ScrapeResponse', to='data.scraperesponse')),
-                ('realtor', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='homeListing_realtor', to='data.realtor')),
-                ('tag', models.ManyToManyField(blank=True, related_name='homeListing_tag', to='data.HomeListingTags')),
-                ('zipCode', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='homeListing_zipCode', to='data.zipcode')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
+                ("address", models.CharField(max_length=100)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("House For Sale", "House For Sale"),
+                            ("House For Rent", "House For Rent"),
+                            ("House Recently Sold (6)", "House Recently Sold (6)"),
+                            ("Recently Sold (12)", "Recently Sold (12)"),
+                            ("Taken Off Market", "Taken Off Market"),
+                            ("No Change", "No Change"),
+                        ],
+                        default="Off Market",
+                        max_length=25,
+                    ),
+                ),
+                ("listed", models.CharField(default=" ", max_length=30)),
+                ("price", models.IntegerField(default=0)),
+                ("housingType", models.CharField(default=" ", max_length=100)),
+                ("year_built", models.IntegerField(default=0)),
+                ("city", models.CharField(blank=True, max_length=40, null=True)),
+                ("state", models.CharField(blank=True, max_length=31, null=True)),
+                ("bedrooms", models.IntegerField(default=0)),
+                ("bathrooms", models.IntegerField(default=0)),
+                ("sqft", models.IntegerField(default=0)),
+                ("lot_sqft", models.IntegerField(default=0)),
+                ("latitude", models.FloatField(blank=True, null=True)),
+                ("longitude", models.FloatField(blank=True, null=True)),
+                (
+                    "permalink",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
+                (
+                    "year_renovated",
+                    models.IntegerField(blank=True, default=0, null=True),
+                ),
+                (
+                    "roofing",
+                    models.CharField(
+                        blank=True, default=" ", max_length=100, null=True
+                    ),
+                ),
+                (
+                    "garage_type",
+                    models.CharField(
+                        blank=True, default=" ", max_length=100, null=True
+                    ),
+                ),
+                ("garage", models.IntegerField(blank=True, default=0, null=True)),
+                (
+                    "heating",
+                    models.CharField(
+                        blank=True, default=" ", max_length=100, null=True
+                    ),
+                ),
+                (
+                    "cooling",
+                    models.CharField(
+                        blank=True, default=" ", max_length=100, null=True
+                    ),
+                ),
+                (
+                    "exterior",
+                    models.CharField(
+                        blank=True, default=" ", max_length=100, null=True
+                    ),
+                ),
+                (
+                    "pool",
+                    models.CharField(
+                        blank=True, default=" ", max_length=100, null=True
+                    ),
+                ),
+                (
+                    "fireplace",
+                    models.CharField(
+                        blank=True, default=" ", max_length=100, null=True
+                    ),
+                ),
+                (
+                    "description",
+                    models.TextField(blank=True, default=" ", null=True),
+                ),
+                (
+                    "ScrapeResponse",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="homeListing_ScrapeResponse",
+                        to="data.scraperesponse",
+                    ),
+                ),
+                (
+                    "realtor",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="homeListing_realtor",
+                        to="data.realtor",
+                    ),
+                ),
+                (
+                    "tag",
+                    models.ManyToManyField(
+                        blank=True,
+                        related_name="homeListing_tag",
+                        to="data.HomeListingTags",
+                    ),
+                ),
+                (
+                    "zipCode",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="homeListing_zipCode",
+                        to="data.zipcode",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('address', 'status', 'city', 'state')},
+                "unique_together": {("address", "status", "city", "state")},
             },
         ),
         migrations.AlterUniqueTogether(
-            name='client',
-            unique_together={('company', 'name', 'address')},
+            name="client",
+            unique_together={("company", "name", "address")},
         ),
     ]
