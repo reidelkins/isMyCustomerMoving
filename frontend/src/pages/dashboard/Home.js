@@ -94,7 +94,7 @@ export default function HomePage() {
 
     setTABLE_HEAD(updatedFields);
 
-  }, [userInfo]);
+  }, [userInfo, commonFields]);
 
   const listClient = useSelector(selectClients);
   const { loading, CLIENTLIST, forSale, recentlySold, count, message, deleted, customerDataFilters } = listClient;
@@ -263,7 +263,7 @@ export default function HomePage() {
   const [customerSinceMax, setCustomerSinceMax] = useState('');
   const [savedFilter, setSavedFilter] = useState('');
   const [uspsChanged, setUspsChanged] = useState(false);
-  const handleUspsChange = (event) => {
+  const handleUspsChange = () => {
     setUspsChanged(!uspsChanged);
     setSavedFilter('');
   };
