@@ -27,5 +27,5 @@ class Command(BaseCommand):
 
             # Check if current day is in the list of days to run
             if current_day in days_to_run:
-                print(f"Updating client statuses...")
+                print("Updating client statuses...")
                 update_clients_statuses.delay()

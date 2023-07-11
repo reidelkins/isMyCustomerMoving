@@ -22,5 +22,5 @@ class Command(BaseCommand):
 
             # Check if current day is in the list of days to run
             if current_day in days_to_run:
-                print(f"Sending daily email...")
+                print("Sending daily email...")
                 send_daily_email.delay()
