@@ -610,16 +610,15 @@ def auto_update(company_id=None, zip=None):
         companies = Company.objects.all()
         for company in companies:
             try:
-                logging.error(
-                    f"Auto Update: {company.product} {company.name}"
-                )
                 if company.product.id != "price_1MhxfPAkLES5P4qQbu8O45xy":
-                    logging.error("In the if statement")
                     get_all_zipcodes(company.id)
                 else:
                     logging.error("free tier")
             except Exception as e:
                 logging.error(f"Auto Update Error: {e}")
+                logging.error(
+                    f"Auto Update: {company.product} {company.name}"
+                )
         del_variables([company, companies])
 
 
@@ -834,9 +833,8 @@ def update_service_titan_client_tags(for_sale, company, status):
             company.service_titan_recently_sold_tag_id,
         ]
         tag_ids = [str(tag_id) for tag_id in tag_ids if tag_id]
-
+        headers = get_service_titan_access_token(company.id)
         if for_sale and tag_ids:
-            headers = get_service_titan_access_token(company.id)
             tag_type = determine_tag_type(company, status)
 
             if status == "House Recently Sold (6)":
