@@ -64,51 +64,36 @@ export default function HomePage() {
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
 
-  const [TABLE_HEAD, setTABLE_HEAD] = useState([
-    { id: 'name', label: 'Name', alignRight: false },
-    { id: 'address', label: 'Address', alignRight: false },
-    { id: 'city', label: 'City', alignRight: false },
-    { id: 'state', label: 'State', alignRight: false },
-    { id: 'zipCode', label: 'Zip Code', alignRight: false },
-    { id: 'status', label: 'Status', alignRight: false },
-    { id: 'contacted', label: 'Contacted', alignRight: false },
-    { id: 'note', label: 'Note', alignRight: false },
-    { id: 'phone', label: 'Phone Number', alignRight: false },
-  ]);
+  const commonFields = [
+     { id: 'name', label: 'Name', alignRight: false },
+     { id: 'address', label: 'Address', alignRight: false },
+     { id: 'city', label: 'City', alignRight: false },
+     { id: 'state', label: 'State', alignRight: false },
+     { id: 'zipCode', label: 'Zip Code', alignRight: false },
+     { id: 'status', label: 'Status', alignRight: false },
+     { id: 'contacted', label: 'Contacted', alignRight: false },
+     { id: 'note', label: 'Note', alignRight: false },
+     { id: 'phone', label: 'Phone Number', alignRight: false },
+     { id: 'usps_flag', label: 'USPS Flag', alignRight: false },
+     { id: 'usps_address', label: 'USPS Address', alignRight: false }
+   ];
+
+  const [TABLE_HEAD, setTABLE_HEAD] = useState(commonFields);
+
   useEffect(() => {
-    if (
-      (userInfo && userInfo.company.enterprise) ||
-      userInfo.email === 'reid@gmail.com' ||
-      userInfo.email === 'reid@ismycustomermoving.com' ||
-      userInfo.email === 'jb@aquaclearws.com'
-    ) {
-      setTABLE_HEAD([
-        { id: 'serviceTitanCustomerSinceYear', label: 'Customer Since', alignRight: false },
-        { id: 'name', label: 'Name', alignRight: false },
-        { id: 'address', label: 'Address', alignRight: false },
-        { id: 'city', label: 'City', alignRight: false },
-        { id: 'state', label: 'State', alignRight: false },
-        { id: 'zipCode', label: 'Zip Code', alignRight: false },
-        { id: 'status', label: 'Status', alignRight: false },
-        { id: 'contacted', label: 'Contacted', alignRight: false },
-        { id: 'note', label: 'Note', alignRight: false },
-        { id: 'phone', label: 'Phone Number', alignRight: false },
-        { id: 'referral', label: 'Refer', alignRight: false },
-      ]);
-    } else if (userInfo && userInfo.company.crm === 'ServiceTitan') {
-      setTABLE_HEAD([
-        { id: 'serviceTitanCustomerSinceYear', label: 'Customer Since', alignRight: false },
-        { id: 'name', label: 'Name', alignRight: false },
-        { id: 'address', label: 'Address', alignRight: false },
-        { id: 'city', label: 'City', alignRight: false },
-        { id: 'state', label: 'State', alignRight: false },
-        { id: 'zipCode', label: 'Zip Code', alignRight: false },
-        { id: 'status', label: 'Status', alignRight: false },
-        { id: 'contacted', label: 'Contacted', alignRight: false },
-        { id: 'note', label: 'Note', alignRight: false },
-        { id: 'phone', label: 'Phone Number', alignRight: false },
-      ]);
+    const updatedFields = [...commonFields];
+
+    if (userInfo &&  userInfo.company.crm === 'ServiceTitan') {
+      updatedFields.unshift({ id: 'serviceTitanCustomerSinceYear', label: 'Customer Since', alignRight: false });
     }
+    if (userInfo && (userInfo.company.enterprise || userInfo.email === 'reid@gmail.com' ||
+      userInfo.email === 'reid@ismycustomermoving.com' ||
+      userInfo.email === 'jb@aquaclearws.com') ) {
+        updatedFields.push({ id: 'referral', label: 'Refer', alignRight: false });
+    }
+
+    setTABLE_HEAD(updatedFields);
+
   }, [userInfo]);
 
   const listClient = useSelector(selectClients);
@@ -277,6 +262,11 @@ export default function HomePage() {
   const [customerSinceMin, setCustomerSinceMin] = useState('');
   const [customerSinceMax, setCustomerSinceMax] = useState('');
   const [savedFilter, setSavedFilter] = useState('');
+  const [uspsChanged, setUspsChanged] = useState(false);
+  const handleUspsChange = (event) => {
+    setUspsChanged(!uspsChanged);
+    setSavedFilter('');
+  };
   const handleMinRoomsChange = (newMinRooms) => {
     setMinRooms(newMinRooms);
     setSavedFilter('');
@@ -384,7 +374,8 @@ export default function HomePage() {
         maxSqft,
         minLotSqft,
         maxLotSqft,
-        savedFilter
+        savedFilter,
+        uspsChanged
       )
     );
   };
@@ -486,6 +477,8 @@ export default function HomePage() {
                     setMaxLotSqft={handleMaxLotSqftChange}
                     savedFilter={savedFilter}
                     setSavedFilter={handleSavedFilterChange}
+                    uspsChanged={uspsChanged}
+                    setUspsChanged={handleUspsChange}
                   />
                   {loading ? (
                     <Box sx={{ width: '100%' }}>
@@ -529,6 +522,8 @@ export default function HomePage() {
                                     equipment_installed_date: equipmentInstalledDate,
                                     error_flag: errorFlag,
                                     service_titan_customer_since_year: serviceTitanCustomerSinceYear,
+                                    usps_address: uspsAddress, 
+                                    usps_different: uspsDifferent,
                                   } = row;
                                   const isItemSelected = selected.indexOf(address) !== -1;
 
@@ -632,7 +627,12 @@ export default function HomePage() {
                                                 )}-${phoneNumber.slice(6, 10)}`
                                               : 'N/A'}
                                           </TableCell>
-
+                                          <TableCell>
+                                            {uspsDifferent}
+                                          </TableCell>
+                                          <TableCell>
+                                            {uspsAddress}
+                                          </TableCell>
                                           {(userInfo.company.enterprise ||
                                             userInfo.email === 'reid@gmail.com' ||
                                             userInfo.email === 'reid@ismycustomermoving.com' ||

@@ -531,7 +531,8 @@ export const filterClientsAsync =
     maxSqft,
     minLotSqft,
     maxLotSqft,
-    savedFilter
+    savedFilter,
+    uspsChanged
   ) =>
   async (dispatch, getState) => {
     try {
@@ -610,6 +611,9 @@ export const filterClientsAsync =
       if (savedFilter) {
         filters += `&saved_filter=${savedFilter}`;
       }
+      if (uspsChanged) {
+        filters += `&usps_changed=${uspsChanged}`;
+      }
       const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients?page=1${filters}`, config);
       dispatch(clients(data));
     } catch (error) {
@@ -631,7 +635,17 @@ export const filterClientsAsync =
               state,
               zipCode,
               customerSinceMin,
-              customerSinceMax
+              customerSinceMax,
+              minRooms,
+              maxRooms,
+              minBaths,
+              maxBaths,
+              minSqft,
+              maxSqft,
+              minLotSqft,
+              maxLotSqft,
+              savedFilter,
+              uspsChanged
             )
           )
         );
@@ -1150,7 +1164,8 @@ export const getClientsCSV = (
   maxSqft,
   minLotSqft,
   maxLotSqft,
-  savedFilter
+  savedFilter,
+  uspsChanged
   // eslint-disable-next-line arrow-body-style
 ) => {
   return async (dispatch, getState) => {
@@ -1230,6 +1245,9 @@ export const getClientsCSV = (
       }
       if (savedFilter) {
         filters += `&saved_filter=${savedFilter}`;
+      }
+      if (uspsChanged) {
+        filters += `&usps_changed=${uspsChanged}`;
       }
       const response = await axios.get(`${DOMAIN}/api/v1/data/downloadclients?${filters}`, config);
       const csvBlob = new Blob([response.data], { type: 'text/csv' }); // Convert binary response to a blob
@@ -1417,7 +1435,12 @@ export const saveCustomerDataFilterAsync =
     maxSqft,
     minLotSqft,
     maxLotSqft,
-    forZapier
+    forZapier,
+    customerSinceMin,
+    customerSinceMax,
+    statusFilters,
+    uspsChanged
+
   ) =>
   async (dispatch, getState) => {
     try {
@@ -1450,6 +1473,10 @@ export const saveCustomerDataFilterAsync =
         min_lot_sqft: minLotSqft,
         max_lot_sqft: maxLotSqft,
         for_zapier: forZapier,
+        customer_since_min: customerSinceMin,
+        customer_since_max: customerSinceMax,
+        status_filters: statusFilters,
+        usps_changed: uspsChanged
       };
       dispatch(saveFilterLoading());
       await axios.post(`${DOMAIN}/api/v1/data/clients/`, body, config);
