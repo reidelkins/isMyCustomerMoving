@@ -225,10 +225,14 @@ class ManageUserView(APIView):
         try:
             user = self.request.user
             if "ids" in request.data:
+                # Get the list of IDs from request data
+                ids = request.data.get("ids", [])
+                # Convert the IDs to UUID objects
+                uuids = [uuid.UUID(id) for id in ids]
                 if CustomUser.objects.filter(
-                    id__in=request.data["ids"]
+                    id__in=uuids
                 ).exists():
-                    users = CustomUser.objects.filter(id__in=request.data)
+                    users = CustomUser.objects.filter(id__in=uuids)
                     users.delete()
                     return self._get_response(request.user.company)
                 else:
