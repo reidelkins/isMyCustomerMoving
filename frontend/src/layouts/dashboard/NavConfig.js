@@ -54,6 +54,11 @@ export const navConfig = [
     icon: getIcon('ri:share-forward-fill'),
   },
   {
+    title: 'Recently Sold Data',
+    path: '/dashboard/recentlysold',
+    icon: getIcon('material-symbols:house'),
+  },
+  {
     title: 'For Sale Data',
     path: '/dashboard/forsale',
     icon: getIcon('material-symbols:house'),
