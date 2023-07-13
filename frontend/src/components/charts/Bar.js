@@ -7,12 +7,6 @@ import homeStyle from '../../theme/Home.module.css';
 
 Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-BarChart.propTypes = {
-  title: PropTypes.string.isRequired,
-  values: PropTypes.arrayOf(PropTypes.number).isRequired,
-  dataLabel: PropTypes.string.isRequired,
-};
-
 const BarChart = ({ title, values, dataLabel }) => {
   const labels = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
   const data = {
@@ -67,4 +61,11 @@ const BarChart = ({ title, values, dataLabel }) => {
     </div>
   );
 };
+
+BarChart.propTypes = {
+  title: PropTypes.string.isRequired,
+  values: PropTypes.arrayOf(PropTypes.number).isRequired,
+  dataLabel: PropTypes.string.isRequired,
+};
+
 export default BarChart;

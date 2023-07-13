@@ -3,14 +3,6 @@ import Box from '@mui/material/Box';
 import { Typography } from '@mui/material';
 import PropTypes from 'prop-types';
 
-DashboardData.propTypes = {
-  mainText: PropTypes.string.isRequired,
-  topText: PropTypes.string.isRequired,
-  bottomText: PropTypes.string.isRequired,
-  color: PropTypes.string.isRequired,
-  icon: PropTypes.string.isRequired,
-};
-
 const DashboardData = ({ mainText, topText, bottomText, color, icon: Icon }) => (
   <Box
     sx={{
@@ -84,5 +76,13 @@ const DashboardData = ({ mainText, topText, bottomText, color, icon: Icon }) => 
     </Box>
   </Box>
 );
+
+DashboardData.propTypes = {
+  mainText: PropTypes.string.isRequired,
+  topText: PropTypes.string.isRequired,
+  bottomText: PropTypes.string.isRequired,
+  color: PropTypes.string.isRequired,
+  icon: PropTypes.string.isRequired,
+};
 
 export default DashboardData;

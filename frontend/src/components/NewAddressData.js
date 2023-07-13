@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import {         
+import {
+    Box,    
     Card,
+    LinearProgress,
     Stack,
     Typography,
     Table,
@@ -36,20 +38,37 @@ NewAddressData.propTypes = {
 
 export default function NewAddressData({ userInfo }) {    
     const listClient = useSelector(selectClients);
-    const { NEWADDRESSLIST } = listClient;
+    const { NEWADDRESSLIST, loading } = listClient;
 
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
-    const shownClients = 0;
-    // const [shownClients, setShownClients] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);    
+    const [shownClients, setShownClients] = useState(0);
+    const [filteredClients, setFilteredClients] = useState([]);
+    const [clientListLength, setClientListLength] = useState(0);
+    useEffect(() => {
+        if (NEWADDRESSLIST.length < clientListLength) {
+        setPage(0);
+        setShownClients(0);
+        }
+        setClientListLength(NEWADDRESSLIST.length);
+    }, [NEWADDRESSLIST, clientListLength, NEWADDRESSLIST.length]);
+    useEffect(() => {
+        if (filteredClients.length < NEWADDRESSLIST.length) {
+            console.log("setting shown clients")
+            setShownClients(filteredClients.length);
+        } else {
+            setShownClients(NEWADDRESSLIST.length);
+        }
+    }, [filteredClients, NEWADDRESSLIST.length]);
     const [orderBy, setOrderBy] = useState('status');
     const [order, setOrder] = useState('asc');
-    const [filteredClients, setFilteredClients] = useState([]);
+    
     // const [filterName, setFilterName] = useState('');
     const filterName = '';
     useEffect(() => {
         if (NEWADDRESSLIST.length > 0) {
-        setFilteredClients(applySortFilter(NEWADDRESSLIST, getComparator(order, orderBy), filterName, userInfo.status));
+            console.log("filtering clients")
+            setFilteredClients(applySortFilter(NEWADDRESSLIST, getComparator(order, orderBy), filterName, userInfo.status));
         } else {
         setFilteredClients([]);
         }
@@ -59,6 +78,11 @@ export default function NewAddressData({ userInfo }) {
     return (
         <Card sx={{ marginBottom: '3%' }}>
             {userInfo ? <NewAddressListCall /> : null}
+            {loading ? (
+                <Box sx={{ width: '100%' }}>
+                <LinearProgress />
+                </Box>
+            ) : null}
             <Scrollbar>
                 <TableContainer sx={{ minWidth: 800 }}>
                 <Table>
