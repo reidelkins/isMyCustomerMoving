@@ -35,6 +35,19 @@ zapier_patterns = [
     ),
 ]
 
+user_patterns = [
+    path(
+        "<str:id>/",
+        views.ManageUserView.as_view(),
+        name="manage-user",
+    ),
+    path(
+        "",
+        views.ManageUserView.as_view(),
+        name="delete-user",
+    )
+]
+
 urlpatterns = [
     path("refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("otp/disable/", views.OTPDisableView.as_view(), name="otp-disable"),
@@ -46,11 +59,7 @@ urlpatterns = [
         "otp/generate/", views.OTPGenerateView.as_view(), name="otp-generate"
     ),
     path("company/", views.CompanyView.as_view(), name="createCompany"),
-    path(
-        "manageuser/<str:id>/",
-        views.ManageUserView.as_view(),
-        name="manage-user",
-    ),
+    path("manageuser/", include(user_patterns)),
     path(
         "acceptinvite/<str:invitetoken>/",
         views.AcceptInvite.as_view(),
