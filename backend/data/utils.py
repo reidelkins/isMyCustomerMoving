@@ -322,9 +322,9 @@ def save_client_list(clients, company_id, task=None):
 
     Client.objects.bulk_create(clients_to_add, ignore_conflicts=True)
 
-    # if task:
-    #     delete_extra_clients.delay(company_id, task)
-    #     do_it_all.delay(company_id)
+    if task:
+        delete_extra_clients.delay(company_id, task)
+        do_it_all.delay(company_id)
     del clients_to_add, clients, company, company_id, bad_streets
 
 

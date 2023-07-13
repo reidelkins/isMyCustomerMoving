@@ -105,57 +105,67 @@ class ClientListView(generics.ListAPIView):
         return queryset
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
         user = self.request.user
-        allClients = Client.objects.filter(company=user.company, active=True)
-        forSale = allClients.filter(
-            status="House For Sale", contacted=False
-        ).count()
-        recentlySold = allClients.filter(
-            status="House Recently Sold (6)", contacted=False
-        ).count()
-        allClientUpdates = ClientUpdate.objects.filter(
-            client__company=user.company
-        )
-        forSaleAllTime = allClientUpdates.filter(
-            status="House For Sale"
-        ).count()
-        recentlySoldAllTime = allClientUpdates.filter(
-            status="House Recently Sold (6)"
-        ).count()
-        savedFilters = list(
-            SavedFilter.objects.filter(
-                company=user.company, filter_type="Client"
-            ).values_list("name", flat=True)
-        )
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
+        if "newAddress" in request.query_params:
+            clients = Client.objects.filter(
+                company=user.company, active=True
+            ).exclude(new_address=None)
+            serializer = self.get_serializer(clients, many=True)
             clients = serializer.data
-            return self.get_paginated_response(
+            return Response({"clients": clients}, status=status.HTTP_200_OK)
+        else:
+            queryset = self.filter_queryset(self.get_queryset())
+            user = self.request.user
+            allClients = Client.objects.filter(
+                company=user.company, active=True)
+            forSale = allClients.filter(
+                status="House For Sale", contacted=False
+            ).count()
+            recentlySold = allClients.filter(
+                status="House Recently Sold (6)", contacted=False
+            ).count()
+            allClientUpdates = ClientUpdate.objects.filter(
+                client__company=user.company
+            )
+            forSaleAllTime = allClientUpdates.filter(
+                status="House For Sale"
+            ).count()
+            recentlySoldAllTime = allClientUpdates.filter(
+                status="House Recently Sold (6)"
+            ).count()
+            savedFilters = list(
+                SavedFilter.objects.filter(
+                    company=user.company, filter_type="Client"
+                ).values_list("name", flat=True)
+            )
+
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                clients = serializer.data
+                return self.get_paginated_response(
+                    {
+                        "forSale": forSale,
+                        "forSaleAllTime": forSaleAllTime,
+                        "recentlySoldAllTime": recentlySoldAllTime,
+                        "recentlySold": recentlySold,
+                        "clients": clients,
+                        "savedFilters": savedFilters,
+                    }
+                )
+
+            serializer = self.get_serializer(queryset, many=True)
+            clients = serializer.data
+            return Response(
                 {
                     "forSale": forSale,
                     "forSaleAllTime": forSaleAllTime,
                     "recentlySoldAllTime": recentlySoldAllTime,
                     "recentlySold": recentlySold,
                     "clients": clients,
-                    "savedFilters": savedFilters,
-                }
+                },
+                status=status.HTTP_200_OK,
             )
-
-        serializer = self.get_serializer(queryset, many=True)
-        clients = serializer.data
-        return Response(
-            {
-                "forSale": forSale,
-                "forSaleAllTime": forSaleAllTime,
-                "recentlySoldAllTime": recentlySoldAllTime,
-                "recentlySold": recentlySold,
-                "clients": clients,
-            },
-            status=status.HTTP_200_OK,
-        )
 
     def post(self, request, format=None):
         try:
