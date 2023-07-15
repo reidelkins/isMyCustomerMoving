@@ -88,15 +88,21 @@ def get_salesforce_clients(company_id, task_id=None):
 
 
 @shared_task
-def get_service_titan_clients(
-    company_id, task_id, option=None, automated=False
-):
+def complete_service_titan_sync(company_id, task_id, option=None, automated=False):
     company = Company.objects.get(id=company_id)
     if not option:
         option = company.service_titan_customer_sync_option
     else:
         company.service_titan_customer_sync_option = option
         company.save()
+    get_service_titan_clients.delay(company_id, task_id, option, automated)
+
+
+@shared_task
+def get_service_titan_clients(
+    company_id, task_id, option=None, automated=False
+):
+    company = Company.objects.get(id=company_id)
     tenant = company.tenant_id
     headers = get_service_titan_access_token(company_id)
     clients = []
@@ -147,8 +153,6 @@ def get_service_titan_clients(
                 headers=headers,
                 timeout=10,
             )
-            # for number in response.json()['data']:
-            #     numbers.append(number)
             numbers = response.json()["data"]
             if response.json()["hasMore"]:
                 frm = response.json()["continueFrom"]
