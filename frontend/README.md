@@ -11,11 +11,13 @@ Frontend Tests 28 June 2023
 - [ ] Log in using google SSO (not working)
 
 #### Routes
-- [ ] /dashboard
-- [ ] /dashboard/referrals
-- [ ] /dashboard/recentlysold
-- [ ] /dashboard/settings/user
-- [ ] /dashboard/settings/enterprise
+- [x] /dashboard
+- [x] /dashboard/customers
+- [x] /dashboard/referrals
+- [x] /dashboard/forsale
+- [x] /dashboard/recentlysold
+- [x] /dashboard/settings/user
+- [x] /dashboard/settings/enterprise
 - [ ] Protected routes (ensure these require auth)
   - [ ] /dashboard
 

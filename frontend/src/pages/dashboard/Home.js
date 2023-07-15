@@ -13,7 +13,7 @@ export default function Home() {
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
   return (
-    <Page title="Referrals" userInfo={userInfo}>
+    <Page title="Home" userInfo={userInfo}>
       <Container maxWidth="xl">
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom data-testid="welcome-message">
