@@ -48,6 +48,7 @@ export default function AccountPopover() {
       <IconButton
         ref={anchorRef}
         onClick={handleOpen}
+        data-testid="profile-button"
         sx={{
           p: 0,
           ...(open && {
