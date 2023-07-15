@@ -108,34 +108,28 @@ jobs:
           bandit -r backend -x backend/accounts/tests,backend/data/tests,backend/payments/tests
         # safety check -r backend/requirements.txt
 
-  build-frontend:
+  frontend:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: 18
-
       - name: Install dependencies
         run: |
-          cd frontend
-          yarn install --frozen-lockfile
-
-      - name: Lint with ESLint
+            cd frontend
+            npm ci
+      - name: Install Playwright Browsers
         run: |
           cd frontend
-          yarn lint
-
-      - name: Build
-        run: |
+          npx playwright install --with-deps
+      - name: Run Playwright tests
+        run: | 
           cd frontend
-          yarn build
-
-      - name: Run tests
-        run: |
-          cd frontend
-          yarn test --passWithNoTests
+          npm run test:ci
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
