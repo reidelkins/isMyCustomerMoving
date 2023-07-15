@@ -24,7 +24,7 @@ jobs:
     - name: Run Playwright tests
       run: | 
         cd frontend
-        npx playwright test
+        npm run test:ci
     - uses: actions/upload-artifact@v3
       if: always()
       with:
