@@ -7,12 +7,17 @@ Frontend Tests 28 June 2023
 - [x] Auth
   - [x] Log in correct email + password
   - [x] Fail login w/incorrect password 
-- [ ] Log out
-- [ ] Log in using google SSO
-- [ ] Go to /dashboard, /dashboard/referrals, /dashboard/recentlysold, /dashboard/settings/user, and /dashboard/settings/enterprise
+- [x] Log out
+- [ ] Log in using google SSO (not working)
 
-#### Routing
-- [ ] Protected routes
+#### Routes
+- [ ] /dashboard
+- [ ] /dashboard/referrals
+- [ ] /dashboard/recentlysold
+- [ ] /dashboard/settings/user
+- [ ] /dashboard/settings/enterprise
+- [ ] Protected routes (ensure these require auth)
+  - [ ] /dashboard
 
 #### Profile Settings
 
