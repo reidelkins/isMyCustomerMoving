@@ -6,11 +6,9 @@ from time import sleep
 
 from datetime import datetime, timedelta, date
 from django.conf import settings
-from django.db import transaction
-from django.db.models import Min
 from django.db.models.functions import Coalesce
 
-from accounts.models import Company, CustomUser
+from accounts.models import Company
 from .models import Client
 from .utils import (
     save_client_list,
@@ -284,7 +282,9 @@ def get_customer_since_data_from_invoices(company_id):
                 lifetime_revenue += invoice.amount
             client.service_titan_lifetime_revenue = lifetime_revenue
             client.save(update_fields=[
-                        "service_titan_customer_since", "service_titan_lifetime_revenue"])
+                        "service_titan_customer_since",
+                        "service_titan_lifetime_revenue"
+                        ])
     del_variables([clients, company])
 
 
