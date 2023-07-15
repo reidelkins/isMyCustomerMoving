@@ -22,7 +22,7 @@ import requests
 import traceback
 from defusedxml.ElementTree import fromstring
 
-
+from django.db.models import Q
 from django.template.loader import get_template
 from django.core.mail import EmailMessage, send_mail
 
@@ -322,9 +322,9 @@ def save_client_list(clients, company_id, task=None):
 
     Client.objects.bulk_create(clients_to_add, ignore_conflicts=True)
 
-    # if task:
-    #     delete_extra_clients.delay(company_id, task)
-    #     do_it_all.delay(company_id)
+    if task:
+        delete_extra_clients.delay(company_id, task)
+        do_it_all.delay(company_id)
     del clients_to_add, clients, company, company_id, bad_streets
 
 
@@ -610,16 +610,15 @@ def auto_update(company_id=None, zip=None):
         companies = Company.objects.all()
         for company in companies:
             try:
-                logging.error(
-                    f"Auto Update: {company.product} {company.name}"
-                )
                 if company.product.id != "price_1MhxfPAkLES5P4qQbu8O45xy":
-                    logging.error("In the if statement")
                     get_all_zipcodes(company.id)
                 else:
                     logging.error("free tier")
             except Exception as e:
                 logging.error(f"Auto Update Error: {e}")
+                logging.error(
+                    f"Auto Update: {company.product} {company.name}"
+                )
         del_variables([company, companies])
 
 
@@ -834,9 +833,8 @@ def update_service_titan_client_tags(for_sale, company, status):
             company.service_titan_recently_sold_tag_id,
         ]
         tag_ids = [str(tag_id) for tag_id in tag_ids if tag_id]
-
+        headers = get_service_titan_access_token(company.id)
         if for_sale and tag_ids:
-            headers = get_service_titan_access_token(company.id)
             tag_type = determine_tag_type(company, status)
 
             if status == "House Recently Sold (6)":
@@ -884,7 +882,10 @@ def update_service_titan_client_tags(for_sale, company, status):
 def add_service_titan_contacted_tag(client, tagId):
     client = Client.objects.get(id=client)
     headers = get_service_titan_access_token(client.company.id)
-    payload = {"customerIds": [str(client.id)], "tagTypeIds": [str(tagId)]}
+    payload = {
+        "customerIds": [str(client.serv_titan_id)],
+        "tagTypeIds": [str(tagId)],
+    }
     requests.put(
         url=(
             f"https://api.servicetitan.io/crm/v2/tenant/"
@@ -938,7 +939,7 @@ def remove_all_service_titan_tags(company=None, client=None):
                             time_limit = datetime.now()
 
                         client_subset = clients[
-                            i * 250 : (i + 1) * 250  # noqa: E203
+                            i * 250: (i + 1) * 250  # noqa: E203
                         ]
                         payload = {
                             "customerIds": client_subset,
@@ -1094,6 +1095,22 @@ def filter_home_listings(query_params, queryset, company_id, filter_type):
             queryset = queryset.filter(year_built__gte=query_params[param])
         elif param == "max_year":
             queryset = queryset.filter(year_built__lte=query_params[param])
+        elif param == "min_beds":
+            queryset = queryset.filter(bedrooms__gte=query_params[param])
+        elif param == "max_beds":
+            queryset = queryset.filter(bedrooms__lte=query_params[param])
+        elif param == "min_baths":
+            queryset = queryset.filter(bathrooms__gte=query_params[param])
+        elif param == "max_baths":
+            queryset = queryset.filter(bathrooms__lte=query_params[param])
+        elif param == "min_sqft":
+            queryset = queryset.filter(sqft__gte=query_params[param])
+        elif param == "max_sqft":
+            queryset = queryset.filter(sqft__lte=query_params[param])
+        elif param == "min_lot_sqft":
+            queryset = queryset.filter(lot_sqft__gte=query_params[param])
+        elif param == "max_lot_sqft":
+            queryset = queryset.filter(lot_sqft__lte=query_params[param])
         elif param in ["min_days_ago", "max_days_ago"]:
             filter_key = (
                 "listed__lte" if param == "min_days_ago" else "listed__gte"
@@ -1127,7 +1144,7 @@ def filter_home_listings(query_params, queryset, company_id, filter_type):
     return queryset
 
 
-def filter_clients(query_params, queryset):
+def filter_clients(query_params, queryset, company_id):
     """
     Filter clients based on the provided query parameters.
 
@@ -1138,6 +1155,18 @@ def filter_clients(query_params, queryset):
     Returns:
     queryset: Filtered QuerySet.
     """
+    company = Company.objects.get(id=company_id)
+    if "saved_filter" in query_params:
+        query_params = SavedFilter.objects.get(
+            name=query_params["saved_filter"],
+            company=company,
+            filter_type="Client",
+        ).saved_filters
+        query_params = json.loads(query_params)
+        query_params = {k: v for k, v in query_params.items() if v != ""}
+        if "tags" in query_params:
+            query_params["tags"] = "".join(query_params["tags"])
+
     for param in query_params:
         if param == "min_price":
             queryset = queryset.filter(price__gte=query_params[param])
@@ -1147,6 +1176,22 @@ def filter_clients(query_params, queryset):
             queryset = queryset.filter(year_built__gte=query_params[param])
         elif param == "max_year":
             queryset = queryset.filter(year_built__lte=query_params[param])
+        elif param == "min_beds":
+            queryset = queryset.filter(bedrooms__gte=query_params[param])
+        elif param == "max_beds":
+            queryset = queryset.filter(bedrooms__lte=query_params[param])
+        elif param == "min_baths":
+            queryset = queryset.filter(bathrooms__gte=query_params[param])
+        elif param == "max_baths":
+            queryset = queryset.filter(bathrooms__lte=query_params[param])
+        elif param == "min_sqft":
+            queryset = queryset.filter(sqft__gte=query_params[param])
+        elif param == "max_sqft":
+            queryset = queryset.filter(sqft__lte=query_params[param])
+        elif param == "min_lot_sqft":
+            queryset = queryset.filter(lot_sqft__gte=query_params[param])
+        elif param == "max_lot_sqft":
+            queryset = queryset.filter(lot_sqft__lte=query_params[param])
         elif param == "equip_install_date_min":
             queryset = queryset.filter(
                 equipment_installed_date__gte=query_params[param]
@@ -1187,6 +1232,9 @@ def filter_clients(query_params, queryset):
                 else date(int(query_params[param]), 12, 31)
             )
             queryset = queryset.filter(**{filter_key: date_value})
+        elif param == 'usps_changed':
+            queryset = queryset.filter(
+                Q(usps_different=True) | Q(usps_address="Error"))
 
     return queryset
 
@@ -1254,6 +1302,7 @@ def verify_address(client_id):
         usps_address = "Error"
     else:
         address2 = address_element.find("Address2").text.title()
+        address2 = parse_streets(address2)
         city = address_element.find("City").text.title()
         state = address_element.find("State").text
         zip5 = address_element.find("Zip5").text

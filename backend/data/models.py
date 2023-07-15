@@ -81,9 +81,27 @@ class Client(models.Model):
     service_titan_customer_since = models.DateField(blank=True, null=True)
     usps_address = models.CharField(max_length=100, blank=True, null=True)
     usps_different = models.BooleanField(default=False)
+    bedrooms = models.IntegerField(default=0, blank=True, null=True)
+    bathrooms = models.IntegerField(default=0, blank=True, null=True)
+    sqft = models.IntegerField(default=0, blank=True, null=True)
+    lot_sqft = models.IntegerField(default=0, blank=True, null=True)
+
+    new_address = models.CharField(max_length=100, blank=True, null=True)
+    new_city = models.CharField(max_length=40, blank=True, null=True)
+    new_state = models.CharField(max_length=31, blank=True, null=True)
+    new_zip_code = models.ForeignKey(
+        ZipCode,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="client_new_zip_code",
+    )
 
     class Meta:
         unique_together = ("company", "name", "address")
+
+    def __str__(self):
+        return f"{self.name}_{self.company}"
 
 
 # Function to return today's date
@@ -109,8 +127,8 @@ class ClientUpdate(models.Model):
     )
     listed = models.CharField(max_length=30, blank=True, null=True)
     note = models.TextField(default="", blank=True, null=True)
-    contacted = models.BooleanField(blank=True, null=True)
-    error_flag = models.BooleanField(blank=True, null=True)
+    contacted = models.BooleanField(blank=True, null=True, default=False)
+    error_flag = models.BooleanField(blank=True, null=True, default=False)
 
 
 # ScrapeResponse model
@@ -160,13 +178,6 @@ class HomeListing(models.Model):
         max_length=25, choices=STATUS, default="Off Market"
     )
     listed = models.CharField(max_length=30, default=" ")
-    # scrape_response = models.ForeignKey(
-    #     ScrapeResponse,
-    #     blank=True,
-    #     null=True,
-    #     on_delete=models.SET_NULL,
-    #     related_name="home_listing_scrape_response",
-    # )
     price = models.IntegerField(default=0, blank=True, null=True)
     housing_type = models.CharField(
         max_length=100, default=" ", blank=True, null=True
@@ -198,6 +209,10 @@ class HomeListing(models.Model):
     cooling = models.CharField(
         max_length=100, default=" ", blank=True, null=True
     )
+    heatingCoolingDescription = models.TextField(
+        default=" ", blank=True, null=True)
+    interiorFeaturesDescription = models.TextField(
+        default=" ", blank=True, null=True)
     exterior = models.CharField(
         max_length=100, default=" ", blank=True, null=True
     )
@@ -218,6 +233,9 @@ class HomeListing(models.Model):
 
     class Meta:
         unique_together = ("address", "status", "city", "state")
+
+    def __str__(self):
+        return f"{self.address}_{self.status}"
 
 
 # HomeListingTags model

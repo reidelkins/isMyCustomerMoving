@@ -35,6 +35,7 @@ import TwoFactorAuth from '../../../components/TwoFactorAuth';
 import CRMIntegrationModal from '../../../components/CRMIntegrationModal';
 import UpgradeFromFree from '../../../components/UpgradeFromFree';
 import { applySortFilter, getComparator } from '../../../utils/filterFunctions';
+import { handleRequestSort } from '../../../utils/dataTableFunctions';
 // import ResetPasswordModal from '../components/ResetPasswordModal';
 
 import UsersListCall from '../../../redux/calls/UsersListCall';
@@ -100,11 +101,6 @@ export default function ProfileSettings() {
 
   const { errors, touched, values, handleSubmit, getFieldProps } = formik;
 
-  const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  };
 
   const sendReminder = (event, email) => {
     dispatch(addUser(email));
@@ -247,7 +243,7 @@ export default function ProfileSettings() {
                   orderBy={orderBy}
                   rowCount={0}
                   numSelected={0}
-                  onRequestSort={handleRequestSort}
+                  onRequestSort={(event, property) => handleRequestSort(event, property, orderBy, order, setOrder, setOrderBy)}
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
@@ -256,7 +252,7 @@ export default function ProfileSettings() {
                     if (email !== 'reid@gmail.com' && email !== 'reidelkins3@gmail.com') {
                       return (
                         <TableRow hover key={id} tabIndex={-1}>
-                          {adminBool ? (
+                          {userInfo && userInfo.status === 'admin' ? (
                             is_enterprise_owner ? (
                               <div />
                             ) : (
@@ -277,7 +273,7 @@ export default function ProfileSettings() {
                           <TableCell align="left">{is_enterprise_owner ? 'Enterprise Admin' : status}</TableCell>
                           <TableCell align="left">
                             {(() => {
-                              if (status === 'pending' && adminBool) {
+                              if (status === 'pending' && userInfo && userInfo.status === 'admin') {
                                 return (
                                   <Button
                                     aria-label="Send Reminder"
@@ -288,7 +284,7 @@ export default function ProfileSettings() {
                                   </Button>
                                 );
                               }
-                              if (status === 'active' && adminBool) {
+                              if (status === 'active' && userInfo && userInfo.status === 'admin') {
                                 return (
                                   <Button
                                     aria-label="Make Admin"
@@ -321,11 +317,11 @@ export default function ProfileSettings() {
           </Scrollbar>
         </Card>
         {/* <ResetPasswordModal /> */}
-        {adminBool && (
+        {userInfo && userInfo.status === 'admin' && (
           <>
             <NewUserModal />
             <br />
-            {userInfo.company.product === 'price_1MhxfPAkLES5P4qQbu8O45xy' ? (
+            {userInfo.company.product.id === 'price_1MhxfPAkLES5P4qQbu8O45xy' ? (
               <UpgradeFromFree />
             ) : (
               <Button variant="contained" color="primary" aria-label="Create Company" component="label">

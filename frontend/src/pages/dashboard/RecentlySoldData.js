@@ -35,6 +35,9 @@ import RecentlySoldListCall from '../../redux/calls/RecentlySoldListCall';
 import { selectRecentlySold, getRecentlySoldCSV } from '../../redux/actions/usersActions';
 import { showLoginInfo } from '../../redux/actions/authActions';
 import { makeDate } from '../../utils/makeDate';
+import { handleChangePage, handleChangeRowsPerPage, handleRequestSort } from '../../utils/dataTableFunctions';
+import { getComparator, applySortFilter } from '../../utils/filterFunctions';
+
 
 // ----------------------------------------------------------------------
 
@@ -48,34 +51,6 @@ const TABLE_HEAD = [
   { id: 'year_built', label: 'Year Built', alignRight: false },
 ];
 
-// ----------------------------------------------------------------------
-// change this to sort by status
-function descendingComparator(a, b, orderBy) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
-}
-
-export function getComparator(order, orderBy) {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-export function applySortFilter(array, comparator) {
-  const stabilizedThis = array.map((el, index) => [el, index]);
-
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-  return stabilizedThis.map((el) => el[0]);
-}
 
 export default function RecentlySoldData() {
   const dispatch = useDispatch();
@@ -108,24 +83,6 @@ export default function RecentlySoldData() {
     setRecentlySoldLength(RECENTLYSOLDLIST.length);
   }, [RECENTLYSOLDLIST, recentlySoldLength]);
 
-  const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  };
-
-  const handleChangePage = (event, newPage) => {
-    // fetch new page if two away from needing to see new page
-    // if (((newPage + 2) * rowsPerPage) % 1000 === 0) {
-    //   dispatch(recentlySoldAsync(((newPage + 2) * rowsPerPage) / 1000 + 1));
-    // }
-    setPage(newPage);
-  };
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [minYear, setMinYear] = useState('');
@@ -136,7 +93,47 @@ export default function RecentlySoldData() {
   const [zipCode, setZipCode] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
+  const [minRooms, setMinRooms] = useState('');
+  const [maxRooms, setMaxRooms] = useState('');
+  const [minBaths, setMinBaths] = useState('');
+  const [maxBaths, setMaxBaths] = useState('');
+  const [minSqft, setMinSqft] = useState('');
+  const [maxSqft, setMaxSqft] = useState('');
+  const [minLotSqft, setMinLotSqft] = useState('');
+  const [maxLotSqft, setMaxLotSqft] = useState('');
   const [savedFilter, setSavedFilter] = useState('');
+  const handleMinRoomsChange = (newMinRooms) => {
+    setMinRooms(newMinRooms);
+    setSavedFilter('');
+  };
+  const handleMaxRoomsChange = (newMaxRooms) => {
+    setMaxRooms(newMaxRooms);
+    setSavedFilter('');
+  };
+  const handleMinBathsChange = (newMinBaths) => {
+    setMinBaths(newMinBaths);
+    setSavedFilter('');
+  };
+  const handleMaxBathsChange = (newMaxBaths) => {
+    setMaxBaths(newMaxBaths);
+    setSavedFilter('');
+  };
+  const handleMinSqftChange = (newMinSqft) => {
+    setMinSqft(newMinSqft);
+    setSavedFilter('');
+  };
+  const handleMaxSqftChange = (newMaxSqft) => {
+    setMaxSqft(newMaxSqft);
+    setSavedFilter('');
+  };
+  const handleMinLotSqftChange = (newMinLotSqft) => {
+    setMinLotSqft(newMinLotSqft);
+    setSavedFilter('');
+  };
+  const handleMaxLotSqftChange = (newMaxLotSqft) => {
+    setMaxLotSqft(newMaxLotSqft);
+    setSavedFilter('');
+  };
   const handleMinPriceChange = (newMinPrice) => {
     setMinPrice(newMinPrice);
     setSavedFilter('');
@@ -194,6 +191,14 @@ export default function RecentlySoldData() {
         city,
         state,
         zipCode,
+        minRooms,
+        maxRooms,
+        minBaths,
+        maxBaths,
+        minSqft,
+        maxSqft,
+        minLotSqft,
+        maxLotSqft,
         savedFilter
       )
     );
@@ -228,7 +233,7 @@ export default function RecentlySoldData() {
                 <Scrollbar>
                   <RecentlySoldListToolbar
                     recentlySoldFilters={recentlySoldFilters}
-                    product={userInfo.company.product}
+                    product={userInfo.company.product.id}
                     minPrice={minPrice}
                     setMinPrice={handleMinPriceChange}
                     maxPrice={maxPrice}
@@ -249,6 +254,22 @@ export default function RecentlySoldData() {
                     setCity={handleCityChange}
                     state={state}
                     setState={handleStateChange}
+                    minRooms={minRooms}
+                    setMinRooms={handleMinRoomsChange}
+                    maxRooms={maxRooms}
+                    setMaxRooms={handleMaxRoomsChange}
+                    minBaths={minBaths}
+                    setMinBaths={handleMinBathsChange}
+                    maxBaths={maxBaths}
+                    setMaxBaths={handleMaxBathsChange}
+                    minSqft={minSqft}
+                    setMinSqft={handleMinSqftChange}
+                    maxSqft={maxSqft}
+                    setMaxSqft={handleMaxSqftChange}
+                    minLotSqft={minLotSqft}
+                    setMinLotSqft={handleMinLotSqftChange}
+                    maxLotSqft={maxLotSqft}
+                    setMaxLotSqft={handleMaxLotSqftChange}
                     savedFilter={savedFilter}
                     setSavedFilter={handleSavedFilterChange}
                   />
@@ -260,7 +281,7 @@ export default function RecentlySoldData() {
                         headLabel={TABLE_HEAD}
                         rowCount={rowsPerPage}
                         numSelected={0}
-                        onRequestSort={handleRequestSort}
+                        onRequestSort={(event, property) => handleRequestSort(event, property, orderBy, order, setOrder, setOrderBy)}
                         onSelectAllClick={handleRequestSort}
                         checkbox={0}
                       />
@@ -337,13 +358,17 @@ export default function RecentlySoldData() {
                 </Box>
               )}
               <TablePagination
-                rowsPerPageOptions={[10, 50, 100]}
-                component="div"
-                count={shownClients}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
+                  rowsPerPageOptions={[10, 50, 100]}
+                  component="div"
+                  count={shownClients}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onPageChange={(event, newPage) =>
+                      handleChangePage(event, newPage, setPage)
+                  }
+                  onRowsPerPageChange={(event) =>
+                      handleChangeRowsPerPage(event, setRowsPerPage, setPage)
+                  }
               />
             </Card>
             {/* TODO */}

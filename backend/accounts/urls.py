@@ -35,18 +35,21 @@ zapier_patterns = [
     ),
 ]
 
+user_patterns = [
+    path(
+        "<str:id>/",
+        views.ManageUserView.as_view(),
+        name="manage-user",
+    ),
+    path(
+        "",
+        views.ManageUserView.as_view(),
+        name="delete-user",
+    )
+]
+
 urlpatterns = [
-    path("refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    # path(
-    #     "verify_registration/",
-    #     views.VerifyRegistrationView.as_view(),
-    #     name="verify",
-    # ),
-    # path(
-    #     "confirmation/<str:pk>/<str:uid>/",
-    #     views.confirmation,
-    #     name="email_confirmation",
-    # ),
+    path("refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("otp/disable/", views.OTPDisableView.as_view(), name="otp-disable"),
     path(
         "otp/validate/", views.OTPValidateView.as_view(), name="otp-validate"
@@ -56,33 +59,30 @@ urlpatterns = [
         "otp/generate/", views.OTPGenerateView.as_view(), name="otp-generate"
     ),
     path("company/", views.CompanyView.as_view(), name="createCompany"),
-    path(
-        "manageuser/<str:id>/",
-        views.ManageUserView.as_view(),
-        name="manageuser",
-    ),
+    path("manageuser/", include(user_patterns)),
     path(
         "acceptinvite/<str:invitetoken>/",
         views.AcceptInvite.as_view(),
-        name="acceptinvite",
+        name="accept-invite",
     ),
+    # TODO: figure out how to write a reverse url for this
     path(
         "password_reset/",
         include("django_rest_passwordreset.urls", namespace="password_reset"),
     ),
-    path(
-        "users/<str:company>/", views.UserListView.as_view(), name="user-list"
-    ),
+    path("users/", views.UserListView.as_view(), name="user-list"),
     path("register/", views.RegisterView.as_view(), name="register"),
+    # TODO: write test for google login url
     path("login/", include(login_patterns)),
+    path(
+        "enterprise/", views.UserEnterpriseView.as_view(), name="enterprise"
+    ),
+    # TODO: write tests for zapier and authenticated_user urls
     path("zapier/", include(zapier_patterns)),
     path(
         "authenticated_user/",
         views.AuthenticatedUserView.as_view(),
         name="authenticated_user",
-    ),
-    path(
-        "enterprise/", views.UserEnterpriseView.as_view(), name="enterprise"
     ),
     path("", include(router.urls)),
 ]

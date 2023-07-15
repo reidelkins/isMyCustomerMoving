@@ -131,8 +131,8 @@ class RealtorAdmin(admin.ModelAdmin):
 
 
 class SavedFilterAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "company")
-    search_fields = ["id", "name", "company"]
+    list_display = ("id", "name", "filter_type", "company")
+    search_fields = ["id", "name", "filter_type", "company"]
 
 
 admin.site.register(HomeListing, HomeListingAdmin)

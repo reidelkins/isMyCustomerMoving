@@ -2,6 +2,7 @@
 from config import settings
 from datetime import datetime, timedelta, timezone
 from django.contrib.auth.hashers import make_password
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.http import JsonResponse, Http404
 from django.shortcuts import get_object_or_404
@@ -21,7 +22,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 import logging
 
-from djstripe import models as djstripe_models
+from payments.models import Product
 from .models import Company, CustomUser, Enterprise, InviteToken
 from .serializers import (
     UserSerializer,
@@ -77,12 +78,6 @@ class AcceptInvite(APIView):
 
     def post(self, request, *args, **kwargs):
         invite_token_id = self.kwargs["invitetoken"]
-        if not InviteToken.objects.filter(id=invite_token_id).exists():
-            return Response(
-                {"status": "Invalid Invite Token"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         try:
             token = InviteToken.objects.get(
                 id=invite_token_id, email=request.data["email"]
@@ -111,6 +106,12 @@ class AcceptInvite(APIView):
             user.is_verified = True
             user.save()
             token.delete()
+
+        except ObjectDoesNotExist:
+            return Response(
+                {"status": "Invalid Invite Token"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Http404:
             return Response(
                 {"status": "Cannot find user"},
@@ -219,57 +220,50 @@ class ManageUserView(APIView):
         serializer = UserListSerializer(users, many=True)
         return Response(serializer.data)
 
+    # edits user info
     def put(self, request, *args, **kwargs):
         try:
-            if CustomUser.objects.filter(id=self.kwargs["id"]).exists():
-                user = CustomUser.objects.get(id=self.kwargs["id"])
-                if user:
-                    # Ensure provided email is not already in use by another user
-                    if (
-                        CustomUser.objects.filter(email=request.data["email"])
-                        .exclude(id=user.id)
-                        .exists()
-                    ):
-                        return Response(
-                            {"status": "Email already in use"},
-                            status=status.HTTP_400_BAD_REQUEST,
-                        )
+            user = self.request.user
+            if "ids" in request.data:
+                # Get the list of IDs from request data
+                ids = request.data.get("ids", [])
+                # Convert the IDs to UUID objects
+                uuids = [uuid.UUID(id) for id in ids]
+                if CustomUser.objects.filter(
+                    id__in=uuids
+                ).exists():
+                    users = CustomUser.objects.filter(id__in=uuids)
+                    users.delete()
+                    return self._get_response(request.user.company)
+                else:
+                    return Response(
+                        {"status": "User Not Found"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+            else:
+                # Ensure provided email is not already in use by another user
+                if (
+                    CustomUser.objects.filter(email=request.data["email"])
+                    .exclude(id=user.id)
+                    .exists()
+                ):
+                    return Response(
+                        {"status": "Email already in use"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
 
-                    user.first_name = request.data.get(
-                        "firstName", user.first_name
-                    )
-                    user.last_name = request.data.get(
-                        "lastName", user.last_name
-                    )
-                    user.email = request.data.get("email", user.email)
-                    if request.data.get("phone"):
-                        user.phone = request.data["phone"]
-                    user.save()
-                    create_keap_user(user.id)
+                user.first_name = request.data.get(
+                    "firstName", user.first_name
+                )
+                user.last_name = request.data.get("lastName", user.last_name)
+                user.email = request.data.get("email", user.email)
+                if request.data.get("phone"):
+                    user.phone = request.data["phone"]
+                user.save()
+                create_keap_user(user.id)
                 serializer = UserSerializerWithToken(user, many=False)
                 return Response(serializer.data)
-            else:
-                return Response(
-                    {"status": "User Not Found"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        except Exception as e:
-            logging.error(e)
-            return Response(
-                {"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST
-            )
 
-    def delete(self, request, *args, **kwargs):
-        try:
-            if CustomUser.objects.filter(id__in=request.data).exists():
-                users = CustomUser.objects.filter(id__in=request.data)
-                users.delete()
-                return self._get_response(request.user.company)
-            else:
-                return Response(
-                    {"status": "User Not Found"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
         except Exception as e:
             logging.error(e)
             return Response(
@@ -280,94 +274,100 @@ class ManageUserView(APIView):
 class RegisterView(APIView):
     permission_classes = [AllowAny]
     throttle_classes = [AnonRateThrottle]
-    authentication_classes = []
 
     def post(self, request):
-        data = request.data
-        first_name = data.get("firstName")
-        last_name = data.get("lastName")
-        email = data.get("email")
-        password = data.get("password")
-        company = data.get("company")
-        registration_token = data.get("registrationToken")
-        phone = data.get("phone")
-        messages = {"errors": []}
-        if first_name is None:
-            messages["errors"].append("first_name can't be empty")
-        if last_name is None:
-            messages["errors"].append("last_name can't be empty")
-        if email is None:
-            messages["errors"].append("Email can't be empty")
-        if password is None:
-            messages["errors"].append("Password can't be empty")
-        if company is None:
-            messages["errors"].append("Company can't be empty")
-        if registration_token is None:
-            messages["errors"].append("Registration Token can't be empty")
-
-        if CustomUser.objects.filter(email=email).exists():
-            messages["errors"].append(
-                "Account already exists with this email id."
-            )
-        if len(messages["errors"]) > 0:
-            return Response(
-                {"detail": messages["errors"]},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         try:
-            company = Company.objects.get(
-                name=company, access_token=registration_token
-            )
-            noAdmin = CustomUser.objects.filter(
-                company=company, is_verified=True
-            )
-            if len(noAdmin) == 0:
-                user = CustomUser.objects.create(
-                    first_name=first_name,
-                    last_name=last_name,
-                    email=email,
-                    password=make_password(password, salt=uuid.uuid4().hex),
-                    company=company,
-                    status="admin",
-                    is_verified=True,
-                    phone=phone,
+            data = request.data
+            first_name = data.get("firstName")
+            last_name = data.get("lastName")
+            email = data.get("email")
+            password = data.get("password")
+            company = data.get("company")
+            registration_token = data.get("registrationToken")
+            phone = data.get("phone")
+            messages = {"errors": []}
+            if first_name is None:
+                messages["errors"].append("first_name can't be empty")
+            if last_name is None:
+                messages["errors"].append("last_name can't be empty")
+            if email is None:
+                messages["errors"].append("Email can't be empty")
+            if password is None:
+                messages["errors"].append("Password can't be empty")
+            if company is None:
+                messages["errors"].append("Company can't be empty")
+            if registration_token is None:
+                messages["errors"].append("Registration Token can't be empty")
+
+            if CustomUser.objects.filter(email=email).exists():
+                messages["errors"].append(
+                    "Account already exists with this email id."
                 )
-                # user = CustomUser.objects.get(email=email)
-                # current_site = get_current_site(request)
-                # tokenSerializer = UserSerializerWithToken(user, many=False)
-                # mail_subject = "Activation Link for Is My Customer Moving"
-                # messagePlain = """Verify your account for Is My Customer Moving
-                # by going here {}/api/v1/accounts/confirmation/{}/{}/"""
-                # .format(current_site, tokenSerializer.data['refresh'], user.id)
-                # message = get_template("registration.html").render({
-                #     'current_site': current_site,
-                #       'token': tokenSerializer.data['refresh'],
-                #       'user_id': user.id
-                # })
-                # send_mail(
-                # subject=mail_subject,
-                # message=messagePlain,
-                # from_email=settings.EMAIL_HOST_USER,
-                #  recipient_list=[email],
-                #  html_message=message,
-                #  fail_silently=False
-                # )
-                serializer = UserSerializerWithToken(user, many=False)
-                create_keap_user(user.id)
-            else:
+            if len(messages["errors"]) > 0:
                 return Response(
-                    {
-                        "detail": """Access Token Already Used.
-                        Ask an admin to login and create profile for you."""
-                    },
+                    {"detail": messages["errors"]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-        except Exception as e:
-            logging.error(e)
+            try:
+                company = Company.objects.get(
+                    name=company, access_token=registration_token
+                )
+                noAdmin = CustomUser.objects.filter(
+                    company=company, is_verified=True
+                )
+                if len(noAdmin) == 0:
+                    user = CustomUser.objects.create(
+                        first_name=first_name,
+                        last_name=last_name,
+                        email=email,
+                        password=make_password(
+                            password, salt=uuid.uuid4().hex
+                        ),
+                        company=company,
+                        status="admin",
+                        is_verified=True,
+                        phone=phone,
+                    )
+                    # user = CustomUser.objects.get(email=email)
+                    # current_site = get_current_site(request)
+                    # tokenSerializer = UserSerializerWithToken(user, many=False)
+                    # mail_subject = "Activation Link for Is My Customer Moving"
+                    # messagePlain = """Verify your account for Is My Customer Moving
+                    # by going here {}/api/v1/accounts/confirmation/{}/{}/"""
+                    # .format(current_site, tokenSerializer.data['refresh'], user.id)
+                    # message = get_template("registration.html").render({
+                    #     'current_site': current_site,
+                    #       'token': tokenSerializer.data['refresh'],
+                    #       'user_id': user.id
+                    # })
+                    # send_mail(
+                    # subject=mail_subject,
+                    # message=messagePlain,
+                    # from_email=settings.EMAIL_HOST_USER,
+                    #  recipient_list=[email],
+                    #  html_message=message,
+                    #  fail_silently=False
+                    # )
+                    serializer = UserSerializerWithToken(user, many=False)
+                    create_keap_user(user.id)
+                else:
+                    return Response(
+                        {
+                            "detail": """Access Token Already Used.
+                            Ask an admin to login and create profile for you."""
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+            except Exception as e:
+                logging.error(e)
+                return Response(
+                    {"detail": f"{e}"}, status=status.HTTP_400_BAD_REQUEST
+                )
+            return Response(serializer.data)
+        except ValueError as e:
             return Response(
                 {"detail": f"{e}"}, status=status.HTTP_400_BAD_REQUEST
             )
-        return Response(serializer.data)
 
 
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -391,11 +391,10 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 class OTPGenerateView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     throttle_classes = [AnonRateThrottle]
-    authentication_classes = []
 
     def post(self, request):
         try:
-            user = CustomUser.objects.get(id=request.data["id"])
+            user = self.request.user
             otp_base32 = pyotp.random_base32()
             otp_auth_url = pyotp.totp.TOTP(otp_base32).provisioning_uri(
                 name=user.email.lower(), issuer_name="Is My Customer Moving"
@@ -422,11 +421,10 @@ class OTPGenerateView(generics.GenericAPIView):
 class OTPVerifyView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     throttle_classes = [AnonRateThrottle]
-    authentication_classes = []
 
     def post(self, request):
         try:
-            user = CustomUser.objects.get(id=request.data["id"])
+            user = self.request.user
             if not user.otp_base32:
                 return Response(
                     {"detail": "OTP not generated for this user"},
@@ -445,12 +443,6 @@ class OTPVerifyView(generics.GenericAPIView):
                     {"detail": "OTP verification failed"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-
-        except CustomUser.DoesNotExist:
-            return Response(
-                {"detail": "User with this ID does not exist"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         except Exception as e:
             logging.error(e)
             return Response(
@@ -461,13 +453,12 @@ class OTPVerifyView(generics.GenericAPIView):
 class OTPValidateView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     throttle_classes = [AnonRateThrottle]
-    authentication_classes = []
 
     def post(self, request):
         otp = request.data["otp"]
         messages = {"errors": []}
         try:
-            user = CustomUser.objects.get(id=request.data["id"])
+            user = self.request.user
             if not user.otp_verified:
                 messages["errors"].append("One Time Password incorrect")
             if not user.otp_base32:
@@ -489,11 +480,6 @@ class OTPValidateView(generics.GenericAPIView):
                     {"detail": "OTP verification failed"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-        except CustomUser.DoesNotExist:
-            return Response(
-                {"detail": "User with this ID does not exist"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         except Exception as e:
             logging.error(e)
             return Response(
@@ -504,11 +490,10 @@ class OTPValidateView(generics.GenericAPIView):
 class OTPDisableView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     throttle_classes = [AnonRateThrottle]
-    authentication_classes = []
 
     def post(self, request):
         try:
-            user = CustomUser.objects.get(id=request.data["id"])
+            user = self.request.user
             user.otp_enabled = False
             user.otp_verified = False
             user.otp_base32 = None
@@ -516,12 +501,6 @@ class OTPDisableView(generics.GenericAPIView):
             user.save()
             serializer = UserSerializerWithToken(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-
-        except CustomUser.DoesNotExist:
-            return Response(
-                {"detail": "User with this ID does not exist"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         except Exception as e:
             logging.error(e)
             return Response(
@@ -534,7 +513,7 @@ class UserListView(generics.ListAPIView):
     serializer_class = UserListSerializer
 
     def get_queryset(self):
-        return CustomUser.objects.filter(company=self.kwargs["company"])
+        return CustomUser.objects.filter(company=self.request.user.company)
 
 
 # PEP8 compliance recommends using snake_case for variable names
@@ -922,7 +901,7 @@ class UserEnterpriseView(APIView):
         if not request.user.is_enterprise_owner:
             return Response(
                 {"detail": "User is not an enterprise owner"},
-                status=status.HTTP_403_FORBIDDEN,
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         company_id = request.data.get("company_id")
@@ -999,7 +978,7 @@ class CompanyView(APIView):
             comp = make_company(companyName, email, phone)
             try:
                 comp = Company.objects.get(id=comp)
-                freePlan = djstripe_models.Plan.objects.get(
+                freePlan = Product.objects.get(
                     id="price_1MhxfPAkLES5P4qQbu8O45xy"
                 )
                 comp.product = freePlan

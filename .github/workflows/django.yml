@@ -1,10 +1,13 @@
 name: IMCM CI
 
-on:
-  push:
-    branches: ["master", "pipeline-work"]
-  pull_request:
-    branches: ["master", "pipeline-work"]
+on: [push, pull_request]
+  # push:
+  #   branches-ignore:
+  #     # ignore all except master
+  #     - '*' # 'master'      
+  # pull_request:
+  #   branches:
+  #     - '*'
 
 env:
   DJANGO_SECRET_KEY: ${{secrets.DJANGO_SECRET_KEY}}
@@ -54,7 +57,7 @@ jobs:
       - name: Run Static Code Analysis
         run: |
           pip install flake8 black
-          flake8 backend --exclude=backend/accounts/migrations,backend/data/migrations,backend/accounts/migrations1,backend/data/migrations1,backend/manage.py,backend/accounts/tests.py,backend/data/tests.py,backend/payments/tests.py,backend/config/settings.py --max-line-length=85
+          flake8 backend --exclude=backend/accounts/migrations,backend/data/migrations,backend/accounts/migrations1,backend/data/migrations1,backend/payments/migrations,backend/manage.py,backend/accounts/tests,backend/data/tests,backend/payments/tests,backend/config/settings.py --max-line-length=85
       # black --check --line-length 85 backend
       - name: Database Setup
         run: |
@@ -65,18 +68,13 @@ jobs:
         run: |
           cd backend
           python manage.py makemigrations
-          python manage.py migrate
-      # TODO
-      # - name: Run Tests and Code Coverage
-      #   env:
-      #     # Add necessary environment variables for testing
-      #     DJANGO_SECRET_KEY: ${{secrets.DJANGO_SECRET_KEY}}
-      #     EMAIL: ${{secrets.EMAIL}}
-      #     # ...
-      #   run: |
-      #     cd backend
-      #     coverage run --source='.' manage.py test
-      #     coverage report -m
+          python manage.py migrate      
+      - name: Run Tests and Code Coverage        
+        run: |
+          cd backend
+          coverage run -m pytest
+          coverage report -m         
+          
       # - name: Run Integration Tests
       #   run: |
       #     cd backend
@@ -107,7 +105,7 @@ jobs:
           pip install bandit safety
       - name: Security Checks
         run: |
-          bandit -r backend -x backend/accounts/tests.py,backend/data/tests.py,backend/payments/tests.py
+          bandit -r backend -x backend/accounts/tests,backend/data/tests,backend/payments/tests
         # safety check -r backend/requirements.txt
 
   build-frontend:
