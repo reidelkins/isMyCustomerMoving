@@ -1,4 +1,5 @@
 from celery import shared_task
+from collections import defaultdict
 import requests
 import logging
 from time import sleep
@@ -19,6 +20,7 @@ from .utils import (
     del_variables,
     get_service_titan_access_token,
 )
+from payments.models import ServiceTitanInvoice
 from simple_salesforce import Salesforce
 
 
@@ -157,7 +159,7 @@ def get_service_titan_clients(
             update_client_list.delay(numbers)
             del_variables([numbers, response])
     del_variables([frm, moreClients, headers, company, tenant])
-    update_clients_with_first_invoice_date.delay(company_id)
+    get_service_titan_invoices.delay(company_id)
 
 
 @shared_task
@@ -188,7 +190,7 @@ def update_clients_with_last_service_date(equipment, company_id):
 
 
 @shared_task
-def update_clients_with_first_invoice_date(company_id):
+def get_service_titan_invoices(company_id, rfc339=None):
     company = Company.objects.get(id=company_id)
     tenant = company.tenant_id
     headers = get_service_titan_access_token(company_id)
@@ -201,75 +203,89 @@ def update_clients_with_first_invoice_date(company_id):
             f"https://api.servicetitan.io/accounting"
             f"/v2/tenant/{tenant}/invoices?page={page}&pageSize=2500"
         )
+        if rfc339:
+            url += f"&createdOnOrAfter={rfc339}"
         response = requests.get(url, headers=headers, timeout=10)
         page += 1
         for invoice in response.json()["data"]:
-            invoices.append(
-                {
-                    "createdOn": invoice["createdOn"],
-                    "id": invoice["customer"]["id"],
-                }
-            )
-        process_invoices.delay(invoices, company_id)
+            try:
+                if invoice["createdOn"] is not None and "customer" in invoice:
+                    if float(invoice["total"]) == 0:
+                        continue
+                    invoices.append(
+                        {
+                            "id": invoice["id"],
+                            "customer": invoice["customer"]["id"],
+                            "createdOn": invoice["createdOn"][:10],
+                            "amount": invoice["total"],
+
+                        }
+                    )
+
+            except Exception as e:
+                logging.error(e)
+        save_invoices.delay(invoices, company_id)
 
         if not response.json()["hasMore"]:
             more_invoices = False
 
+    get_customer_since_data_from_invoices.delay(company_id)
+
 
 @shared_task
-def process_invoices(invoices, company):
-    company = Company.objects.get(id=company)
-    client_dict = {}
+def save_invoices(invoices, company_id):
+    company = Company.objects.get(id=company_id)
+    clients = defaultdict(dict)
+    invoices_to_create = []
+
     for invoice in invoices:
-        # on the same line as the last statement, print another .
-        if invoice["createdOn"] is not None:
-            try:
-                tmpClients = Client.objects.filter(
-                    serv_titan_id=invoice["id"], company=company
+        client_id = invoice["customer"]
+
+        if client_id in clients:
+            client = clients[client_id]
+        else:
+            client = Client.objects.filter(
+                serv_titan_id=client_id, company=company
+            )
+            if client.count() > 0:
+                clients[client_id] = client[0]
+                client = client[0]
+            else:
+                continue
+
+        created_on = datetime.strptime(invoice["createdOn"], "%Y-%m-%d").date()
+
+        if not ServiceTitanInvoice.objects.filter(id=invoice["id"]).exists():
+            invoices_to_create.append(
+                ServiceTitanInvoice(
+                    id=invoice["id"],
+                    amount=invoice["amount"],
+                    client=client,
+                    created_on=created_on,
                 )
-                year, month, day = map(
-                    int, invoice["createdOn"][:10].split("-")
-                )
-                invoice_date = date(year, month, day)
-                for tmpClient in tmpClients:
-                    if tmpClient is not None:
-                        if (
-                            tmpClient.service_titan_customer_since is None
-                            or tmpClient.service_titan_customer_since
-                            > invoice_date
-                            or tmpClient.service_titan_customer_since
-                            == date(1, 1, 1)
-                        ):
-                            if invoice["id"] in client_dict:
-                                if client_dict[invoice["id"]] > invoice_date:
-                                    client_dict[invoice["id"]] = invoice_date
-                            else:
-                                client_dict[invoice["id"]] = invoice_date
-            except Exception as e:
-                logging.error(f"date error {e}")
-    update_clients(
-        client_dict, company
-    )  # Update the clients' service_titanCustomerSince field
+            )
+    ServiceTitanInvoice.objects.bulk_create(invoices_to_create)
 
 
-def update_clients(client_dict, company):
-    client_ids = client_dict.keys()
-    company = Company.objects.get(id=company.id)
-
+@shared_task
+def get_customer_since_data_from_invoices(company_id):
+    company = Company.objects.get(id=company_id)
     clients = Client.objects.filter(
-        serv_titan_id__in=client_ids, company=company
-    ).select_related("company")
-
-    updated_clients = []
+        company=company
+    )
     for client in clients:
-        client.service_titan_customer_since = client_dict.get(
-            client.serv_titan_id, client.service_titan_customer_since
-        )
-        updated_clients.append(client)
-    with transaction.atomic():
-        Client.objects.bulk_update(
-            updated_clients, ["service_titan_customer_since"]
-        )
+        invoices = ServiceTitanInvoice.objects.filter(
+            client=client
+        ).order_by("created_on")
+        if invoices.count() > 0:
+            client.service_titan_customer_since = invoices[0].created_on
+            lifetime_revenue = 0
+            for invoice in invoices:
+                lifetime_revenue += invoice.amount
+            client.service_titan_lifetime_revenue = lifetime_revenue
+            client.save(update_fields=[
+                        "service_titan_customer_since", "service_titan_lifetime_revenue"])
+    del_variables([clients, company])
 
 
 @shared_task
@@ -299,39 +315,6 @@ def get_servicetitan_equipment(company_id):
 
         update_clients_with_last_service_date.delay(equipment, company_id)
         del_variables([equipment, response])
-
-
-@shared_task
-def get_service_titan_invoices(company_id):
-    company = Company.objects.get(id=company_id)
-    earliest_date = CustomUser.objects.filter(company=company).aggregate(
-        Min("date_joined")
-    )
-    rfc3339 = earliest_date["date_joined__min"].isoformat()
-    rfc3339 = rfc3339[:-6]
-    tenant = company.tenant_id
-    headers = get_service_titan_access_token(company_id)
-    more_invoices = True
-    # get client data
-    page = 1
-    invoices = []
-    while more_invoices:
-        url = (
-            f"https://api.servicetitan.io/accounting/"
-            f"v2/tenant/{tenant}/invoices?page={page}"
-            f"&pageSize=2500&invoicedOnOrAfter={rfc3339}"
-        )
-
-        response = requests.get(url, headers=headers, timeout=10)
-        page += 1
-        for invoice in response.json()["data"]:
-            invoices.append(
-                {"id": invoice["customer"]["id"], "total": invoice["total"]}
-            )
-        if not response.json()["hasMore"]:
-            more_invoices = False
-    update_clients_with_revenue.delay(invoices, company_id)
-    del_variables([invoices, response])
 
 
 @shared_task
