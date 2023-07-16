@@ -154,7 +154,7 @@ jobs:
         run: |
           echo "Checking if backend server is running..."
           sleep 5 # Give the server some time to start
-          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/admin) # Replace the URL with the appropriate endpoint of your backend
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/api/v1/accounts/) # Replace the URL with the appropriate endpoint of your backend
           if [ "$response" != "200" ]; then
             echo "Backend server is not running. Exiting. Code was $response"
             exit 1
