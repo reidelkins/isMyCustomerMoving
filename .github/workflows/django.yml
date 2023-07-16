@@ -4,7 +4,7 @@ on: [push, pull_request]
   # push:
   #   branches-ignore:
   #     # ignore all except master
-  #     - '*' # 'master'      
+  #     - '*' # 'master'
   # pull_request:
   #   branches:
   #     - '*'
@@ -68,19 +68,18 @@ jobs:
         run: |
           cd backend
           python manage.py makemigrations
-          python manage.py migrate      
-      - name: Run Tests and Code Coverage     
-        if: matrix.python-version == '3.9'   
+          python manage.py migrate
+      - name: Run Tests and Code Coverage
         run: |
           cd backend
           coverage run -m pytest
-          coverage report -m 
+          coverage report -m
       - name: Start Server
         if: matrix.python-version == '3.9'
         run: |
           cd backend
           python manage.py collectstatic --noinput
-          python manage.py runserver &   
+          python manage.py runserver &
       - name: Wait for backend server to start
         if: matrix.python-version == '3.9'
         run: sleep 10
@@ -95,7 +94,7 @@ jobs:
             exit 1
           else
             echo "Backend server is running."
-          fi     
+          fi
 
   backend-security-check:
     needs: build-backend
@@ -148,6 +147,17 @@ jobs:
     needs: [build-backend, build-frontend]
 
     steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+
+        - name: Set up Node.js
+          uses: actions/setup-node@v2
+          with:
+            node-version: 18
+        - name: Install dependencies
+          run: |
+            cd frontend
+            yarn install --frozen-lockfile
         - name: Run tests
           run: |
             cd frontend
