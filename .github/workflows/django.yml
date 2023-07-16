@@ -161,6 +161,6 @@ jobs:
         - name: Run tests
           run: |
             cd frontend
-            yarn test --passWithNoTests --baseUrl $REACT_APP_BACKEND_URL
+            yarn test --passWithNoTests
         - name: Stop backend server
           run: pkill -f "python manage.py runserver"
