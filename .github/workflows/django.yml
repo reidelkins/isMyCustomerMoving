@@ -144,7 +144,7 @@ jobs:
       - name: Start Server
         run: |
           cd backend
-          python manage.py runserver
+          python manage.py runserver &
       - name: Check Backend Server
         run: |
           echo "Checking if backend server is running..."
