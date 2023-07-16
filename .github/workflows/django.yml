@@ -108,6 +108,55 @@ jobs:
           bandit -r backend -x backend/accounts/tests,backend/data/tests,backend/payments/tests
         # safety check -r backend/requirements.txt
 
+  build-working-backend:
+    runs-on: ubuntu-latest
+    strategy:
+        matrix:
+          python-version: [3.9]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+      - name: Setup Database
+        run: |
+          echo "Setting up test database..."
+          docker run --name db -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=password -e POSTGRES_DB=IMCM -p 5432:5432 -d postgres:latest
+          echo "Database setup complete."
+      - name: Apply Database Migrations
+        run: |
+          cd backend
+          python manage.py makemigrations
+          python manage.py migrate
+      - name: Start Server
+        run: |
+          cd backend
+          python manage.py runserver
+      - name: Check Backend Server
+        run: |
+          echo "Checking if backend server is running..."
+          sleep 5 # Give the server some time to start
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health-check) # Replace the URL with the appropriate endpoint of your backend
+          if [ "$response" != "200" ]; then
+            echo "Backend server is not running. Exiting..."
+            exit 1
+          else
+            echo "Backend server is running."
+          fi
+
   build-frontend:
     runs-on: ubuntu-latest
 
@@ -138,4 +187,4 @@ jobs:
       - name: Run tests
         run: |
           cd frontend
-          yarn test --passWithNoTests
+          yarn test --passWithNoTests --baseUrl $REACT_APP_BACKEND_URL
