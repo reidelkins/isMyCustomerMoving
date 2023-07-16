@@ -145,6 +145,10 @@ jobs:
         run: |
           cd backend
           python manage.py runserver &
+
+      - name: Wait for backend server to start
+        run: sleep 10
+
       - name: Check Backend Server
         run: |
           echo "Checking if backend server is running..."
@@ -156,6 +160,9 @@ jobs:
           else
             echo "Backend server is running."
           fi
+
+      - name: Stop backend server
+        run: pkill -f "python manage.py runserver"
 
   build-frontend:
     runs-on: ubuntu-latest
