@@ -144,6 +144,7 @@ jobs:
       - name: Start Server
         run: |
           cd backend
+          python manage.py collectstatic --noinput
           python manage.py runserver &
 
       - name: Wait for backend server to start
