@@ -163,4 +163,5 @@ jobs:
             cd frontend
             yarn test --passWithNoTests
         - name: Stop backend server
-          run: pkill -f "python manage.py runserver"
+          run: |
+            kill $(lsof -t -i:8000)
