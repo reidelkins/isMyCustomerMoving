@@ -2,6 +2,8 @@ Frontend Tests 28 June 2023
 
 ## End to End tests
  
+ This CRA app uses Playwright for end-to-end testing.  Below is a list of the completed and to be completed tests.
+
 #### Auth
 
 - [x] Auth
@@ -18,15 +20,14 @@ Frontend Tests 28 June 2023
 - [x] /dashboard/recentlysold
 - [x] /dashboard/settings/user
 - [x] /dashboard/settings/enterprise
-- [ ] Protected routes (ensure these require auth)
-  - [ ] /dashboard
+- [x] Protected routes (ensure these require auth)
 
 #### Profile Settings
 
-- [ ] Edit first name
-- [ ] Edit last name
+- [x] Edit first name
+- [x] Edit last name
 - [ ] Edit email
-- [ ] Edit phone number
+- [x] Edit phone number
 - [ ] Add User
   - [ ] Send Reminder Email
   - [ ] Make User Admin
