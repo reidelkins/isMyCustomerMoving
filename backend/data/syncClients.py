@@ -19,7 +19,7 @@ from .utils import (
     get_service_titan_access_token,
 )
 from payments.models import ServiceTitanInvoice
-# from simple_salesforce import Salesforce
+from simple_salesforce import Salesforce
 
 
 # @shared_task
@@ -35,9 +35,9 @@ from payments.models import ServiceTitanInvoice
 @shared_task
 def get_salesforce_clients(company_id, task_id=None):
     company = Company.objects.get(id=company_id)
-
+    url = "https://ismycustomermoving-dev-ed.develop.my.salesforce.com"
     sf = Salesforce(
-        instance_url="https://ismycustomermoving-dev-ed.develop.my.salesforce.com",
+        instance_url=url,
         session_id=company.sf_access_token,
         consumer_key=settings.SALESFORCE_CONSUMER_KEY,
         consumer_secret=settings.SALESFORCE_CONSUMER_SECRET,
