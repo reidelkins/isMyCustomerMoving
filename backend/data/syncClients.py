@@ -309,7 +309,8 @@ def save_invoices(company_id, invoices):
         # Parse the createdOn date from the invoice data
         created_on = datetime.strptime(invoice["createdOn"], "%Y-%m-%d").date()
         if not ServiceTitanInvoice.objects.filter(id=invoice["id"]).exists():
-            # Create the ServiceTitanInvoice object and add it to the bulk creation list
+            # Create the ServiceTitanInvoice object
+            # and add it to the bulk creation list
             invoices_to_create.append(
                 ServiceTitanInvoice(
                     id=invoice["id"],
