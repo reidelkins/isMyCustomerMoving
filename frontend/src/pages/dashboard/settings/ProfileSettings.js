@@ -202,17 +202,17 @@ export default function ProfileSettings() {
             ) : (
               <Stack direction="column" data-testid="profile-data">
                 <h3>Name:</h3>
-                <p data-tesid="user-name">
+                <p>
                   {userInfo && userInfo.first_name} {userInfo && userInfo.last_name}
                 </p>
                 <br />
                 <h3>Email:</h3>
-                <p data-tesid="user-email">
+                <p>
                   {userInfo && userInfo.email ? userInfo.email : 'None'}
                 </p>
                 <br />
                 <h3>Phone Number:</h3>
-                <p data-testid="user-phone">{userInfo && userInfo.phone ? userInfo.phone : 'None'}</p>
+                <p>{userInfo && userInfo.phone ? userInfo.phone : 'None'}</p>
                 <br />
                 <Button fullWidth size="large" variant="contained" onClick={() => setEditting(true)} data-testid="edit-profile">
                   Edit
@@ -240,7 +240,7 @@ export default function ProfileSettings() {
           ) : null}
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
-              <Table>
+              <Table data-testid="users-table">
                 <UserListHead
                   headLabel={TABLE_HEAD}
                   checkbox={adminBool}

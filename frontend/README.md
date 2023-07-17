@@ -28,7 +28,7 @@ Frontend Tests 28 June 2023
 - [x] Edit last name
 - [ ] Edit email
 - [x] Edit phone number
-- [ ] Add User
+- [x] Add User
   - [ ] Send Reminder Email
   - [ ] Make User Admin
   - [ ] Delete user
