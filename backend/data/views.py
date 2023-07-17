@@ -14,7 +14,7 @@ import csv
 from config import settings
 from .models import Client, ClientUpdate, HomeListing, Task, SavedFilter
 from .serializers import ClientListSerializer, HomeListingSerializer
-from .syncClients import get_salesforce_clients, get_service_titan_clients
+from .syncClients import get_salesforce_clients, complete_service_titan_sync
 from .realtor import get_all_zipcodes
 from .utils import (
     save_client_list,
@@ -804,7 +804,7 @@ class ServiceTitanView(APIView):
         option = request.data.get("option", "")
         try:
             task = Task.objects.create()
-            get_service_titan_clients.delay(company_id, task.id, option)
+            complete_service_titan_sync.delay(company_id, task.id, option)
             return Response(
                 {"status": "Success", "task": task.id},
                 status=status.HTTP_201_CREATED,

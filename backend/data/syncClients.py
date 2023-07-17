@@ -4,9 +4,9 @@ import requests
 import logging
 from time import sleep
 
-from datetime import datetime, timedelta, date
+from datetime import datetime
 from django.conf import settings
-from django.db.models.functions import Coalesce
+from django.db.models import F
 
 from accounts.models import Company
 from .models import Client
@@ -19,17 +19,17 @@ from .utils import (
     get_service_titan_access_token,
 )
 from payments.models import ServiceTitanInvoice
-from simple_salesforce import Salesforce
+# from simple_salesforce import Salesforce
 
 
-@shared_task
-def get_fieldEdge_clients(company_id, task_id):
-    Company.objects.get(id=company_id)
+# @shared_task
+# def get_fieldEdge_clients(company_id, task_id):
+#     Company.objects.get(id=company_id)
 
 
-@shared_task
-def get_hubspot_clients(company_id, task_id):
-    Company.objects.get(id=company_id)
+# @shared_task
+# def get_hubspot_clients(company_id, task_id):
+#     Company.objects.get(id=company_id)
 
 
 @shared_task
@@ -90,25 +90,35 @@ def get_salesforce_clients(company_id, task_id=None):
 @shared_task
 def complete_service_titan_sync(company_id, task_id, option=None, automated=False):
     company = Company.objects.get(id=company_id)
-    if not option:
+    tenant = company.tenant_id
+    if option is None:
         option = company.service_titan_customer_sync_option
     else:
         company.service_titan_customer_sync_option = option
         company.save()
-    get_service_titan_clients.delay(company_id, task_id, option, automated)
+
+    get_service_titan_locations(company_id, tenant, option)
+    delete_extra_clients.delay(company_id, task_id)
+
+    get_service_titan_equipment.delay(company_id, tenant)
+    if not automated:
+        do_it_all.delay(company_id)
+
+    if option == "option1":
+        get_service_titan_customers(company_id, tenant)
+
+    del_variables([company])
+    get_service_titan_invoices.delay(company_id, tenant)
 
 
-@shared_task
-def get_service_titan_clients(
-    company_id, task_id, option=None, automated=False
-):
-    company = Company.objects.get(id=company_id)
-    tenant = company.tenant_id
+def get_service_titan_locations(company_id, tenant, option):
+    # Retrieve the access token for ServiceTitan API
     headers = get_service_titan_access_token(company_id)
     clients = []
     moreClients = True
-    # get client data
     page = 1
+
+    # Fetch client data in paginated requests
     while moreClients:
         response = requests.get(
             url=(
@@ -122,79 +132,116 @@ def get_service_titan_clients(
         clients = response.json()["data"]
         if not response.json()["hasMore"]:
             moreClients = False
+
         if option == "option3":
+            # Modify client names if option3 is selected
             for client in clients:
                 client["name"] = " "
+
         result = save_client_list.delay(clients, company_id)
-        del_variables([clients, response])
 
-    # wait up to 30 seconds for the last task to complete
-    count = 0
-    while result.status != "SUCCESS" and count < 30:
-        sleep(1)
-        count += 1
+    # # Wait for the last task to complete
+    # count = 0
+    # while result.status != "SUCCESS" and count < 30:
+    #     sleep(1)
+    #     count += 1
 
-    delete_extra_clients.delay(company_id, task_id)
-
-    get_servicetitan_equipment.delay(company_id)
-    if not automated:
-        do_it_all.delay(company_id)
-    if option == "option1":
-        frm = ""
-        moreClients = True
-        page = 0
-        while moreClients:
-            page += 1
-            response = requests.get(
-                url=(
-                    f"https://api.servicetitan.io/crm/v2/tenant/"
-                    f"{tenant}/export/customers/contacts?from={frm}"
-                ),
-                headers=headers,
-                timeout=10,
-            )
-            numbers = response.json()["data"]
-            if response.json()["hasMore"]:
-                frm = response.json()["continueFrom"]
-            else:
-                moreClients = False
-            update_client_list.delay(numbers)
-            del_variables([numbers, response])
-    del_variables([frm, moreClients, headers, company, tenant])
-    get_service_titan_invoices.delay(company_id)
+    # Clean up variables to free up memory
+    del_variables([clients, response, headers, result])
 
 
 @shared_task
-def update_clients_with_last_service_date(equipment, company_id):
+def get_service_titan_equipment(company_id, tenant):
+    headers = get_service_titan_access_token(company_id)
+    more_equipment = True
+    # get client data
+    page = 1
+    while more_equipment:
+
+        response = requests.get(
+            url=(
+                f"https://api.servicetitan.io/equipmentsystems"
+                f"/v2/tenant/{tenant}/installed-equipment"
+                f"?page={page}&pageSize=2500"
+            ),
+            headers=headers,
+            timeout=10,
+        )
+        page += 1
+        equipment = response.json()["data"]
+        if not response.json()["hasMore"]:
+            more_equipment = False
+
+        update_clients_with_last_day_of_equipment_installation.delay(
+            company_id, equipment)
+    del_variables([equipment, response, headers])
+
+
+@shared_task
+def update_clients_with_last_day_of_equipment_installation(company_id, equipment):
+    # Retrieve the company based on the company_id
     company = Company.objects.get(id=company_id)
     client_dict = {}
+
+    # Iterate through the equipment list
     for equip in equipment:
         if equip["installedOn"] is not None:
             try:
+                # Parse the installation date from the equipment data
                 client_dict[equip["customerId"]] = datetime.strptime(
                     equip["installedOn"], "%Y-%m-%dT%H:%M:%SZ"
                 ).date()
             except Exception as e:
                 logging.error(e)
 
+    # Retrieve the client IDs from the client_dict
     client_ids = client_dict.keys()
-    clients = Client.objects.filter(
-        serv_titan_id__in=client_ids, company=company
-    ).select_related("company")
 
-    for client in clients:
-        client.equipment_installed_date = Coalesce(
-            client_dict.get(client.serv_titan_id),
-            client.equipment_installed_date,
+    # Fetch clients associated with the given company and matching the client IDs
+    clients = Client.objects.filter(
+        serv_titan_id__in=client_ids, company=company)
+    clients.update(
+        equipment_installed_date=F("client_dict__serv_titan_id") or F(
+            "equipment_installed_date")
+    )
+    # Update the equipment_installed_date for each client
+    # for client in clients:
+    #     client.equipment_installed_date = Coalesce(
+    #         client_dict.get(client.serv_titan_id),
+    #         client.equipment_installed_date,
+    #     )
+    #     client.save(update_fields=["equipment_installed_date"])
+
+    # Clean up variables to free up memory
+    del_variables([company, equipment, client_dict, client_ids, clients])
+
+
+def get_service_titan_customers(company_id, tenant):
+    headers = get_service_titan_access_token(company_id)
+    frm = ""
+    moreClients = True
+    page = 0
+    while moreClients:
+        page += 1
+        response = requests.get(
+            url=(
+                f"https://api.servicetitan.io/crm/v2/tenant/"
+                f"{tenant}/export/customers/contacts?from={frm}"
+            ),
+            headers=headers,
+            timeout=10,
         )
-        client.save(update_fields=["equipment_installed_date"])
-    return len(clients)
+        numbers = response.json()["data"]
+        if response.json()["hasMore"]:
+            frm = response.json()["continueFrom"]
+        else:
+            moreClients = False
+        update_client_list.delay(numbers)
+    del_variables([numbers, response, headers])
 
 
 @shared_task
-def get_service_titan_invoices(company_id, rfc339=None):
-    company = Company.objects.get(id=company_id)
-    tenant = company.tenant_id
+def get_service_titan_invoices(company_id, tenant, rfc339=None):
     headers = get_service_titan_access_token(company_id)
     more_invoices = True
     page = 1
@@ -207,7 +254,7 @@ def get_service_titan_invoices(company_id, rfc339=None):
         )
         if rfc339:
             url += f"&createdOnOrAfter={rfc339}"
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url=url, headers=headers, timeout=10)
         page += 1
         for invoice in response.json()["data"]:
             try:
@@ -220,22 +267,26 @@ def get_service_titan_invoices(company_id, rfc339=None):
                             "customer": invoice["customer"]["id"],
                             "createdOn": invoice["createdOn"][:10],
                             "amount": invoice["total"],
-
                         }
                     )
 
             except Exception as e:
                 logging.error(e)
-        save_invoices.delay(invoices, company_id)
+        result = save_invoices.delay(company_id, invoices)
 
         if not response.json()["hasMore"]:
             more_invoices = False
-
+    count = 0
+    while result.status != "SUCCESS" and count < 30:
+        sleep(1)
+        count += 1
     get_customer_since_data_from_invoices.delay(company_id)
+    del_variables([headers, response, invoices, result])
 
 
 @shared_task
-def save_invoices(invoices, company_id):
+def save_invoices(company_id, invoices):
+    # Retrieve the company based on the company_id
     company = Company.objects.get(id=company_id)
     clients = defaultdict(dict)
     invoices_to_create = []
@@ -255,9 +306,10 @@ def save_invoices(invoices, company_id):
             else:
                 continue
 
+        # Parse the createdOn date from the invoice data
         created_on = datetime.strptime(invoice["createdOn"], "%Y-%m-%d").date()
-
         if not ServiceTitanInvoice.objects.filter(id=invoice["id"]).exists():
+            # Create the ServiceTitanInvoice object and add it to the bulk creation list
             invoices_to_create.append(
                 ServiceTitanInvoice(
                     id=invoice["id"],
@@ -266,7 +318,11 @@ def save_invoices(invoices, company_id):
                     created_on=created_on,
                 )
             )
+    # Bulk create the invoices
     ServiceTitanInvoice.objects.bulk_create(invoices_to_create)
+
+    # Clean up variables to free up memory
+    del_variables([company, clients, invoices_to_create])
 
 
 @shared_task
@@ -279,7 +335,8 @@ def get_customer_since_data_from_invoices(company_id):
         invoices = ServiceTitanInvoice.objects.filter(
             client=client
         ).order_by("created_on")
-        if invoices.count() > 0:
+
+        if len(invoices) > 0:
             client.service_titan_customer_since = invoices[0].created_on
             lifetime_revenue = 0
             for invoice in invoices:
@@ -289,75 +346,46 @@ def get_customer_since_data_from_invoices(company_id):
                         "service_titan_customer_since",
                         "service_titan_lifetime_revenue"
                         ])
-    del_variables([clients, company])
+    del_variables([clients, company, invoices])
 
+# TODO: Figure out where/when to use this
+# @shared_task
+# def update_clients_with_revenue(invoices, company_id):
+#     company = Company.objects.get(id=company_id)
+#     client_dict = {}
+#     for invoice in invoices:
+#         if float(invoice["total"]) > 0:
+#             if invoice["id"] in client_dict:
+#                 client_dict[invoice["id"]] += float(invoice["total"])
+#             else:
+#                 client_dict[invoice["id"]] = float(invoice["total"])
+#     del invoices
+#     tmpDict = client_dict.copy()
+#     for client in tmpDict:
+#         tmpClient = (
+#             Client.objects.filter(serv_titan_id=client, company=company)
+#             .order_by("address")
+#             .first()
+#         )
+#         if tmpClient is not None:
+#             if (
+#                 tmpClient.service_titan_customer_since is not None
+#                 and tmpClient.service_titan_customer_since
+#                 > date.today() - timedelta(days=180)
+#             ):
+#                 client_dict.pop(client)
+#     del tmpDict
+#     client_ids = client_dict.keys()
 
-@shared_task
-def get_servicetitan_equipment(company_id):
-    company = Company.objects.get(id=company_id)
-    tenant = company.tenant_id
-    headers = get_service_titan_access_token(company_id)
-    more_equipment = True
-    # get client data
-    page = 1
-    while more_equipment:
-        url = (
-            f"https://api.servicetitan.io/equipmentsystems"
-            f"/v2/tenant/{tenant}/installed-equipment"
-            f"?page={page}&pageSize=2500"
-        )
-        response = requests.get(
-            url,
-            headers=headers,
-            timeout=10,
-        )
-        # additional option &modifiedOnOrAfter=2000-1-1T00:00:14-05:00
-        page += 1
-        equipment = response.json()["data"]
-        if not response.json()["hasMore"]:
-            more_equipment = False
+#     clients = Client.objects.filter(
+#         serv_titan_id__in=client_ids,
+#         company=company,
+#         status__in=["House For Sale", "House Recently Sold (6)"],
+#     )
 
-        update_clients_with_last_service_date.delay(equipment, company_id)
-        del_variables([equipment, response])
+#     for client in clients:
+#         client.revenue = Coalesce(
+#             client_dict.get(client.serv_titan_id), client.revenue
+#         )
 
-
-@shared_task
-def update_clients_with_revenue(invoices, company_id):
-    company = Company.objects.get(id=company_id)
-    client_dict = {}
-    for invoice in invoices:
-        if float(invoice["total"]) > 0:
-            if invoice["id"] in client_dict:
-                client_dict[invoice["id"]] += float(invoice["total"])
-            else:
-                client_dict[invoice["id"]] = float(invoice["total"])
-    del invoices
-    tmpDict = client_dict.copy()
-    for client in tmpDict:
-        tmpClient = (
-            Client.objects.filter(serv_titan_id=client, company=company)
-            .order_by("address")
-            .first()
-        )
-        if tmpClient is not None:
-            if (
-                tmpClient.service_titan_customer_since is not None
-                and tmpClient.service_titan_customer_since
-                > date.today() - timedelta(days=180)
-            ):
-                client_dict.pop(client)
-    del tmpDict
-    client_ids = client_dict.keys()
-
-    clients = Client.objects.filter(
-        serv_titan_id__in=client_ids,
-        company=company,
-        status__in=["House For Sale", "House Recently Sold (6)"],
-    )
-
-    for client in clients:
-        client.revenue = Coalesce(
-            client_dict.get(client.serv_titan_id), client.revenue
-        )
-
-    Client.objects.bulk_update(clients, ["revenue"])
+#     Client.objects.bulk_update(clients, ["revenue"])
