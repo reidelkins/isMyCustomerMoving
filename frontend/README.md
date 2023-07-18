@@ -29,10 +29,10 @@ Frontend Tests 28 June 2023
 - [ ] Edit email
 - [x] Edit phone number
 - [x] Add User
-  - [ ] Send Reminder Email
-  - [ ] Make User Admin
-  - [ ] Delete user
-  - [ ] Delete multiple users
+  - [x] Email input validation
+  - [x] Send Reminder Email
+  - [x] Make User Admin (need fixture that has a active user that is not an admin)
+  - [x] Delete user
 - [ ] Connect To Service Titan
   - [ ] Add Tenant ID
   - [ ] Then should see button to add client ID and secret
@@ -99,3 +99,16 @@ Frontend Tests 28 June 2023
   - Can not upload anything
   - Can not add users, delete users, or change status of users
 - Free tier vs not free tier shows pop up’s and alerts as expected
+
+## Fixture requirements
+
+1. Users
+  - Admin user john.playwright@email.com
+  - Non admin user linda.playwright @email.com
+  - pending user
+  pending.playwright@email.com
+  - user to be deleted delete.playwright@email.com
+2. Test company 
+  - CRM
+  - enterprise
+  - For sale and recently sold
