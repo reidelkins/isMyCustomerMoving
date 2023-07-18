@@ -349,7 +349,7 @@ class TestUtilFunctions(TestCase):
         self.assertFalse(self.client.usps_different)
         self.assertEqual(
             self.client.old_address,
-            ""
+            None
         )
 
 
