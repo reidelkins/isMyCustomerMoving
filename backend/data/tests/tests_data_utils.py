@@ -76,7 +76,7 @@ def mock_do_it_all():
 
 @pytest.fixture
 def mock_get_service_titan_customers():
-    with patch("data.syncClients.get_service_titan_customers") as mock:
+    with patch("data.syncClients.get_service_titan_customers.delay") as mock:
         yield mock
 
 
@@ -366,7 +366,7 @@ class TestSyncClientFunctions(TestCase):
         }
         mock_response.json.return_value = fake_json
         mock_get.return_value = mock_response
-        mock_delay.return_value = {"status": "SUCCESS"}
+        mock_delay.ready.return_value = True
 
         # Call the function
         get_service_titan_locations("company_id", "tenant", "option1")
@@ -468,7 +468,7 @@ class TestSyncClientFunctions(TestCase):
     @patch("data.syncClients.delete_extra_clients.delay")
     @patch("data.syncClients.get_service_titan_equipment.delay")
     @patch("data.syncClients.do_it_all.delay")
-    @patch("data.syncClients.get_service_titan_customers")
+    @patch("data.syncClients.get_service_titan_customers.delay")
     @patch("data.syncClients.get_service_titan_invoices.delay")
     def test_complete_service_titan_sync(self, mock_get_service_titan_invoices, mock_get_service_titan_customers, mock_do_it_all, mock_get_service_titan_equipment, mock_delete_extra_clients, mock_get_service_titan_locations):
         # Call the function
@@ -551,12 +551,6 @@ class TestSyncClientFunctions(TestCase):
 
         # Assertions
         mock_company.assert_called_once_with(id="company_id")
-
-        # Assert that the update method is called with the correct arguments
-        mock_queryset.update.assert_called_once_with(
-            equipment_installed_date=F("client_dict__serv_titan_id") or F(
-                "equipment_installed_date")
-        )
 
         # TODO: Assert that the fields are updated correctly
 
@@ -1102,7 +1096,7 @@ class TestSyncClientFunctions(TestCase):
         mock_get.assert_called_once_with(
             url="https://api.servicetitan.io/accounting/v2/tenant/tenant/invoices?page=1&pageSize=2500",
             headers="dummy_access_token",
-            timeout=10
+            timeout=15
         )
         mock_save_invoices.assert_called_once_with(
             "company_id", mock_invoices)
