@@ -68,7 +68,8 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
         const updatedFields = [...commonFields];
 
         if (userInfo && userInfo.company.crm === 'ServiceTitan') {
-        updatedFields.unshift({ id: 'serviceTitanCustomerSinceYear', label: 'Customer Since', alignRight: false });
+        updatedFields.unshift({ id: 'serviceTitanLifetimeRevenue', label: 'Lifetime Revenue', alignRight: false });
+        updatedFields.unshift({ id: 'serviceTitanCustomerSinceYear', label: 'Customer Since', alignRight: false });        
         }
         if (userInfo && (userInfo.company.enterprise || userInfo.email === 'reid@gmail.com' ||
         userInfo.email === 'reid@ismycustomermoving.com' ||
@@ -421,6 +422,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                                         service_titan_customer_since_year: serviceTitanCustomerSinceYear,
                                         usps_address: uspsAddress, 
                                         usps_different: uspsDifferent,
+                                        service_titan_lifetime_revenue: serviceTitanLifetimeRevenue,
                                     } = row;
                                     const isItemSelected = selected.indexOf(address) !== -1;
 
@@ -443,13 +445,20 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                                                 />
                                             </TableCell>
                                             {userInfo.company.crm === 'ServiceTitan' && (
-                                                <TableCell component="th" scope="row" padding="none">
-                                                <Label variant="ghost" color="info">
-                                                    {serviceTitanCustomerSinceYear !== 1
-                                                    ? serviceTitanCustomerSinceYear
-                                                    : '1900'}
-                                                </Label>
-                                                </TableCell>
+                                                <>
+                                                    <TableCell component="th" scope="row" padding="none">
+                                                        <Label variant="ghost" color="info">
+                                                            {serviceTitanCustomerSinceYear !== 1
+                                                            ? serviceTitanCustomerSinceYear
+                                                            : '1900'}
+                                                        </Label>
+                                                    </TableCell>
+                                                    <TableCell component="th" scope="row" padding="none">
+                                                        <Label variant="ghost" color="info">
+                                                            ${Math.floor(serviceTitanLifetimeRevenue)}
+                                                        </Label>
+                                                    </TableCell>
+                                                </>
                                             )}
                                             <TableCell component="th" scope="row" padding="none">
                                                 <Stack direction="row" alignItems="center" spacing={2}>
