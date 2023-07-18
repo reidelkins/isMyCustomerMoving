@@ -1268,10 +1268,9 @@ def verify_address(client_id):
     """
     try:
         client = Client.objects.get(id=client_id)
-    except Client.DoesNotExist:
-        logging.error(f"Client with id {client_id} does not exist.")
+    except Exception as e:
+        logging.error(f"Client with id {client_id} does not exist. {e}")
         return
-
     zip_code = client.zip_code.zip_code
     base_url = "http://production.shippingapis.com/ShippingAPI.dll"
     user_id = settings.USPS_USER_ID
@@ -1291,7 +1290,6 @@ def verify_address(client_id):
     """
 
     params = {"API": api, "XML": xml_request}
-
     try:
         response = requests.get(base_url, params=params, timeout=10)
     except requests.exceptions.RequestException as e:
@@ -1303,7 +1301,7 @@ def verify_address(client_id):
     address_element = parsed_response.find("Address")
     error = address_element.find("Error")
 
-    if not error:
+    if error is None:
         address2 = address_element.find("Address2").text.title()
         address2 = parse_streets(address2)
         city = address_element.find("City").text.title()
