@@ -14,7 +14,7 @@ import csv
 from config import settings
 from .models import Client, ClientUpdate, HomeListing, Task, SavedFilter
 from .serializers import ClientListSerializer, HomeListingSerializer
-from .syncClients import get_salesforce_clients, complete_service_titan_sync
+from .syncClients import get_salesforce_clients, get_service_titan_clients
 from .realtor import get_all_zipcodes
 from .utils import (
     save_client_list,
@@ -105,67 +105,57 @@ class ClientListView(generics.ListAPIView):
         return queryset
 
     def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
         user = self.request.user
-        if "newAddress" in request.query_params:
-            clients = Client.objects.filter(
-                company=user.company, active=True
-            ).exclude(new_address=None)
-            serializer = self.get_serializer(clients, many=True)
-            clients = serializer.data
-            return Response({"clients": clients}, status=status.HTTP_200_OK)
-        else:
-            queryset = self.filter_queryset(self.get_queryset())
-            user = self.request.user
-            allClients = Client.objects.filter(
-                company=user.company, active=True)
-            forSale = allClients.filter(
-                status="House For Sale", contacted=False
-            ).count()
-            recentlySold = allClients.filter(
-                status="House Recently Sold (6)", contacted=False
-            ).count()
-            allClientUpdates = ClientUpdate.objects.filter(
-                client__company=user.company
-            )
-            forSaleAllTime = allClientUpdates.filter(
-                status="House For Sale"
-            ).count()
-            recentlySoldAllTime = allClientUpdates.filter(
-                status="House Recently Sold (6)"
-            ).count()
-            savedFilters = list(
-                SavedFilter.objects.filter(
-                    company=user.company, filter_type="Client"
-                ).values_list("name", flat=True)
-            )
+        allClients = Client.objects.filter(company=user.company, active=True)
+        forSale = allClients.filter(
+            status="House For Sale", contacted=False
+        ).count()
+        recentlySold = allClients.filter(
+            status="House Recently Sold (6)", contacted=False
+        ).count()
+        allClientUpdates = ClientUpdate.objects.filter(
+            client__company=user.company
+        )
+        forSaleAllTime = allClientUpdates.filter(
+            status="House For Sale"
+        ).count()
+        recentlySoldAllTime = allClientUpdates.filter(
+            status="House Recently Sold (6)"
+        ).count()
+        savedFilters = list(
+            SavedFilter.objects.filter(
+                company=user.company, filter_type="Client"
+            ).values_list("name", flat=True)
+        )
 
-            page = self.paginate_queryset(queryset)
-            if page is not None:
-                serializer = self.get_serializer(page, many=True)
-                clients = serializer.data
-                return self.get_paginated_response(
-                    {
-                        "forSale": forSale,
-                        "forSaleAllTime": forSaleAllTime,
-                        "recentlySoldAllTime": recentlySoldAllTime,
-                        "recentlySold": recentlySold,
-                        "clients": clients,
-                        "savedFilters": savedFilters,
-                    }
-                )
-
-            serializer = self.get_serializer(queryset, many=True)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
             clients = serializer.data
-            return Response(
+            return self.get_paginated_response(
                 {
                     "forSale": forSale,
                     "forSaleAllTime": forSaleAllTime,
                     "recentlySoldAllTime": recentlySoldAllTime,
                     "recentlySold": recentlySold,
                     "clients": clients,
-                },
-                status=status.HTTP_200_OK,
+                    "savedFilters": savedFilters,
+                }
             )
+
+        serializer = self.get_serializer(queryset, many=True)
+        clients = serializer.data
+        return Response(
+            {
+                "forSale": forSale,
+                "forSaleAllTime": forSaleAllTime,
+                "recentlySoldAllTime": recentlySoldAllTime,
+                "recentlySold": recentlySold,
+                "clients": clients,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def post(self, request, format=None):
         try:
@@ -757,7 +747,7 @@ class ServiceTitanView(APIView):
             try:
                 task = Task.objects.get(id=kwargs["task"])
                 if task.completed:
-                    deleted = task.deleted_clients
+                    deleted = task.deletedClients
                     task.delete()
                     return Response(
                         {
@@ -804,7 +794,7 @@ class ServiceTitanView(APIView):
         option = request.data.get("option", "")
         try:
             task = Task.objects.create()
-            complete_service_titan_sync.delay(company_id, task.id, option)
+            get_service_titan_clients.delay(company_id, task.id, option)
             return Response(
                 {"status": "Success", "task": task.id},
                 status=status.HTTP_201_CREATED,
