@@ -245,7 +245,7 @@ def get_service_titan_customers(company_id, tenant):
 @shared_task
 def get_service_titan_invoices(company_id, tenant, rfc339=None):
     headers = get_service_titan_access_token(company_id)
-    more_invoices = False
+    more_invoices = True
     page = 1
     results = []
     while more_invoices:
