@@ -1314,7 +1314,10 @@ def verify_address(client_id):
             or zip5 != zip_code
         ):
             client.usps_different = True
-        client.old_address = f"{client.address}, {client.city}, {client.state} {client.zip_code.zip_code}"
+        client.old_address = (
+            f"{client.address}, {client.city},"
+            f"{client.state} {client.zip_code.zip_code}"
+        )
         client.address = address2
         client.city = city
         client.state = state
