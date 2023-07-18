@@ -6,7 +6,7 @@ from time import sleep
 
 from datetime import datetime
 from django.conf import settings
-from django.db.models import F
+from django.db.models.functions import Coalesce
 
 from accounts.models import Company
 from .models import Client
@@ -98,6 +98,7 @@ def complete_service_titan_sync(company_id, task_id, option=None, automated=Fals
         company.save()
 
     get_service_titan_locations(company_id, tenant, option)
+
     delete_extra_clients.delay(company_id, task_id)
 
     get_service_titan_equipment.delay(company_id, tenant)
@@ -105,7 +106,7 @@ def complete_service_titan_sync(company_id, task_id, option=None, automated=Fals
         do_it_all.delay(company_id)
 
     if option == "option1":
-        get_service_titan_customers(company_id, tenant)
+        get_service_titan_customers.delay(company_id, tenant)
 
     del_variables([company])
     get_service_titan_invoices.delay(company_id, tenant)
@@ -119,6 +120,7 @@ def get_service_titan_locations(company_id, tenant, option):
     page = 1
 
     # Fetch client data in paginated requests
+    results = []
     while moreClients:
         response = requests.get(
             url=(
@@ -138,16 +140,15 @@ def get_service_titan_locations(company_id, tenant, option):
             for client in clients:
                 client["name"] = " "
 
-        result = save_client_list.delay(clients, company_id)
+        results.append(save_client_list.delay(clients, company_id))
 
-    # Wait for the last task to complete
     count = 0
-    while result.status != "SUCCESS" and count < 30:
+    while any(not result.ready() for result in results) and count < 30:
         sleep(1)
         count += 1
 
     # Clean up variables to free up memory
-    del_variables([clients, response, headers, result])
+    del_variables([clients, response, headers])
 
 
 @shared_task
@@ -189,7 +190,7 @@ def update_clients_with_last_day_of_equipment_installation(company_id, equipment
             try:
                 # Parse the installation date from the equipment data
                 client_dict[equip["customerId"]] = datetime.strptime(
-                    equip["installedOn"], "%Y-%m-%dT%H:%M:%SZ"
+                    equip["installedOn"][:10], "%Y-%m-%d"
                 ).date()
             except Exception as e:
                 logging.error(e)
@@ -200,22 +201,23 @@ def update_clients_with_last_day_of_equipment_installation(company_id, equipment
     # Fetch clients associated with the given company and matching the client IDs
     clients = Client.objects.filter(
         serv_titan_id__in=client_ids, company=company)
-    clients.update(
-        equipment_installed_date=F("client_dict__serv_titan_id") or F(
-            "equipment_installed_date")
-    )
+    # clients.update(
+    #     equipment_installed_date=F("client_dict__serv_titan_id") or F(
+    #         "equipment_installed_date")
+    # )
     # Update the equipment_installed_date for each client
-    # for client in clients:
-    #     client.equipment_installed_date = Coalesce(
-    #         client_dict.get(client.serv_titan_id),
-    #         client.equipment_installed_date,
-    #     )
-    #     client.save(update_fields=["equipment_installed_date"])
+    for client in clients:
+        client.equipment_installed_date = Coalesce(
+            client_dict.get(client.serv_titan_id),
+            client.equipment_installed_date,
+        )
+        client.save(update_fields=["equipment_installed_date"])
 
     # Clean up variables to free up memory
     del_variables([company, equipment, client_dict, client_ids, clients])
 
 
+@shared_task
 def get_service_titan_customers(company_id, tenant):
     headers = get_service_titan_access_token(company_id)
     frm = ""
@@ -243,9 +245,9 @@ def get_service_titan_customers(company_id, tenant):
 @shared_task
 def get_service_titan_invoices(company_id, tenant, rfc339=None):
     headers = get_service_titan_access_token(company_id)
-    more_invoices = True
+    more_invoices = False
     page = 1
-
+    results = []
     while more_invoices:
         invoices = []
         url = (
@@ -254,7 +256,7 @@ def get_service_titan_invoices(company_id, tenant, rfc339=None):
         )
         if rfc339:
             url += f"&createdOnOrAfter={rfc339}"
-        response = requests.get(url=url, headers=headers, timeout=10)
+        response = requests.get(url=url, headers=headers, timeout=15)
         page += 1
         for invoice in response.json()["data"]:
             try:
@@ -272,20 +274,21 @@ def get_service_titan_invoices(company_id, tenant, rfc339=None):
 
             except Exception as e:
                 logging.error(e)
-        result = save_invoices.delay(company_id, invoices)
+        results.append(save_invoices.delay(company_id, invoices))
 
         if not response.json()["hasMore"]:
             more_invoices = False
     count = 0
-    while result.status != "SUCCESS" and count < 30:
+    while any(not result.ready() for result in results) and count < 30:
         sleep(1)
         count += 1
     get_customer_since_data_from_invoices.delay(company_id)
-    del_variables([headers, response, invoices, result])
+    del_variables([headers, response, invoices, results])
 
 
 @shared_task
 def save_invoices(company_id, invoices):
+    # TODO: This function takes 60-70 seconds to run. Need to optimize it.
     # Retrieve the company based on the company_id
     company = Company.objects.get(id=company_id)
     clients = defaultdict(dict)

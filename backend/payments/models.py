@@ -12,6 +12,12 @@ class Product(models.Model):
     )
     name = models.CharField(max_length=100)
 
+    def __str__(self):
+        if self.interval == "month":
+            return f"${self.amount}/month"
+        else:
+            return f"${self.amount}/year"
+
 
 class ServiceTitanInvoice(models.Model):
     id = models.CharField(max_length=100, primary_key=True)

@@ -757,7 +757,7 @@ class ServiceTitanView(APIView):
             try:
                 task = Task.objects.get(id=kwargs["task"])
                 if task.completed:
-                    deleted = task.deletedClients
+                    deleted = task.deleted_clients
                     task.delete()
                     return Response(
                         {
