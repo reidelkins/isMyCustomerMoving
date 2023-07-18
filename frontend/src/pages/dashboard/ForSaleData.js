@@ -35,9 +35,6 @@ import ForSaleListCall from '../../redux/calls/ForSaleListCall';
 import { selectForSale, getForSaleCSV } from '../../redux/actions/usersActions';
 import { showLoginInfo } from '../../redux/actions/authActions';
 import { makeDate } from '../../utils/makeDate';
-import { handleChangePage, handleChangeRowsPerPage } from '../../utils/dataTableFunctions';
-import { getComparator, applySortFilter } from '../../utils/filterFunctions';
-
 
 // ----------------------------------------------------------------------
 
@@ -50,6 +47,35 @@ const TABLE_HEAD = [
   { id: 'price', label: 'Price', alignRight: false },
   { id: 'year_built', label: 'Year Built', alignRight: false },
 ];
+
+// ----------------------------------------------------------------------
+// change this to sort by status
+function descendingComparator(a, b, orderBy) {
+  if (b[orderBy] < a[orderBy]) {
+    return -1;
+  }
+  if (b[orderBy] > a[orderBy]) {
+    return 1;
+  }
+  return 0;
+}
+
+export function getComparator(order, orderBy) {
+  return order === 'desc'
+    ? (a, b) => descendingComparator(a, b, orderBy)
+    : (a, b) => -descendingComparator(a, b, orderBy);
+}
+
+export function applySortFilter(array, comparator) {
+  const stabilizedThis = array.map((el, index) => [el, index]);
+
+  stabilizedThis.sort((a, b) => {
+    const order = comparator(a[0], b[0]);
+    if (order !== 0) return order;
+    return a[1] - b[1];
+  });
+  return stabilizedThis.map((el) => el[0]);
+}
 
 export default function ForSaleData() {
   const dispatch = useDispatch();
@@ -86,6 +112,18 @@ export default function ForSaleData() {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
+  };
+
+  const handleChangePage = (event, newPage) => {
+    // fetch new page if two away from needing to see new page
+    // if (((newPage + 2) * rowsPerPage) % 1000 === 0) {
+    //   dispatch(forSaleAsync(((newPage + 2) * rowsPerPage) / 1000 + 1));
+    // }
+    setPage(newPage);
+  };
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
   };
 
   const [minPrice, setMinPrice] = useState('');
@@ -364,17 +402,13 @@ export default function ForSaleData() {
                 </Box>
               )}
               <TablePagination
-                  rowsPerPageOptions={[10, 50, 100]}
-                  component="div"
-                  count={shownClients}
-                  rowsPerPage={rowsPerPage}
-                  page={page}
-                  onPageChange={(event, newPage) =>
-                      handleChangePage(event, newPage, setPage)
-                  }
-                  onRowsPerPageChange={(event) =>
-                      handleChangeRowsPerPage(event, setRowsPerPage, setPage)
-                  }
+                rowsPerPageOptions={[10, 50, 100]}
+                component="div"
+                count={shownClients}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
               />
             </Card>
             {/* TODO */}
