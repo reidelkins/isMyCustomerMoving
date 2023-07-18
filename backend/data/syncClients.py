@@ -140,11 +140,11 @@ def get_service_titan_locations(company_id, tenant, option):
 
         result = save_client_list.delay(clients, company_id)
 
-    # # Wait for the last task to complete
-    # count = 0
-    # while result.status != "SUCCESS" and count < 30:
-    #     sleep(1)
-    #     count += 1
+    # Wait for the last task to complete
+    count = 0
+    while result.status != "SUCCESS" and count < 30:
+        sleep(1)
+        count += 1
 
     # Clean up variables to free up memory
     del_variables([clients, response, headers, result])
