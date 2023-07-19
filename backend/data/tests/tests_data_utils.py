@@ -3,6 +3,8 @@ from django.db.models.expressions import F
 from django.test import TestCase
 from unittest.mock import patch, MagicMock, Mock
 from datetime import date, datetime, timedelta
+
+import requests
 import pytest
 
 from accounts.models import Company, CustomUser
@@ -22,6 +24,7 @@ from data.utils import (
     find_clients_to_delete,
     reactivate_clients,
     delete_extra_clients,
+    verify_address
 )
 from payments.models import ServiceTitanInvoice
 
@@ -137,7 +140,30 @@ def mock_invoice_filter():
         yield mock
 
 
+@pytest.fixture
+def mock_verify_address():
+    with patch("data.utils.verify_address.delay") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mmock_parse_streets():
+    with patch("data.utils.parse_streets") as mock:
+        yield mock
+
+
 class TestUtilFunctions(TestCase):
+    def setUp(self):
+        self.company = Company.objects.create(
+            name="company_name")
+        self.client = Client.objects.create(
+            name="Test Client1",
+            address="260 Milford Point Rd",
+            city="Merritt Island",
+            state="FL",
+            zip_code=ZipCode.objects.create(zip_code="32952"),
+            company=self.company,)
+
     @patch("accounts.models.Company.product")
     def test_find_client_count(self, mock_subscription):
         mock_subscription.amount = 150
@@ -240,6 +266,91 @@ class TestUtilFunctions(TestCase):
 
     #     delete_extra_clients(1, 1)
     #     mock_task_get.return_value.save.assert_called_once()
+
+    # @patch("Client.objects")
+    @patch("requests.get")
+    def test_verify_address(self, mock_get):
+        response_text = """
+        <AddressValidateResponse>
+            <Address ID="1">
+                <Address2>456 Elm St</Address2>
+                <City>New York</City>
+                <State>NY</State>
+                <Zip5>10001</Zip5>
+            </Address>
+        </AddressValidateResponse>
+        """
+        mock_response = MagicMock()
+        mock_response.text = response_text
+        mock_get.return_value = mock_response
+
+        # Call Function
+        verify_address(self.client.id)
+
+        # Verify Functionality
+        mock_get.assert_called()
+
+        # Check if the client's address was updated correctly
+        self.client.refresh_from_db()
+        self.assertEqual(self.client.address, "456 Elm St")
+        self.assertEqual(self.client.city, "New York")
+        self.assertEqual(self.client.state, "NY")
+        self.assertEqual(self.client.zip_code.zip_code, "10001")
+        self.assertTrue(self.client.usps_different)
+        self.assertEqual(
+            self.client.old_address,
+            "260 Milford Point Rd, Merritt Island, FL 32952"
+        )
+
+    @patch("requests.get")
+    def test_verify_address_invalid_client(self, mock_get):
+        # Attempt to verify address for a non-existent client
+        invalid_client_id = "non_existent_client_id"
+
+        # Call Function
+        verify_address(invalid_client_id)
+
+        # Assertions
+        mock_get.assert_not_called()
+
+    @patch("data.utils.parse_streets")
+    def test_verify_address_usps_error(self, mock_parse_streets):
+        # Mock USPS API request exception
+        with patch("requests.get", side_effect=requests.exceptions.RequestException("Error")):
+            verify_address(self.client.id)
+
+        # Assertions
+        mock_parse_streets.assert_not_called()
+
+    def test_verify_address_usps_validation_error(self):
+        # Mock USPS API response with validation error
+        response_text = """
+        <AddressValidateResponse>
+            <Address ID="1">
+                <Error>Error occurred during validation</Error>
+                <City>New York</City>
+                <State>NY</State>
+                <Zip5>10001</Zip5>
+            </Address>
+        </AddressValidateResponse>
+        """
+        response_mock = MagicMock()
+        response_mock.text = response_text
+
+        with patch("requests.get", return_value=response_mock):
+            verify_address(self.client.id)
+
+        # Check if the client's address remains unchanged
+        self.client.refresh_from_db()
+        self.assertEqual(self.client.address, "260 Milford Point Rd")
+        self.assertEqual(self.client.city, "Merritt Island")
+        self.assertEqual(self.client.state, "FL")
+        self.assertEqual(self.client.zip_code.zip_code, "32952")
+        self.assertFalse(self.client.usps_different)
+        self.assertEqual(
+            self.client.old_address,
+            None
+        )
 
 
 class TestSyncClientFunctions(TestCase):
@@ -470,7 +581,8 @@ class TestSyncClientFunctions(TestCase):
     @patch("data.syncClients.do_it_all.delay")
     @patch("data.syncClients.get_service_titan_customers.delay")
     @patch("data.syncClients.get_service_titan_invoices.delay")
-    def test_complete_service_titan_sync(self, mock_get_service_titan_invoices, mock_get_service_titan_customers, mock_do_it_all, mock_get_service_titan_equipment, mock_delete_extra_clients, mock_get_service_titan_locations):
+    @patch("data.utils.verify_address.delay")
+    def test_complete_service_titan_sync(self, mock_verify_address, mock_get_service_titan_invoices, mock_get_service_titan_customers, mock_do_it_all, mock_get_service_titan_equipment, mock_delete_extra_clients, mock_get_service_titan_locations):
         # Call the function
         complete_service_titan_sync(self.company.id, "task_id")
 
@@ -486,6 +598,7 @@ class TestSyncClientFunctions(TestCase):
         mock_get_service_titan_customers.assert_not_called()
         mock_get_service_titan_invoices.assert_called_once_with(
             self.company.id, self.company.tenant_id)
+        assert mock_verify_address.call_count == 2
 
         # Call the function with automated = True and option1
 

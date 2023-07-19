@@ -50,8 +50,6 @@ const commonFields = [
   { id: 'contacted', label: 'Contacted', alignRight: false },
   { id: 'note', label: 'Note', alignRight: false },
   { id: 'phone', label: 'Phone Number', alignRight: false },
-  { id: 'usps_flag', label: 'USPS Flag', alignRight: false },
-  { id: 'usps_address', label: 'USPS Address', alignRight: false }
 ];
 
 CustomerData.propTypes = {
@@ -420,8 +418,6 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                                         equipment_installed_date: equipmentInstalledDate,
                                         error_flag: errorFlag,
                                         service_titan_customer_since_year: serviceTitanCustomerSinceYear,
-                                        usps_address: uspsAddress, 
-                                        usps_different: uspsDifferent,
                                         service_titan_lifetime_revenue: serviceTitanLifetimeRevenue,
                                     } = row;
                                     const isItemSelected = selected.indexOf(address) !== -1;
@@ -532,12 +528,6 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                                                     6
                                                     )}-${phoneNumber.slice(6, 10)}`
                                                 : 'N/A'}
-                                            </TableCell>
-                                            <TableCell>
-                                                {uspsDifferent}
-                                            </TableCell>
-                                            <TableCell>
-                                                {uspsAddress}
                                             </TableCell>
                                             {(userInfo.company.enterprise ||
                                                 userInfo.email === 'reid@gmail.com' ||
