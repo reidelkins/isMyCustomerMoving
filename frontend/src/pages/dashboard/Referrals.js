@@ -46,8 +46,7 @@ export default function Referrals() {
         {userInfo.company.enterprise ||
         userInfo.email === 'reid@gmail.com' ||
         userInfo.email === 'reid@ismycustomermoving.com' ||
-        userInfo.email === 'jb@aquaclearws.com' ||
-        userInfo.email === 'jack.richard.long@gmail.com' ? (
+        userInfo.email === 'jb@aquaclearws.com' ? (
           <>
             {userInfo ? <ReferralListCall /> : null}
             <ReferralsData refs={REFERRALLIST} company={userInfo.company.id} incoming={incoming} />
