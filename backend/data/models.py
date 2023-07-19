@@ -79,7 +79,10 @@ class Client(models.Model):
     longitude = models.FloatField(blank=True, null=True)
     revenue = models.IntegerField(default=0, blank=True, null=True)
     service_titan_customer_since = models.DateField(blank=True, null=True)
-    usps_address = models.CharField(max_length=100, blank=True, null=True)
+    service_titan_lifetime_revenue = models.FloatField(
+        default=0, blank=True, null=True
+    )
+    old_address = models.CharField(max_length=100, blank=True, null=True)
     usps_different = models.BooleanField(default=False)
     bedrooms = models.IntegerField(default=0, blank=True, null=True)
     bathrooms = models.IntegerField(default=0, blank=True, null=True)
