@@ -195,7 +195,7 @@ backend/authz/__pycache__/
 backend/common/utils/__pycache__/
 backend/requirements_old.txt
 .env.testing
-backend/__pycache__/conftest.cpython-310-pytest-7.2.2.pyc
+backend/__pycache__
 backend/conftest.py
 backend/.env
 backend/.env.testing
@@ -203,4 +203,7 @@ backend/.env.testing
 backend/downloadedData/
 
 data/db/
+old_data/
 backend/*.json
+frontend/package-lock.json
+

@@ -32,7 +32,7 @@ services:
       - "6379:6379"
   celery:
     build: ./backend
-    command: celery -A config worker -l info
+    command: celery -A config worker -l info --concurrency 10
     volumes:
       - ./backend:/backend
     depends_on:
