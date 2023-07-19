@@ -11,7 +11,6 @@ export const userSlice = createSlice({
       loading: false,
       error: null,
       CLIENTLIST: [],
-      NEWADDRESSLIST: [],
       customerDataFilters: [],
       count: 0,
       forSale: {
@@ -77,11 +76,7 @@ export const userSlice = createSlice({
       state.clientsInfo.loading = false;
       state.clientsInfo.error = null;
     },
-    newAddress: (state, action) => {
-      state.clientsInfo.NEWADDRESSLIST = action.payload.clients;
-      state.clientsInfo.loading = false;
-      state.clientsInfo.error = null;
-    },
+
     newPage: (state, action) => {
       state.clientsInfo.highestPage = action.payload;
     },
@@ -278,7 +273,6 @@ export const {
   saveFilter,
   saveFilterLoading,
   saveFilterError,
-  newAddress
 } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
 export const selectRecentlySold = (state) => state.user.recentlySoldInfo;
@@ -342,14 +336,17 @@ export const deleteUserAsync = (ids) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
+    const { id: company } = userInfo.company;
+
     const config = {
       headers: {
         'Content-type': 'application/json',
         Authorization: `Bearer ${userInfo.access_token}`,
       },
+      data: JSON.stringify(ids),
     };
     dispatch(usersLoading());
-    const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/manageuser/`, { ids }, config);
+    const { data } = await axios.delete(`${DOMAIN}/api/v1/accounts/manageuser/${company}/`, config);
     dispatch(users(data));
   } catch (error) {
     dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
@@ -394,33 +391,9 @@ export const clientsAsync =
     } catch (error) {
       // localStorage.removeItem('userInfo');
       // dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-      console.log('error', error);
+
       if (error.response.status === 403 && !refreshed) {
         dispatch(getRefreshToken(dispatch, clientsAsync(page, true)));
-      } else {
-        dispatch(logout());
-      }
-    }
-  };
-
-export const newAddressAsync = (page, refreshed = false) => async (dispatch, getState) => {
-  try {
-      const reduxStore = getState();
-      const { userInfo } = reduxStore.auth.userInfo;
-      const config = {
-        headers: {
-          'Content-type': 'application/json',
-          Authorization: `Bearer ${userInfo.access_token}`,
-        },
-      };
-      const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients?newAddress=True&page=${page}`, config);
-      console.log(data)
-      dispatch(newAddress(data));
-
-    } catch (error) {
-      console.log('error', error);
-      if (error.response.status === 403 && !refreshed) {
-        dispatch(getRefreshToken(dispatch, newAddressAsync(page, true)));
       } else {
         dispatch(logout());
       }
