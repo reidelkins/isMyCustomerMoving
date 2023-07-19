@@ -82,7 +82,7 @@ class Client(models.Model):
     service_titan_lifetime_revenue = models.FloatField(
         default=0, blank=True, null=True
     )
-    usps_address = models.CharField(max_length=100, blank=True, null=True)
+    old_address = models.CharField(max_length=100, blank=True, null=True)
     usps_different = models.BooleanField(default=False)
     bedrooms = models.IntegerField(default=0, blank=True, null=True)
     bathrooms = models.IntegerField(default=0, blank=True, null=True)

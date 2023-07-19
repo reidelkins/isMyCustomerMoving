@@ -17,6 +17,7 @@ from .utils import (
     delete_extra_clients,
     del_variables,
     get_service_titan_access_token,
+    verify_address
 )
 from payments.models import ServiceTitanInvoice
 from simple_salesforce import Salesforce
@@ -108,8 +109,13 @@ def complete_service_titan_sync(company_id, task_id, option=None, automated=Fals
     if option == "option1":
         get_service_titan_customers.delay(company_id, tenant)
 
-    del_variables([company])
     get_service_titan_invoices.delay(company_id, tenant)
+    clients_to_verify = Client.objects.filter(
+        company=company, old_address=None
+    )
+    for client in clients_to_verify:
+        verify_address.delay(client.id)
+    del_variables([company, clients_to_verify])
 
 
 def get_service_titan_locations(company_id, tenant, option):
