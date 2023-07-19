@@ -79,12 +79,26 @@ class Client(models.Model):
     longitude = models.FloatField(blank=True, null=True)
     revenue = models.IntegerField(default=0, blank=True, null=True)
     service_titan_customer_since = models.DateField(blank=True, null=True)
-    usps_address = models.CharField(max_length=100, blank=True, null=True)
+    service_titan_lifetime_revenue = models.FloatField(
+        default=0, blank=True, null=True
+    )
+    old_address = models.CharField(max_length=100, blank=True, null=True)
     usps_different = models.BooleanField(default=False)
     bedrooms = models.IntegerField(default=0, blank=True, null=True)
     bathrooms = models.IntegerField(default=0, blank=True, null=True)
     sqft = models.IntegerField(default=0, blank=True, null=True)
     lot_sqft = models.IntegerField(default=0, blank=True, null=True)
+
+    new_address = models.CharField(max_length=100, blank=True, null=True)
+    new_city = models.CharField(max_length=40, blank=True, null=True)
+    new_state = models.CharField(max_length=31, blank=True, null=True)
+    new_zip_code = models.ForeignKey(
+        ZipCode,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="client_new_zip_code",
+    )
 
     class Meta:
         unique_together = ("company", "name", "address")
