@@ -1,1464 +1,1464 @@
 [
-    {
-        "model": "accounts.enterprise",
-        "pk": "b85ab3de-0da7-457e-96d2-5eaf51de831a",
-        "fields": {
-            "name": "Test Enterprise"
-        }
-    },
-    {
-        "model": "accounts.company",
-        "pk": "9f815627-8c28-4eec-b3e5-c95cc18b0877",
-        "fields": {
-            "name": "Test Company",
-            "access_token": "TqwRKkA0jQbw5ZsoyJ0y5r0YJLXETDyg",
-            "product": null,
-            "phone": "8659240039",
-            "email": "testuser1@test.com",
-            "stripe_id": null,
-            "crm": null,
-            "enterprise": "b85ab3de-0da7-457e-96d2-5eaf51de831a",
-            "service_titan_app_version": null,
-            "tenant_id": 0,
-            "client_id": null,
-            "client_secret": null,
-            "service_titan_for_sale_tag_id": null,
-            "service_titan_for_rent_tag_id": null,
-            "service_titan_recently_sold_tag_id": null,
-            "service_titan_for_sale_contacted_tag_id": null,
-            "service_titan_recently_sold_contacted_tag_id": null,
-            "for_sale_purchased": true,
-            "recently_sold_purchased": true,
-            "service_titan_customer_sync_option": "option1",
-            "sf_access_token": null,
-            "sf_refresh_token": null,
-            "zapier_for_sale": null,
-            "zapier_sold": null,
-            "zapier_recently_sold": null
-        }
-    },
-    {
-        "model": "accounts.customuser",
-        "pk": "70a41f38-976e-47c8-a7e3-8079b4ab617e",
-        "fields": {
-            "password": "argon2$argon2id$v=19$m=102400,t=2,p=8$YnFZekhUUEs2cnVhNHlDelk0UDVPWQ$sZXNd7St4skYVt3X9twfGjwWG/t+0kf2qUvYOcn9m7Q",
-            "last_login": null,
-            "is_superuser": false,
-            "first_name": "Test",
-            "last_name": "User1",
-            "is_staff": false,
-            "is_active": true,
-            "date_joined": "2023-05-11T00:30:58Z",
-            "email": "testuser1@test.com",
-            "is_verified": true,
-            "status": "admin",
-            "phone": "8653217097",
-            "company": "9f815627-8c28-4eec-b3e5-c95cc18b0877",
-            "enterprise": "b85ab3de-0da7-457e-96d2-5eaf51de831a",
-            "is_enterprise_owner": true,
-            "otp_enabled": false,
-            "otp_verified": false,
-            "otp_base32": null,
-            "otp_auth_url": null,
-            "groups": [],
-            "user_permissions": []
-        }
-    },
-    {
-        "model": "accounts.customuser",
-        "pk": "87683b25-6a71-4f4c-bab0-7e16e99bc013",
-        "fields": {
-            "password": "argon2$argon2id$v=19$m=102400,t=2,p=8$ZmQ5NjE1ZDM0NGMxNGNjOGIzOWI3ZTI1NTEwMDI0ZTc$eypdhmowglMUGVEkfFyinq7Pz3x8gUcAw9tIztZC/C0",
-            "last_login": "2023-05-18T23:19:30.818Z",
-            "is_superuser": false,
-            "first_name": "Test",
-            "last_name": "User2",
-            "is_staff": false,
-            "is_active": true,
-            "date_joined": "2023-05-18T23:17:30.464Z",
-            "email": "testuser2@gmail.com",
-            "is_verified": true,
-            "status": "active",
-            "phone": "2343243434",
-            "company": "9f815627-8c28-4eec-b3e5-c95cc18b0877",
-            "enterprise": null,
-            "is_enterprise_owner": false,
-            "otp_enabled": false,
-            "otp_verified": false,
-            "otp_base32": null,
-            "otp_auth_url": null,
-            "groups": [],
-            "user_permissions": []
-        }
-    },
-    {
-        "model": "accounts.customuser",
-        "pk": "a6ef495b-4f07-4892-b441-f02bf408c925",
-        "fields": {
-            "password": "argon2$argon2id$v=19$m=102400,t=2,p=8$NkxmS21PTFRZaFdqZzJZZUZiSUJFWA$cQzn4boNxkqHRq7nTr5rsI14AMUZvwuSiPyxfmK2OOs",
-            "last_login": "2023-06-16T15:48:31.322Z",
-            "is_superuser": false,
-            "first_name": "Test",
-            "last_name": "User3",
-            "is_staff": false,
-            "is_active": true,
-            "date_joined": "2023-05-18T20:58:43.869Z",
-            "email": "testuser3@test.com",
-            "is_verified": false,
-            "status": "pending",
-            "phone": "2345678900",
-            "company": "9f815627-8c28-4eec-b3e5-c95cc18b0877",
-            "enterprise": null,
-            "is_enterprise_owner": false,
-            "otp_enabled": false,
-            "otp_verified": false,
-            "otp_base32": null,
-            "otp_auth_url": null,
-            "groups": [],
-            "user_permissions": []
-        }
-    },
-    {
-        "model": "accounts.customuser",
-        "pk": "e1b35e63-c024-4ecc-98fb-7378654b77bc",
-        "fields": {
-            "password": "argon2$argon2id$v=19$m=102400,t=2,p=8$NWZiMTFiYjg0MjA5NGM0ODgzYmIyNGViMjBlN2E4MTE$5L0sF2/u4YAfJNotWv/cMGq2Q2J33C3708Glb1AUpIM",
-            "last_login": "2023-05-26T09:06:46.605Z",
-            "is_superuser": false,
-            "first_name": "Delete",
-            "last_name": "Me",
-            "is_staff": false,
-            "is_active": true,
-            "date_joined": "2023-05-11T23:17:04Z",
-            "email": "deleteme@test.com",
-            "is_verified": true,
-            "status": "active",
-            "phone": "2345678908",
-            "company": "9f815627-8c28-4eec-b3e5-c95cc18b0877",
-            "enterprise": "b85ab3de-0da7-457e-96d2-5eaf51de831a",
-            "is_enterprise_owner": false,
-            "otp_enabled": false,
-            "otp_verified": false,
-            "otp_base32": null,
-            "otp_auth_url": null,
-            "groups": [],
-            "user_permissions": []
-        }
-    },
-    {
-        "model": "data.zipcode",
-        "pk": "37919",
-        "fields": {
-            "lastUpdated": "2023-05-27"
-        }
-    },
-    {
-        "model": "data.client",
-        "pk": "00017152-7694-4cc8-bb50-3c0ddb75775c",
-        "fields": {
-            "name": "Bruce Wayne",
-            "address": "1 Wayne Manot",
-            "zip_code": "37919",
-            "company": "9f815627-8c28-4eec-b3e5-c95cc18b0877",
-            "status": "No Change",
-            "city": "Gotham City",
-            "state": "NY",
-            "contacted": false,
-            "note": "Definitely Not Batman",
-            "serv_titan_id": 291236528,
-            "phone_number": "4143268312",
-            "price": 0,
-            "housing_type": " ",
-            "year_built": 0,
-            "equipment_installed_date": null,
-            "active": true,
-            "error_flag": false,
-            "latitude": null,
-            "longitude": null,
-            "revenue": 0,
-            "service_titan_customer_since": "2021-10-21",
-            "service_titan_lifetime_revenue": 0,
-            "old_address": null,
-            "usps_different": false,
-            "bedrooms": 0,
-            "bathrooms": 0,
-            "sqft": 0,
-            "lot_sqft": 0,
-            "new_address": "",
-            "new_city": "",
-            "new_state": "",
-            "new_zip_code": "12345",
-            "tag": []
-        }
-    },
-    {
-        "model": "data.clientupdate",
-        "pk": "00182043-3ac4-456e-92aa-8185363f724f",
-        "fields": {
-            "client": "4ca7865f-4c44-476f-821e-a61fb1c4cb4a",
-            "date": "2023-06-16",
-            "status": "House For Sale",
-            "listed": "2023-04-29",
-            "note": "",
-            "contacted": null,
-            "error_flag": null
-        }
-    },
-    {
-        "model": "data.homelisting",
-        "pk": "0000dbaa-84ce-4d05-ad53-d3f5dc7ba8c1",
-        "fields": {
-            "zipCode": "37919",
-            "address": "950 Scenic Dr",
-            "status": "House For Sale",
-            "listed": "2023-04-25",
-            "ScrapeResponse": null,
-            "price": 979900,
-            "housingType": "single_family",
-            "year_built": 1976,
-            "city": "Knoxville",
-            "state": "TN",
-            "bedrooms": 0,
-            "bathrooms": 0,
-            "sqft": 0,
-            "lot_sqft": 0,
-            "latitude": null,
-            "longitude": null,
-            "permalink": null,
-            "year_renovated": 0,
-            "roofing": " ",
-            "garage_type": " ",
-            "garage": 0,
-            "heating": " ",
-            "cooling": " ",
-            "exterior": " ",
-            "pool": " ",
-            "fireplace": " ",
-            "description": " ",
-            "realtor": null,
-            "tag": [
-                "0e01b17c-4295-4302-a929-4c454717663a",
-                "12a41284-f0fc-4d71-b8a9-623fd7c37855",
-                "16e109e3-300e-406d-b4e0-79f5e539c500",
-                "1c6bd851-a2c6-4771-a2b7-be7d6db75a0b",
-                "37853faa-b57a-4dff-bbc5-0613944e000f",
-                "454f8f7a-72f3-48bc-bb68-39f2a112e350",
-                "4b06e37c-4e9c-4af6-9ba5-7fada759409f",
-                "5ae0990e-2261-4dee-a7ca-a048e7439809",
-                "5ec86a49-d4e8-45a8-b5a7-d0f718ef6d90",
-                "8bfd5c03-855f-4c01-ba11-fc5f9a2f13f9",
-                "8d5c1396-1b4e-4c1c-9750-04918f9b2c39",
-                "a51c149c-0361-42b0-9647-8006a236a5c5",
-                "ac6e04f3-d138-4552-8eca-0a46ec8acf26",
-                "b4213310-7afb-421b-94fe-d17791bd6d1f",
-                "cf3c032c-575f-4185-98be-24e12979526c",
-                "de22400a-06ad-445b-bde5-1339175c96fc"
-            ]
-        }
-    },
+	{
+		"model": "accounts.enterprise",
+		"pk": "b85ab3de-0da7-457e-96d2-5eaf51de831a",
+		"fields": {
+			"name": "Test Enterprise"
+		}
+	},
+	{
+		"model": "accounts.company",
+		"pk": "9f815627-8c28-4eec-b3e5-c95cc18b0877",
+		"fields": {
+			"name": "Test Company",
+			"access_token": "TqwRKkA0jQbw5ZsoyJ0y5r0YJLXETDyg",
+			"product": null,
+			"phone": "8659240039",
+			"email": "testuser1@test.com",
+			"stripe_id": null,
+			"crm": "None",
+			"enterprise": "b85ab3de-0da7-457e-96d2-5eaf51de831a",
+			"service_titan_app_version": null,
+			"tenant_id": 0,
+			"client_id": null,
+			"client_secret": null,
+			"service_titan_for_sale_tag_id": null,
+			"service_titan_for_rent_tag_id": null,
+			"service_titan_recently_sold_tag_id": null,
+			"service_titan_for_sale_contacted_tag_id": null,
+			"service_titan_recently_sold_contacted_tag_id": null,
+			"for_sale_purchased": true,
+			"recently_sold_purchased": true,
+			"service_titan_customer_sync_option": "option1",
+			"sf_access_token": null,
+			"sf_refresh_token": null,
+			"zapier_for_sale": null,
+			"zapier_sold": null,
+			"zapier_recently_sold": null
+		}
+	},
+	{
+		"model": "accounts.customuser",
+		"pk": "70a41f38-976e-47c8-a7e3-8079b4ab617e",
+		"fields": {
+			"password": "argon2$argon2id$v=19$m=102400,t=2,p=8$YnFZekhUUEs2cnVhNHlDelk0UDVPWQ$sZXNd7St4skYVt3X9twfGjwWG/t+0kf2qUvYOcn9m7Q",
+			"last_login": null,
+			"is_superuser": false,
+			"first_name": "Test",
+			"last_name": "User1",
+			"is_staff": false,
+			"is_active": true,
+			"date_joined": "2023-05-11T00:30:58Z",
+			"email": "testuser1@test.com",
+			"is_verified": true,
+			"status": "admin",
+			"phone": "8653217097",
+			"company": "9f815627-8c28-4eec-b3e5-c95cc18b0877",
+			"enterprise": "b85ab3de-0da7-457e-96d2-5eaf51de831a",
+			"is_enterprise_owner": true,
+			"otp_enabled": false,
+			"otp_verified": false,
+			"otp_base32": null,
+			"otp_auth_url": null,
+			"groups": [],
+			"user_permissions": []
+		}
+	},
+	{
+		"model": "accounts.customuser",
+		"pk": "87683b25-6a71-4f4c-bab0-7e16e99bc013",
+		"fields": {
+			"password": "argon2$argon2id$v=19$m=102400,t=2,p=8$ZmQ5NjE1ZDM0NGMxNGNjOGIzOWI3ZTI1NTEwMDI0ZTc$eypdhmowglMUGVEkfFyinq7Pz3x8gUcAw9tIztZC/C0",
+			"last_login": "2023-05-18T23:19:30.818Z",
+			"is_superuser": false,
+			"first_name": "Test",
+			"last_name": "User2",
+			"is_staff": false,
+			"is_active": true,
+			"date_joined": "2023-05-18T23:17:30.464Z",
+			"email": "testuser2@gmail.com",
+			"is_verified": true,
+			"status": "active",
+			"phone": "2343243434",
+			"company": "9f815627-8c28-4eec-b3e5-c95cc18b0877",
+			"enterprise": null,
+			"is_enterprise_owner": false,
+			"otp_enabled": false,
+			"otp_verified": false,
+			"otp_base32": null,
+			"otp_auth_url": null,
+			"groups": [],
+			"user_permissions": []
+		}
+	},
+	{
+		"model": "accounts.customuser",
+		"pk": "a6ef495b-4f07-4892-b441-f02bf408c925",
+		"fields": {
+			"password": "argon2$argon2id$v=19$m=102400,t=2,p=8$NkxmS21PTFRZaFdqZzJZZUZiSUJFWA$cQzn4boNxkqHRq7nTr5rsI14AMUZvwuSiPyxfmK2OOs",
+			"last_login": "2023-06-16T15:48:31.322Z",
+			"is_superuser": false,
+			"first_name": "Test",
+			"last_name": "User3",
+			"is_staff": false,
+			"is_active": true,
+			"date_joined": "2023-05-18T20:58:43.869Z",
+			"email": "testuser3@test.com",
+			"is_verified": false,
+			"status": "pending",
+			"phone": "2345678900",
+			"company": "9f815627-8c28-4eec-b3e5-c95cc18b0877",
+			"enterprise": null,
+			"is_enterprise_owner": false,
+			"otp_enabled": false,
+			"otp_verified": false,
+			"otp_base32": null,
+			"otp_auth_url": null,
+			"groups": [],
+			"user_permissions": []
+		}
+	},
+	{
+		"model": "accounts.customuser",
+		"pk": "e1b35e63-c024-4ecc-98fb-7378654b77bc",
+		"fields": {
+			"password": "argon2$argon2id$v=19$m=102400,t=2,p=8$NWZiMTFiYjg0MjA5NGM0ODgzYmIyNGViMjBlN2E4MTE$5L0sF2/u4YAfJNotWv/cMGq2Q2J33C3708Glb1AUpIM",
+			"last_login": "2023-05-26T09:06:46.605Z",
+			"is_superuser": false,
+			"first_name": "Delete",
+			"last_name": "Me",
+			"is_staff": false,
+			"is_active": true,
+			"date_joined": "2023-05-11T23:17:04Z",
+			"email": "deleteme@test.com",
+			"is_verified": true,
+			"status": "active",
+			"phone": "2345678908",
+			"company": "9f815627-8c28-4eec-b3e5-c95cc18b0877",
+			"enterprise": "b85ab3de-0da7-457e-96d2-5eaf51de831a",
+			"is_enterprise_owner": false,
+			"otp_enabled": false,
+			"otp_verified": false,
+			"otp_base32": null,
+			"otp_auth_url": null,
+			"groups": [],
+			"user_permissions": []
+		}
+	},
+	{
+		"model": "data.zipcode",
+		"pk": "37919",
+		"fields": {
+			"lastUpdated": "2023-05-27"
+		}
+	},
+	{
+		"model": "data.client",
+		"pk": "00017152-7694-4cc8-bb50-3c0ddb75775c",
+		"fields": {
+			"name": "Bruce Wayne",
+			"address": "1 Wayne Manot",
+			"zip_code": "37919",
+			"company": "9f815627-8c28-4eec-b3e5-c95cc18b0877",
+			"status": "No Change",
+			"city": "Gotham City",
+			"state": "NY",
+			"contacted": false,
+			"note": "Definitely Not Batman",
+			"serv_titan_id": 291236528,
+			"phone_number": "4143268312",
+			"price": 0,
+			"housing_type": " ",
+			"year_built": 0,
+			"equipment_installed_date": null,
+			"active": true,
+			"error_flag": false,
+			"latitude": null,
+			"longitude": null,
+			"revenue": 0,
+			"service_titan_customer_since": "2021-10-21",
+			"service_titan_lifetime_revenue": 0,
+			"old_address": null,
+			"usps_different": false,
+			"bedrooms": 0,
+			"bathrooms": 0,
+			"sqft": 0,
+			"lot_sqft": 0,
+			"new_address": "",
+			"new_city": "",
+			"new_state": "",
+			"new_zip_code": "12345",
+			"tag": []
+		}
+	},
+	{
+		"model": "data.clientupdate",
+		"pk": "00182043-3ac4-456e-92aa-8185363f724f",
+		"fields": {
+			"client": "4ca7865f-4c44-476f-821e-a61fb1c4cb4a",
+			"date": "2023-06-16",
+			"status": "House For Sale",
+			"listed": "2023-04-29",
+			"note": "",
+			"contacted": null,
+			"error_flag": null
+		}
+	},
+	{
+		"model": "data.homelisting",
+		"pk": "0000dbaa-84ce-4d05-ad53-d3f5dc7ba8c1",
+		"fields": {
+			"zipCode": "37919",
+			"address": "950 Scenic Dr",
+			"status": "House For Sale",
+			"listed": "2023-04-25",
+			"ScrapeResponse": null,
+			"price": 979900,
+			"housingType": "single_family",
+			"year_built": 1976,
+			"city": "Knoxville",
+			"state": "TN",
+			"bedrooms": 0,
+			"bathrooms": 0,
+			"sqft": 0,
+			"lot_sqft": 0,
+			"latitude": null,
+			"longitude": null,
+			"permalink": null,
+			"year_renovated": 0,
+			"roofing": " ",
+			"garage_type": " ",
+			"garage": 0,
+			"heating": " ",
+			"cooling": " ",
+			"exterior": " ",
+			"pool": " ",
+			"fireplace": " ",
+			"description": " ",
+			"realtor": null,
+			"tag": [
+				"0e01b17c-4295-4302-a929-4c454717663a",
+				"12a41284-f0fc-4d71-b8a9-623fd7c37855",
+				"16e109e3-300e-406d-b4e0-79f5e539c500",
+				"1c6bd851-a2c6-4771-a2b7-be7d6db75a0b",
+				"37853faa-b57a-4dff-bbc5-0613944e000f",
+				"454f8f7a-72f3-48bc-bb68-39f2a112e350",
+				"4b06e37c-4e9c-4af6-9ba5-7fada759409f",
+				"5ae0990e-2261-4dee-a7ca-a048e7439809",
+				"5ec86a49-d4e8-45a8-b5a7-d0f718ef6d90",
+				"8bfd5c03-855f-4c01-ba11-fc5f9a2f13f9",
+				"8d5c1396-1b4e-4c1c-9750-04918f9b2c39",
+				"a51c149c-0361-42b0-9647-8006a236a5c5",
+				"ac6e04f3-d138-4552-8eca-0a46ec8acf26",
+				"b4213310-7afb-421b-94fe-d17791bd6d1f",
+				"cf3c032c-575f-4185-98be-24e12979526c",
+				"de22400a-06ad-445b-bde5-1339175c96fc"
+			]
+		}
+	},
 
-    {
-        "model": "data.homelistingtags",
-        "pk": "00ff60da-8011-4190-9230-f04a55e20c43",
-        "fields": {
-            "tag": "cul_de_sac"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "02991011-9015-4358-8b08-b4bb231788e0",
-        "fields": {
-            "tag": "big_bathroom"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "04d075ae-4cb6-4af4-9692-7abe867a2d20",
-        "fields": {
-            "tag": "farm"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "069e7d50-093f-4e2b-b093-580ac537f141",
-        "fields": {
-            "tag": "baseball"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "096f06da-00f1-4874-8df6-4d937d87c4b5",
-        "fields": {
-            "tag": "golf_course_lot_or_frontage"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "0c614b9c-79fe-47f4-b642-1a98d14c867b",
-        "fields": {
-            "tag": "community_park"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "0d6b3dcc-2c5f-4516-bcc0-13be69df90bf",
-        "fields": {
-            "tag": "pond"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "0e01b17c-4295-4302-a929-4c454717663a",
-        "fields": {
-            "tag": "fireplace"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "0e2bcd35-c07f-4f35-bc0f-d772b9425c1f",
-        "fields": {
-            "tag": "helipad"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "12a41284-f0fc-4d71-b8a9-623fd7c37855",
-        "fields": {
-            "tag": "cathedral_ceiling"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "138fb5e7-b092-44b0-bc8f-9307ce6f3eff",
-        "fields": {
-            "tag": "master_bedroom"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "15aeeca8-7f47-4a8a-876e-b5bc313ed21f",
-        "fields": {
-            "tag": "beach"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "16a59688-d62e-43cb-b527-594f7f647aea",
-        "fields": {
-            "tag": "security"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "16e109e3-300e-406d-b4e0-79f5e539c500",
-        "fields": {
-            "tag": "fenced_yard"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "1967b34c-8bc0-49eb-b8fc-30b18260fb0a",
-        "fields": {
-            "tag": "new_construction"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "1a995086-ff79-4318-b19e-3eb4d7c3d5c0",
-        "fields": {
-            "tag": "granite_kitchen"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "1b385254-6fe9-4ddc-a1b2-e0aa89f8d25c",
-        "fields": {
-            "tag": "community_golf"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "1be8c450-9465-4eb3-a4ca-08b2880674af",
-        "fields": {
-            "tag": "indoor_basketball_court"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "1c6bd851-a2c6-4771-a2b7-be7d6db75a0b",
-        "fields": {
-            "tag": "swimming_pool"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "21ab65e2-740e-4a5f-a767-db7ddc60593c",
-        "fields": {
-            "tag": "hill_or_mountain_view"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "220a6c27-284e-49bb-9538-c69bacbfc03c",
-        "fields": {
-            "tag": "media_room"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "26927649-fc9f-46e0-8f22-cedc84b988ea",
-        "fields": {
-            "tag": "volleyball"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "2924f58e-f92c-4f64-aea7-cdfd0c1df3fa",
-        "fields": {
-            "tag": "golf_course_view"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "29980ac8-b70c-4925-8c0d-840de37755af",
-        "fields": {
-            "tag": "fenced_courtyard"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "2aa91e12-ca01-4b20-8049-4d5869d1845f",
-        "fields": {
-            "tag": "soccer"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "2bce8bad-d536-475c-8b17-8b2d2a085e54",
-        "fields": {
-            "tag": "private_backyard"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "2c360a23-f48e-4ae6-bd84-6a2e093f8aed",
-        "fields": {
-            "tag": "jack_and_jill_bathroom"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "30b405b0-f45e-49ee-93ab-363fb7485f97",
-        "fields": {
-            "tag": "lake"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "361cdc11-8561-4abd-bf75-2c0911adaf3b",
-        "fields": {
-            "tag": "guest_parking"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "37853faa-b57a-4dff-bbc5-0613944e000f",
-        "fields": {
-            "tag": "community_outdoor_space"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "3addbb0a-81f5-4b99-9562-663c83a42303",
-        "fields": {
-            "tag": "well_water"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "3bfb1bf4-ad53-433f-8c83-79db54bcbe8d",
-        "fields": {
-            "tag": "courtyard_style"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "3c71fb68-fd8e-4bbc-931d-0ad9ef3a9e3f",
-        "fields": {
-            "tag": "floor_plan"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "3ced0737-627d-4f49-818a-4de8690ad725",
-        "fields": {
-            "tag": "views"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "3de5179c-0bed-46ac-aad0-d13e495f606f",
-        "fields": {
-            "tag": "smart_homes"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "3e4a4311-9e97-47dd-b0fe-453a3f5616a4",
-        "fields": {
-            "tag": "wine_cellar"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "3f415c8b-1db4-4cb6-a205-a9daadbc4f70",
-        "fields": {
-            "tag": "basketball"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "4193d1d0-5bdf-40fa-a687-54959c1ab6f9",
-        "fields": {
-            "tag": "furniture"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "454f8f7a-72f3-48bc-bb68-39f2a112e350",
-        "fields": {
-            "tag": "central_heat"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "491bd023-d6ec-4281-8d2f-2502a3f86695",
-        "fields": {
-            "tag": "vaulted_ceiling"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "499a5de1-50e1-46b7-b6df-35ceecee42f5",
-        "fields": {
-            "tag": "recreation_facilities"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "49eb0ebc-6247-4669-b591-9b39b92c1c28",
-        "fields": {
-            "tag": "dining_room"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "4b06e37c-4e9c-4af6-9ba5-7fada759409f",
-        "fields": {
-            "tag": "carport"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "4b619361-4268-4e9b-a092-f4d6e6e86aa7",
-        "fields": {
-            "tag": "energy_efficient"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "4fe25d90-013d-4938-af97-4dbbaa69ec39",
-        "fields": {
-            "tag": "garage_1_or_more"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "50e3de3b-1136-4ad6-bff5-bc3442f99770",
-        "fields": {
-            "tag": "large_kitchen"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "54c9a97a-4869-4ec7-ab3f-6e943b7bb7ce",
-        "fields": {
-            "tag": "guest_house"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "54efd642-4de9-47be-86f7-6589c4cfba34",
-        "fields": {
-            "tag": "groundscare"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "54fd301e-7bf8-4f51-8ee7-4dbdeb335008",
-        "fields": {
-            "tag": "water_view"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "555021f7-540a-4e65-b124-9c8eae1fe09d",
-        "fields": {
-            "tag": "greenhouse"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "55d845ee-67ac-4ed5-9c98-27e97e960218",
-        "fields": {
-            "tag": "clubhouse"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "597a5fe2-820a-488f-a641-cf720cb33221",
-        "fields": {
-            "tag": "open_floor_plan"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "597fc258-dfc1-47a1-ba93-3c45ee596c33",
-        "fields": {
-            "tag": "updated_kitchen"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "59896f07-9bdf-4588-87ca-50123f7a27eb",
-        "fields": {
-            "tag": "garage_2_or_more"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "5ae0990e-2261-4dee-a7ca-a048e7439809",
-        "fields": {
-            "tag": "game_room"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "5b8b005c-70a2-4159-9098-40944e5a2233",
-        "fields": {
-            "tag": "medicalcare"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "5ca2e680-e3fe-4e21-a516-598aae938889",
-        "fields": {
-            "tag": "river_access"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "5ec86a49-d4e8-45a8-b5a7-d0f718ef6d90",
-        "fields": {
-            "tag": "master_suite"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "5ee9c7ec-6ae5-4bc0-91f6-ca69404526dd",
-        "fields": {
-            "tag": "dual_master_bedroom"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "5f4e3b88-bb89-4cfa-a487-73beaa04df88",
-        "fields": {
-            "tag": "community_doorman"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "60fc0446-7e47-4171-8354-6b07e21236c7",
-        "fields": {
-            "tag": "lease_option"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "626856f3-1029-448c-b581-66a09e507060",
-        "fields": {
-            "tag": "gated_community"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "62f2b142-7711-49ef-bb1b-b4a67e4f3c8f",
-        "fields": {
-            "tag": "modern_kitchen"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "692b3615-c2a1-4f03-996e-9d0a38ab07c6",
-        "fields": {
-            "tag": "big_yard"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "6a080b58-f4fa-49e4-b7bb-b3e7a8f8846e",
-        "fields": {
-            "tag": "single_story"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "6f7e226e-a439-4825-826f-156fed378db0",
-        "fields": {
-            "tag": "community_center"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "70da9354-6719-4fb0-b9cf-de99b957327a",
-        "fields": {
-            "tag": "rv_parking"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "733bb1c4-aee1-44e6-8305-a7a62fe4fde0",
-        "fields": {
-            "tag": "screen_porch"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "74e1d174-3289-4cdf-8acc-a44cfa44b0d8",
-        "fields": {
-            "tag": "community_tennis_court"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "7568cdf7-bbda-4c00-98d7-f755752b92f8",
-        "fields": {
-            "tag": "ensuite"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "75d6803a-f364-40d9-ba97-3fcb49920df8",
-        "fields": {
-            "tag": "washer_dryer"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "79ef5abd-0222-4749-bcbd-451ca3eeb569",
-        "fields": {
-            "tag": "fallout_shelter"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "7a214bb9-ae4b-4ea9-93b2-4a9e29429832",
-        "fields": {
-            "tag": "community_spa_or_hot_tub"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "7ab4f4e0-2fcf-4962-8c11-53fc5eade444",
-        "fields": {
-            "tag": "investment_opportunity"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "7b3a55b8-af24-4ddc-a80f-9d5b01205361",
-        "fields": {
-            "tag": "hoa"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "7c2e796b-0f82-45e8-877d-cbc87b0229fa",
-        "fields": {
-            "tag": "wooded_land"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "7dc24959-34d3-485b-af45-a7bbce318f83",
-        "fields": {
-            "tag": "coffer_ceiling"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "82344a4f-2e1f-4af3-895e-b338efeab2d4",
-        "fields": {
-            "tag": "courtyard_entry"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "84d2b1e7-fed6-4e48-be86-773af05d0e35",
-        "fields": {
-            "tag": "park"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "85be6f62-9cb5-4094-9669-54c26b54b463",
-        "fields": {
-            "tag": "mount_rainier_view"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "89c3f1b5-370b-4b07-be13-b2d2140c2993",
-        "fields": {
-            "tag": "garage_3_or_more"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "8ac83656-fe28-4ba6-bbea-8eb248eef207",
-        "fields": {
-            "tag": "storm_shelter"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "8acd237e-b63a-4703-9ef4-2f21f1cc6832",
-        "fields": {
-            "tag": "view"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "8bfd5c03-855f-4c01-ba11-fc5f9a2f13f9",
-        "fields": {
-            "tag": "dishwasher"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "8c21ec4f-68a5-4810-8320-22d1153c03ef",
-        "fields": {
-            "tag": "community_security_features"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "8d5c1396-1b4e-4c1c-9750-04918f9b2c39",
-        "fields": {
-            "tag": "laundry_room"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "8e91f111-03aa-412b-b04c-2efacf8c2fb0",
-        "fields": {
-            "tag": "beautiful_backyard"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "9014c33e-8679-4bba-addb-490898e70eed",
-        "fields": {
-            "tag": "basketball_court"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "9051ab72-ed1a-4368-ab40-6682521d43e7",
-        "fields": {
-            "tag": "race_track"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "94934a54-bac5-4e8d-8c29-244bc0a71126",
-        "fields": {
-            "tag": "private_courtyard"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "94ef6145-02a9-458e-81f1-c03e260df591",
-        "fields": {
-            "tag": "lake_view"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "95159683-bb29-48d9-9f1c-621ad28cc440",
-        "fields": {
-            "tag": "solar_system"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "969ac80c-83b0-415f-94c9-91209de016cd",
-        "fields": {
-            "tag": "horse_property"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "977a2d8b-c4ec-455d-8821-c1370299659a",
-        "fields": {
-            "tag": "corner_lot"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "97a8badb-a881-4b41-bd12-26c0707f279b",
-        "fields": {
-            "tag": "open_house"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "993fefdb-beac-456f-abb6-219c6cb675d7",
-        "fields": {
-            "tag": "shopping"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "9aad3350-8f02-43be-a179-22b58d9d4893",
-        "fields": {
-            "tag": "library"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "9d39b588-fc8f-4f64-b7d1-3c9a4c9e7439",
-        "fields": {
-            "tag": "new_roof"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "9d837e2a-bfec-4ee2-ba5f-92a514b90d7c",
-        "fields": {
-            "tag": "horse_stables"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "9d9ad5a0-f42b-4a53-ada1-490863b4d8fc",
-        "fields": {
-            "tag": "outdoor_kitchen"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "9fc1ebfa-5e12-48da-9a52-d7c4615c72d4",
-        "fields": {
-            "tag": "community_horse_facilities"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "a119aea3-0233-4e47-afc6-c35b38ada486",
-        "fields": {
-            "tag": "large_porch"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "a51c149c-0361-42b0-9647-8006a236a5c5",
-        "fields": {
-            "tag": "two_master_suites"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "a52eb1fa-0ec4-40e0-bc3b-71807a656070",
-        "fields": {
-            "tag": "handicap_access"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "a56a3e40-7c41-4c02-9a78-dcb08e810da9",
-        "fields": {
-            "tag": "first_floor_master_bedroom"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "a5f93a0d-bcd5-43c5-8558-903d063c8837",
-        "fields": {
-            "tag": "furnished"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "a66763cf-4780-44d7-918a-8fe03b26fd05",
-        "fields": {
-            "tag": "front_porch"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "a792c6e1-60ac-4238-bc90-7e9d60fd34c8",
-        "fields": {
-            "tag": "mountain_view"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "a7f9e46a-36bb-457a-9b76-3c1df1dbcd30",
-        "fields": {
-            "tag": "two_or_more_stories"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "a8422a86-f8d1-49c4-bad2-db772e4dbcd8",
-        "fields": {
-            "tag": "tennis_court"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "a9ec4505-383e-4047-836d-b983f4cce86f",
-        "fields": {
-            "tag": "no_hoa"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "ac6e04f3-d138-4552-8eca-0a46ec8acf26",
-        "fields": {
-            "tag": "basement"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "ada1730d-00f7-4f8c-a1e1-3af6ec5ae9f2",
-        "fields": {
-            "tag": "hunting_land"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "adbe5e93-7b3b-4a15-b97d-3a2eba40cc89",
-        "fields": {
-            "tag": "river_view"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "afcc5393-c07b-433b-a6df-b132a40df8c0",
-        "fields": {
-            "tag": "two_kitchen"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "b0744fbf-4a0b-46b6-acca-541d7a99c54e",
-        "fields": {
-            "tag": "community_gym"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "b15c0523-4c4b-4b82-be5c-5a03924dbf2e",
-        "fields": {
-            "tag": "detached_guest_house"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "b1fee008-2e4b-4fa9-ad26-f6b8e317b8bc",
-        "fields": {
-            "tag": "rv_or_boat_parking"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "b20bdd4a-ebab-4723-81ad-aedc125bd97b",
-        "fields": {
-            "tag": "high_ceiling"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "b29700fd-d2c4-4b7c-a295-ddda71bed601",
-        "fields": {
-            "tag": "wrap_around_porch"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "b2c76102-0b18-4f3b-bb80-ce76f2c7ec6d",
-        "fields": {
-            "tag": "outbuilding"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "b3d2bffd-eeb9-4512-a800-f9aa9e0ec4c2",
-        "fields": {
-            "tag": "exposed_brick"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "b4213310-7afb-421b-94fe-d17791bd6d1f",
-        "fields": {
-            "tag": "big_lot"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "b6df82d8-3ecc-456e-a2cc-45b0076fbc88",
-        "fields": {
-            "tag": "city_view"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "b9541495-de1f-482f-a8cd-560a5b444933",
-        "fields": {
-            "tag": "forced_air"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "ba1b0ecc-c853-4fcf-a360-4f97ee821d6f",
-        "fields": {
-            "tag": "senior_community"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "bc881c96-1609-47c5-9d4b-706de479a144",
-        "fields": {
-            "tag": "low_hoa"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "bd9bd242-4b29-40b4-b7de-f64ae07fdc5b",
-        "fields": {
-            "tag": "community_boat_facilities"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "bea25066-709b-4604-b489-a9f606ff82f2",
-        "fields": {
-            "tag": "rental_property"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "c07f6ad7-f74d-411a-8b39-561d75322b22",
-        "fields": {
-            "tag": "white_kitchen"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "c0cb2b95-da9f-4c6d-9a9b-ac643a075012",
-        "fields": {
-            "tag": "community_clubhouse"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "c13c9ec7-74a7-4c2e-b6dc-40a9fc9a820c",
-        "fields": {
-            "tag": "recording_studio"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "c35c046d-a6b3-4a38-83c1-9b6b04fddba9",
-        "fields": {
-            "tag": "disability_features"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "c47cf4b1-6eb4-4f46-aa89-169064a7b402",
-        "fields": {
-            "tag": "ranch"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "c556cae0-78a8-4403-af42-de6c8d04bdcc",
-        "fields": {
-            "tag": "trails"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "c754113c-519f-4239-9ae5-8320f470a298",
-        "fields": {
-            "tag": "community_swimming_pool"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "c7bd5187-2446-448c-a185-ccd606b05da5",
-        "fields": {
-            "tag": "theater_room"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "c812a32c-a6ae-49fd-b269-7cf0c318684f",
-        "fields": {
-            "tag": "hardwood_floors"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "cf3c032c-575f-4185-98be-24e12979526c",
-        "fields": {
-            "tag": "central_air"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "d0c18871-ea3e-4b70-96f7-5f997f93e3ac",
-        "fields": {
-            "tag": "gourmet_kitchen"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "d10c645b-9073-4a5f-81bf-36d85ad7bcde",
-        "fields": {
-            "tag": "kitchen_island"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "d40b8509-c0db-43d7-8240-4bbfedc89b41",
-        "fields": {
-            "tag": "maintenance"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "d451504e-f4a1-4e8f-8b5c-7990a207fd52",
-        "fields": {
-            "tag": "spa_or_hot_tub"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "d4b789b8-9c9b-40b1-94da-f98cf9b65034",
-        "fields": {
-            "tag": "ocean_view"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "d50dccb2-9c0b-4129-8c8c-92300e3dbf5d",
-        "fields": {
-            "tag": "tax_lien"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "d54b8163-0bec-4bba-9d98-2a1d6ea66be3",
-        "fields": {
-            "tag": "horse_facilities"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "d67a207c-4de3-4e4c-bf18-79ede021000c",
-        "fields": {
-            "tag": "golf_course"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "d6e3bce7-459c-4b9d-b1f0-d583cf9f4a85",
-        "fields": {
-            "tag": "runway"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "d7a19b48-bd99-49b7-b03b-974878e43984",
-        "fields": {
-            "tag": "fruit_trees"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "d857ca59-1da0-4da3-899f-1d6b150c6862",
-        "fields": {
-            "tag": "fixer_upper"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "ddbafe6d-e528-4371-a665-5d7066a3cb86",
-        "fields": {
-            "tag": "private_bathroom"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "ddf9126b-00e9-4e3f-8dff-5c48f317f551",
-        "fields": {
-            "tag": "tennis"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "de050d0a-3bcd-4214-aa2a-4a9b46a79f44",
-        "fields": {
-            "tag": "boat_dock"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "de22400a-06ad-445b-bde5-1339175c96fc",
-        "fields": {
-            "tag": "family_room"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "e2891755-db33-4d91-b04f-1215695b8cf6",
-        "fields": {
-            "tag": "elevator"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "e3180025-968a-4380-814e-f7ca06b76269",
-        "fields": {
-            "tag": "marina"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "e33efa36-1e1e-4f8e-be35-9578e9ec231e",
-        "fields": {
-            "tag": "solar_panels"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "e3c7029d-3afe-4a34-9994-b2a94a357ac0",
-        "fields": {
-            "tag": "open_kitchen"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "e6888cde-3cc8-4504-8e0c-7a511eb17f7d",
-        "fields": {
-            "tag": "dog_kennel"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "e691eaa5-8d4a-44ec-944a-0bb6d96fc065",
-        "fields": {
-            "tag": "community_elevator"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "e69e822b-6f4c-4cf4-9f94-259c9a37739e",
-        "fields": {
-            "tag": "pets_allowed"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "e77f256a-d66b-48e3-abc8-5013d0c5ac8c",
-        "fields": {
-            "tag": "efficient"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "eb642f3a-7d26-4629-995b-c38e1a380648",
-        "fields": {
-            "tag": "private_parking"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "f42ef8a3-cd13-4ea9-a122-321450b9d2a4",
-        "fields": {
-            "tag": "hidden_room"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "f59cb53f-876b-4d60-b564-a90eac7ad561",
-        "fields": {
-            "tag": "conversation_pit"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "f65a144a-dd97-409d-a37c-3cf8a6d0a32a",
-        "fields": {
-            "tag": "master_bathroom"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "f65e2030-fcb2-46ff-90b3-885f665f5833",
-        "fields": {
-            "tag": "equestrian"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "f6db0f5b-649d-4d79-9adf-6ed9d6a3132e",
-        "fields": {
-            "tag": "den_or_office"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "f743bb75-74e8-4ba1-8c6a-1bb9283473f1",
-        "fields": {
-            "tag": "greenbelt"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "fac49da7-9ee4-4c9e-b8ba-9b0aa628d421",
-        "fields": {
-            "tag": "waterfront"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "fb0547e4-7158-4834-81d9-4cc53f1fa1cb",
-        "fields": {
-            "tag": "playground"
-        }
-    },
-    {
-        "model": "data.homelistingtags",
-        "pk": "fbda3ef1-fa3b-4370-ac26-33b10efa185c",
-        "fields": {
-            "tag": "in_law_unit"
-        }
-    }
+	{
+		"model": "data.homelistingtags",
+		"pk": "00ff60da-8011-4190-9230-f04a55e20c43",
+		"fields": {
+			"tag": "cul_de_sac"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "02991011-9015-4358-8b08-b4bb231788e0",
+		"fields": {
+			"tag": "big_bathroom"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "04d075ae-4cb6-4af4-9692-7abe867a2d20",
+		"fields": {
+			"tag": "farm"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "069e7d50-093f-4e2b-b093-580ac537f141",
+		"fields": {
+			"tag": "baseball"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "096f06da-00f1-4874-8df6-4d937d87c4b5",
+		"fields": {
+			"tag": "golf_course_lot_or_frontage"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "0c614b9c-79fe-47f4-b642-1a98d14c867b",
+		"fields": {
+			"tag": "community_park"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "0d6b3dcc-2c5f-4516-bcc0-13be69df90bf",
+		"fields": {
+			"tag": "pond"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "0e01b17c-4295-4302-a929-4c454717663a",
+		"fields": {
+			"tag": "fireplace"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "0e2bcd35-c07f-4f35-bc0f-d772b9425c1f",
+		"fields": {
+			"tag": "helipad"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "12a41284-f0fc-4d71-b8a9-623fd7c37855",
+		"fields": {
+			"tag": "cathedral_ceiling"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "138fb5e7-b092-44b0-bc8f-9307ce6f3eff",
+		"fields": {
+			"tag": "master_bedroom"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "15aeeca8-7f47-4a8a-876e-b5bc313ed21f",
+		"fields": {
+			"tag": "beach"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "16a59688-d62e-43cb-b527-594f7f647aea",
+		"fields": {
+			"tag": "security"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "16e109e3-300e-406d-b4e0-79f5e539c500",
+		"fields": {
+			"tag": "fenced_yard"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "1967b34c-8bc0-49eb-b8fc-30b18260fb0a",
+		"fields": {
+			"tag": "new_construction"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "1a995086-ff79-4318-b19e-3eb4d7c3d5c0",
+		"fields": {
+			"tag": "granite_kitchen"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "1b385254-6fe9-4ddc-a1b2-e0aa89f8d25c",
+		"fields": {
+			"tag": "community_golf"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "1be8c450-9465-4eb3-a4ca-08b2880674af",
+		"fields": {
+			"tag": "indoor_basketball_court"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "1c6bd851-a2c6-4771-a2b7-be7d6db75a0b",
+		"fields": {
+			"tag": "swimming_pool"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "21ab65e2-740e-4a5f-a767-db7ddc60593c",
+		"fields": {
+			"tag": "hill_or_mountain_view"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "220a6c27-284e-49bb-9538-c69bacbfc03c",
+		"fields": {
+			"tag": "media_room"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "26927649-fc9f-46e0-8f22-cedc84b988ea",
+		"fields": {
+			"tag": "volleyball"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "2924f58e-f92c-4f64-aea7-cdfd0c1df3fa",
+		"fields": {
+			"tag": "golf_course_view"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "29980ac8-b70c-4925-8c0d-840de37755af",
+		"fields": {
+			"tag": "fenced_courtyard"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "2aa91e12-ca01-4b20-8049-4d5869d1845f",
+		"fields": {
+			"tag": "soccer"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "2bce8bad-d536-475c-8b17-8b2d2a085e54",
+		"fields": {
+			"tag": "private_backyard"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "2c360a23-f48e-4ae6-bd84-6a2e093f8aed",
+		"fields": {
+			"tag": "jack_and_jill_bathroom"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "30b405b0-f45e-49ee-93ab-363fb7485f97",
+		"fields": {
+			"tag": "lake"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "361cdc11-8561-4abd-bf75-2c0911adaf3b",
+		"fields": {
+			"tag": "guest_parking"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "37853faa-b57a-4dff-bbc5-0613944e000f",
+		"fields": {
+			"tag": "community_outdoor_space"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "3addbb0a-81f5-4b99-9562-663c83a42303",
+		"fields": {
+			"tag": "well_water"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "3bfb1bf4-ad53-433f-8c83-79db54bcbe8d",
+		"fields": {
+			"tag": "courtyard_style"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "3c71fb68-fd8e-4bbc-931d-0ad9ef3a9e3f",
+		"fields": {
+			"tag": "floor_plan"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "3ced0737-627d-4f49-818a-4de8690ad725",
+		"fields": {
+			"tag": "views"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "3de5179c-0bed-46ac-aad0-d13e495f606f",
+		"fields": {
+			"tag": "smart_homes"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "3e4a4311-9e97-47dd-b0fe-453a3f5616a4",
+		"fields": {
+			"tag": "wine_cellar"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "3f415c8b-1db4-4cb6-a205-a9daadbc4f70",
+		"fields": {
+			"tag": "basketball"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "4193d1d0-5bdf-40fa-a687-54959c1ab6f9",
+		"fields": {
+			"tag": "furniture"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "454f8f7a-72f3-48bc-bb68-39f2a112e350",
+		"fields": {
+			"tag": "central_heat"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "491bd023-d6ec-4281-8d2f-2502a3f86695",
+		"fields": {
+			"tag": "vaulted_ceiling"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "499a5de1-50e1-46b7-b6df-35ceecee42f5",
+		"fields": {
+			"tag": "recreation_facilities"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "49eb0ebc-6247-4669-b591-9b39b92c1c28",
+		"fields": {
+			"tag": "dining_room"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "4b06e37c-4e9c-4af6-9ba5-7fada759409f",
+		"fields": {
+			"tag": "carport"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "4b619361-4268-4e9b-a092-f4d6e6e86aa7",
+		"fields": {
+			"tag": "energy_efficient"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "4fe25d90-013d-4938-af97-4dbbaa69ec39",
+		"fields": {
+			"tag": "garage_1_or_more"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "50e3de3b-1136-4ad6-bff5-bc3442f99770",
+		"fields": {
+			"tag": "large_kitchen"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "54c9a97a-4869-4ec7-ab3f-6e943b7bb7ce",
+		"fields": {
+			"tag": "guest_house"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "54efd642-4de9-47be-86f7-6589c4cfba34",
+		"fields": {
+			"tag": "groundscare"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "54fd301e-7bf8-4f51-8ee7-4dbdeb335008",
+		"fields": {
+			"tag": "water_view"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "555021f7-540a-4e65-b124-9c8eae1fe09d",
+		"fields": {
+			"tag": "greenhouse"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "55d845ee-67ac-4ed5-9c98-27e97e960218",
+		"fields": {
+			"tag": "clubhouse"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "597a5fe2-820a-488f-a641-cf720cb33221",
+		"fields": {
+			"tag": "open_floor_plan"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "597fc258-dfc1-47a1-ba93-3c45ee596c33",
+		"fields": {
+			"tag": "updated_kitchen"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "59896f07-9bdf-4588-87ca-50123f7a27eb",
+		"fields": {
+			"tag": "garage_2_or_more"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "5ae0990e-2261-4dee-a7ca-a048e7439809",
+		"fields": {
+			"tag": "game_room"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "5b8b005c-70a2-4159-9098-40944e5a2233",
+		"fields": {
+			"tag": "medicalcare"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "5ca2e680-e3fe-4e21-a516-598aae938889",
+		"fields": {
+			"tag": "river_access"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "5ec86a49-d4e8-45a8-b5a7-d0f718ef6d90",
+		"fields": {
+			"tag": "master_suite"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "5ee9c7ec-6ae5-4bc0-91f6-ca69404526dd",
+		"fields": {
+			"tag": "dual_master_bedroom"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "5f4e3b88-bb89-4cfa-a487-73beaa04df88",
+		"fields": {
+			"tag": "community_doorman"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "60fc0446-7e47-4171-8354-6b07e21236c7",
+		"fields": {
+			"tag": "lease_option"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "626856f3-1029-448c-b581-66a09e507060",
+		"fields": {
+			"tag": "gated_community"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "62f2b142-7711-49ef-bb1b-b4a67e4f3c8f",
+		"fields": {
+			"tag": "modern_kitchen"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "692b3615-c2a1-4f03-996e-9d0a38ab07c6",
+		"fields": {
+			"tag": "big_yard"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "6a080b58-f4fa-49e4-b7bb-b3e7a8f8846e",
+		"fields": {
+			"tag": "single_story"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "6f7e226e-a439-4825-826f-156fed378db0",
+		"fields": {
+			"tag": "community_center"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "70da9354-6719-4fb0-b9cf-de99b957327a",
+		"fields": {
+			"tag": "rv_parking"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "733bb1c4-aee1-44e6-8305-a7a62fe4fde0",
+		"fields": {
+			"tag": "screen_porch"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "74e1d174-3289-4cdf-8acc-a44cfa44b0d8",
+		"fields": {
+			"tag": "community_tennis_court"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "7568cdf7-bbda-4c00-98d7-f755752b92f8",
+		"fields": {
+			"tag": "ensuite"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "75d6803a-f364-40d9-ba97-3fcb49920df8",
+		"fields": {
+			"tag": "washer_dryer"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "79ef5abd-0222-4749-bcbd-451ca3eeb569",
+		"fields": {
+			"tag": "fallout_shelter"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "7a214bb9-ae4b-4ea9-93b2-4a9e29429832",
+		"fields": {
+			"tag": "community_spa_or_hot_tub"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "7ab4f4e0-2fcf-4962-8c11-53fc5eade444",
+		"fields": {
+			"tag": "investment_opportunity"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "7b3a55b8-af24-4ddc-a80f-9d5b01205361",
+		"fields": {
+			"tag": "hoa"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "7c2e796b-0f82-45e8-877d-cbc87b0229fa",
+		"fields": {
+			"tag": "wooded_land"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "7dc24959-34d3-485b-af45-a7bbce318f83",
+		"fields": {
+			"tag": "coffer_ceiling"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "82344a4f-2e1f-4af3-895e-b338efeab2d4",
+		"fields": {
+			"tag": "courtyard_entry"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "84d2b1e7-fed6-4e48-be86-773af05d0e35",
+		"fields": {
+			"tag": "park"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "85be6f62-9cb5-4094-9669-54c26b54b463",
+		"fields": {
+			"tag": "mount_rainier_view"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "89c3f1b5-370b-4b07-be13-b2d2140c2993",
+		"fields": {
+			"tag": "garage_3_or_more"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "8ac83656-fe28-4ba6-bbea-8eb248eef207",
+		"fields": {
+			"tag": "storm_shelter"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "8acd237e-b63a-4703-9ef4-2f21f1cc6832",
+		"fields": {
+			"tag": "view"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "8bfd5c03-855f-4c01-ba11-fc5f9a2f13f9",
+		"fields": {
+			"tag": "dishwasher"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "8c21ec4f-68a5-4810-8320-22d1153c03ef",
+		"fields": {
+			"tag": "community_security_features"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "8d5c1396-1b4e-4c1c-9750-04918f9b2c39",
+		"fields": {
+			"tag": "laundry_room"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "8e91f111-03aa-412b-b04c-2efacf8c2fb0",
+		"fields": {
+			"tag": "beautiful_backyard"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "9014c33e-8679-4bba-addb-490898e70eed",
+		"fields": {
+			"tag": "basketball_court"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "9051ab72-ed1a-4368-ab40-6682521d43e7",
+		"fields": {
+			"tag": "race_track"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "94934a54-bac5-4e8d-8c29-244bc0a71126",
+		"fields": {
+			"tag": "private_courtyard"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "94ef6145-02a9-458e-81f1-c03e260df591",
+		"fields": {
+			"tag": "lake_view"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "95159683-bb29-48d9-9f1c-621ad28cc440",
+		"fields": {
+			"tag": "solar_system"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "969ac80c-83b0-415f-94c9-91209de016cd",
+		"fields": {
+			"tag": "horse_property"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "977a2d8b-c4ec-455d-8821-c1370299659a",
+		"fields": {
+			"tag": "corner_lot"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "97a8badb-a881-4b41-bd12-26c0707f279b",
+		"fields": {
+			"tag": "open_house"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "993fefdb-beac-456f-abb6-219c6cb675d7",
+		"fields": {
+			"tag": "shopping"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "9aad3350-8f02-43be-a179-22b58d9d4893",
+		"fields": {
+			"tag": "library"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "9d39b588-fc8f-4f64-b7d1-3c9a4c9e7439",
+		"fields": {
+			"tag": "new_roof"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "9d837e2a-bfec-4ee2-ba5f-92a514b90d7c",
+		"fields": {
+			"tag": "horse_stables"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "9d9ad5a0-f42b-4a53-ada1-490863b4d8fc",
+		"fields": {
+			"tag": "outdoor_kitchen"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "9fc1ebfa-5e12-48da-9a52-d7c4615c72d4",
+		"fields": {
+			"tag": "community_horse_facilities"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "a119aea3-0233-4e47-afc6-c35b38ada486",
+		"fields": {
+			"tag": "large_porch"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "a51c149c-0361-42b0-9647-8006a236a5c5",
+		"fields": {
+			"tag": "two_master_suites"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "a52eb1fa-0ec4-40e0-bc3b-71807a656070",
+		"fields": {
+			"tag": "handicap_access"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "a56a3e40-7c41-4c02-9a78-dcb08e810da9",
+		"fields": {
+			"tag": "first_floor_master_bedroom"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "a5f93a0d-bcd5-43c5-8558-903d063c8837",
+		"fields": {
+			"tag": "furnished"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "a66763cf-4780-44d7-918a-8fe03b26fd05",
+		"fields": {
+			"tag": "front_porch"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "a792c6e1-60ac-4238-bc90-7e9d60fd34c8",
+		"fields": {
+			"tag": "mountain_view"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "a7f9e46a-36bb-457a-9b76-3c1df1dbcd30",
+		"fields": {
+			"tag": "two_or_more_stories"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "a8422a86-f8d1-49c4-bad2-db772e4dbcd8",
+		"fields": {
+			"tag": "tennis_court"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "a9ec4505-383e-4047-836d-b983f4cce86f",
+		"fields": {
+			"tag": "no_hoa"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "ac6e04f3-d138-4552-8eca-0a46ec8acf26",
+		"fields": {
+			"tag": "basement"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "ada1730d-00f7-4f8c-a1e1-3af6ec5ae9f2",
+		"fields": {
+			"tag": "hunting_land"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "adbe5e93-7b3b-4a15-b97d-3a2eba40cc89",
+		"fields": {
+			"tag": "river_view"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "afcc5393-c07b-433b-a6df-b132a40df8c0",
+		"fields": {
+			"tag": "two_kitchen"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "b0744fbf-4a0b-46b6-acca-541d7a99c54e",
+		"fields": {
+			"tag": "community_gym"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "b15c0523-4c4b-4b82-be5c-5a03924dbf2e",
+		"fields": {
+			"tag": "detached_guest_house"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "b1fee008-2e4b-4fa9-ad26-f6b8e317b8bc",
+		"fields": {
+			"tag": "rv_or_boat_parking"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "b20bdd4a-ebab-4723-81ad-aedc125bd97b",
+		"fields": {
+			"tag": "high_ceiling"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "b29700fd-d2c4-4b7c-a295-ddda71bed601",
+		"fields": {
+			"tag": "wrap_around_porch"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "b2c76102-0b18-4f3b-bb80-ce76f2c7ec6d",
+		"fields": {
+			"tag": "outbuilding"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "b3d2bffd-eeb9-4512-a800-f9aa9e0ec4c2",
+		"fields": {
+			"tag": "exposed_brick"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "b4213310-7afb-421b-94fe-d17791bd6d1f",
+		"fields": {
+			"tag": "big_lot"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "b6df82d8-3ecc-456e-a2cc-45b0076fbc88",
+		"fields": {
+			"tag": "city_view"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "b9541495-de1f-482f-a8cd-560a5b444933",
+		"fields": {
+			"tag": "forced_air"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "ba1b0ecc-c853-4fcf-a360-4f97ee821d6f",
+		"fields": {
+			"tag": "senior_community"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "bc881c96-1609-47c5-9d4b-706de479a144",
+		"fields": {
+			"tag": "low_hoa"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "bd9bd242-4b29-40b4-b7de-f64ae07fdc5b",
+		"fields": {
+			"tag": "community_boat_facilities"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "bea25066-709b-4604-b489-a9f606ff82f2",
+		"fields": {
+			"tag": "rental_property"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "c07f6ad7-f74d-411a-8b39-561d75322b22",
+		"fields": {
+			"tag": "white_kitchen"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "c0cb2b95-da9f-4c6d-9a9b-ac643a075012",
+		"fields": {
+			"tag": "community_clubhouse"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "c13c9ec7-74a7-4c2e-b6dc-40a9fc9a820c",
+		"fields": {
+			"tag": "recording_studio"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "c35c046d-a6b3-4a38-83c1-9b6b04fddba9",
+		"fields": {
+			"tag": "disability_features"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "c47cf4b1-6eb4-4f46-aa89-169064a7b402",
+		"fields": {
+			"tag": "ranch"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "c556cae0-78a8-4403-af42-de6c8d04bdcc",
+		"fields": {
+			"tag": "trails"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "c754113c-519f-4239-9ae5-8320f470a298",
+		"fields": {
+			"tag": "community_swimming_pool"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "c7bd5187-2446-448c-a185-ccd606b05da5",
+		"fields": {
+			"tag": "theater_room"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "c812a32c-a6ae-49fd-b269-7cf0c318684f",
+		"fields": {
+			"tag": "hardwood_floors"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "cf3c032c-575f-4185-98be-24e12979526c",
+		"fields": {
+			"tag": "central_air"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "d0c18871-ea3e-4b70-96f7-5f997f93e3ac",
+		"fields": {
+			"tag": "gourmet_kitchen"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "d10c645b-9073-4a5f-81bf-36d85ad7bcde",
+		"fields": {
+			"tag": "kitchen_island"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "d40b8509-c0db-43d7-8240-4bbfedc89b41",
+		"fields": {
+			"tag": "maintenance"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "d451504e-f4a1-4e8f-8b5c-7990a207fd52",
+		"fields": {
+			"tag": "spa_or_hot_tub"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "d4b789b8-9c9b-40b1-94da-f98cf9b65034",
+		"fields": {
+			"tag": "ocean_view"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "d50dccb2-9c0b-4129-8c8c-92300e3dbf5d",
+		"fields": {
+			"tag": "tax_lien"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "d54b8163-0bec-4bba-9d98-2a1d6ea66be3",
+		"fields": {
+			"tag": "horse_facilities"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "d67a207c-4de3-4e4c-bf18-79ede021000c",
+		"fields": {
+			"tag": "golf_course"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "d6e3bce7-459c-4b9d-b1f0-d583cf9f4a85",
+		"fields": {
+			"tag": "runway"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "d7a19b48-bd99-49b7-b03b-974878e43984",
+		"fields": {
+			"tag": "fruit_trees"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "d857ca59-1da0-4da3-899f-1d6b150c6862",
+		"fields": {
+			"tag": "fixer_upper"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "ddbafe6d-e528-4371-a665-5d7066a3cb86",
+		"fields": {
+			"tag": "private_bathroom"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "ddf9126b-00e9-4e3f-8dff-5c48f317f551",
+		"fields": {
+			"tag": "tennis"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "de050d0a-3bcd-4214-aa2a-4a9b46a79f44",
+		"fields": {
+			"tag": "boat_dock"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "de22400a-06ad-445b-bde5-1339175c96fc",
+		"fields": {
+			"tag": "family_room"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "e2891755-db33-4d91-b04f-1215695b8cf6",
+		"fields": {
+			"tag": "elevator"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "e3180025-968a-4380-814e-f7ca06b76269",
+		"fields": {
+			"tag": "marina"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "e33efa36-1e1e-4f8e-be35-9578e9ec231e",
+		"fields": {
+			"tag": "solar_panels"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "e3c7029d-3afe-4a34-9994-b2a94a357ac0",
+		"fields": {
+			"tag": "open_kitchen"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "e6888cde-3cc8-4504-8e0c-7a511eb17f7d",
+		"fields": {
+			"tag": "dog_kennel"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "e691eaa5-8d4a-44ec-944a-0bb6d96fc065",
+		"fields": {
+			"tag": "community_elevator"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "e69e822b-6f4c-4cf4-9f94-259c9a37739e",
+		"fields": {
+			"tag": "pets_allowed"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "e77f256a-d66b-48e3-abc8-5013d0c5ac8c",
+		"fields": {
+			"tag": "efficient"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "eb642f3a-7d26-4629-995b-c38e1a380648",
+		"fields": {
+			"tag": "private_parking"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "f42ef8a3-cd13-4ea9-a122-321450b9d2a4",
+		"fields": {
+			"tag": "hidden_room"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "f59cb53f-876b-4d60-b564-a90eac7ad561",
+		"fields": {
+			"tag": "conversation_pit"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "f65a144a-dd97-409d-a37c-3cf8a6d0a32a",
+		"fields": {
+			"tag": "master_bathroom"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "f65e2030-fcb2-46ff-90b3-885f665f5833",
+		"fields": {
+			"tag": "equestrian"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "f6db0f5b-649d-4d79-9adf-6ed9d6a3132e",
+		"fields": {
+			"tag": "den_or_office"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "f743bb75-74e8-4ba1-8c6a-1bb9283473f1",
+		"fields": {
+			"tag": "greenbelt"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "fac49da7-9ee4-4c9e-b8ba-9b0aa628d421",
+		"fields": {
+			"tag": "waterfront"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "fb0547e4-7158-4834-81d9-4cc53f1fa1cb",
+		"fields": {
+			"tag": "playground"
+		}
+	},
+	{
+		"model": "data.homelistingtags",
+		"pk": "fbda3ef1-fa3b-4370-ac26-33b10efa185c",
+		"fields": {
+			"tag": "in_law_unit"
+		}
+	}
 ]
