@@ -203,4 +203,4 @@ backend/.env.testing
 backend/downloadedData/
 
 data/db/
-backend/*.json
+old_data/
