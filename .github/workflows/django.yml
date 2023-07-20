@@ -142,17 +142,17 @@ jobs:
       - name: Install dependencies
         run: |
           cd frontend
-          yarn install --frozen-lockfile
+          npm i
 
       - name: Lint with ESLint
         run: |
           cd frontend
-          yarn lint
+          nppm run lint
 
       - name: Build
         run: |
           cd frontend
-          yarn build
+          npm run build
 
   test-frontend:
     runs-on: ubuntu-latest
@@ -163,10 +163,6 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
-      # - name: Install dependencies
-      #   run: |
-      #     cd frontend
-      #     npm ci
       - name: Install Playwright Browsers
         run: |
           cd frontend

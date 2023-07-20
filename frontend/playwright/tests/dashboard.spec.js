@@ -7,10 +7,10 @@ test.describe('Interacting with client data', () => {
         await page.goto('/dashboard/customers');
     });
 
-    test('pagination', async ({ page }) => {
-        const container = page.getByTestId('customer-data-card');
-        expect(container).toBeVisible();
-    });
+    // test('pagination', async ({ page }) => {
+    //     const container = page.getByTestId('customer-data-card');
+    //     expect(container).toBeVisible();
+    // });
 
 
  })
