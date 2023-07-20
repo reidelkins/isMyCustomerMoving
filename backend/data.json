@@ -153,6 +153,13 @@
 		}
 	},
 	{
+		"model": "data.zipcode",
+		"pk": "12345",
+		"fields": {
+			"last_updated": "2023-05-27"
+		}
+	},
+	{
 		"model": "data.client",
 		"pk": "00017152-7694-4cc8-bb50-3c0ddb75775c",
 		"fields": {
@@ -195,7 +202,7 @@
 		"model": "data.clientupdate",
 		"pk": "00182043-3ac4-456e-92aa-8185363f724f",
 		"fields": {
-			"client": "4ca7865f-4c44-476f-821e-a61fb1c4cb4a",
+			"client": "00017152-7694-4cc8-bb50-3c0ddb75775c",
 			"date": "2023-06-16",
 			"status": "House For Sale",
 			"listed": "2023-04-29",
