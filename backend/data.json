@@ -149,7 +149,7 @@
 		"model": "data.zipcode",
 		"pk": "37919",
 		"fields": {
-			"lastUpdated": "2023-05-27"
+			"last_updated": "2023-05-27"
 		}
 	},
 	{
