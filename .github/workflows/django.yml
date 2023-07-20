@@ -139,20 +139,6 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install dependencies
-        run: |
-          cd frontend
-          npm i
-
-      - name: Lint with ESLint
-        run: |
-          cd frontend
-          npm run lint
-
-      - name: Build
-        run: |
-          cd frontend
-          npm run build
 
   test-frontend:
     runs-on: ubuntu-latest
@@ -163,6 +149,18 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm i
+      - name: Lint with ESLint
+        run: |
+          cd frontend
+          npm run lint
+      - name: Build
+        run: |
+          cd frontend
+          npm run build
       - name: Install Playwright Browsers
         run: |
           cd frontend
