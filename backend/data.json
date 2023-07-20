@@ -76,7 +76,7 @@
 			"is_staff": false,
 			"is_active": true,
 			"date_joined": "2023-05-18T23:17:30.464Z",
-			"email": "testuser2@gmail.com",
+			"email": "testuser2@test.com",
 			"is_verified": true,
 			"status": "active",
 			"phone": "2343243434",
