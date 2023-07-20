@@ -317,7 +317,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
     const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
     return (
         <>
-            <Card sx={{ marginBottom: '3%' }}>
+            <Card sx={{ marginBottom: '3%' }} data-testid="customer-data-card">
                 <ClientListToolbar
                     numSelected={selected.length}
                     filterName={filterName}

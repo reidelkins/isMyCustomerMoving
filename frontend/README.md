@@ -102,13 +102,13 @@ Frontend Tests 28 June 2023
 
 ## Fixture requirements
 
-1. Users
+1. Users in test company
   - Admin user john.playwright@email.com
-  - Non admin user linda.playwright @email.com
+  - Non admin user linda.playwright@email.com
   - pending user
   pending.playwright@email.com
   - user to be deleted delete.playwright@email.com
 2. Test company 
-  - CRM
+  - No CRM selected
   - enterprise
-  - For sale and recently sold
+  - For sale and recently sold connected
