@@ -1,13 +1,13 @@
 name: IMCM CI
 
-on: [pull_request]
-  # push:
-  #   branches-ignore:
-  #     # ignore all except master
-  #     - '*' # 'master'
-  # pull_request:
-  #   branches:
-  #     - '*'
+on:
+  push:
+    branches:
+    - master
+    - develop
+  pull_request:
+    branches:
+    - '*'
 
 env:
   DJANGO_SECRET_KEY: ${{secrets.DJANGO_SECRET_KEY}}
@@ -30,13 +30,25 @@ env:
   IS_GITHUB: True
 
 jobs:
+  lint-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.10'
+      - name: Run Static Code Analysis
+        run: |
+          pip install flake8 black
+          flake8 backend --exclude=backend/accounts/migrations,backend/data/migrations,backend/accounts/migrations1,backend/data/migrations1,backend/payments/migrations,backend/manage.py,backend/accounts/tests,backend/data/tests,backend/payments/tests,backend/config/settings.py --max-line-length=85
+        # black --check --line-length 85 backend
   build-backend:
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 4
       matrix:
         python-version: ['3.8', '3.9', '3.10']
-
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -53,12 +65,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
-      - name: Run Static Code Analysis
-        run: |
-          pip install flake8 black
-          flake8 backend --exclude=backend/accounts/migrations,backend/data/migrations,backend/accounts/migrations1,backend/data/migrations1,backend/payments/migrations,backend/manage.py,backend/accounts/tests,backend/data/tests,backend/payments/tests,backend/config/settings.py --max-line-length=85
-      # black --check --line-length 85 backend
+          pip install -r backend/requirements.txt     
       - name: Database Setup
         run: |
           echo "Setting up test database..."
@@ -69,22 +76,22 @@ jobs:
           cd backend
           python manage.py makemigrations
           python manage.py migrate
-      - name: Run Tests and Code Coverage
+      - name: Upload Fake Data To Database
+        if : ${{ matrix.python-version }} == '3.10'
         run: |
           cd backend
-          coverage run -m pytest
-          coverage report -m
+          python manage.py loaddata data.json
       - name: Start Server
-        if: matrix.python-version == '3.10'
+        if : ${{ matrix.python-version }} == '3.10'
         run: |
           cd backend
           python manage.py collectstatic --noinput
           python manage.py runserver &
       - name: Wait for backend server to start
-        if: matrix.python-version == '3.10'
+        if : ${{ matrix.python-version }} == '3.10'  
         run: sleep 10
       - name: Check Backend Server
-        if: matrix.python-version == '3.10'
+        if : ${{ matrix.python-version }} == '3.10' 
         run: |
           echo "Checking if backend server is running..."
           sleep 5 # Give the server some time to start
@@ -95,7 +102,12 @@ jobs:
           else
             echo "Backend server is running."
           fi
-
+      - name: Run Tests and Code Coverage
+        run: |
+          cd backend          
+          coverage run -m pytest
+          coverage report -m  
+        
   backend-security-check:
     needs: build-backend
     runs-on: ubuntu-latest

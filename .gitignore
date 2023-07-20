@@ -205,6 +205,4 @@ backend/downloadedData/
 
 data/db/
 old_data/
-backend/*.json
 frontend/package-lock.json
-
