@@ -139,14 +139,15 @@ def delete_extra_clients(company_id, task_id=None):
             )
 
             for admin in admins:
-                send_mail(
-                    subject=mail_subject,
-                    message=message_plain,
-                    from_email=settings.EMAIL_HOST_USER,
-                    recipient_list=[admin.email],
-                    html_message=message_html,
-                    fail_silently=False,
-                )
+                if "@test.com" not in email:
+                    send_mail(
+                        subject=mail_subject,
+                        message=message_plain,
+                        from_email=settings.EMAIL_HOST_USER,
+                        recipient_list=[admin.email],
+                        html_message=message_html,
+                        fail_silently=False,
+                    )
     except Exception as e:
         logging.error(e)
         deleted_clients = 0
@@ -1033,14 +1034,15 @@ def send_update_email(templateName):
           https://app.ismycustomermoving.com/ to see them."""
         message = get_template(f"{templateName}.html").render()
         for user in users:
-            send_mail(
-                subject=mail_subject,
-                message=messagePlain,
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[user],
-                html_message=message,
-                fail_silently=False,
-            )
+            if "@test.com" not in email:
+                send_mail(
+                    subject=mail_subject,
+                    message=messagePlain,
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[user],
+                    html_message=message,
+                    fail_silently=False,
+                )
     except Exception as e:
         logging.error("sending update email failed")
         logging.error(f"ERROR: {e}")
