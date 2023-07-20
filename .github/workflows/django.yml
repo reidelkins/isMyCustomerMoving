@@ -147,7 +147,7 @@ jobs:
       - name: Lint with ESLint
         run: |
           cd frontend
-          nppm run lint
+          npm run lint
 
       - name: Build
         run: |
