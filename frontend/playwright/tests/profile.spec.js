@@ -1,10 +1,11 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
 
-const NON_ADMIN_USER = 'linda.playwright@email.com'
-const NEW_USER_EMAIL = 'newuser@test.com'
-const PENDING_USER_EMAIL = 'pending.playwright@email.com'
-const USER_TO_BE_DELETED = 'delete.playwright@email.com'
+const NON_ADMIN_USER = 'testuser2@gmail.com'
+const NEW_USER_EMAIL = 'newuser@gmail.com'
+const PENDING_USER_EMAIL = 'testuser3@gmail.com'
+const USER_TO_BE_DELETED = 'deleteme@test.com'
+
 
 test.describe('Editing profile info', () => {
     test.beforeEach(async ({ page }) => {
