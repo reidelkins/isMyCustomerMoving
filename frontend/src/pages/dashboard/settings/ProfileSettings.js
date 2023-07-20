@@ -35,7 +35,6 @@ import TwoFactorAuth from '../../../components/TwoFactorAuth';
 import CRMIntegrationModal from '../../../components/CRMIntegrationModal';
 import UpgradeFromFree from '../../../components/UpgradeFromFree';
 import { applySortFilter, getComparator } from '../../../utils/filterFunctions';
-import { handleRequestSort } from '../../../utils/dataTableFunctions';
 // import ResetPasswordModal from '../components/ResetPasswordModal';
 
 import UsersListCall from '../../../redux/calls/UsersListCall';
@@ -101,6 +100,11 @@ export default function ProfileSettings() {
 
   const { errors, touched, values, handleSubmit, getFieldProps } = formik;
 
+  const handleRequestSort = (event, property) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
 
   const sendReminder = (event, email) => {
     dispatch(addUser(email));
@@ -243,7 +247,7 @@ export default function ProfileSettings() {
                   orderBy={orderBy}
                   rowCount={0}
                   numSelected={0}
-                  onRequestSort={(event, property) => handleRequestSort(event, property, orderBy, order, setOrder, setOrderBy)}
+                  onRequestSort={handleRequestSort}
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
