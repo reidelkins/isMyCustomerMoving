@@ -11,7 +11,9 @@ import json
 import csv
 
 # from accounts.serializers import UserSerializerWithToken
+from accounts.models import Company
 from config import settings
+from payments.models import ServiceTitanInvoice
 from .models import Client, ClientUpdate, HomeListing, Task, SavedFilter
 from .serializers import ClientListSerializer, HomeListingSerializer
 from .syncClients import get_salesforce_clients, complete_service_titan_sync
@@ -864,6 +866,58 @@ class SalesforceView(APIView):
             get_salesforce_clients.delay(company_id)
             return Response(
                 {"status": "Success"},
+                status=status.HTTP_200_OK,
+                headers="",
+            )
+        except Exception as e:
+            logging.error(e)
+            return Response(
+                {"status": "error"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class CompanyDashboardView(APIView):
+    """
+    An API view to get the revenue and leads data for a company.
+    It should be separated by month and the leads should be separated
+    by status.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def _get_revenue(self, company_id):
+        """
+        Return a list of all the attributed revenue for a company separated by each month.        
+        """
+        company = Company.objects.get(id=company_id)
+        clients = Client.objects.filter(company=company)
+        invoices = ServiceTitanInvoice.objects.filter(client__in=clients)
+        revenue_by_month = {}
+        for invoice in invoices:
+            client = invoice.client
+
+    def get(self, *args, **kwargs):
+        company_id = self.request.user.company.id
+        try:
+            revenue = self._get_revenue(company_id)
+            # company = Company.objects.get(id=company_id)
+            # leads = company.client_set.all()
+            # leads_by_month = {}
+            # leads_by_status = {}
+            # for lead in leads:
+            #     if lead.created_at.month in leads_by_month:
+            #         leads_by_month[lead.created_at.month] += 1
+            #     else:
+            #         leads_by_month[lead.created_at.month] = 1
+            #     if lead.status in leads_by_status:
+            #         leads_by_status[lead.status] += 1
+            #     else:
+            #         leads_by_status[lead.status] = 1
+            return Response(
+                {
+                    "revenue": [2000, 100, 300, 400, 500, 600],
+                    "forSale": [2386, 345, 654, 123, 456, 789],
+                    "recentlySold": [67655, 123, 456, 789, 123, 456, 789]
+                },
                 status=status.HTTP_200_OK,
                 headers="",
             )

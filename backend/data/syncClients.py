@@ -4,12 +4,12 @@ import requests
 import logging
 from time import sleep
 
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from django.conf import settings
 from django.db.models.functions import Coalesce
 
 from accounts.models import Company
-from .models import Client
+from .models import Client, ClientUpdate
 from .utils import (
     save_client_list,
     update_client_list,
@@ -320,12 +320,58 @@ def save_invoices(company_id, invoices):
         if not ServiceTitanInvoice.objects.filter(id=invoice["id"]).exists():
             # Create the ServiceTitanInvoice object
             # and add it to the bulk creation list
+            last_status_update_date = ClientUpdate.objects.filter(
+                client=client,
+                status__in=["House For Sale", "House Recently Sold (6)"]
+            ).values_list("date", flat=True).order_by("-date").first()
+
+            attributed = False
+            existing_client = False
+            if last_status_update_date:
+                if (
+                    # This defines revenue from an existing client
+                    (client.service_titan_customer_since is not None
+                     and client.service_titan_customer_since
+                     < date.today() - timedelta(days=180) and
+                     client.status in ["House For Sale",
+                                       "House Recently Sold (6)"]
+                     and created_on < last_status_update_date + timedelta(days=365)
+                     and created_on >= last_status_update_date)
+
+                ):
+                    attributed = True
+                    existing_client = True
+                    print("existing client", invoice["id"])
+                else:
+                    # This defines revenue from a new client
+                    """
+                    If there is another client in the database with the same address
+                    and that client was there before this client, then this client
+                    is new but should be attributed revenue.
+                    """
+                    clients = Client.objects.filter(
+                        company=company, address=client.address, zip_code=client.zip_code)
+                    if clients.count() > 1:
+                        for otherclient in clients:
+                            if otherclient is not client:
+                                if ((otherclient.service_titan_customer_since is None or
+                                    (otherclient.service_titan_customer_since <
+                                     client.service_titan_customer_since)) and
+                                    client.status in [
+                                        "House For Sale", "House Recently Sold (6)"]
+                                    and created_on < last_status_update_date + timedelta(days=365)
+                                        and created_on >= last_status_update_date):
+                                    print("new client", invoice["id"])
+                                    attributed = True
+
             invoices_to_create.append(
                 ServiceTitanInvoice(
                     id=invoice["id"],
                     amount=invoice["amount"],
                     client=client,
                     created_on=created_on,
+                    attributed=attributed,
+                    existing_client=existing_client,
                 )
             )
     # Bulk create the invoices

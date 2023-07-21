@@ -57,6 +57,14 @@ export const userSlice = createSlice({
       success: false,
       error: null,
     },
+    dashboardData: {
+      loading: false,
+      error: null,
+      revenue: [],
+      forSale: [],
+      recentlySold: [],
+      retrieved: false,
+    }
   },
   reducers: {
     // -----------------  CLIENTS  -----------------
@@ -202,6 +210,39 @@ export const userSlice = createSlice({
     newReferralsPage: (state, action) => {
       state.referralInfo.highestPage = action.payload;
     },
+
+    // -----------------  Company Dashboard  -----------------
+    companyDashboard: (state, action) => {
+      state.dashboardData.revenue = action.payload.revenue;
+      state.dashboardData.forSale = action.payload.forSale;
+      state.dashboardData.recentlySold = action.payload.recentlySold;
+      state.dashboardData.loading = false;
+      state.dashboardData.error = null;
+      state.dashboardData.retrieved = true;
+    },
+    companyDashboardError: (state, action) => {
+      state.dashboardData.error = action.payload;
+      state.dashboardData.loading = false;
+      state.dashboardData.retrieved = false;
+    },
+    companyDashboardLoading: (state) => {
+      state.dashboardData.loading = true;
+      state.dashboardData.retrieved = false;
+    },
+
+    // -----------------  SAVE FILTER  -----------------
+    saveFilter: (state) => {
+      state.saveFilter.success = true;
+    },
+    saveFilterLoading: (state) => {
+      state.saveFilter.success = false;
+    },
+    saveFilterError: (state, action) => {
+      state.saveFilter.error = action.payload;
+      state.saveFilter.success = false;
+    },
+
+    // -----------------  LOGOUT  -----------------
     logoutClients: (state) => {
       state.clientsInfo.CLIENTLIST = [];
       state.clientsInfo.count = 0;
@@ -232,17 +273,6 @@ export const userSlice = createSlice({
       state.referralInfo.loading = false;
       state.referralInfo.error = null;
       state.referralInfo.highestPage = 0;
-    },
-
-    saveFilter: (state) => {
-      state.saveFilter.success = true;
-    },
-    saveFilterLoading: (state) => {
-      state.saveFilter.success = false;
-    },
-    saveFilterError: (state, action) => {
-      state.saveFilter.error = action.payload;
-      state.saveFilter.success = false;
     },
   },
 });
@@ -278,7 +308,10 @@ export const {
   saveFilter,
   saveFilterLoading,
   saveFilterError,
-  newAddress
+  newAddress,
+  companyDashboard,
+  companyDashboardLoading,
+  companyDashboardError,
 } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
 export const selectRecentlySold = (state) => state.user.recentlySoldInfo;
@@ -286,6 +319,7 @@ export const selectForSale = (state) => state.user.forSaleInfo;
 export const selectUsers = (state) => state.user.usersInfo;
 export const selectReferrals = (state) => state.user.referralInfo;
 export const saveFilterSuccess = (state) => state.user.saveFilter.success;
+export const companyDashboardData = (state) => state.user.dashboardData;
 export default userSlice.reducer;
 
 // eslint-disable-next-line arrow-body-style
@@ -1644,3 +1678,29 @@ export const saveForSaleFilterAsync =
       );
     }
   };
+
+export const getCompanyDashboardDataAsync = () => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const { userInfo } = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access_token}`,
+      },
+    };
+    dispatch(companyDashboardLoading());
+    const { data } = await axios.get(`${DOMAIN}/api/v1/data/company_dashboard/`, config);    
+    dispatch(companyDashboard(data));
+  } catch (error) {
+    dispatch(
+      companyDashboardError(error.response && error.response.data.detail ? error.response.data.detail : error.message)
+    );
+    console.log("error", error)
+    // if (error.response.status === 403) {
+    //   dispatch(getRefreshToken(dispatch, getCompanyDashboardDataAsync()));
+    // } else {
+    //   dispatch(logout());
+    // }
+  }
+}
