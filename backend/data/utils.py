@@ -280,7 +280,8 @@ def save_client_list(clients, company_id, task=None):
                 zip_code_obj = ZipCode.objects.get_or_create(
                     zip_code=str(zip_code)
                 )[0]
-
+                if len(name) > 100:
+                    name = name[:100]
                 if is_service_titan:
                     clients_to_add.append(
                         Client(
@@ -299,6 +300,7 @@ def save_client_list(clients, company_id, task=None):
                             clients_to_add, ignore_conflicts=True
                         )
                         clients_to_add = []
+                        logging.info(f"Saving {i} out of {len(clients)}")
 
                     phone_number = (
                         sub("[^0-9]", "", client["phone number"])
