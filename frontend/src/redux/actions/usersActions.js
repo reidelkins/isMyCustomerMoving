@@ -60,9 +60,10 @@ export const userSlice = createSlice({
     dashboardData: {
       loading: false,
       error: null,
-      revenue: [],
-      forSale: [],
-      recentlySold: [],
+      totalRevenue: 0,
+      revenueByMonth: {},
+      forSaleByMonth: {},
+      recentylySoldByMonth: {},
       retrieved: false,
     }
   },
@@ -213,9 +214,10 @@ export const userSlice = createSlice({
 
     // -----------------  Company Dashboard  -----------------
     companyDashboard: (state, action) => {
-      state.dashboardData.revenue = action.payload.revenue;
-      state.dashboardData.forSale = action.payload.forSale;
-      state.dashboardData.recentlySold = action.payload.recentlySold;
+      state.dashboardData.totalRevenue = action.payload.totalRevenue;
+      state.dashboardData.revenueByMonth = action.payload.revenueByMonth;
+      state.dashboardData.forSaleByMonth = action.payload.forSaleByMonth;
+      state.dashboardData.recentylySoldByMonth = action.payload.recentylySoldByMonth;
       state.dashboardData.loading = false;
       state.dashboardData.error = null;
       state.dashboardData.retrieved = true;
@@ -349,6 +351,30 @@ export const getRefreshToken = (dispatch, func) => {
   };
 };
 
+export const updateCounts = (contacted, status, updatedClients) => async (dispatch, getState) => {
+  const reduxStore = getState();    
+  const data = {
+    count: reduxStore.user.clientsInfo.count,
+    results: {
+      clients : updatedClients,
+      forSale: status !== "House For Sale"
+        ? reduxStore.user.clientsInfo.forSale.current
+        : reduxStore.user.clientsInfo.forSale.current + (contacted ? -1 : 1),
+      forSaleAllTime: reduxStore.user.clientsInfo.forSale.total,
+      recentlySold: status !== "House Recently Sold (6)"
+        ? reduxStore.user.clientsInfo.recentlySold.current 
+        : reduxStore.user.clientsInfo.recentlySold.current + (contacted ? -1 : 1),
+      recentlySoldAllTime: reduxStore.user.clientsInfo.recentlySold.total,
+      savedFilters: reduxStore.user.clientsInfo.customerDataFilters,
+    }
+    
+    
+    
+  }
+  dispatch(clients(data));  
+
+  }
+
 export const usersAsync = () => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
@@ -405,11 +431,10 @@ export const clientsAsync =
           Authorization: `Bearer ${userInfo.access_token}`,
         },
       };
-
-      if (page === 1) {
+      if (page === 1 && reduxStore.user.clientsInfo.highestPage === 0) {
         dispatch(clientsLoading());
       }
-      if (page > reduxStore.user.clientsInfo.highestPage || page === 1) {
+      if (page > reduxStore.user.clientsInfo.highestPage) {
         const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients?page=${page}`, config);
         if (page === 1) {
           dispatch(clients(data));
@@ -857,9 +882,10 @@ export const forSaleAsync = (page) => async (dispatch, getState) => {
         Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
-    if (page === 1) {
-      dispatch(forSaleLoading());
-    }
+
+    if (page === 1 && reduxStore.user.forSaleInfo.highestPage === 0) {
+        dispatch(forSaleLoading());
+      }
     if (page > reduxStore.user.forSaleInfo.highestPage) {
       const { data } = await axios.get(`${DOMAIN}/api/v1/data/forsale?page=${page}`, config);
       if (data.results.data.length > 0) {
@@ -1010,7 +1036,8 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
         Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
-    if (page === 1) {
+    
+    if (page === 1 && reduxStore.user.recentlySoldInfo.highestPage === 0) {
       dispatch(recentlySoldLoading());
     }
     if (page > reduxStore.user.recentlySoldInfo.highestPage) {
@@ -1690,7 +1717,40 @@ export const getCompanyDashboardDataAsync = () => async (dispatch, getState) => 
       },
     };
     dispatch(companyDashboardLoading());
-    const { data } = await axios.get(`${DOMAIN}/api/v1/data/company_dashboard/`, config);    
+    // const { data } = await axios.get(`${DOMAIN}/api/v1/data/company_dashboard/`, config);
+    const data= {
+      "totalRevenue": 0,
+      "revenueByMonth": [
+        {
+          "July": 0,
+          "June": 0,
+          "May": 0,
+          "April": 0,
+          "March": 0,
+          "February": 0,
+        }
+      ],
+      "forSaleByMonth": [
+        {
+          "July": 0,
+          "June": 0,
+          "May": 0,
+          "April": 0,
+          "March": 0,
+          "February": 0,
+        }
+      ],
+      "recentlySoldByMonth": [
+        {
+          "July": 0,
+          "June": 0,
+          "May": 0,
+          "April": 0,
+          "March": 0,
+          "February": 0,
+        }
+      ],
+    }
     dispatch(companyDashboard(data));
   } catch (error) {
     dispatch(
@@ -1704,3 +1764,4 @@ export const getCompanyDashboardDataAsync = () => async (dispatch, getState) => 
     // }
   }
 }
+

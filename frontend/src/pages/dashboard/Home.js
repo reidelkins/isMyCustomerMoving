@@ -2,8 +2,9 @@ import React, {useState, useEffect} from 'react';
 import { Grid, Stack, Container, Typography } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 
+import ClientsListCall from '../../redux/calls/ClientsListCall';
 import { showLoginInfo } from '../../redux/actions/authActions';
-import { companyDashboardData, getCompanyDashboardDataAsync } from '../../redux/actions/usersActions';
+import { companyDashboardData, getCompanyDashboardDataAsync, selectClients } from '../../redux/actions/usersActions';
 import Page from '../../components/Page';
 import BarChart from '../../components/charts/Bar';
 import { StateRevenueDonut } from '../../components/charts/Donut';
@@ -12,28 +13,30 @@ import DashboardData from '../../components/DashboardData';
 
 export default function Home() {
   const dispatch = useDispatch();
-  const [totalRevenue, setTotalRevenue] = useState(0);
-  const [totalForSaleLeads, setTotalForSaleLeads] = useState(0);
-  const [totalRecentlySoldLeads, setTotalRecentlySoldLeadsLeads] = useState(0);
+  // const [totalRevenue, setTotalRevenue] = useState(0);
+  // const [totalForSaleLeads, setTotalForSaleLeads] = useState(0);
+  // const [totalRecentlySoldLeads, setTotalRecentlySoldLeadsLeads] = useState(0);
 
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
   const dashboardData = useSelector(companyDashboardData);  
-  const { retrieved, revenue, forSale, recentlySold } = dashboardData;
+  const { retrieved, totalRevenue, revenueByMonth, forSaleByMonth, recentylySoldByMonth } = dashboardData;
+  const clientInfo = useSelector(selectClients);
+  const { forSale, recentlySold } = clientInfo;
 
-  useEffect(() => {
-    if (dashboardData) {
-      // totalRevenue is the sum of all the revenue values in the array
-      const totalRevenue = revenue.reduce((a, b) => a + b, 0);
-      setTotalRevenue(totalRevenue);
-      // totalLeads is the sum of all the forSale values in the array
-      const totalForSaleLeads = forSale.reduce((a, b) => a + b, 0);
-      setTotalForSaleLeads(totalForSaleLeads);
-      // totalCustomers is the sum of all the recentlySold values in the array
-      const totalRecentlySoldLeads = recentlySold.reduce((a, b) => a + b, 0);
-      setTotalRecentlySoldLeadsLeads(totalRecentlySoldLeads);
-    }
-  }, [dashboardData]);
+  // useEffect(() => {
+  //   if (dashboardData) {
+  //     // totalRevenue is the sum of all the revenue values in the array
+  //     const totalRevenue = revenue.reduce((a, b) => a + b, 0);
+  //     setTotalRevenue(totalRevenue);
+  //     // totalLeads is the sum of all the forSale values in the array
+  //     const totalForSaleLeads = forSale.reduce((a, b) => a + b, 0);
+  //     setTotalForSaleLeads(totalForSaleLeads);
+  //     // totalCustomers is the sum of all the recentlySold values in the array
+  //     const totalRecentlySoldLeads = recentlySold.reduce((a, b) => a + b, 0);
+  //     setTotalRecentlySoldLeadsLeads(totalRecentlySoldLeads);
+  //   }
+  // }, [dashboardData]);
 
   useEffect(() => {
     if (userInfo && !retrieved) {
@@ -45,6 +48,7 @@ export default function Home() {
 
   return (
     <Page title="Referrals" userInfo={userInfo}>
+      {userInfo ? <ClientsListCall /> : null}  
       <Container maxWidth="xl">
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
@@ -61,21 +65,21 @@ export default function Home() {
             icon="/static/icons/revenue.svg"
           />
           <DashboardData
-            mainText={totalForSaleLeads+totalRecentlySoldLeads}
+            mainText={forSale.total+recentlySold.total}
             topText="Total Leads Found"
             bottomText={`177 The Past 30 Days`}
             color="#7BAFD4"
             icon="/static/icons/lead.svg"
           />
           <DashboardData
-            mainText={totalRecentlySoldLeads}
+            mainText={recentlySold.total}
             topText="Customers Moved"
             bottomText={`95 The Past 30 Days`}
             color="#FFC107"
             icon="/static/icons/home.svg"
           />
           <DashboardData
-            mainText={totalForSaleLeads}
+            mainText={forSale.total}
             topText="Customers Selling"
             bottomText={`82 The Past 30 Days`}
             color="#FF8200"

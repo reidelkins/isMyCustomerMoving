@@ -3,7 +3,7 @@ import { Navigate, useRoutes } from 'react-router-dom';
 import DashboardLayout from './layouts/dashboard';
 import LogoOnlyLayout from './layouts/LogoOnlyLayout';
 //
-// import Dashboard from './pages/dashboard/Home';
+import Dashboard from './pages/dashboard/Home';
 import CustomerData from './pages/dashboard/CustomerData';
 import ForSaleData from './pages/dashboard/ForSaleData';
 import RecentlySoldData from './pages/dashboard/RecentlySoldData';
@@ -47,8 +47,8 @@ export default function Router() {
         </ProtectedRoute>
       ),
       children: [
-        { path: '', element: <CustomerData /> },
-        // { path: 'customers', element: <CustomerData /> },
+        { path: '', element: <Dashboard /> },
+        { path: 'customers', element: <CustomerData /> },
         { path: 'settings/user', element: <ProfileSettings /> },
         { path: 'settings/enterprise', element: <EnterpriseSettings /> },
         { path: 'forsale', element: <ForSaleData /> },
