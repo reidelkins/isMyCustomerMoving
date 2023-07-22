@@ -28,7 +28,7 @@ decorator==5.1.1
 defusedxml==0.7.1
 Deprecated==1.2.13
 dj-database-url==1.2.0
-Django==3.2.8
+Django==4.2.3
 django-braces==1.15.0
 django-cors-headers==3.10.0
 django-csp==3.7
