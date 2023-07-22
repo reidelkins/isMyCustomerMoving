@@ -326,12 +326,12 @@ def save_client_list(clients, company_id, task=None):
 
     if task:
         delete_extra_clients.delay(company_id, task)
-        do_it_all.delay(company_id)
-        clients_to_verify = Client.objects.filter(
-            company=company, old_address=None
-        )
-        for client in clients_to_verify:
-            verify_address.delay(client.id)
+        # do_it_all.delay(company_id)
+        # clients_to_verify = Client.objects.filter(
+        #     company=company, old_address=None
+        # )
+        # for client in clients_to_verify:
+        #     verify_address(client.id)
     del clients_to_add, clients, company, company_id, bad_streets
 
 
