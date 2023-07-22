@@ -279,7 +279,7 @@ def save_client_list(clients, company_id, task=None):
 
                 zip_code_obj = ZipCode.objects.get_or_create(
                     zip_code=str(zip_code)
-                )[0]                
+                )[0]
                 if len(name) > 100:
                     name = name[:100]
                 if is_service_titan:
@@ -326,7 +326,12 @@ def save_client_list(clients, company_id, task=None):
 
     if task:
         delete_extra_clients.delay(company_id, task)
-    #     do_it_all.delay(company_id)
+        # do_it_all.delay(company_id)
+        # clients_to_verify = Client.objects.filter(
+        #     company=company, old_address=None
+        # )
+        # for client in clients_to_verify:
+        #     verify_address(client.id)
     del clients_to_add, clients, company, company_id, bad_streets
 
 
@@ -1265,10 +1270,9 @@ def verify_address(client_id):
     """
     try:
         client = Client.objects.get(id=client_id)
-    except Client.DoesNotExist:
-        logging.error(f"Client with id {client_id} does not exist.")
+    except Exception as e:
+        logging.error(f"Client with id {client_id} does not exist. {e}")
         return
-
     zip_code = client.zip_code.zip_code
     base_url = "http://production.shippingapis.com/ShippingAPI.dll"
     user_id = settings.USPS_USER_ID
@@ -1288,7 +1292,6 @@ def verify_address(client_id):
     """
 
     params = {"API": api, "XML": xml_request}
-
     try:
         response = requests.get(base_url, params=params, timeout=10)
     except requests.exceptions.RequestException as e:
@@ -1300,9 +1303,7 @@ def verify_address(client_id):
     address_element = parsed_response.find("Address")
     error = address_element.find("Error")
 
-    if error:
-        usps_address = "Error"
-    else:
+    if error is None:
         address2 = address_element.find("Address2").text.title()
         address2 = parse_streets(address2)
         city = address_element.find("City").text.title()
@@ -1310,14 +1311,21 @@ def verify_address(client_id):
         zip5 = address_element.find("Zip5").text
         if (
             address2 != client.address
+            or city != client.city
             or state != client.state
             or zip5 != zip_code
         ):
             client.usps_different = True
-        usps_address = f"{address2}, {city}, {state} {zip5}"
-
-    client.usps_address = usps_address
-    client.save()
+        client.old_address = (
+            f"{client.address}, {client.city}, "
+            f"{client.state} {client.zip_code.zip_code}"
+        )
+        client.address = address2
+        client.city = city
+        client.state = state
+        zip, _ = ZipCode.objects.get_or_create(zip_code=zip5)
+        client.zip_code = zip
+        client.save()
 
 
 @shared_task
