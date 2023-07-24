@@ -63,7 +63,8 @@ export const userSlice = createSlice({
       totalRevenue: 0,
       revenueByMonth: {},
       forSaleByMonth: {},
-      recentylySoldByMonth: {},
+      recentlySoldByMonth: {},
+      monthsActive: 0,
       retrieved: false,
     }
   },
@@ -217,7 +218,8 @@ export const userSlice = createSlice({
       state.dashboardData.totalRevenue = action.payload.totalRevenue;
       state.dashboardData.revenueByMonth = action.payload.revenueByMonth;
       state.dashboardData.forSaleByMonth = action.payload.forSaleByMonth;
-      state.dashboardData.recentylySoldByMonth = action.payload.recentylySoldByMonth;
+      state.dashboardData.recentlySoldByMonth = action.payload.recentlySoldByMonth;
+      state.dashboardData.monthsActive = action.payload.monthsActive;
       state.dashboardData.loading = false;
       state.dashboardData.error = null;
       state.dashboardData.retrieved = true;
@@ -1717,51 +1719,17 @@ export const getCompanyDashboardDataAsync = () => async (dispatch, getState) => 
       },
     };
     dispatch(companyDashboardLoading());
-    // const { data } = await axios.get(`${DOMAIN}/api/v1/data/company_dashboard/`, config);
-    const data= {
-      "totalRevenue": 0,
-      "revenueByMonth": [
-        {
-          "July": 0,
-          "June": 0,
-          "May": 0,
-          "April": 0,
-          "March": 0,
-          "February": 0,
-        }
-      ],
-      "forSaleByMonth": [
-        {
-          "July": 0,
-          "June": 0,
-          "May": 0,
-          "April": 0,
-          "March": 0,
-          "February": 0,
-        }
-      ],
-      "recentlySoldByMonth": [
-        {
-          "July": 0,
-          "June": 0,
-          "May": 0,
-          "April": 0,
-          "March": 0,
-          "February": 0,
-        }
-      ],
-    }
+    const { data } = await axios.get(`${DOMAIN}/api/v1/data/company_dashboard/`, config);    
     dispatch(companyDashboard(data));
   } catch (error) {
     dispatch(
       companyDashboardError(error.response && error.response.data.detail ? error.response.data.detail : error.message)
     );
-    console.log("error", error)
-    // if (error.response.status === 403) {
-    //   dispatch(getRefreshToken(dispatch, getCompanyDashboardDataAsync()));
-    // } else {
-    //   dispatch(logout());
-    // }
+    if (error.response.status === 403) {
+      dispatch(getRefreshToken(dispatch, getCompanyDashboardDataAsync()));
+    } else {
+      dispatch(logout());
+    }
   }
 }
 

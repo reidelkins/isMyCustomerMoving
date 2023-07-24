@@ -5,13 +5,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
-import datetime
+from datetime import datetime, timedelta
 import logging
 import json
 import csv
 
 # from accounts.serializers import UserSerializerWithToken
-from accounts.models import Company
+from accounts.models import Company, CustomUser
 from config import settings
 from payments.models import ServiceTitanInvoice
 from .models import Client, ClientUpdate, HomeListing, Task, SavedFilter
@@ -884,39 +884,128 @@ class CompanyDashboardView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
-    def _get_revenue(self, company_id):
+    def _get_months_active(self, company_id):
         """
-        Return a list of all the attributed revenue for a company separated by each month.        
+        Return the number of months a company has been active.
         """
         company = Company.objects.get(id=company_id)
+        first_client = CustomUser.objects.filter(
+            company=company).order_by("date_joined")[0]
+        first_month = first_client.date_joined.month
+        first_year = first_client.date_joined.year
+
+        current_month = datetime.now().month
+        current_year = datetime.now().year
+
+        self.months_active = (current_year - first_year) * 12 + \
+            (current_month - first_month) + 1
+
+    def _get_month_dictionary(self):
+        current_datetime = datetime.now()
+
+        # Create a dictionary to store the last 6 months
+        last_six_months_dict = {}
+
+        # Loop to generate the keys for the last 6 months
+        for i in range(6):
+            # Calculate the first day of the current month
+            first_day_of_current_month = current_datetime.replace(day=1)
+
+            # Calculate the last day of the previous month
+            last_day_of_last_month = first_day_of_current_month - \
+                timedelta(days=1)
+
+            # Calculate the first day of the previous month
+            first_day_of_last_month = last_day_of_last_month.replace(day=1)
+
+            # Get the name of the previous month as a string (full month name)
+            previous_month_name = first_day_of_last_month.strftime("%B")
+
+            # Add the key-value pair to the dictionary
+            last_six_months_dict[previous_month_name] = 0
+
+            # Move to the previous month for the next iteration
+            current_datetime = first_day_of_last_month
+
+        return last_six_months_dict
+
+    def _get_leads(self, company_id):
+        """
+        Return a list of all the for sale
+        leads for a company separated by each month.
+        """
+        self.recently_sold_by_month = self._get_month_dictionary()
+        self.for_sale_by_month = self._get_month_dictionary()
+        company = Company.objects.get(id=company_id)
         clients = Client.objects.filter(company=company)
-        invoices = ServiceTitanInvoice.objects.filter(client__in=clients)
-        revenue_by_month = {}
-        for invoice in invoices:
-            client = invoice.client
+        statuses = [
+            "House For Sale",
+            "House For Sale (6)",
+        ]
+        for listed_status in statuses:
+            client_updates = ClientUpdate.objects.filter(
+                client__in=clients, status=listed_status)
+            today = datetime.today()
+            first_day_of_month = today.replace(day=1)
+
+            for i in range(6):
+                last_day_of_month = first_day_of_month - timedelta(days=1)
+                first_day_of_month = last_day_of_month.replace(day=1)
+
+                # Query to get invoices that happened last month
+                status_updates_last_month = client_updates.filter(
+                    date__gte=first_day_of_month,
+                    date__lte=last_day_of_month
+                ).count()
+                if listed_status == "House For Sale":
+                    self.for_sale_by_month[last_day_of_month.strftime(
+                        "%B")] = status_updates_last_month
+                else:
+                    self.recently_sold_by_month[last_day_of_month.strftime(
+                        "%B")] = status_updates_last_month
+
+    def _get_revenue(self, company_id):
+        """
+        Return a list of all the attributed revenue
+        for a company separated by each month.
+        """
+        self.revenue_by_month = self._get_month_dictionary()
+        company = Company.objects.get(id=company_id)
+        clients = Client.objects.filter(company=company)
+        invoices = ServiceTitanInvoice.objects.filter(
+            client__in=clients, attributed=True)
+        invoice_amounts = invoices.values_list("amount", flat=True)
+        self.total_revenue = sum(invoice_amounts)
+
+        today = datetime.today()
+        first_day_of_month = today.replace(day=1)
+
+        for i in range(6):
+            last_day_of_month = first_day_of_month - timedelta(days=1)
+            first_day_of_month = last_day_of_month.replace(day=1)
+
+            # Query to get invoices that happened last month
+            invoices_last_month = ServiceTitanInvoice.objects.filter(
+                created_on__gte=first_day_of_month,
+                created_on__lte=last_day_of_month
+            ).values_list("amount", flat=True)
+            self.revenue_by_month[last_day_of_month.strftime("%B")] = sum(
+                invoices_last_month)
 
     def get(self, *args, **kwargs):
         company_id = self.request.user.company.id
         try:
-            revenue = self._get_revenue(company_id)
-            # company = Company.objects.get(id=company_id)
-            # leads = company.client_set.all()
-            # leads_by_month = {}
-            # leads_by_status = {}
-            # for lead in leads:
-            #     if lead.created_at.month in leads_by_month:
-            #         leads_by_month[lead.created_at.month] += 1
-            #     else:
-            #         leads_by_month[lead.created_at.month] = 1
-            #     if lead.status in leads_by_status:
-            #         leads_by_status[lead.status] += 1
-            #     else:
-            #         leads_by_status[lead.status] = 1
+            self._get_month_dictionary()
+            self._get_revenue(company_id)
+            self._get_months_active(company_id)
+            self._get_leads(company_id)
             return Response(
                 {
-                    "revenue": [2000, 100, 300, 400, 500, 600],
-                    "forSale": [2386, 345, 654, 123, 456, 789],
-                    "recentlySold": [67655, 123, 456, 789, 123, 456, 789]
+                    "totalRevenue": self.total_revenue,
+                    "monthsActive": self.months_active,
+                    "revenueByMonth": self.revenue_by_month,
+                    "forSaleByMonth": self.for_sale_by_month,
+                    "recentlySoldByMonth": self.recently_sold_by_month
                 },
                 status=status.HTTP_200_OK,
                 headers="",

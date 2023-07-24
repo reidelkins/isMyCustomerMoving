@@ -315,6 +315,10 @@ def save_invoices(company_id, invoices):
             else:
                 continue
 
+        if len(invoices_to_create) > 1000:
+            ServiceTitanInvoice.objects.bulk_create(invoices_to_create)
+            invoices_to_create = []
+
         # Parse the createdOn date from the invoice data
         created_on = datetime.strptime(invoice["createdOn"], "%Y-%m-%d").date()
         if not ServiceTitanInvoice.objects.filter(id=invoice["id"]).exists():
@@ -330,13 +334,18 @@ def save_invoices(company_id, invoices):
             if last_status_update_date:
                 if (
                     # This defines revenue from an existing client
-                    (client.service_titan_customer_since is not None
-                     and client.service_titan_customer_since
-                     < date.today() - timedelta(days=180) and
-                     client.status in ["House For Sale",
-                                       "House Recently Sold (6)"]
-                     and created_on < last_status_update_date + timedelta(days=365)
-                     and created_on >= last_status_update_date)
+                    (
+                        (
+                        (client.service_titan_customer_since is not None
+                         and client.service_titan_customer_since
+                         < date.today() - timedelta(days=180))
+                        or client.service_titan_customer_since is None
+                        )
+                        and client.status in ["House For Sale",
+                                              "House Recently Sold (6)"]
+                        and created_on <
+                        last_status_update_date + timedelta(days=365)
+                        and created_on >= last_status_update_date)
 
                 ):
                     attributed = True
@@ -350,19 +359,25 @@ def save_invoices(company_id, invoices):
                     is new but should be attributed revenue.
                     """
                     clients = Client.objects.filter(
-                        company=company, address=client.address, zip_code=client.zip_code)
+                        company=company,
+                        address=client.address,
+                        zip_code=client.zip_code)
                     if clients.count() > 1:
                         for otherclient in clients:
                             if otherclient is not client:
-                                if ((otherclient.service_titan_customer_since is None or
+                                if ((otherclient.service_titan_customer_since
+                                     is None or
                                     (otherclient.service_titan_customer_since <
                                      client.service_titan_customer_since)) and
                                     client.status in [
                                         "House For Sale", "House Recently Sold (6)"]
-                                    and created_on < last_status_update_date + timedelta(days=365)
+                                    and created_on <
+                                    last_status_update_date +
+                                        timedelta(days=365)
                                         and created_on >= last_status_update_date):
                                     print("new client", invoice["id"])
                                     attributed = True
+                                    break
 
             invoices_to_create.append(
                 ServiceTitanInvoice(

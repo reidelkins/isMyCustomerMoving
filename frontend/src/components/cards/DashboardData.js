@@ -78,7 +78,7 @@ const DashboardData = ({ mainText, topText, bottomText, color, icon: Icon }) => 
 );
 
 DashboardData.propTypes = {
-  mainText: PropTypes.string.isRequired,
+  mainText: PropTypes.number.isRequired,
   topText: PropTypes.string.isRequired,
   bottomText: PropTypes.string.isRequired,
   color: PropTypes.string.isRequired,
