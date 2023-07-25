@@ -4,12 +4,12 @@ import requests
 import logging
 from time import sleep
 
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from django.conf import settings
 from django.db.models.functions import Coalesce
 
 from accounts.models import Company
-from .models import Client
+from .models import Client, ClientUpdate
 from .utils import (
     save_client_list,
     update_client_list,
@@ -315,17 +315,43 @@ def save_invoices(company_id, invoices):
             else:
                 continue
 
+        if len(invoices_to_create) > 500:
+            ServiceTitanInvoice.objects.bulk_create(invoices_to_create)
+            invoices_to_create = []
+
         # Parse the createdOn date from the invoice data
         created_on = datetime.strptime(invoice["createdOn"], "%Y-%m-%d").date()
         if not ServiceTitanInvoice.objects.filter(id=invoice["id"]).exists():
             # Create the ServiceTitanInvoice object
             # and add it to the bulk creation list
+            last_status_update_date = ClientUpdate.objects.filter(
+                client=client,
+                status__in=["House For Sale", "House Recently Sold (6)"]
+            ).values_list("date", flat=True).order_by("-date").first()
+
+            attributed = False
+            existing_client = False
+            if last_status_update_date:
+                if (
+                        (client.service_titan_customer_since is None
+                         or client.service_titan_customer_since
+                         < date.today() - timedelta(days=180))
+                        and client.status in ["House For Sale",
+                                              "House Recently Sold (6)"]
+                        and created_on <
+                        last_status_update_date + timedelta(days=365)
+                        and created_on >= last_status_update_date
+                ):
+                    attributed = True
+
             invoices_to_create.append(
                 ServiceTitanInvoice(
                     id=invoice["id"],
                     amount=invoice["amount"],
                     client=client,
                     created_on=created_on,
+                    attributed=attributed,
+                    existing_client=existing_client,
                 )
             )
     # Bulk create the invoices

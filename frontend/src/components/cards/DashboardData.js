@@ -50,7 +50,7 @@ const DashboardData = ({ mainText, topText, bottomText, color, icon: Icon }) => 
           right: 0,
           top: 0,
           bottom: 0,
-          width: 120, // Width of the circle
+          width: "27%", // Width of the circle
           height: '15vh', // Half of the width to get semi-circle
           borderRadius: '50% 0 0 50%', // To get semi-circle shape
           bgcolor: color, // Color of the semi-circle
@@ -63,7 +63,7 @@ const DashboardData = ({ mainText, topText, bottomText, color, icon: Icon }) => 
           right: 0,
           top: 0,
           bottom: 0,
-          width: 120, // Width of the circle
+          width: "27%", // Width of the circle
           height: '15vh', // Half of the width to get semi-circle
           borderRadius: '50% 0 0 50%', // To get semi-circle shape
           display: 'flex',
@@ -78,7 +78,7 @@ const DashboardData = ({ mainText, topText, bottomText, color, icon: Icon }) => 
 );
 
 DashboardData.propTypes = {
-  mainText: PropTypes.string.isRequired,
+  mainText: PropTypes.number.isRequired,
   topText: PropTypes.string.isRequired,
   bottomText: PropTypes.string.isRequired,
   color: PropTypes.string.isRequired,

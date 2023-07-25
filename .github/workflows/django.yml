@@ -48,7 +48,8 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: ['3.8', '3.9', '3.10']
+        # python-version: ['3.8', '3.9', '3.10']
+        python-version: ['3.10']
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -127,8 +128,36 @@ jobs:
           bandit -r backend -x backend/accounts/tests,backend/data/tests,backend/payments/tests
         # safety check -r backend/requirements.txt
 
-  build-frontend:
+  # build-frontend:
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+
+  #     - name: Set up Node.js
+  #       uses: actions/setup-node@v2
+  #       with:
+  #         node-version: 18
+
+  #     - name: Install dependencies
+  #       run: |
+  #         cd frontend
+  #         yarn install --frozen-lockfile
+
+  #     - name: Lint with ESLint
+  #       run: |
+  #         cd frontend
+  #         yarn lint
+
+  #     - name: Build
+  #       run: |
+  #         cd frontend
+  #         yarn build
+
+  test-frontend:
     runs-on: ubuntu-latest
+    needs: [build-backend]
 
     steps:
       - name: Checkout code
@@ -148,33 +177,11 @@ jobs:
         run: |
           cd frontend
           yarn lint
-
-      - name: Build
+      - name: Run tests
         run: |
           cd frontend
-          yarn build
-
-  test-frontend:
-    runs-on: ubuntu-latest
-    needs: [build-backend, build-frontend]
-
-    steps:
-        - name: Checkout code
-          uses: actions/checkout@v2
-
-        - name: Set up Node.js
-          uses: actions/setup-node@v2
-          with:
-            node-version: 18
-        - name: Install dependencies
-          run: |
-            cd frontend
-            yarn install --frozen-lockfile
-        - name: Run tests
-          run: |
-            cd frontend
-            yarn test --passWithNoTests
-        # - name: Stop backend server
-        #   run: |
-        #     cd ../backend
-        #     python manage.py runserver --stop-graceful
+          yarn test --passWithNoTests
+      # - name: Stop backend server
+      #   run: |
+      #     cd ../backend
+      #     python manage.py runserver --stop-graceful

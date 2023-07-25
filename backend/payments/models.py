@@ -24,3 +24,5 @@ class ServiceTitanInvoice(models.Model):
     amount = models.FloatField(default=0)
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
     created_on = models.DateField(blank=True, null=True)
+    attributed = models.BooleanField(default=False)
+    existing_client = models.BooleanField(default=False)
