@@ -315,7 +315,7 @@ def save_invoices(company_id, invoices):
             else:
                 continue
 
-        if len(invoices_to_create) > 1000:
+        if len(invoices_to_create) > 500:
             ServiceTitanInvoice.objects.bulk_create(invoices_to_create)
             invoices_to_create = []
 

@@ -295,7 +295,7 @@ def save_client_list(clients, company_id, task=None):
                         )
                     )
                 else:
-                    if i % 1000 == 0 and i != 0:
+                    if i % 100 == 0 and i != 0:
                         Client.objects.bulk_create(
                             clients_to_add, ignore_conflicts=True
                         )
