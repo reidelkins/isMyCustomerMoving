@@ -69,26 +69,31 @@ export default function Home() {
           />
         </Stack>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={8}>
-            <LineChart 
-              title={'Revenue'}
-              keys={revenueByMonth !== {} ? Object.keys(revenueByMonth) : ['January', 'February', 'March', 'April', 'May', 'June']}
-              values={revenueByMonth !== {} ? Object.values(revenueByMonth) : [0,0,0,0,0,0]}                            
-              dataLabel={'Revenue'}
-              height={'40vh'}
+          {userInfo.company.crm === "ServiceTitan" && (
+            <>
+              <Grid item xs={12} md={8}>
+                <LineChart 
+                  title={'Revenue'}
+                  keys={revenueByMonth !== {} ? Object.keys(revenueByMonth) : ['January', 'February', 'March', 'April', 'May', 'June']}
+                  values={revenueByMonth !== {} ? Object.values(revenueByMonth) : [0,0,0,0,0,0]}                            
+                  dataLabel={'Revenue'}
+                  height={'40vh'}
 
-            />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <ROICard
-              total={totalRevenue} 
-              revenues={revenueByMonth}
-              height={'40vh'}
-              company = {userInfo.company}
-              monthsActive={monthsActive}
-            />
-            {/* <StateRevenueDonut /> */}
-          </Grid>
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <ROICard
+                  total={totalRevenue} 
+                  revenues={revenueByMonth}
+                  height={'40vh'}
+                  company = {userInfo.company}
+                  monthsActive={monthsActive}
+                />
+                {/* <StateRevenueDonut /> */}
+              </Grid>
+            </>
+          )}
+          
           <Grid item xs={12} md={6}>
             <BarChart
               title={'Recently Moved Customers'}
