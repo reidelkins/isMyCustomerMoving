@@ -139,7 +139,7 @@ def delete_extra_clients(company_id, task_id=None):
             )
 
             for admin in admins:
-                if "@test.com" not in email:
+                if "@test.com" not in admin.email:
                     send_mail(
                         subject=mail_subject,
                         message=message_plain,
@@ -1036,7 +1036,7 @@ def send_update_email(templateName):
           https://app.ismycustomermoving.com/ to see them."""
         message = get_template(f"{templateName}.html").render()
         for user in users:
-            if "@test.com" not in email:
+            if "@test.com" not in user.email:
                 send_mail(
                     subject=mail_subject,
                     message=messagePlain,
