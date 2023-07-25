@@ -7,15 +7,15 @@ import homeStyle from '../../theme/Home.module.css';
 
 Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const BarChart = ({ title, values, dataLabel }) => {
-  const labels = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
+const BarChart = ({ title, keys, values, dataLabel }) => {
+  const labels = keys;
   const data = {
-    labels,
+    labels : labels.reverse(),
     datasets: [
       {
         label: dataLabel,
 
-        data: values,
+        data: values.reverse(),
         backgroundColor: [
           'rgba(255, 99, 132, 0.2)',
           'rgba(255, 159, 64, 0.2)',
@@ -64,6 +64,7 @@ const BarChart = ({ title, values, dataLabel }) => {
 
 BarChart.propTypes = {
   title: PropTypes.string.isRequired,
+  keys: PropTypes.arrayOf(PropTypes.string).isRequired,
   values: PropTypes.arrayOf(PropTypes.number).isRequired,
   dataLabel: PropTypes.string.isRequired,
 };

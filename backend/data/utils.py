@@ -295,12 +295,12 @@ def save_client_list(clients, company_id, task=None):
                         )
                     )
                 else:
-                    if i % 1000 == 0 and i != 0:
+                    if i % 100 == 0 and i != 0:
                         Client.objects.bulk_create(
                             clients_to_add, ignore_conflicts=True
                         )
                         clients_to_add = []
-                        logging.info(f"Saved {i} out of {len(clients)}")
+                        logging.info(f"Saving {i} out of {len(clients)}")
 
                     phone_number = (
                         sub("[^0-9]", "", client["phone number"])
@@ -326,12 +326,12 @@ def save_client_list(clients, company_id, task=None):
 
     if task:
         delete_extra_clients.delay(company_id, task)
-        # do_it_all.delay(company_id)
-        # clients_to_verify = Client.objects.filter(
-        #     company=company, old_address=None
-        # )
-        # for client in clients_to_verify:
-        #     verify_address(client.id)
+        clients_to_verify = Client.objects.filter(
+            company=company, old_address=None
+        ).values_list("id", flat=True)
+        for i in range(len(clients_to_verify)):
+            verify_address(client[i])
+        do_it_all.delay(company_id)
     del clients_to_add, clients, company, company_id, bad_streets
 
 
