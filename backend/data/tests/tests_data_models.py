@@ -352,6 +352,7 @@ class HomeListingModelTests(TestCase):
             )
 
     def test_home_listing_address_length(self):
+
         # max length is 150 chars
         address = "a" * 151
         with self.assertRaises(Exception):
