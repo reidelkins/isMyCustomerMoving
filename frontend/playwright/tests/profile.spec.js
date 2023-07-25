@@ -1,9 +1,9 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
 
-const NON_ADMIN_USER = 'testuser2@gmail.com'
-const NEW_USER_EMAIL = 'newuser@gmail.com'
-const PENDING_USER_EMAIL = 'testuser3@gmail.com'
+const NON_ADMIN_USER = 'testuser2@test.com'
+const NEW_USER_EMAIL = 'newuser@test.com'
+const PENDING_USER_EMAIL = 'testuser3@test.com'
 const USER_TO_BE_DELETED = 'deleteme@test.com'
 
 
