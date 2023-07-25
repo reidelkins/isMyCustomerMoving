@@ -333,51 +333,16 @@ def save_invoices(company_id, invoices):
             existing_client = False
             if last_status_update_date:
                 if (
-                    # This defines revenue from an existing client
-                    (
-                        (
-                        (client.service_titan_customer_since is not None
-                         and client.service_titan_customer_since
+                        (client.service_titan_customer_since is None
+                         or client.service_titan_customer_since
                          < date.today() - timedelta(days=180))
-                        or client.service_titan_customer_since is None
-                        )
                         and client.status in ["House For Sale",
                                               "House Recently Sold (6)"]
                         and created_on <
-                        last_status_update_date + timedelta(days=365)
-                        and created_on >= last_status_update_date)
-
+                    last_status_update_date + timedelta(days=365)
+                    and created_on >= last_status_update_date
                 ):
                     attributed = True
-                    existing_client = True
-                    print("existing client", invoice["id"])
-                else:
-                    # This defines revenue from a new client
-                    """
-                    If there is another client in the database with the same address
-                    and that client was there before this client, then this client
-                    is new but should be attributed revenue.
-                    """
-                    clients = Client.objects.filter(
-                        company=company,
-                        address=client.address,
-                        zip_code=client.zip_code)
-                    if clients.count() > 1:
-                        for otherclient in clients:
-                            if otherclient is not client:
-                                if ((otherclient.service_titan_customer_since
-                                     is None or
-                                    (otherclient.service_titan_customer_since <
-                                     client.service_titan_customer_since)) and
-                                    client.status in [
-                                        "House For Sale", "House Recently Sold (6)"]
-                                    and created_on <
-                                    last_status_update_date +
-                                        timedelta(days=365)
-                                        and created_on >= last_status_update_date):
-                                    print("new client", invoice["id"])
-                                    attributed = True
-                                    break
 
             invoices_to_create.append(
                 ServiceTitanInvoice(
