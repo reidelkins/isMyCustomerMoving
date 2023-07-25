@@ -160,26 +160,28 @@ jobs:
     needs: [build-backend]
 
     steps:
-        - name: Checkout code
-          uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-        - name: Set up Node.js
-          uses: actions/setup-node@v2
-          with:
-            node-version: 18
-        - name: Lint with ESLint
-          run: |
-            cd frontend
-            yarn lint
-        - name: Install dependencies
-          run: |
-            cd frontend
-            yarn install --frozen-lockfile
-        - name: Run tests
-          run: |
-            cd frontend
-            yarn test --passWithNoTests
-        # - name: Stop backend server
-        #   run: |
-        #     cd ../backend
-        #     python manage.py runserver --stop-graceful
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          yarn install --frozen-lockfile
+
+      - name: Lint with ESLint
+        run: |
+          cd frontend
+          yarn lint
+      - name: Run tests
+        run: |
+          cd frontend
+          yarn test --passWithNoTests
+      # - name: Stop backend server
+      #   run: |
+      #     cd ../backend
+      #     python manage.py runserver --stop-graceful

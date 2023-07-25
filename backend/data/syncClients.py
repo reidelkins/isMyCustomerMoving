@@ -339,8 +339,8 @@ def save_invoices(company_id, invoices):
                         and client.status in ["House For Sale",
                                               "House Recently Sold (6)"]
                         and created_on <
-                    last_status_update_date + timedelta(days=365)
-                    and created_on >= last_status_update_date
+                        last_status_update_date + timedelta(days=365)
+                        and created_on >= last_status_update_date
                 ):
                     attributed = True
 
