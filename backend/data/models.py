@@ -40,7 +40,7 @@ class Client(models.Model):
         primary_key=True, unique=True, default=uuid.uuid4, editable=False
     )
     name = models.CharField(max_length=100)
-    address = models.CharField(max_length=100)
+    address = models.CharField(max_length=150)
     zip_code = models.ForeignKey(
         ZipCode,
         on_delete=models.SET_NULL,
@@ -82,14 +82,14 @@ class Client(models.Model):
     service_titan_lifetime_revenue = models.FloatField(
         default=0, blank=True, null=True
     )
-    old_address = models.CharField(max_length=100, blank=True, null=True)
+    old_address = models.CharField(max_length=200, blank=True, null=True)
     usps_different = models.BooleanField(default=False)
     bedrooms = models.IntegerField(default=0, blank=True, null=True)
     bathrooms = models.IntegerField(default=0, blank=True, null=True)
     sqft = models.IntegerField(default=0, blank=True, null=True)
     lot_sqft = models.IntegerField(default=0, blank=True, null=True)
 
-    new_address = models.CharField(max_length=100, blank=True, null=True)
+    new_address = models.CharField(max_length=150, blank=True, null=True)
     new_city = models.CharField(max_length=40, blank=True, null=True)
     new_state = models.CharField(max_length=31, blank=True, null=True)
     new_zip_code = models.ForeignKey(
@@ -176,7 +176,7 @@ class HomeListing(models.Model):
         on_delete=models.SET_NULL,
         related_name="home_listing_zip_code",
     )
-    address = models.CharField(max_length=100)
+    address = models.CharField(max_length=150)
     status = models.CharField(
         max_length=25, choices=STATUS, default="Off Market"
     )
