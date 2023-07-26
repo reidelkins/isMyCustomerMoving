@@ -246,7 +246,7 @@ class RecentlySoldView(generics.ListAPIView):
                 zip_code__in=zip_code_objects,
                 status="House Recently Sold (6)",
                 listed__gt=(
-                    datetime.datetime.today() - datetime.timedelta(days=30)
+                    datetime.today() - timedelta(days=30)
                 ).strftime("%Y-%m-%d"),
             ).order_by("-listed")
             return filter_home_listings(
@@ -398,7 +398,7 @@ class AllRecentlySoldView(generics.ListAPIView):
                 zip_code__in=zip_code_objects,
                 status="House Recently Sold (6)",
                 listed__gt=(
-                    datetime.datetime.today() - datetime.timedelta(days=30)
+                    datetime.today() - timedelta(days=30)
                 ).strftime("%Y-%m-%d"),
             ).order_by("-listed")
             return filter_home_listings(
@@ -424,7 +424,7 @@ class ForSaleView(generics.ListAPIView):
                 zip_code__in=zip_code_objects,
                 status="House For Sale",
                 listed__gt=(
-                    datetime.datetime.today() - datetime.timedelta(days=30)
+                    datetime.today() - timedelta(days=30)
                 ).strftime("%Y-%m-%d"),
             ).order_by("-listed")
             return filter_home_listings(
@@ -576,7 +576,7 @@ class AllForSaleView(generics.ListAPIView):
                 zip_code__in=zip_code_objects,
                 status="House For Sale",
                 listed__gt=(
-                    datetime.datetime.today() - datetime.timedelta(days=30)
+                    datetime.today() - timedelta(days=30)
                 ).strftime("%Y-%m-%d"),
             ).order_by("-listed")
             return filter_home_listings(
