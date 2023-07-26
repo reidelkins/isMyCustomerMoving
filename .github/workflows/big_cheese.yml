@@ -67,18 +67,13 @@ jobs:
       - name: Test active ports
         run: |
           sudo lsof -i -P -n | grep LISTEN
-      - name: Install node modules on host
-        run: |
-            cd frontend
-            npm i
       - name: Install Playwright Browsers
         run: |
             cd frontend
-            npx playwright install chromium --with-deps
+            docker compose exec frontend npx playwright install chromium --with-deps
       - name: Run Playwright tests
         run: |
-            cd frontend
-            npm run test
+            docker compose exec frontend npm run test
       - uses: actions/upload-artifact@v3
         if: always()
         with:
