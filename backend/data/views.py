@@ -940,7 +940,7 @@ class CompanyDashboardView(APIView):
         clients = Client.objects.filter(company=company)
         statuses = [
             "House For Sale",
-            "House For Sale (6)",
+            "House Recently Sold (6)",
         ]
         for listed_status in statuses:
             client_updates = ClientUpdate.objects.filter(
@@ -987,7 +987,8 @@ class CompanyDashboardView(APIView):
             # Query to get invoices that happened last month
             invoices_last_month = ServiceTitanInvoice.objects.filter(
                 created_on__gte=first_day_of_month,
-                created_on__lte=last_day_of_month
+                created_on__lte=last_day_of_month,
+                attributed=True
             ).values_list("amount", flat=True)
             self.revenue_by_month[last_day_of_month.strftime("%B")] = sum(
                 invoices_last_month)
