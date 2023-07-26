@@ -396,3 +396,32 @@ class UrlsTestCase(TestCase):
         headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
         response = self.client.delete(url, **headers)
         self.assertEqual(response.status_code, 405)
+
+    def test_company_dashboard_get(self):
+        url = reverse("company-dashboard")
+        headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
+        response = self.client.get(url, **headers)
+        self.assertEqual(response.status_code, 200)
+
+    def test_company_dashboard_not_authenticated(self):
+        url = reverse("company-dashboard")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_company_dashboard_put(self):
+        url = reverse("company-dashboard")
+        headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
+        response = self.client.put(url, **headers)
+        self.assertEqual(response.status_code, 405)
+
+    def test_company_dashboard_post(self):
+        url = reverse("company-dashboard")
+        headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
+        response = self.client.post(url, data={}, **headers)
+        self.assertEqual(response.status_code, 405)
+
+    def test_company_dashboard_delete(self):
+        url = reverse("company-dashboard")
+        headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
+        response = self.client.delete(url, **headers)
+        self.assertEqual(response.status_code, 405)

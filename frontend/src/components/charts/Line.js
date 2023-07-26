@@ -11,36 +11,24 @@ import {
   Legend,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import PropTypes from 'prop-types';
 import homeStyle from '../../theme/Home.module.css';
+
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler, Legend);
 
-const options = {
-  responsive: true,
-  plugins: {
-    legend: {
-      display: false,
-    },
-    title: {
-      display: false,
-      text: 'Attributed Revenue',
-      font: {
-        size: 20,
-      },
-    },
-  },
-};
 
-const labels = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
-
-const data = {
+const LineChart = ({ title, keys, values, dataLabel, height }) => {
+  const labels = keys;
+  const data = {
   labels,
   datasets: [
     {
       fill: true,
-      data: [25317, 19950, 14650, 24234, 31764, 37765, 8619],
+      data: values,      
       borderColor: 'rgb(107, 128, 104)',
       backgroundColor: 'rgba(107, 128, 104, 0.5)',
+      label: dataLabel,
     },
     // {
     //   label: 'Dataset 2',
@@ -50,12 +38,43 @@ const data = {
     // },
   ],
 };
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      title: {
+        display: false,
+        text: title,
+        font: {
+          size: 20,
+        },
+      },
+    },
+    scales: {
+      y: {
+        min: 0,
+        ticks: {
+          precision: 0
+        }
+      }
+    }
+  };
+  return(
+    <div className={homeStyle.main} style={{ height }}>
+      <h2>{title}</h2>
+      <Line options={options} data={data} />
+    </div>
+  );
+};
 
-const LineChart = () => (
-  <div className={homeStyle.main}>
-    <h2>Attributed Revenue</h2>
-    <Line options={options} data={data} />
-  </div>
-);
+LineChart.propTypes = {
+  title: PropTypes.string.isRequired,
+  keys: PropTypes.arrayOf(PropTypes.string).isRequired,
+  values: PropTypes.arrayOf(PropTypes.number).isRequired,
+  dataLabel: PropTypes.string.isRequired,
+  height: PropTypes.string.isRequired,
+};
 
 export default LineChart;
