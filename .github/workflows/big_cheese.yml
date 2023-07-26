@@ -41,12 +41,11 @@ jobs:
         # black --check --line-length 85 backend
   build:
     runs-on: ubuntu-latest
-    strategy:
-        max-parallel: 4
-        matrix:
-          python-version: ['3.10']
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
       - name: Build Postgres container
         run: |
           docker-compose up -d db
@@ -68,12 +67,18 @@ jobs:
       - name: Test active ports
         run: |
           sudo lsof -i -P -n | grep LISTEN
+      - name: Install node modules on host
+        run: |
+            cd frontend
+            npm i
       - name: Install Playwright Browsers
         run: |
-            docker compose exec frontend npx playwright install chromium --with-deps
+            cd frontend
+            npx playwright install chromium --with-deps
       - name: Run Playwright tests
         run: |
-            docker compose exec frontend npx run test
+            cd frontend
+            npm run test
       - uses: actions/upload-artifact@v3
         if: always()
         with:
