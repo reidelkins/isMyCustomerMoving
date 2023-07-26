@@ -12,12 +12,10 @@ const ROICard = ({total, revenues, height, company, monthsActive}) => {
     const [rois, setROIs] = useState([]);
 
     useEffect(() => {
-        setTotalROI(Math.floor(total / (price * monthsActive)));
-        setROIs(revenuesByMonth.map((revenue) => Math.floor(revenue / price)));        
+        setTotalROI(Math.ceil(total / (price * monthsActive)));
+        setROIs(revenuesByMonth.map((revenue) => Math.ceil(revenue / price)));        
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [total, price]);
-    
-
 
     return(
     <div style={{ height, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>

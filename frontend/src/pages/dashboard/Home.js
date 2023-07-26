@@ -42,7 +42,7 @@ export default function Home() {
           <DashboardData
             mainText={totalRevenue}
             topText="Total Revenue"
-            bottomText={`${Object.values(revenueByMonth)[0]} This Month`}
+            bottomText={`${parseFloat(Object.values(revenueByMonth)[0]).toFixed(2)} This Month`}
             color="#85bb65"
             icon="/static/icons/revenue.svg"
           />
