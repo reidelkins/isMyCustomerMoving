@@ -1,0 +1,82 @@
+name: Big Cheese
+
+on:
+  push:
+    branches:
+      - frontend_tests
+
+env:
+  DJANGO_SECRET_KEY: ${{secrets.DJANGO_SECRET_KEY}}
+  EMAIL: ${{secrets.EMAIL}}
+  EMAIL_PASSWD: ${{secrets.EMAIL_PASSWD}}
+  GOOGLE_CLIENT_ID: ${{secrets.GOOGLE_CLIENT_ID}}
+  GOOGLE_CLIENT_SECRET: ${{secrets.GOOGLE_CLIENT_SECRET}}
+  KEAP_API_KEY: ${{secrets.KEAP_API_KEY}}
+  REDIS_URL: ${{secrets.REDIS_URL}}
+  SALESFORCE_CONSUMER_KEY: ${{secrets.SALESFORCE_CONSUMER_KEY}}
+  SALESFORCE_CONSUMER_SECRET: ${{secrets.SALESFORCE_CONSUMER_SECRET}}
+  SCRAPFLY_KEY: ${{secrets.SCRAPFLY_KEY}}
+  ST_APP_KEY: ${{secrets.ST_APP_KEY}}
+  ST_APP_KEY_2: ${{secrets.ST_APP_KEY_2}}
+  STRIPE_SECRET_KEY: ${{secrets.STRIPE_SECRET_KEY }}
+  STRIPE_SECRET_KEY_TEST: ${{secrets.STRIPE_SECRET_KEY_TEST }}
+  STRIPE_PUBLIC_KEY: ${{secrets.STRIPE_PUBLIC_KEY }}
+  STRIPE_PUBLIC_KEY_TEST: ${{secrets.STRIPE_PUBLIC_KEY_TEST }}
+  USPS_USER_ID: ${{secrets.USPS_USER_ID }}
+  IS_GITHUB: True
+
+jobs:
+  lint-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+      - name: Run Static Code Analysis
+        run: |
+          pip install flake8 black
+          flake8 backend --exclude=backend/accounts/migrations,backend/data/migrations,backend/accounts/migrations1,backend/data/migrations1,backend/payments/migrations,backend/manage.py,backend/accounts/tests,backend/data/tests,backend/payments/tests,backend/config/settings.py --max-line-length=85
+        # black --check --line-length 85 backend
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+        max-parallel: 4
+        matrix:
+          python-version: ['3.10']
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build Postgres container
+        run: |
+          docker-compose up -d db
+      - name: Build React container
+        run: |
+          docker-compose up -d frontend
+      - name: Build Django container
+        run: |
+          docker-compose up -d backend
+      - name: Build Redis container
+        run: |
+            docker-compose up -d redis
+      - name: Build celery container
+        run: |
+            docker-compose up -d celery
+    #   - name: Run Django tests
+    #     run: |
+    #       docker compose exec web python manage.py test
+      - name: Test active ports
+        run: |
+          sudo lsof -i -P -n | grep LISTEN
+      - name: Install Playwright Browsers
+        run: |
+            docker compose exec frontend npx playwright install chromium --with-deps
+      - name: Run Playwright tests
+        run: |
+            docker compose exec frontend npx run test
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+            name: playwright-report
+            path: playwright-report/
+            retention-days: 30
