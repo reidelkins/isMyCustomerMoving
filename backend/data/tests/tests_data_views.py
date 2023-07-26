@@ -70,8 +70,7 @@ class CompanyDashboardView(TestCase):
         assert "recentlySoldByMonth" in data
 
         # Validate the format of the response data.
-        assert isinstance(data["totalRevenue"], float) or isinstance(
-            data["totalRevenue"], int)
+        assert isinstance(data["totalRevenue"], int)
         assert isinstance(data["monthsActive"], int)
         assert isinstance(data["revenueByMonth"], dict)
         assert isinstance(data["forSaleByMonth"], dict)
@@ -106,4 +105,4 @@ class CompanyDashboardView(TestCase):
         assert data["recentlySoldByMonth"][previous_month_name] == 1
         assert data["revenueByMonth"][previous_month_name] == 100.0
 
-        assert data["totalRevenue"] == 350.0
+        assert data["totalRevenue"] == 350

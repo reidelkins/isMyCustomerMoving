@@ -10,12 +10,12 @@ Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 const BarChart = ({ title, keys, values, dataLabel }) => {
   const labels = keys;
   const data = {
-    labels : labels.reverse(),
+    labels : labels,
     datasets: [
       {
         label: dataLabel,
 
-        data: values.reverse(),
+        data: values,
         backgroundColor: [
           'rgba(255, 99, 132, 0.2)',
           'rgba(255, 159, 64, 0.2)',

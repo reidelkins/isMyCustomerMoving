@@ -975,7 +975,7 @@ class CompanyDashboardView(APIView):
         invoices = ServiceTitanInvoice.objects.filter(
             client__in=clients, attributed=True)
         invoice_amounts = invoices.values_list("amount", flat=True)
-        self.total_revenue = sum(invoice_amounts)
+        self.total_revenue = int(sum(invoice_amounts))
 
         today = datetime.today()
         first_day_of_month = today.replace(day=1)
