@@ -1,9 +1,5 @@
 // @ts-check
 const { defineConfig, devices } = require('@playwright/test');
-import dotenv from 'dotenv';
-
-// Read from default ".env" file.
-dotenv.config();
 
 /**
  * @see https://playwright.dev/docs/test-configuration

@@ -1,6 +1,8 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
 
+const TEST_LOGIN_EMAIL = 'testuser1@test.com'
+const TEST_LOGIN_PASSWORD = 'ThisIsAStrongPassword'
 
 test.describe('Login', () => {
   /*
@@ -19,8 +21,8 @@ test.describe('Login', () => {
 
   test('login with correct email and password', async ({ page }) => {
     // Fill out the form
-    const email = process.env.TEST_LOGIN_EMAIL ? process.env.TEST_LOGIN_EMAIL : '';
-    const password = process.env.TEST_LOGIN_PASSWORD ? process.env.TEST_LOGIN_PASSWORD : '';
+    const email = TEST_LOGIN_EMAIL;
+    const password = TEST_LOGIN_PASSWORD;
     await page.getByLabel('email').fill(email);
     await page.getByLabel('password').fill(password);
 

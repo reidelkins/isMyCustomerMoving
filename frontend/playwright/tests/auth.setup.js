@@ -1,12 +1,14 @@
 import { test as setup, expect } from '@playwright/test';
 
 const authFile = 'playwright/.auth/user.json';
+const TEST_LOGIN_EMAIL = 'testuser1@test.com'
+const TEST_LOGIN_PASSWORD = 'ThisIsAStrongPassword'
 
 setup('authenticate', async ({ page }) => {
   // Perform authentication steps. Replace these actions with your own.
   await page.goto('/login');
-  const email = process.env.TEST_LOGIN_EMAIL ? process.env.TEST_LOGIN_EMAIL : '';
-  const password = process.env.TEST_LOGIN_PASSWORD ? process.env.TEST_LOGIN_PASSWORD : '';
+  const email = TEST_LOGIN_EMAIL;
+  const password = TEST_LOGIN_PASSWORD;
   await page.getByLabel('email').fill(email);
   await page.getByLabel('password').fill(password);
   await page.getByRole('button', {name: /login/i}).click();
