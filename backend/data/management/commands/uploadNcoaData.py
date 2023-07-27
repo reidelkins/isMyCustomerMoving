@@ -18,11 +18,11 @@ class Command(BaseCommand):
             for index, row in df.iterrows():
                 print(index)
                 try:
-                    input_address = row['input_address']
+                    input_address = row['input_Street']
                     new_address = row['address']
                     if input_address != new_address:
                         zip_code = ZipCode.objects.get(
-                            zip_code=row['input_zipCode'])
+                            zip_code=row['input_Zip Code'])
                         client = Client.objects.filter(
                             address=input_address,
                             city=row['input_city'],
