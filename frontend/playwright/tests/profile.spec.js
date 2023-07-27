@@ -34,7 +34,7 @@ test.describe('Editing profile info', () => {
     });
 });
 
-test.describe('Create new user', () => {
+test.describe('CRUD users', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/dashboard/settings/user');
     });
@@ -89,10 +89,10 @@ test.describe('Create new user', () => {
         expect(response.status()).toBe(200);
     });
 
-    test('delete new user', async ({ page }) => {
+    test('delete user', async ({ page }) => {
         const responsePromise = page.waitForResponse('**/api/v1/accounts/manageuser/**');
-        const newUserRow = page.locator(`tr:has-text("${USER_TO_BE_DELETED}")`);
-        await newUserRow.getByRole('checkbox').check();
+        const targetUserROw = page.locator(`tr:has-text("${USER_TO_BE_DELETED}")`);
+        await targetUserROw.getByRole('checkbox').check();
 
         await page.getByLabel('Delete').click();
 

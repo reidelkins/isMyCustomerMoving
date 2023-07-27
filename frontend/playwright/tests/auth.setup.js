@@ -5,7 +5,7 @@ const TEST_LOGIN_EMAIL = 'testuser1@test.com'
 const TEST_LOGIN_PASSWORD = 'ThisIsAStrongPassword'
 
 setup('authenticate', async ({ page }) => {
-  // Perform authentication steps. Replace these actions with your own.
+  // Perform authentication
   await page.goto('/login');
   const email = TEST_LOGIN_EMAIL;
   const password = TEST_LOGIN_PASSWORD;
@@ -20,7 +20,6 @@ setup('authenticate', async ({ page }) => {
   // Alternatively, you can wait until the page reaches a state where all cookies are set.
   await expect(page.getByTestId('welcome-message')).toHaveText(/Welcome/);
 
-  // End of authentication steps.
-
+  // Export the cookies to a file.
   await page.context().storageState({ path: authFile });
 });
