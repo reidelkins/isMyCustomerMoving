@@ -47,7 +47,7 @@ export default function EnterpriseSettings() {
     // { id: 'status', label: 'Account Created', alignRight: false },
   ];
   return (
-    <Page title="Enterprise Settings | IsMyCustomerMoving.com">
+    <Page title="Enterprise Settings">
       <Container>
         {userInfo ? <EnterpriseCall /> : null}
         <Stack sx={{ mb: 5 }}>

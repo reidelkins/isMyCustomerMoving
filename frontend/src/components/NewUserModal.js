@@ -37,10 +37,10 @@ export default function NewUserModal() {
   const { errors, touched, values, handleSubmit, getFieldProps } = formik;
   return (
     <div>
-      <Button variant="contained" color="primary" aria-label="Create Company" component="label" onClick={handleOpen}>
+      <Button variant="contained" color="primary" aria-label="Add User" component="label" onClick={handleOpen}>
         Add User
       </Button>
-      <Dialog open={open} onClose={handleClose} sx={{ padding: '2px' }}>
+      <Dialog open={open} onClose={handleClose} sx={{ padding: '2px' }} data-testid="add-user-modal">
         <DialogTitle>Add a User</DialogTitle>
         <FormikProvider value={formik}>
           <Form autoComplete="off" noValidate onSubmit={handleSubmit}>

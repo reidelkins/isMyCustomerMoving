@@ -212,7 +212,7 @@ export default function RecentlySoldData() {
   }, [count]);
 
   return (
-    <Page title="User" userInfo={userInfo}>
+    <Page title="Recently Sold" userInfo={userInfo}>
       <Container>
         {userInfo ? <RecentlySoldListCall /> : null}
         {userInfo && (

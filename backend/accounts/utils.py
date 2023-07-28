@@ -48,15 +48,15 @@ def make_company(company_name, email, phone, stripe_id=None):
                         "access_token": company.access_token,
                     }
                 )
-
-                send_mail(
-                    subject=mail_subject,
-                    message=message_plain,
-                    from_email=settings.EMAIL_HOST_USER,
-                    recipient_list=[email],
-                    html_message=message,
-                    fail_silently=False,
-                )
+                if "@test.com" not in email:
+                    send_mail(
+                        subject=mail_subject,
+                        message=message_plain,
+                        from_email=settings.EMAIL_HOST_USER,
+                        recipient_list=[email],
+                        html_message=message,
+                        fail_silently=False,
+                    )
                 return company.id
             return {"Error": "Company with that name already exists"}
         else:
