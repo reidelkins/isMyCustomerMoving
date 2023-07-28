@@ -16,7 +16,7 @@ import { useSelector } from 'react-redux';
 import Page from '../../components/Page';
 import FileUploader from '../../components/FileUploader';
 
-import CounterCard from '../../components/CounterCard';
+import CounterCard from '../../components/cards/CounterCard';
 import TabComponent from '../../components/styled-components/tabs';
 import CustomerData from '../../components/CustomerData';
 import NewAddressData from '../../components/NewAddressData';
@@ -61,7 +61,7 @@ export default function HomePage() {
   return (
     <div>
       {userInfo && (
-        <Page title="User" userInfo={userInfo}>
+        <Page title="Customer Data" userInfo={userInfo}>
           <Container>
             {userInfo ? <ClientsListCall /> : null}            
             {userInfo && (

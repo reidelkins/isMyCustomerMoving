@@ -149,35 +149,37 @@ export default function ProfileSettings() {
               <FormikProvider value={formik}>
                 <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
                   <Stack direction="column">
-                    <h3>Name:</h3>
                     <TextField
                       fullWidth
                       type="text"
+                      label="First Name"
                       {...getFieldProps('firstName')}
                       error={Boolean(touched.firstName && errors.firstName)}
                       helperText={touched.firstName && errors.firstName}
                     />
+                    <br />
                     <TextField
                       fullWidth
                       type="text"
+                      label="Last Name"
                       {...getFieldProps('lastName')}
                       error={Boolean(touched.lastName && errors.lastName)}
                       helperText={touched.lastName && errors.lastName}
                     />
                     <br />
-                    <h3>Email:</h3>
                     <TextField
                       fullWidth
                       type="email"
+                      label="Email"
                       {...getFieldProps('email')}
                       error={Boolean(touched.email && errors.email)}
                       helperText={touched.email && errors.email}
                     />
                     <br />
-                    <h3>Phone:</h3>
                     <TextField
                       fullWidth
                       type="phone"
+                      label="Phone"
                       {...getFieldProps('phone')}
                       error={Boolean(touched.phone && errors.phone)}
                       helperText={touched.phone && errors.phone}
@@ -189,6 +191,7 @@ export default function ProfileSettings() {
                       size="large"
                       type="submit"
                       variant="contained"
+                      data-testid="update-profile-button"
                       // loading={registerLoading ? isSubmitting : null}
                     >
                       Save Changes
@@ -197,19 +200,21 @@ export default function ProfileSettings() {
                 </Form>
               </FormikProvider>
             ) : (
-              <Stack direction="column">
+              <Stack direction="column" data-testid="profile-data">
                 <h3>Name:</h3>
                 <p>
                   {userInfo && userInfo.first_name} {userInfo && userInfo.last_name}
                 </p>
                 <br />
                 <h3>Email:</h3>
-                <p>{userInfo && userInfo.email ? userInfo.email : 'None'}</p>
+                <p>
+                  {userInfo && userInfo.email ? userInfo.email : 'None'}
+                </p>
                 <br />
                 <h3>Phone Number:</h3>
                 <p>{userInfo && userInfo.phone ? userInfo.phone : 'None'}</p>
                 <br />
-                <Button fullWidth size="large" variant="contained" onClick={() => setEditting(true)}>
+                <Button fullWidth size="large" variant="contained" onClick={() => setEditting(true)} data-testid="edit-profile">
                   Edit
                 </Button>
               </Stack>
@@ -235,7 +240,7 @@ export default function ProfileSettings() {
           ) : null}
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
-              <Table>
+              <Table data-testid="users-table">
                 <UserListHead
                   headLabel={TABLE_HEAD}
                   checkbox={adminBool}

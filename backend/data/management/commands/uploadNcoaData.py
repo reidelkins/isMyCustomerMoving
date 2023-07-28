@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from data.models import Client, ZipCode
+from data.utils import parse_streets
 import pandas as pd
 
 
@@ -18,17 +19,20 @@ class Command(BaseCommand):
             for index, row in df.iterrows():
                 print(index)
                 try:
-                    input_address = row['input_address']
-                    new_address = row['address']
+                    input_address = row['input_Street']
+                    new_address = parse_streets(row['address'])
                     if input_address != new_address:
                         zip_code = ZipCode.objects.get(
-                            zip_code=row['input_zipCode'])
+                            zip_code=row['input_Zip Code'])
                         client = Client.objects.filter(
                             address=input_address,
-                            city=row['input_city'],
-                            state=row['input_state'],
+                            city=row['input_City'],
+                            state=row['input_State'],
                             zip_code=zip_code
                         )
+                        if client.count() == 0:
+                            print(f"Client not found for {input_address}")
+                            continue
                         new_zip_code, _ = ZipCode.objects.get_or_create(
                             zip_code=row['zip'][:5])
                         client.update(
@@ -38,4 +42,4 @@ class Command(BaseCommand):
                             new_zip_code=new_zip_code
                         )
                 except Exception as e:
-                    print(e)
+                    print(e, row)

@@ -218,7 +218,7 @@ export default function ForSaleData() {
   }, [count]);
 
   return (
-    <Page title="User" userInfo={userInfo}>
+    <Page title="For Sale" userInfo={userInfo}>
       <Container>
         {userInfo ? <ForSaleListCall /> : null}
         {userInfo && (

@@ -204,14 +204,15 @@ class ManageUserView(APIView):
         message_html = get_template("addUserEmail.html").render(
             {"admin": admin, "token": token.id}
         )
-        send_mail(
-            mail_subject,
-            message_plain,
-            "reid@ismycustomermoving.com",  # Replace with your actual email
-            [recipient],
-            fail_silently=False,
-            html_message=message_html,
-        )
+        if "@test.com" not in recipient:
+            send_mail(
+                mail_subject,
+                message_plain,
+                "reid@ismycustomermoving.com",  # Replace with your actual email
+                [recipient],
+                fail_silently=False,
+                html_message=message_html,
+            )
         return self._get_response(admin.company)
 
     def _get_response(self, company):
@@ -260,7 +261,8 @@ class ManageUserView(APIView):
                 if request.data.get("phone"):
                     user.phone = request.data["phone"]
                 user.save()
-                create_keap_user(user.id)
+                if "@test.com" not in user.email:
+                    create_keap_user(user.id)
                 serializer = UserSerializerWithToken(user, many=False)
                 return Response(serializer.data)
 
@@ -349,7 +351,8 @@ class RegisterView(APIView):
                     #  fail_silently=False
                     # )
                     serializer = UserSerializerWithToken(user, many=False)
-                    create_keap_user(user.id)
+                    if "@test.com" not in user.email:
+                        create_keap_user(user.id)
                 else:
                     return Response(
                         {
@@ -983,7 +986,8 @@ class CompanyView(APIView):
                 )
                 comp.product = freePlan
                 comp.save()
-                create_keap_company(comp.id)
+                if "@test.com" not in email:
+                    create_keap_company(comp.id)
                 return Response(
                     "", status=status.HTTP_201_CREATED, headers=""
                 )

@@ -36,7 +36,7 @@ import NoteModal from './NoteModal';
 import ServiceTitanSyncModal from './ServiceTitanSyncModal';
 import UpgradeFromFree from './UpgradeFromFree';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
-import { getClientsCSV, salesForceSync,  updateClientAsync, update } from '../redux/actions/usersActions';
+import { getClientsCSV, salesForceSync,  updateClientAsync, update, updateCounts } from '../redux/actions/usersActions';
 import { applySortFilter, getComparator } from '../utils/filterFunctions';
 import { handleChangePage, handleChangeRowsPerPage, handleRequestSort } from '../utils/dataTableFunctions';
 
@@ -112,8 +112,14 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
     const handleFilterByName = (event) => {
         setFilterName(event.target.value);
     };
-    const updateContacted = (event, id, contacted) => {
+    const updateContacted = (event, id, contacted, status) => {
         dispatch(updateClientAsync(id, contacted, '', '', '', ''));
+        const updatedClients = filteredClients.map((client) =>
+            client.id === id ? { ...client, contacted } : client
+        );
+        dispatch(updateCounts(contacted, status, updatedClients));
+
+        setFilteredClients(applySortFilter(updatedClients, getComparator(order, orderBy), filterName, userInfo.status));
     };
     
     const handleRowClick = (rowIndex) => {
@@ -317,7 +323,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
     const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
     return (
         <>
-            <Card sx={{ marginBottom: '3%' }}>
+            <Card sx={{ marginBottom: '3%' }} data-testid="customer-data-card">
                 <ClientListToolbar
                     numSelected={selected.length}
                     filterName={filterName}
@@ -497,7 +503,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                                                         color="success"
                                                         aria-label="Contacted"
                                                         component="label"
-                                                        onClick={(event) => updateContacted(event, id, false)}
+                                                        onClick={(event) => updateContacted(event, id, false, status)}
                                                         >
                                                         <Iconify icon="bi:check-lg" />
                                                         </IconButton>
@@ -508,7 +514,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                                                         color="error"
                                                         aria-label="Not Contacted"
                                                         component="label"
-                                                        onClick={(event) => updateContacted(event, id, true)}
+                                                        onClick={(event) => updateContacted(event, id, true, status)}
                                                     >
                                                         <Iconify icon="ps:check-box-empty" />
                                                     </IconButton>

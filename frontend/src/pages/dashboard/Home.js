@@ -1,111 +1,114 @@
-import React from 'react';
+import React, { useEffect} from 'react';
 import { Grid, Stack, Container, Typography } from '@mui/material';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 
+import ClientsListCall from '../../redux/calls/ClientsListCall';
 import { showLoginInfo } from '../../redux/actions/authActions';
+import { companyDashboardData, getCompanyDashboardDataAsync, selectClients } from '../../redux/actions/usersActions';
 import Page from '../../components/Page';
 import BarChart from '../../components/charts/Bar';
-import { StateRevenueDonut } from '../../components/charts/Donut';
+// import { StateRevenueDonut } from '../../components/charts/Donut';
 import LineChart from '../../components/charts/Line';
-import DashboardData from '../../components/DashboardData';
+import DashboardData from '../../components/cards/DashboardData';
+import ROICard from '../../components/cards/ROICard';
 
 export default function Home() {
+  const dispatch = useDispatch();
+
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
+  const dashboardData = useSelector(companyDashboardData);  
+  const { retrieved, monthsActive, totalRevenue, revenueByMonth, forSaleByMonth, recentlySoldByMonth } = dashboardData;
+  const clientInfo = useSelector(selectClients);
+  const { forSale, recentlySold } = clientInfo;
+
+  useEffect(() => {
+    if (userInfo && !retrieved) {
+      dispatch(getCompanyDashboardDataAsync());
+    }
+  }, [userInfo, retrieved, dispatch]);
+
   return (
-    <Page title="Referrals" userInfo={userInfo}>
+    <Page title="Home" userInfo={userInfo}>
+      {userInfo ? <ClientsListCall /> : null}  
       <Container maxWidth="xl">
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-          <Typography variant="h4" gutterBottom>
+          <Typography variant="h4" gutterBottom data-testid="welcome-message">
             Welcome {userInfo.first_name.charAt(0).toUpperCase() + userInfo.first_name.slice(1)}{' '}
             {userInfo.last_name.charAt(0).toUpperCase() + userInfo.last_name.slice(1)} 👋
           </Typography>
-        </Stack>
-        {/* <Grid container spacing={1}>
-          <Grid item xs={6} md={3}>
-            <DashboardData
-              mainText="$162299"
-              topText="Total Revenue"
-              bottomText={`36765 in The Past 30 Days`}
-              color="#85bb65"
-              icon="/static/icons/revenue.svg"
-            />
-          </Grid>
-          <Grid item xs={6} md={3}>
-            <DashboardData
-              mainText="819"
-              topText="Total Leads Found"
-              bottomText={`177 The Past 30 Days`}
-              color="#7BAFD4"
-              icon="/static/icons/lead.svg"
-            />
-          </Grid>
-          <Grid item xs={6} md={3}>
-            <DashboardData
-              mainText="509"
-              topText="Customers Moved"
-              bottomText={`95 The Past 30 Days`}
-              color="#FFC107"
-              icon="/static/icons/home.svg"
-            />
-          </Grid>
-          <Grid item xs={6} md={3}>
-            <DashboardData
-              mainText="310"
-              topText="Customers Selling"
-              bottomText={`82 The Past 30 Days`}
-              color="#FF8200"
-              icon="/static/icons/for-sale.svg"
-            />
-          </Grid>
-        </Grid>
-         */}
+        </Stack>        
         <Stack direction="row" spacing={2} marginBottom={8}>
           <DashboardData
-            mainText="$162299"
+            mainText={totalRevenue}
             topText="Total Revenue"
-            bottomText={`36765 in The Past 30 Days`}
+            bottomText={`${parseFloat(Object.values(revenueByMonth)[0]).toFixed(2)} This Month`}
             color="#85bb65"
             icon="/static/icons/revenue.svg"
           />
           <DashboardData
-            mainText="819"
+            mainText={forSale.total+recentlySold.total}
             topText="Total Leads Found"
-            bottomText={`177 The Past 30 Days`}
+            bottomText={`${Object.values(recentlySoldByMonth)[0]+Object.values(forSaleByMonth)[0]} This Month`}
             color="#7BAFD4"
             icon="/static/icons/lead.svg"
           />
           <DashboardData
-            mainText="509"
+            mainText={recentlySold.total}
             topText="Customers Moved"
-            bottomText={`95 The Past 30 Days`}
+            bottomText={`${Object.values(recentlySoldByMonth)[0]} This Month`}
             color="#FFC107"
             icon="/static/icons/home.svg"
           />
           <DashboardData
-            mainText="310"
+            mainText={forSale.total}
             topText="Customers Selling"
-            bottomText={`82 The Past 30 Days`}
+            bottomText={`${Object.values(forSaleByMonth)[0]} This Month`}
             color="#FF8200"
             icon="/static/icons/for-sale.svg"
           />
         </Stack>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={8}>
-            <LineChart />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <StateRevenueDonut />
-          </Grid>
+          {userInfo.company.crm === "ServiceTitan" && (
+            <>
+              <Grid item xs={12} md={8}>
+                <LineChart 
+                  title={'Revenue'}
+                  keys={revenueByMonth !== {} ? Object.keys(revenueByMonth).reverse() : ['January', 'February', 'March', 'April', 'May', 'June']}
+                  values={revenueByMonth !== {} ? Object.values(revenueByMonth).reverse() : [0,0,0,0,0,0]}                            
+                  dataLabel={'Revenue'}
+                  height={'40vh'}
+
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <ROICard
+                  total={totalRevenue} 
+                  revenues={revenueByMonth}
+                  height={'40vh'}
+                  company = {userInfo.company}
+                  monthsActive={monthsActive}
+                />
+                {/* <StateRevenueDonut /> */}
+              </Grid>
+            </>
+          )}
+          
           <Grid item xs={12} md={6}>
             <BarChart
               title={'Recently Moved Customers'}
-              values={[93, 51, 81, 59, 65, 35, 125]}
+              keys={recentlySoldByMonth !== {} ? Object.keys(recentlySoldByMonth).reverse() : ['January', 'February', 'March', 'April', 'May', 'June']}
+              values={recentlySoldByMonth !== {} ? Object.values(recentlySoldByMonth).reverse() : [0,0,0,0,0,0]}              
               dataLabel={'Recently Moved'}
             />
           </Grid>
           <Grid item xs={12} md={6}>
-            <BarChart title={'Customers Moving'} values={[15, 25, 11, 39, 53, 41, 126]} dataLabel={'Moving'} />
+            <BarChart 
+              title={'Customers Moving'}
+              keys={forSaleByMonth !== {} ? Object.keys(forSaleByMonth).reverse() : ['January', 'February', 'March', 'April', 'May', 'June']}
+              values={forSaleByMonth !== {} ? Object.values(forSaleByMonth).reverse() : [0,0,0,0,0,0]} 
+              dataLabel={'Moving'} 
+            />
           </Grid>
         </Grid>
       </Container>

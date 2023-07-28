@@ -1,8 +1,5 @@
 // .eslintignore
 build/*
 public/*
-src/service-worker.js
-src/serviceWorkerRegistration.js
-src/setupTests.js
+src/serviceWorker.js
 src/reportWebVitals.js
-src/__tests__/*
