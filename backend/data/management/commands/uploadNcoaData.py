@@ -25,10 +25,13 @@ class Command(BaseCommand):
                             zip_code=row['input_Zip Code'])
                         client = Client.objects.filter(
                             address=input_address,
-                            city=row['input_city'],
-                            state=row['input_state'],
+                            city=row['input_City'],
+                            state=row['input_State'],
                             zip_code=zip_code
                         )
+                        if client.count() == 0:
+                            print(f"Client not found for {input_address}")
+                            continue
                         new_zip_code, _ = ZipCode.objects.get_or_create(
                             zip_code=row['zip'][:5])
                         client.update(
