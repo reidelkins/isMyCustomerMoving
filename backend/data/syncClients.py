@@ -249,19 +249,28 @@ def get_service_titan_customers(company_id, tenant):
 
 
 @shared_task
-def get_service_titan_invoices(company_id, tenant, rfc339=None):
+def get_service_titan_invoices(company_id, tenant):
     headers = get_service_titan_access_token(company_id)
     more_invoices = True
     page = 1
     results = []
+
+    company = Company.objects.get(id=company_id)
+    clients = Client.objects.filter(company=company)
+    if ServiceTitanInvoice.objects.filter(client__in=clients).exists():
+        rfc339 = (datetime.now()-timedelta(years=1)
+                  ).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        rfc_url_param = f"&createdOnOrAfter={rfc339}"
+    else:
+        rfc_url_param = ""
+
     while more_invoices:
         invoices = []
         url = (
             f"https://api.servicetitan.io/accounting"
-            f"/v2/tenant/{tenant}/invoices?page={page}&pageSize=2500"
+            f"/v2/tenant/{tenant}/invoices?page={page}"
+            f"&pageSize=2500{rfc_url_param}"
         )
-        if rfc339:
-            url += f"&createdOnOrAfter={rfc339}"
         response = requests.get(url=url, headers=headers, timeout=15)
         page += 1
         for invoice in response.json()["data"]:
