@@ -61,7 +61,7 @@ export default function HomePage() {
   return (
     <div>
       {userInfo && (
-        <Page title="User" userInfo={userInfo}>
+        <Page title="Customer Data" userInfo={userInfo}>
           <Container>
             {userInfo ? <ClientsListCall /> : null}            
             {userInfo && (

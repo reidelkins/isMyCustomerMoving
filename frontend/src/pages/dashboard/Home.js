@@ -29,11 +29,11 @@ export default function Home() {
   }, [userInfo, retrieved, dispatch]);
 
   return (
-    <Page title="Referrals" userInfo={userInfo}>
+    <Page title="Home" userInfo={userInfo}>
       {userInfo ? <ClientsListCall /> : null}  
       <Container maxWidth="xl">
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-          <Typography variant="h4" gutterBottom>
+          <Typography variant="h4" gutterBottom data-testid="welcome-message">
             Welcome {userInfo.first_name.charAt(0).toUpperCase() + userInfo.first_name.slice(1)}{' '}
             {userInfo.last_name.charAt(0).toUpperCase() + userInfo.last_name.slice(1)} 👋
           </Typography>
