@@ -947,11 +947,11 @@ class CompanyDashboardView(APIView):
                 client__in=clients, status=listed_status)
             today = datetime.today()
             first_day_of_month = today.replace(day=1)
+            first_day_next_month = (first_day_of_month +
+                                    timedelta(days=32)).replace(day=1)
+            last_day_of_month = first_day_next_month - timedelta(days=1)
 
             for i in range(6):
-                last_day_of_month = first_day_of_month - timedelta(days=1)
-                first_day_of_month = last_day_of_month.replace(day=1)
-
                 # Query to get invoices that happened last month
                 status_updates_last_month = client_updates.filter(
                     date__gte=first_day_of_month,
@@ -963,6 +963,9 @@ class CompanyDashboardView(APIView):
                 else:
                     self.recently_sold_by_month[last_day_of_month.strftime(
                         "%B")] = status_updates_last_month
+
+                last_day_of_month = first_day_of_month - timedelta(days=1)
+                first_day_of_month = last_day_of_month.replace(day=1)
 
     def _get_revenue(self, company_id):
         """
@@ -979,11 +982,11 @@ class CompanyDashboardView(APIView):
 
         today = datetime.today()
         first_day_of_month = today.replace(day=1)
+        first_day_next_month = (first_day_of_month +
+                                timedelta(days=32)).replace(day=1)
+        last_day_of_month = first_day_next_month - timedelta(days=1)
 
         for i in range(6):
-            last_day_of_month = first_day_of_month - timedelta(days=1)
-            first_day_of_month = last_day_of_month.replace(day=1)
-
             # Query to get invoices that happened last month
             invoices_last_month = ServiceTitanInvoice.objects.filter(
                 created_on__gte=first_day_of_month,
@@ -992,6 +995,9 @@ class CompanyDashboardView(APIView):
             ).values_list("amount", flat=True)
             self.revenue_by_month[last_day_of_month.strftime("%B")] = sum(
                 invoices_last_month)
+
+            last_day_of_month = first_day_of_month - timedelta(days=1)
+            first_day_of_month = last_day_of_month.replace(day=1)
 
     def get(self, *args, **kwargs):
         company_id = self.request.user.company.id
