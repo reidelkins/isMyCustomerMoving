@@ -258,7 +258,7 @@ def get_service_titan_invoices(company_id, tenant):
     company = Company.objects.get(id=company_id)
     clients = Client.objects.filter(company=company)
     if ServiceTitanInvoice.objects.filter(client__in=clients).exists():
-        rfc339 = (datetime.now()-timedelta(years=1)
+        rfc339 = (datetime.now()-timedelta(days=365)
                   ).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         rfc_url_param = f"&createdOnOrAfter={rfc339}"
     else:
