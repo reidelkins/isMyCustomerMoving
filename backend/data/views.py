@@ -904,10 +904,10 @@ class CompanyDashboardView(APIView):
         current_datetime = datetime.now()
 
         # Create a dictionary to store the last 6 months
-        last_six_months_dict = {}
+        last_six_months_dict = {current_datetime.strftime("%B"): 0}
 
         # Loop to generate the keys for the last 6 months
-        for i in range(6):
+        for i in range(5):
             # Calculate the first day of the current month
             first_day_of_current_month = current_datetime.replace(day=1)
 

@@ -77,6 +77,8 @@ class CompanyDashboardView(TestCase):
         assert isinstance(data["recentlySoldByMonth"], dict)
 
         first_day_of_current_month = datetime.now().replace(day=1)
+        assert first_day_of_current_month.strftime(
+            "%B") in data["forSaleByMonth"]
 
         # Calculate the last day of the previous month
         last_day_of_last_month = first_day_of_current_month - \
