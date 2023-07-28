@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from data.models import Client, ZipCode
+from data.utils import parse_streets
 import pandas as pd
 
 
@@ -19,7 +20,7 @@ class Command(BaseCommand):
                 print(index)
                 try:
                     input_address = row['input_Street']
-                    new_address = row['address']
+                    new_address = parse_streets(row['address'])
                     if input_address != new_address:
                         zip_code = ZipCode.objects.get(
                             zip_code=row['input_Zip Code'])
@@ -41,4 +42,4 @@ class Command(BaseCommand):
                             new_zip_code=new_zip_code
                         )
                 except Exception as e:
-                    print(e)
+                    print(e, row)

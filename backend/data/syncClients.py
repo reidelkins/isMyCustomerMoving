@@ -354,6 +354,12 @@ def save_invoices(company_id, invoices):
                     existing_client=existing_client,
                 )
             )
+        else:
+            invoices = ServiceTitanInvoice.objects.filter(id=invoice["id"])
+            for existing_invoice in invoices:
+                if invoice['amount'] != existing_invoice.amount:
+                    existing_invoice.amount = invoice['amount']
+                    existing_invoice.save(update_fields=["amount"])
     # Bulk create the invoices
     ServiceTitanInvoice.objects.bulk_create(invoices_to_create)
 
