@@ -47,7 +47,8 @@ def get_all_zipcodes(company, zip=None):
     except Exception as e:
         if zip:
             zips = [{"zip_code": str(zip)}]
-        logging.error(e)
+        else:
+            logging.error(e)
 
     # Additional logic and task delays
     for i in range(len(zips) * 2):
@@ -64,7 +65,6 @@ def get_all_zipcodes(company, zip=None):
     days_to_run = [0]  # Only on Monday
     current_day = datetime.now().weekday()
 
-    # Check if current day is in the list of days to run
     if current_day in days_to_run:
         send_zapier_recently_sold.delay(company)
     del_variables(

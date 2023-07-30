@@ -12,7 +12,6 @@ from functools import wraps
 import jwt
 import pytz
 import pyotp
-from re import sub
 import requests
 import uuid
 from rest_framework import generics, status, viewsets
@@ -24,8 +23,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 import logging
 
 from data.models import HomeListingTags, ZipCode
-from data.serializers import ClientSerializer, HomeListingSerializer
-from data.utils import format_zip, parse_streets, verify_address
+from data.serializers import HomeListingSerializer
+
 from payments.models import Product
 from .models import Company, CustomUser, Enterprise, InviteToken
 from .serializers import (
@@ -887,46 +886,6 @@ class ZapierRecentlySoldSubscribeView(APIView):
             return Response(
                 {"detail": f"{e}"}, status=status.HTTP_400_BAD_REQUEST
             )
-
-
-class ZapierClientSubscribeView(APIView):
-    serializer = ClientSerializer
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        try:
-            company = request.user.company
-            data = request.data
-            name = data.get("name")
-            address = parse_streets(data.get("address"))
-            zip_code = format_zip(data.get("zip_code"))
-            city = data.get("city")
-            state = data.get("state")
-            phone_number = sub("[^0-9]", "", data.get("phone_number"))
-            zip, _ = ZipCode.objects.get_or_create(zip_code=zip_code)
-            data = {
-                "name": name,
-                "address": address,
-                "city": city,
-                "state": state,
-                "zip_code": zip,
-                "phone_number": phone_number,
-            }
-            serializer = self.serializer(data=data)
-            serializer.is_valid(raise_exception=True)
-            client = serializer.save()
-            client.company = company
-            client.save()
-            verify_address(client.id)
-
-            return Response(
-                {"detail": "Client added successfully"},
-                status=status.HTTP_200_OK,
-            )
-        except Exception as e:
-            logging.error(e)
-            return Response(
-                {"detail": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserEnterpriseView(APIView):

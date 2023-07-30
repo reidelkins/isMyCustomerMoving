@@ -14,6 +14,14 @@ def api_client():
     return APIClient()
 
 
+def get_token():
+    serializer = MyTokenObtainPairSerializer(
+        data={"email": "testuser@example.com", "password": "testpassword"}
+    )
+    serializer.is_valid(raise_exception=True)
+    return serializer.validated_data["access_token"]
+
+
 class CompanyDashboardView(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -25,7 +33,7 @@ class CompanyDashboardView(TestCase):
             is_verified=True,
             date_joined=datetime.today()-timedelta(days=370),
         )
-        self.token = self.get_token()
+        self.token = get_token()
 
         client = Client.objects.create(
             company=self.company, service_titan_customer_since=datetime.today()-timedelta(days=360))
@@ -44,13 +52,6 @@ class CompanyDashboardView(TestCase):
             client=client, status="House For Sale", date=datetime.today()-timedelta(days=30))
         recently_sold_client_update = ClientUpdate.objects.create(
             client=client, status="House Recently Sold (6)", date=datetime.today()-timedelta(days=60))
-
-    def get_token(self):
-        serializer = MyTokenObtainPairSerializer(
-            data={"email": "testuser@example.com", "password": "testpassword"}
-        )
-        serializer.is_valid(raise_exception=True)
-        return serializer.validated_data["access_token"]
 
     def test_company_dashboard_view(self):
         # Make a request to the CompanyDashboardView API view.
@@ -108,3 +109,44 @@ class CompanyDashboardView(TestCase):
         assert data["revenueByMonth"][previous_month_name] == 100.0
 
         assert data["totalRevenue"] == 350
+
+
+class ZapierClientView(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.company = Company.objects.create(name="Test Company")
+        self.user = CustomUser.objects.create_user(
+            email="testuser@example.com",
+            password="testpassword",
+            company=self.company,
+            is_verified=True,
+            date_joined=datetime.today()-timedelta(days=370),
+        )
+        self.token = get_token()
+
+        client = Client.objects.create(
+            company=self.company, service_titan_customer_since=datetime.today()-timedelta(days=360))
+
+    def test_zapier_create_client_view(self):
+        # Make a request to the ZapierClientView API view.
+        headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
+        data = {
+            "name": "Test Client",
+            "address": "123 Test Street",
+            "city": "Test City",
+            "state": "Test State",
+            "zip_code": "12345",
+            "phone_number": "1234567890",
+        }
+        response = self.client.post(
+            reverse("zapier-client-create"), data=data, **headers)
+
+        # Validate the response status code.
+        assert response.status_code == 200
+
+        # Refresh database to see if object was created successfully
+        self.company.refresh_from_db()
+
+        assert Client.objects.filter(company=self.company).count() == 2
+        assert Client.objects.filter(
+            company=self.company, name="Test Client").exists() == True
