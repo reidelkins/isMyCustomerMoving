@@ -1299,35 +1299,37 @@ def verify_address(client_id):
     except requests.exceptions.RequestException as e:
         logging.error(e)
         return
+    try:
+        response_xml = response.text
+        parsed_response = fromstring(response_xml)
+        address_element = parsed_response.find("Address")
+        error = address_element.find("Error")
 
-    response_xml = response.text
-    parsed_response = fromstring(response_xml)
-    address_element = parsed_response.find("Address")
-    error = address_element.find("Error")
-
-    if error is None:
-        address2 = address_element.find("Address2").text.title()
-        address2 = parse_streets(address2)
-        city = address_element.find("City").text.title()
-        state = address_element.find("State").text
-        zip5 = address_element.find("Zip5").text
-        if (
-            address2 != client.address
-            or city != client.city
-            or state != client.state
-            or zip5 != zip_code
-        ):
-            client.usps_different = True
-        client.old_address = (
-            f"{client.address}, {client.city}, "
-            f"{client.state} {client.zip_code.zip_code}"
-        )
-        client.address = address2
-        client.city = city
-        client.state = state
-        zip, _ = ZipCode.objects.get_or_create(zip_code=zip5)
-        client.zip_code = zip
-        client.save()
+        if error is None:
+            address2 = address_element.find("Address2").text.title()
+            address2 = parse_streets(address2)
+            city = address_element.find("City").text.title()
+            state = address_element.find("State").text
+            zip5 = address_element.find("Zip5").text
+            if (
+                address2 != client.address
+                or city != client.city
+                or state != client.state
+                or zip5 != zip_code
+            ):
+                client.usps_different = True
+            client.old_address = (
+                f"{client.address}, {client.city}, "
+                f"{client.state} {client.zip_code.zip_code}"
+            )
+            client.address = address2
+            client.city = city
+            client.state = state
+            zip, _ = ZipCode.objects.get_or_create(zip_code=zip5)
+            client.zip_code = zip
+            client.save()
+    except Exception as e:
+        logging.error(e)
 
 
 @shared_task
