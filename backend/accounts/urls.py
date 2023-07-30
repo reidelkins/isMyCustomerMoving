@@ -33,6 +33,11 @@ zapier_patterns = [
         views.ZapierRecentlySoldSubscribeView.as_view(),
         name="zapier-recentlySold-subscribe",
     ),
+    path(
+        "client/",
+        views.ZapierClientSubscribeView.as_view(),
+        name="zapier-client-subscribe",
+    )
 ]
 
 user_patterns = [
