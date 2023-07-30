@@ -24,7 +24,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 import logging
 
 from data.models import ZipCode
-from data.serializers import ZapierClientSerializer
+from data.serializers import ClientSerializer
 from data.utils import format_zip, parse_streets
 from payments.models import Product
 from .models import Company, CustomUser, Enterprise, InviteToken
@@ -885,7 +885,7 @@ class ZapierRecentlySoldSubscribeView(APIView):
 
 
 class ZapierClientSubscribeView(APIView):
-    serializer = ZapierClientSerializer
+    serializer = ClientSerializer
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -910,7 +910,8 @@ class ZapierClientSubscribeView(APIView):
             serializer = self.serializer(data=data)
             serializer.is_valid(raise_exception=True)
             client = serializer.save()
-            client.update(company=company)
+            client.company = company
+            client.save()
 
             return Response(
                 {"detail": "Client added successfully"},
