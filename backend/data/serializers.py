@@ -17,6 +17,18 @@ class ClientUpdateSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class ClientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Client
+        fields = [
+            "name",
+            "address",
+            "city",
+            "state",
+            "zip_code",
+        ]
+
+
 class ClientListSerializer(serializers.ModelSerializer):
     zip_code = serializers.SerializerMethodField()
     tag = serializers.SerializerMethodField()
