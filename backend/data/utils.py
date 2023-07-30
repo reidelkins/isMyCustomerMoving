@@ -1367,7 +1367,10 @@ def send_zapier_recently_sold(company_id):
 
     for saved_filter in saved_filters:
         filtered_home_listings = filter_home_listings(
-            {"saved_filter": saved_filter.name}, home_listings, company_id, "Recently Sold"
+            {"saved_filter": saved_filter.name},
+            home_listings,
+            company_id,
+            "Recently Sold"
         )
 
         if filtered_home_listings:
