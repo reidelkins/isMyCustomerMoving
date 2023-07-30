@@ -30,17 +30,20 @@ class CompanyDashboardView(TestCase):
         client = Client.objects.create(
             company=self.company, service_titan_customer_since=datetime.today()-timedelta(days=360))
 
-        attributed_invoice = ServiceTitanInvoice.objects.create(
-            client=client, amount=250.0, attributed=True, id="1"
+        attributed_invoice1 = ServiceTitanInvoice.objects.create(
+            client=client, amount=250.0, attributed=True, id="1", created_on=datetime.today()-timedelta(days=30)
+        )
+        attributed_invoice2 = ServiceTitanInvoice.objects.create(
+            client=client, amount=100.0, attributed=True, id="2", created_on=datetime.today()-timedelta(days=60)
         )
         unattributed_invoice = ServiceTitanInvoice.objects.create(
-            client=client, amount=100.0, attributed=False, id="2"
+            client=client, amount=100.0, attributed=False, id="3", created_on=datetime.today()-timedelta(days=60)
         )
 
         for_sale_client_update = ClientUpdate.objects.create(
             client=client, status="House For Sale", date=datetime.today()-timedelta(days=30))
         recently_sold_client_update = ClientUpdate.objects.create(
-            client=client, status="House For Sale (6)", date=datetime.today()-timedelta(days=60))
+            client=client, status="House Recently Sold (6)", date=datetime.today()-timedelta(days=60))
 
     def get_token(self):
         serializer = MyTokenObtainPairSerializer(
@@ -59,7 +62,7 @@ class CompanyDashboardView(TestCase):
 
         # Validate the response data.
         data = response.json()
-        print(data)
+
         assert "totalRevenue" in data
         assert "monthsActive" in data
         assert "revenueByMonth" in data
@@ -67,14 +70,15 @@ class CompanyDashboardView(TestCase):
         assert "recentlySoldByMonth" in data
 
         # Validate the format of the response data.
-        assert isinstance(data["totalRevenue"], float) or isinstance(
-            data["totalRevenue"], int)
+        assert isinstance(data["totalRevenue"], int)
         assert isinstance(data["monthsActive"], int)
         assert isinstance(data["revenueByMonth"], dict)
         assert isinstance(data["forSaleByMonth"], dict)
         assert isinstance(data["recentlySoldByMonth"], dict)
 
         first_day_of_current_month = datetime.now().replace(day=1)
+        assert first_day_of_current_month.strftime(
+            "%B") in data["forSaleByMonth"]
 
         # Calculate the last day of the previous month
         last_day_of_last_month = first_day_of_current_month - \
@@ -87,6 +91,7 @@ class CompanyDashboardView(TestCase):
         previous_month_name = first_day_of_last_month.strftime("%B")
         assert data["monthsActive"] == 13
         assert data["forSaleByMonth"][previous_month_name] == 1
+        assert data["revenueByMonth"][previous_month_name] == 250.0
 
         first_day_of_current_month = first_day_of_last_month.replace(day=1)
 
@@ -100,9 +105,6 @@ class CompanyDashboardView(TestCase):
         # Get the name of the previous month as a string (full month name)
         previous_month_name = first_day_of_last_month.strftime("%B")
         assert data["recentlySoldByMonth"][previous_month_name] == 1
+        assert data["revenueByMonth"][previous_month_name] == 100.0
 
-        assert data["totalRevenue"] == 250.0
-
-        # Add more assertions based on the expected behavior of the CompanyDashboardView.
-        # For example, check if the revenue and leads data for the test company are correct.
-        # Use the setup_test_data fixture to retrieve the test data and perform the assertions.
+        assert data["totalRevenue"] == 350

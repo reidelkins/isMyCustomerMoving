@@ -246,7 +246,7 @@ class RecentlySoldView(generics.ListAPIView):
                 zip_code__in=zip_code_objects,
                 status="House Recently Sold (6)",
                 listed__gt=(
-                    datetime.datetime.today() - datetime.timedelta(days=30)
+                    datetime.today() - timedelta(days=30)
                 ).strftime("%Y-%m-%d"),
             ).order_by("-listed")
             return filter_home_listings(
@@ -398,7 +398,7 @@ class AllRecentlySoldView(generics.ListAPIView):
                 zip_code__in=zip_code_objects,
                 status="House Recently Sold (6)",
                 listed__gt=(
-                    datetime.datetime.today() - datetime.timedelta(days=30)
+                    datetime.today() - timedelta(days=30)
                 ).strftime("%Y-%m-%d"),
             ).order_by("-listed")
             return filter_home_listings(
@@ -424,7 +424,7 @@ class ForSaleView(generics.ListAPIView):
                 zip_code__in=zip_code_objects,
                 status="House For Sale",
                 listed__gt=(
-                    datetime.datetime.today() - datetime.timedelta(days=30)
+                    datetime.today() - timedelta(days=30)
                 ).strftime("%Y-%m-%d"),
             ).order_by("-listed")
             return filter_home_listings(
@@ -576,7 +576,7 @@ class AllForSaleView(generics.ListAPIView):
                 zip_code__in=zip_code_objects,
                 status="House For Sale",
                 listed__gt=(
-                    datetime.datetime.today() - datetime.timedelta(days=30)
+                    datetime.today() - timedelta(days=30)
                 ).strftime("%Y-%m-%d"),
             ).order_by("-listed")
             return filter_home_listings(
@@ -904,10 +904,10 @@ class CompanyDashboardView(APIView):
         current_datetime = datetime.now()
 
         # Create a dictionary to store the last 6 months
-        last_six_months_dict = {}
+        last_six_months_dict = {current_datetime.strftime("%B"): 0}
 
         # Loop to generate the keys for the last 6 months
-        for i in range(6):
+        for i in range(5):
             # Calculate the first day of the current month
             first_day_of_current_month = current_datetime.replace(day=1)
 
@@ -940,18 +940,18 @@ class CompanyDashboardView(APIView):
         clients = Client.objects.filter(company=company)
         statuses = [
             "House For Sale",
-            "House For Sale (6)",
+            "House Recently Sold (6)",
         ]
         for listed_status in statuses:
             client_updates = ClientUpdate.objects.filter(
                 client__in=clients, status=listed_status)
             today = datetime.today()
             first_day_of_month = today.replace(day=1)
+            first_day_next_month = (first_day_of_month +
+                                    timedelta(days=32)).replace(day=1)
+            last_day_of_month = first_day_next_month - timedelta(days=1)
 
             for i in range(6):
-                last_day_of_month = first_day_of_month - timedelta(days=1)
-                first_day_of_month = last_day_of_month.replace(day=1)
-
                 # Query to get invoices that happened last month
                 status_updates_last_month = client_updates.filter(
                     date__gte=first_day_of_month,
@@ -964,6 +964,9 @@ class CompanyDashboardView(APIView):
                     self.recently_sold_by_month[last_day_of_month.strftime(
                         "%B")] = status_updates_last_month
 
+                last_day_of_month = first_day_of_month - timedelta(days=1)
+                first_day_of_month = last_day_of_month.replace(day=1)
+
     def _get_revenue(self, company_id):
         """
         Return a list of all the attributed revenue
@@ -975,22 +978,26 @@ class CompanyDashboardView(APIView):
         invoices = ServiceTitanInvoice.objects.filter(
             client__in=clients, attributed=True)
         invoice_amounts = invoices.values_list("amount", flat=True)
-        self.total_revenue = sum(invoice_amounts)
+        self.total_revenue = int(sum(invoice_amounts))
 
         today = datetime.today()
         first_day_of_month = today.replace(day=1)
+        first_day_next_month = (first_day_of_month +
+                                timedelta(days=32)).replace(day=1)
+        last_day_of_month = first_day_next_month - timedelta(days=1)
 
         for i in range(6):
-            last_day_of_month = first_day_of_month - timedelta(days=1)
-            first_day_of_month = last_day_of_month.replace(day=1)
-
             # Query to get invoices that happened last month
             invoices_last_month = ServiceTitanInvoice.objects.filter(
                 created_on__gte=first_day_of_month,
-                created_on__lte=last_day_of_month
+                created_on__lte=last_day_of_month,
+                attributed=True
             ).values_list("amount", flat=True)
             self.revenue_by_month[last_day_of_month.strftime("%B")] = sum(
                 invoices_last_month)
+
+            last_day_of_month = first_day_of_month - timedelta(days=1)
+            first_day_of_month = last_day_of_month.replace(day=1)
 
     def get(self, *args, **kwargs):
         company_id = self.request.user.company.id

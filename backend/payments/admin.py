@@ -7,7 +7,8 @@ class ProductAdmin(admin.ModelAdmin):
 
 
 class ServiceTitanInvoiceAdmin(admin.ModelAdmin):
-    list_display = ['id', 'amount', 'client', 'created_on']
+    list_display = ['id', 'amount', 'client', 'created_on', 'attributed']
+    list_filter = ['attributed']
 
 
 # Register your models here.

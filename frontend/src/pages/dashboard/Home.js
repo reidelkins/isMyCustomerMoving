@@ -42,7 +42,7 @@ export default function Home() {
           <DashboardData
             mainText={totalRevenue}
             topText="Total Revenue"
-            bottomText={`${Object.values(revenueByMonth)[0]} This Month`}
+            bottomText={`${parseFloat(Object.values(revenueByMonth)[0]).toFixed(2)} This Month`}
             color="#85bb65"
             icon="/static/icons/revenue.svg"
           />
@@ -74,8 +74,8 @@ export default function Home() {
               <Grid item xs={12} md={8}>
                 <LineChart 
                   title={'Revenue'}
-                  keys={revenueByMonth !== {} ? Object.keys(revenueByMonth) : ['January', 'February', 'March', 'April', 'May', 'June']}
-                  values={revenueByMonth !== {} ? Object.values(revenueByMonth) : [0,0,0,0,0,0]}                            
+                  keys={revenueByMonth !== {} ? Object.keys(revenueByMonth).reverse() : ['January', 'February', 'March', 'April', 'May', 'June']}
+                  values={revenueByMonth !== {} ? Object.values(revenueByMonth).reverse() : [0,0,0,0,0,0]}                            
                   dataLabel={'Revenue'}
                   height={'40vh'}
 
@@ -97,16 +97,16 @@ export default function Home() {
           <Grid item xs={12} md={6}>
             <BarChart
               title={'Recently Moved Customers'}
-              keys={recentlySoldByMonth !== {} ? Object.keys(recentlySoldByMonth) : ['January', 'February', 'March', 'April', 'May', 'June']}
-              values={recentlySoldByMonth !== {} ? Object.values(recentlySoldByMonth) : [0,0,0,0,0,0]}              
+              keys={recentlySoldByMonth !== {} ? Object.keys(recentlySoldByMonth).reverse() : ['January', 'February', 'March', 'April', 'May', 'June']}
+              values={recentlySoldByMonth !== {} ? Object.values(recentlySoldByMonth).reverse() : [0,0,0,0,0,0]}              
               dataLabel={'Recently Moved'}
             />
           </Grid>
           <Grid item xs={12} md={6}>
             <BarChart 
               title={'Customers Moving'}
-              keys={forSaleByMonth !== {} ? Object.keys(forSaleByMonth) : ['January', 'February', 'March', 'April', 'May', 'June']}
-              values={forSaleByMonth !== {} ? Object.values(forSaleByMonth) : [0,0,0,0,0,0]} 
+              keys={forSaleByMonth !== {} ? Object.keys(forSaleByMonth).reverse() : ['January', 'February', 'March', 'April', 'May', 'June']}
+              values={forSaleByMonth !== {} ? Object.values(forSaleByMonth).reverse() : [0,0,0,0,0,0]} 
               dataLabel={'Moving'} 
             />
           </Grid>

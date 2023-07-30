@@ -723,12 +723,24 @@ class TestSyncClientFunctions(TestCase):
         mock_update_client_list.assert_called_once_with(
             fake_json["data"])
 
+    @patch("accounts.models.Company.objects.get")
+    @patch("data.models.Client.objects.filter")
+    @patch("payments.models.ServiceTitanInvoice.objects.filter")
     @patch("data.syncClients.get_service_titan_access_token")
     @patch("data.syncClients.get_customer_since_data_from_invoices.delay")
     @patch("data.syncClients.save_invoices.delay")
     @patch("requests.get")
-    def test_get_service_titan_invoices(self, mock_get, mock_save_invoices, mock_get_customer_since_data_from_invoices, mock_access_token):
+    def test_get_service_titan_invoices(self, mock_get, mock_save_invoices, mock_get_customer_since_data_from_invoices, mock_access_token, mock_invoice_filter, mock_client, mock_company):
         mock_access_token.return_value = "dummy_access_token"
+        mock_company.return_value = Mock()
+
+        mock_queryset = QuerySet(model=Client)
+        mock_queryset.update = Mock()
+        mock_client.return_value = mock_queryset
+
+        # Create a mock QuerySet and set its exists method return value
+        mock_invoice_qs = mock_invoice_filter.return_value
+        mock_invoice_qs.exists.return_value = False
 
         # Mock the API response and its JSON data
         mock_response = Mock()
@@ -1217,6 +1229,12 @@ class TestSyncClientFunctions(TestCase):
         mock_get_customer_since_data_from_invoices.assert_called_once_with(
             "company_id"
         )
+
+        # Create a mock QuerySet and set its exists method return value
+        mock_invoice_qs = mock_invoice_filter.return_value
+        mock_invoice_qs.exists.return_value = True
+        get_service_titan_invoices("company_id", "tenant")
+        assert "createdOnOrAfter" in mock_get.call_args[1]["url"]
 
     @patch("data.models.Client.objects.filter")
     @patch("payments.models.ServiceTitanInvoice.objects")
