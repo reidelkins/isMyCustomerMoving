@@ -23,9 +23,9 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 import logging
 
-from data.models import ZipCode
-from data.serializers import ClientSerializer
-from data.utils import format_zip, parse_streets
+from data.models import HomeListingTags, ZipCode
+from data.serializers import ClientSerializer, HomeListingSerializer
+from data.utils import format_zip, parse_streets, verify_address
 from payments.models import Product
 from .models import Company, CustomUser, Enterprise, InviteToken
 from .serializers import (
@@ -794,6 +794,7 @@ class ZapierRecentlySoldSubscribeView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer = HomeListingSerializer
 
     def get(self, request):
         """
@@ -803,33 +804,37 @@ class ZapierRecentlySoldSubscribeView(APIView):
         :return: The HTTP response containing test home listing data
         """
         try:
-            test_recently_sold_home_listing = [
-                {
-                    "address": "123 Main St",
-                    "city": "New York",
-                    "state": "NY",
-                    "zip_code": 10001,
-                    "price": 1000000,
-                    "housingType": "Single Family",
-                    "bedrooms": 3,
-                    "bathrooms": 2,
-                    "yearBuilt": 1990,
-                    "sqft": 2000,
-                    "lot_sqft": 5000,
-                    "roofing": "Shingle",
-                    "garage_type": "Attached",
-                    "garage": 2,
-                    "heating": "Forced Air",
-                    "cooling": "Central",
-                    "exterior": "Brick",
-                    "pool": "Inground",
-                    "fireplace": "Yes",
-                    "tags": ["New", "Pool", "Fireplace"],
-                    "filterName": "Test Filter",
-                }
-            ]
+            zip_code = ZipCode(zip_code=10001)
+            tags = list(HomeListingTags.objects.all(
+            ).values_list("pk", flat=True))[:3]
+            test_recently_sold_home_listing = {
+                "address": "123 Main St",
+                "city": "New York",
+                "state": "NY",
+                "zip_code": zip_code,
+                "price": 1000000,
+                "housing_type": "Single Family",
+                "bedrooms": 3,
+                "bathrooms": 2,
+                "year_built": 1990,
+                "sqft": 2000,
+                "lot_sqft": 5000,
+                "latitude": 40.7128,
+                "longitude": 74.0060,
+                "garage": 2,
+                "tags": tags,
+                "filterName": "Test Filter",
+                "listed": "01-01-2023"
+            }
+
+            serializer = self.serializer(data=test_recently_sold_home_listing)
+            serializer.is_valid(raise_exception=True)
+            data = serializer.data
+            del data["permalink"]
+            del data["realtor"]
+            del data["status"]
             return Response(
-                test_recently_sold_home_listing, status=status.HTTP_200_OK
+                data, status=status.HTTP_200_OK
             )
         except Exception as e:
             logging.error(e)
@@ -912,6 +917,7 @@ class ZapierClientSubscribeView(APIView):
             client = serializer.save()
             client.company = company
             client.save()
+            verify_address(client.id)
 
             return Response(
                 {"detail": "Client added successfully"},

@@ -1357,7 +1357,8 @@ def send_zapier_recently_sold(company_id):
         "%Y-%m-%d"
     )
     home_listings = HomeListing.objects.filter(
-        zip_code__in=zip_code_objects, listed__gt=recently_listed_date
+        zip_code__in=zip_code_objects, listed__gt=recently_listed_date,
+        status="House Recently Sold (6)"
     ).order_by("listed")
 
     saved_filters = SavedFilter.objects.filter(
@@ -1365,13 +1366,8 @@ def send_zapier_recently_sold(company_id):
     )
 
     for saved_filter in saved_filters:
-        query_params = {
-            k: v
-            for k, v in json.loads(saved_filter.saved_filters).items()
-            if v != ""
-        }
         filtered_home_listings = filter_home_listings(
-            query_params, home_listings, company_id, "Recently Sold"
+            {"saved_filter": saved_filter.name}, home_listings, company_id, "Recently Sold"
         )
 
         if filtered_home_listings:
@@ -1379,17 +1375,25 @@ def send_zapier_recently_sold(company_id):
                 serialized_data = HomeListingSerializer(
                     filtered_home_listings, many=True
                 ).data
-                for (
-                    data
-                ) in (
-                    serialized_data
-                ):  # Add saved_filter.name to each item in the list
+                for data in serialized_data:
+                    # Add saved_filter.name to each item in the list
                     data["filter_name"] = saved_filter.name
+                    del data["id"]
+                    del data["status"]
+                    del data["permalink"]
+                    del data["realtor"]
+                    # TODO: Do something with these values
+                    # 'roofing': ' ', 'garage_type': ' ',
+                    #  'heating': ' ', 'cooling': ' ',
+                    # 'heating_cooling_description': ' ',
+                    # 'interior_features_description': ' ',
+                    # 'exterior': ' ', 'pool': ' ', 'fireplace': ' ',
+                    # 'description': ' '
 
-                requests.post(
-                    company.zapier_recently_sold,
-                    data=serialized_data,
-                    timeout=10,
-                )
+                    requests.post(
+                        company.zapier_recently_sold,
+                        data=data,
+                        timeout=10,
+                    )
             except Exception as e:
                 logging.error(e)
