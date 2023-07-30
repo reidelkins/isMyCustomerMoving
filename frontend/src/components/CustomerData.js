@@ -391,7 +391,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                     <>
                         <Scrollbar>
                             <TableContainer sx={{ minWidth: 800 }}>
-                            <Table>
+                            <Table data-testid="customer-data-table">
                                 <ClientListHead
                                 order={order}
                                 orderBy={orderBy}
