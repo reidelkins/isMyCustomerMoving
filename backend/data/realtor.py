@@ -11,7 +11,7 @@ from scrapfly import ScrapeConfig, ScrapflyClient
 from config import settings
 from accounts.models import Company
 from .models import Client, HomeListing, ZipCode, HomeListingTags, Realtor
-from .utils import del_variables, parse_streets
+from .utils import del_variables, parse_streets, send_zapier_recently_sold
 
 zip_scrapflies = [
     ScrapflyClient(key=settings.SCRAPFLY_KEY, max_concurrency=1)
@@ -47,7 +47,8 @@ def get_all_zipcodes(company, zip=None):
     except Exception as e:
         if zip:
             zips = [{"zip_code": str(zip)}]
-        logging.error(e)
+        else:
+            logging.error(e)
 
     # Additional logic and task delays
     for i in range(len(zips) * 2):
@@ -60,6 +61,12 @@ def get_all_zipcodes(company, zip=None):
             url = "https://www.realtor.com/realestateandhomes-search"
             extra = "show-recently-sold/"
         find_data.delay(str(zips[i // 2]["zip_code"]), i, status, url, extra)
+    # send listings to zapier
+    days_to_run = [0]  # Only on Monday
+    current_day = datetime.now().weekday()
+
+    if current_day in days_to_run:
+        send_zapier_recently_sold.delay(company)
     del_variables(
         [company_object, zip_code_objects, zip_codes, zips, company]
     )
