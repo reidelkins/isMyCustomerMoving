@@ -38,20 +38,36 @@ class CompanyDashboardView(TestCase):
         client = Client.objects.create(
             company=self.company, service_titan_customer_since=datetime.today()-timedelta(days=360))
 
+        current_date = datetime.today()
+
+        # Get the first day of the current month
+        first_day_of_current_month = current_date.replace(day=1)
+
+        # Get the last day of the previous month by subtracting one day from the first day of the current month
+        last_day_of_previous_month = first_day_of_current_month - \
+            timedelta(days=1)
+
+        # Get the first day of the previous month
+        first_day_of_previous_month = current_date.replace(day=1)
+
+        # Get the last day of the month two before this one
+        last_day_of_two_months_prior = first_day_of_previous_month - \
+            timedelta(days=1)
+
         attributed_invoice1 = ServiceTitanInvoice.objects.create(
-            client=client, amount=250.0, attributed=True, id="1", created_on=datetime.today()-timedelta(days=30)
+            client=client, amount=250.0, attributed=True, id="1", created_on=last_day_of_previous_month
         )
         attributed_invoice2 = ServiceTitanInvoice.objects.create(
-            client=client, amount=100.0, attributed=True, id="2", created_on=datetime.today()-timedelta(days=60)
+            client=client, amount=100.0, attributed=True, id="2", created_on=last_day_of_two_months_prior
         )
         unattributed_invoice = ServiceTitanInvoice.objects.create(
-            client=client, amount=100.0, attributed=False, id="3", created_on=datetime.today()-timedelta(days=60)
+            client=client, amount=100.0, attributed=False, id="3", created_on=last_day_of_two_months_prior
         )
 
         for_sale_client_update = ClientUpdate.objects.create(
-            client=client, status="House For Sale", date=datetime.today()-timedelta(days=30))
+            client=client, status="House For Sale", date=last_day_of_previous_month)
         recently_sold_client_update = ClientUpdate.objects.create(
-            client=client, status="House Recently Sold (6)", date=datetime.today()-timedelta(days=60))
+            client=client, status="House Recently Sold (6)", date=last_day_of_two_months_prior)
 
     def test_company_dashboard_view(self):
         # Make a request to the CompanyDashboardView API view.
