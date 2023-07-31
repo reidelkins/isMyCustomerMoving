@@ -94,7 +94,7 @@ simple-salesforce==1.12.3
 six==1.16.0
 social-auth-app-django==5.2.0
 social-auth-core==4.4.1
-soupsieve==2.4
+soupsieve==2.4.1
 sqlparse==0.4.2
 stripe==4.2.0
 tldextract==3.4.0
