@@ -996,10 +996,9 @@ class CompanyDashboardView(APIView):
 
         for i in range(6):
             # Query to get invoices that happened last month
-            invoices_last_month = ServiceTitanInvoice.objects.filter(
+            invoices_last_month = invoices.filter(
                 created_on__gte=first_day_of_month,
                 created_on__lte=last_day_of_month,
-                attributed=True
             ).values_list("amount", flat=True)
             self.revenue_by_month[last_day_of_month.strftime("%B")] = sum(
                 invoices_last_month)

@@ -26,20 +26,21 @@ class CompanyDashboardView(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.company = Company.objects.create(name="Test Company")
+        company2 = Company.objects.create(name="Test Company 2")
         self.user = CustomUser.objects.create_user(
             email="testuser@example.com",
             password="testpassword",
             company=self.company,
             is_verified=True,
-            date_joined=datetime.today()-timedelta(days=370),
+            date_joined=datetime.today()-timedelta(days=365),
         )
         self.token = get_token()
 
-        client = Client.objects.create(
-            company=self.company, service_titan_customer_since=datetime.today()-timedelta(days=360))
-
         current_date = datetime.today()
-
+        client = Client.objects.create(
+            company=self.company, service_titan_customer_since=current_date-timedelta(days=360))
+        client2 = Client.objects.create(
+            company=company2, service_titan_customer_since=current_date-timedelta(days=360))
         # Get the first day of the current month
         first_day_of_current_month = current_date.replace(day=1)
 
@@ -48,11 +49,14 @@ class CompanyDashboardView(TestCase):
             timedelta(days=1)
 
         # Get the first day of the previous month
-        first_day_of_previous_month = current_date.replace(day=1)
+        first_day_of_previous_month = last_day_of_previous_month.replace(day=1)
 
         # Get the last day of the month two before this one
         last_day_of_two_months_prior = first_day_of_previous_month - \
             timedelta(days=1)
+
+        # TODO: Create clients with join dates of a couple months ago and then of less than a year ago
+        # but in the previous year and test that the math works out correctly
 
         attributed_invoice1 = ServiceTitanInvoice.objects.create(
             client=client, amount=250.0, attributed=True, id="1", created_on=last_day_of_previous_month
@@ -61,7 +65,14 @@ class CompanyDashboardView(TestCase):
             client=client, amount=100.0, attributed=True, id="2", created_on=last_day_of_two_months_prior
         )
         unattributed_invoice = ServiceTitanInvoice.objects.create(
-            client=client, amount=100.0, attributed=False, id="3", created_on=last_day_of_two_months_prior
+            client=client, amount=150.0, attributed=False, id="3", created_on=last_day_of_two_months_prior
+        )
+        # Need these to make sure other company invoices are not being shown to current user
+        diff_company_invoice = ServiceTitanInvoice.objects.create(
+            client=client2, amount=100.0, attributed=True, id="4", created_on=last_day_of_previous_month
+        )
+        diff_company_invoice_2 = ServiceTitanInvoice.objects.create(
+            client=client2, amount=100.0, attributed=True, id="5", created_on=last_day_of_two_months_prior
         )
 
         for_sale_client_update = ClientUpdate.objects.create(
@@ -93,6 +104,9 @@ class CompanyDashboardView(TestCase):
         assert isinstance(data["forSaleByMonth"], dict)
         assert isinstance(data["recentlySoldByMonth"], dict)
 
+        assert data["totalRevenue"] == 350
+        assert data["monthsActive"] == 13
+
         first_day_of_current_month = datetime.now().replace(day=1)
         assert first_day_of_current_month.strftime(
             "%B") in data["forSaleByMonth"]
@@ -106,9 +120,9 @@ class CompanyDashboardView(TestCase):
 
         # Get the name of the previous month as a string (full month name)
         previous_month_name = first_day_of_last_month.strftime("%B")
-        assert data["monthsActive"] == 13
-        assert data["forSaleByMonth"][previous_month_name] == 1
+
         assert data["revenueByMonth"][previous_month_name] == 250.0
+        assert data["forSaleByMonth"][previous_month_name] == 1
 
         first_day_of_current_month = first_day_of_last_month.replace(day=1)
 
@@ -123,8 +137,6 @@ class CompanyDashboardView(TestCase):
         previous_month_name = first_day_of_last_month.strftime("%B")
         assert data["recentlySoldByMonth"][previous_month_name] == 1
         assert data["revenueByMonth"][previous_month_name] == 100.0
-
-        assert data["totalRevenue"] == 350
 
 
 class ZapierClientView(TestCase):
