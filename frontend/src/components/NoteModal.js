@@ -44,7 +44,7 @@ export default function NoteModal({ passedNote, id, name }) {
       <Dialog open={open} onClose={handleClose} sx={{ padding: '2px' }}>
         <DialogTitle>Note for {name}</DialogTitle>
         <FormikProvider value={formik}>
-          <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
+          <Form autoComplete="off" noValidate onSubmit={handleSubmit} data-testid="note-form">
             <Stack spacing={3}>
               {passedNote ? (
                 <TextField fullWidth multiline defaultValue={passedNote} {...getFieldProps('note')} />

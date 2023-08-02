@@ -430,7 +430,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
 
                                     return (
                                         <React.Fragment key={row.id}>
-                                        <Tooltip title="Click For Expanded Details">
+                                        <Tooltip title="Click For Expanded Details" placement="right">
                                             <TableRow
                                             hover
                                             key={id}

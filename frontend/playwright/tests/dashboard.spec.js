@@ -55,6 +55,22 @@ test.describe('contact and delete customer(s)', () => {
     const response = await responsePromise;
     expect(response.status()).toBe(201);
   })
+  test('make note', async({page}) => {
+    const responsePromise = page.waitForResponse('**/api/v1/data/updateclient/');
+    await page.getByLabel('View/Edit Note').first().click();
+    const noteForm = page.getByTestId('note-form')
+    await noteForm.getByRole('textbox').fill('this is a note');
+    await page.getByRole('button', { name: 'Submit' }).click();
+
+    const response = await responsePromise;
+    expect(response.status()).toBe(201);
+
+    await page.reload();
+
+    // Click note and verify it has text "this is a note"
+    await page.getByLabel('View/Edit Note').first().click();
+    await expect(noteForm).toHaveText(/this is a note/)
+  })
 
 });
 
