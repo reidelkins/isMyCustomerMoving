@@ -31,8 +31,10 @@ Frontend Tests 28 June 2023
 - [x] Add User
   - [x] Email input validation
   - [x] Send Reminder Email
-  - [x] Make User Admin (need fixture that has a active user that is not an admin)
+  - [x] Make User Admin
   - [x] Delete user
+
+*gonna need your help here*
 - [ ] Connect To Service Titan
   - [ ] Add Tenant ID
   - [ ] Then should see button to add client ID and secret
@@ -44,11 +46,17 @@ Frontend Tests 28 June 2023
 #### Dashboard
 
 - [x] Show 10 per page, 50, 100 clients
-- [ ] View more than 1000 clients  (how should I test this?  Just click through pages?)
+- [ ] View more than 1000 clients  
+**how should I test this?  Just click through pages?**
 - [ ] Make note
-- [ ] Set as contacted/not contacted
+- [x] Set as contacted/not contacted
+  
+  **clicking contacted is working async and what do you mean by "update numbers properly"
+
   - [ ] This is not updating automatically on the site. You pretty much have to refresh the page to get the clients again and then it is accurate
   - [ ] Ensure this updates the numbers properly
+
+
   - [ ] Make sure cannot see contacted checkbox if status is “No Change”
 - [ ] Delete a client
 - [ ] Delete multiple clients
@@ -75,27 +83,27 @@ Frontend Tests 28 June 2023
 - [ ] Check for all three options
 
 #### Recently sold data
-  - Show 10 per page, 50, 100
-  - View more than 1000 clients
-  - Download (TODO: not currently auto filtering for less than 30 days)
-    - All
-    - Filtered
-  - Filter by
-    - Saved Filter
-    - Zip
-    - City
-    - State
-    - Min/Max Housing Price
-    - Min/Max year built
-    - Tags
-    - Min/Max days ago
-  - Save Filter
-    - Create a new filter, with and without zapier
-    - Test the new filter
-- All Two Factor Auth (no one uses this, has not been manually tested)
-- Active vs admin user
-  - Can only see clients with status
-  - Can not download anything
-  - Can not upload anything
-  - Can not add users, delete users, or change status of users
-- Free tier vs not free tier shows pop up’s and alerts as expected
+- [ ] Show 10 per page, 50, 100
+- [ ] View more than 1000 clients
+- [ ] Download (TODO: not currently auto filtering for less than 30 days)
+  - [ ] All
+  - [ ] Filtered
+- [ ] Filter by
+  - [ ] Saved Filter
+  - [ ] Zip
+  - [ ] City
+  - [ ] State
+  - [ ] Min/Max Housing Price
+  - [ ] Min/Max year built
+  - [ ] Tags
+  - [ ] Min/Max days ago
+- [ ] Save Filter
+  - [ ] Create a new filter, with and without zapier
+  - [ ] Test the new filter
+- [ ] All Two Factor Auth (no one uses this, has not been manually tested)
+- [ ] Active vs admin user
+  - [ ] Can only see clients with status
+  - [ ] Can not download anything
+  - [ ] Can not upload anything
+  - [ ] Can not add users, delete users, or change status of users
+- [ ] Free tier vs not free tier shows pop up’s and alerts as expected
