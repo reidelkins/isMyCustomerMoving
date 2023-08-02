@@ -52,15 +52,17 @@ def get_all_zipcodes(company, zip=None):
 
     # Additional logic and task delays
     for i in range(len(zips) * 2):
-        extra = ""
         if i % 2 == 0:
             status = "House For Sale"
             url = "https://www.realtor.com/realestateandhomes-search"
+            extra = "sby-6"
         elif i % 2 == 1:
             status = "House Recently Sold (6)"
             url = "https://www.realtor.com/realestateandhomes-search"
             extra = "show-recently-sold/"
-        find_data.delay(str(zips[i // 2]["zip_code"]), i, status, url, extra)
+        find_data.delay(
+            str(zips[i // 2]["zip_code"]), i, status, url, extra)
+
     # send listings to zapier
     days_to_run = [0]  # Only on Monday
     current_day = datetime.now().weekday()
@@ -154,7 +156,8 @@ def find_data(zip_code, i, status, url, extra):
 
         count = len(first_data)
 
-        create_home_listings(first_data, status)
+        continue_scraping = create_home_listings(first_data, status)
+        # print(f"Result: {continue_scraping}, url: {url}")
         if count == 0 or total == 0:
             return
 
@@ -163,24 +166,26 @@ def find_data(zip_code, i, status, url, extra):
 
         # Iterate through all pages
         for page in range(2, total_pages + 1):
-            if "pg-1" not in url:
-                raise ValueError(
-                    "URL does not contain 'pg-1', "
-                    "might risk scraping duplicate pages."
-                )
-            page_url = url.replace("pg-1", f"pg-{page}")
-            new_results = get_scrapfly_scrape(scrapfly, page_url)
-            if new_results.status_code >= 400:
-                scrapfly = zip_scrapflies[(i + 5) % 20]
+            if continue_scraping:
+                if "pg-1" not in url:
+                    raise ValueError(
+                        "URL does not contain 'pg-1', "
+                        "might risk scraping duplicate pages."
+                    )
+                page_url = url.replace("pg-1", f"pg-{page}")
                 new_results = get_scrapfly_scrape(scrapfly, page_url)
+                if new_results.status_code >= 400:
+                    scrapfly = zip_scrapflies[(i + 5) % 20]
+                    new_results = get_scrapfly_scrape(scrapfly, page_url)
 
-            content = new_results.scrape_result["content"]
-            parsed = parse_search(new_results, status)
-            if not parsed:
-                return
+                content = new_results.scrape_result["content"]
+                parsed = parse_search(new_results, status)
+                if not parsed:
+                    return
 
-            count = len(parsed)
-            create_home_listings(parsed, status)
+                count = len(parsed)
+                continue_scraping = create_home_listings(parsed, status)
+                # print(f"Result: {continue_scraping}, url: {page_url}")
 
     except Exception as e:
         logging.error(
@@ -316,6 +321,8 @@ def create_home_listings(results, status, resp=None):
 
             # Check if the HomeListing already exists
             try:
+                if listing["location"]["address"]["line"] is None:
+                    continue
                 home_listing = HomeListing.objects.get(
                     zip_code=zip_object,
                     address=parse_streets(
@@ -324,6 +331,11 @@ def create_home_listings(results, status, resp=None):
                     city=listing["location"]["address"]["city"],
                     state=listing["location"]["address"]["state_code"],
                 )
+
+                # Have found a listing that we have already scraped
+                if home_listing.status == status:
+                    return False
+
                 # Update all the fields if it already exists
                 home_listing.status = status
                 home_listing.listed = list_type[:10]
@@ -342,9 +354,10 @@ def create_home_listings(results, status, resp=None):
                 home_listing.heating = heating
                 home_listing.sqft = sqft
                 home_listing.save()
-
             except HomeListing.DoesNotExist:
                 # Create a new HomeListing if it doesn't exist
+                if listing["location"]["address"]["line"] is None:
+                    continue
                 home_listing = HomeListing.objects.create(
                     zip_code=zip_object,
                     address=parse_streets(
@@ -395,6 +408,7 @@ def create_home_listings(results, status, resp=None):
     del_variables(
         [zip_object, created, list_type, home_listing, curr_tag, results]
     )
+    return True
 
 
 def create_url(city, state, street, page):

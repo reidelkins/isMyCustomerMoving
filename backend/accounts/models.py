@@ -239,14 +239,16 @@ class InviteToken(models.Model):
 def password_reset_token_created(
     sender, instance, reset_password_token, *args, **kwargs
 ):
+    print("here")
     if CustomUser.objects.filter(
         email=reset_password_token.user.email
     ).exists():
+        print("user exists")
         subject = "Password Reset: IsMyCustomerMoving.com"
         message = get_template("resetPassword.html").render(
             {"token": reset_password_token.key}
         )
-
+        print(1)
         msg = EmailMessage(
             subject,
             message,
@@ -254,5 +256,7 @@ def password_reset_token_created(
             [reset_password_token.user.email]
             # html_message=message,
         )
+        print(2)
         msg.content_subtype = "html"
         msg.send()
+        print("Sent Email")
