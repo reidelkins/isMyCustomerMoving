@@ -1,8 +1,6 @@
-import { Page } from "@playwright/test";
-import exp from "constants";
-
 // @ts-check
 const { test, expect } = require('@playwright/test');
+import { generateRandomString } from "./helpers"
 
 test.describe('pagination', () => {
   test.beforeEach(async ({ page }) => {
@@ -56,10 +54,12 @@ test.describe('contact and delete customer(s)', () => {
     expect(response.status()).toBe(201);
   })
   test('make note', async({page}) => {
+    const note = generateRandomString(6)
     const responsePromise = page.waitForResponse('**/api/v1/data/updateclient/');
+
     await page.getByLabel('View/Edit Note').first().click();
     const noteForm = page.getByTestId('note-form')
-    await noteForm.getByRole('textbox').fill('this is a note');
+    await noteForm.getByRole('textbox').fill(note);
     await page.getByRole('button', { name: 'Submit' }).click();
 
     const response = await responsePromise;
@@ -69,7 +69,7 @@ test.describe('contact and delete customer(s)', () => {
 
     // Click note and verify it has text "this is a note"
     await page.getByLabel('View/Edit Note').first().click();
-    await expect(noteForm).toHaveText(/this is a note/)
+    await expect(noteForm).toHaveText(new RegExp(note, 'g'));
   })
 
 });

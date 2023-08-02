@@ -1,5 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
+import { generateRandomString } from './helpers';
 
 const NON_ADMIN_USER = 'testuser2@test.com';
 const NEW_USER_EMAIL = 'newuser@test.com';
@@ -147,12 +148,4 @@ async function deleteUser(page, email) {
   }
 }
 
-function generateRandomString(length) {
-  let result = '';
-  let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let charactersLength = characters.length;
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
-}
+

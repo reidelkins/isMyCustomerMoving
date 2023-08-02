@@ -48,12 +48,15 @@ Frontend Tests 28 June 2023
 - [x] Show 10 per page, 50, 100 clients
 - [ ] View more than 1000 clients  
 **how should I test this?  Just click through pages?**
-- [ ] Make note
+- [x] Make note
 - [x] Set as contacted/not contacted
   
-  **clicking contacted is working async and what do you mean by "update numbers properly"
+  **we can make notes async so we don't have to reload.  Worth the effort?**
 
   - [ ] This is not updating automatically on the site. You pretty much have to refresh the page to get the clients again and then it is accurate
+
+  **what do you mean "update numbers properly"**
+  
   - [ ] Ensure this updates the numbers properly
 
 
