@@ -238,20 +238,20 @@ class InviteToken(models.Model):
 @receiver(reset_password_token_created)
 def password_reset_token_created(
     sender, instance, reset_password_token, *args, **kwargs
-):    
+):
     if CustomUser.objects.filter(
         email=reset_password_token.user.email
-    ).exists():        
+    ).exists():
         subject = "Password Reset: IsMyCustomerMoving.com"
         message = get_template("resetPassword.html").render(
             {"token": reset_password_token.key}
-        )        
+        )
         msg = EmailMessage(
             subject,
             message,
             settings.EMAIL_HOST_USER,
             [reset_password_token.user.email]
             # html_message=message,
-        )        
+        )
         msg.content_subtype = "html"
-        msg.send()        
+        msg.send()
