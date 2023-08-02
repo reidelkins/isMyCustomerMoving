@@ -1,14 +1,14 @@
 from django.db.models import QuerySet
 from django.db.models.expressions import F
 from django.test import TestCase
-from unittest.mock import patch, MagicMock, Mock
+from unittest.mock import patch, MagicMock, Mock, call
 from datetime import date, datetime, timedelta
 
 import requests
 import pytest
 
 from accounts.models import Company, CustomUser
-from data.models import Client, ZipCode
+from data.models import Client, HomeListing, SavedFilter, ZipCode
 from data.syncClients import (
     complete_service_titan_sync,
     get_service_titan_locations,
@@ -24,7 +24,8 @@ from data.utils import (
     find_clients_to_delete,
     reactivate_clients,
     delete_extra_clients,
-    verify_address
+    verify_address,
+    send_zapier_recently_sold
 )
 from payments.models import ServiceTitanInvoice
 
@@ -44,6 +45,12 @@ def mock_delay():
 @pytest.fixture
 def mock_get():
     with patch("requests.get") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_post():
+    with patch("requests.post") as mock:
         yield mock
 
 
@@ -147,22 +154,66 @@ def mock_verify_address():
 
 
 @pytest.fixture
-def mmock_parse_streets():
+def mock_parse_streets():
     with patch("data.utils.parse_streets") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_filter_home_listings():
+    with patch("data.utils.filter_home_listings") as mock:
         yield mock
 
 
 class TestUtilFunctions(TestCase):
     def setUp(self):
         self.company = Company.objects.create(
-            name="company_name")
+            name="company_name",
+            zapier_recently_sold="zapier.com"
+        )
+        zip = ZipCode.objects.create(zip_code="32952")
         self.client = Client.objects.create(
             name="Test Client1",
             address="260 Milford Point Rd",
             city="Merritt Island",
             state="FL",
-            zip_code=ZipCode.objects.create(zip_code="32952"),
+            zip_code=zip,
             company=self.company,)
+        self.home_listing = HomeListing.objects.create(
+            zip_code=zip,
+            address="260 Milford Point Rd",
+            city="Merritt Island",
+            state="FL",
+            sqft=1000,
+            lot_sqft=1000,
+            bedrooms=3,
+            bathrooms=2,
+            housing_type="Single Family",
+            year_built=2000,
+            listed=date.today()-timedelta(days=6),
+            status="House Recently Sold (6)",
+            price=10000000
+        )
+        self.home_listing_2 = HomeListing.objects.create(
+            listed=date.today()-timedelta(days=8),
+            status="House Recently Sold (6)",
+            zip_code=zip
+        )
+
+        self.saved_filter = SavedFilter.objects.create(
+            name=" Test Saved Filter",
+            company=self.company,
+            filter_type="Recently Sold",
+            saved_filters="{'price_min': 1000000}",
+            for_zapier=True,
+        )
+        self.saved_filter_2 = SavedFilter.objects.create(
+            name=" Test Saved Filter2",
+            company=self.company,
+            filter_type="Recently Sold",
+            saved_filters="{'price_max': 1000000}",
+            for_zapier=False,
+        )
 
     @patch("accounts.models.Company.product")
     def test_find_client_count(self, mock_subscription):
@@ -351,6 +402,19 @@ class TestUtilFunctions(TestCase):
             self.client.old_address,
             None
         )
+
+    @patch("requests.post")
+    @patch("data.utils.filter_home_listings")
+    def test_send_zapier_recently_sold(self, mock_filter_home_listings, mock_post):
+        mock_filter_home_listings.return_value = HomeListing.objects.filter(
+            id=self.home_listing.id)
+        send_zapier_recently_sold(self.company.id)
+
+        # this shows that that a single saved filter was found
+        mock_filter_home_listings.assert_called_once()
+
+        # this shows the function was called once given the one filtered home listing
+        mock_post.assert_called_once()
 
 
 class TestSyncClientFunctions(TestCase):

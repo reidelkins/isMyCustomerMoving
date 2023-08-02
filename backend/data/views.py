@@ -9,13 +9,18 @@ from datetime import datetime, timedelta
 import logging
 import json
 import csv
+from re import sub
 
 # from accounts.serializers import UserSerializerWithToken
 from accounts.models import Company, CustomUser
 from config import settings
 from payments.models import ServiceTitanInvoice
-from .models import Client, ClientUpdate, HomeListing, Task, SavedFilter
-from .serializers import ClientListSerializer, HomeListingSerializer
+from .models import Client, ClientUpdate, HomeListing, Task, SavedFilter, ZipCode
+from .serializers import (
+    ClientSerializer,
+    ClientListSerializer,
+    HomeListingSerializer
+)
 from .syncClients import get_salesforce_clients, complete_service_titan_sync
 from .realtor import get_all_zipcodes
 from .utils import (
@@ -24,6 +29,9 @@ from .utils import (
     filter_home_listings,
     filter_clients,
     remove_all_service_titan_tags,
+    format_zip,
+    parse_streets,
+    verify_address
 )
 
 
@@ -988,10 +996,9 @@ class CompanyDashboardView(APIView):
 
         for i in range(6):
             # Query to get invoices that happened last month
-            invoices_last_month = ServiceTitanInvoice.objects.filter(
+            invoices_last_month = invoices.filter(
                 created_on__gte=first_day_of_month,
                 created_on__lte=last_day_of_month,
-                attributed=True
             ).values_list("amount", flat=True)
             self.revenue_by_month[last_day_of_month.strftime("%B")] = sum(
                 invoices_last_month)
@@ -1022,3 +1029,43 @@ class CompanyDashboardView(APIView):
             return Response(
                 {"status": "error"}, status=status.HTTP_400_BAD_REQUEST
             )
+
+
+class ZapierCreateClientView(APIView):
+    serializer = ClientSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            company = request.user.company
+            data = request.data
+            name = data.get("name")
+            address = parse_streets(data.get("address"))
+            zip_code = format_zip(data.get("zip_code"))
+            city = data.get("city")
+            state = data.get("state")
+            phone_number = sub("[^0-9]", "", data.get("phone_number"))
+            zip, _ = ZipCode.objects.get_or_create(zip_code=zip_code)
+            data = {
+                "name": name,
+                "address": address,
+                "city": city,
+                "state": state,
+                "zip_code": zip,
+                "phone_number": phone_number,
+            }
+            serializer = self.serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            client = serializer.save()
+            client.company = company
+            client.save()
+            verify_address(client.id)
+
+            return Response(
+                {"detail": "Client added successfully"},
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            logging.error(e)
+            return Response(
+                {"detail": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)

@@ -425,3 +425,42 @@ class UrlsTestCase(TestCase):
         headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
         response = self.client.delete(url, **headers)
         self.assertEqual(response.status_code, 405)
+
+    def test_zapier_client_subscribe_post(self):
+        url = reverse("zapier-client-create")
+        headers = {
+            "HTTP_AUTHORIZATION": f"Bearer {self.token}"
+        }
+        data = {"email": ""}
+        response = self.client.post(url, data, **headers)
+        self.assertEqual(response.status_code, 400)
+
+    def test_zapier_client_subscribe_unauthenticated(self):
+        url = reverse("zapier-client-create")
+        response = self.client.post(url, data={})
+        self.assertEqual(response.status_code, 403)
+
+    def test_zapier_client_subscribe_get(self):
+        url = reverse("zapier-client-create")
+        headers = {
+            "HTTP_AUTHORIZATION": f"Bearer {self.token}"
+        }
+        response = self.client.get(url, **headers)
+        self.assertEqual(response.status_code, 405)
+
+    def test_zapier_client_subscribe_put(self):
+        url = reverse("zapier-client-create")
+        headers = {
+            "HTTP_AUTHORIZATION": f"Bearer {self.token}"
+        }
+        data = {"email": ""}
+        response = self.client.put(url, data=data, **headers)
+        self.assertEqual(response.status_code, 405)
+
+    def test_zapier_client_subscribe_delete(self):
+        url = reverse("zapier-client-create")
+        headers = {
+            "HTTP_AUTHORIZATION": f"Bearer {self.token}"
+        }
+        response = self.client.delete(url, **headers)
+        self.assertEqual(response.status_code, 405)

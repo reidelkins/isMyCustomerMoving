@@ -100,4 +100,6 @@ urlpatterns = [
     path("servicetitan/", include(service_titan_patterns)),
     path("company_dashboard/", views.CompanyDashboardView.as_view(),
          name="company-dashboard"),
+    path("zapier/client/", views.ZapierCreateClientView.as_view(),
+         name="zapier-client-create",)
 ]
