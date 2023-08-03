@@ -35,6 +35,7 @@ Frontend Tests 28 June 2023
   - [x] Delete user
 
 *gonna need your help here*
+**REID: You can use fake numbers for all of this, nothing here is actually testing a connection**
 - [ ] Connect To Service Titan
   - [ ] Add Tenant ID
   - [ ] Then should see button to add client ID and secret
@@ -47,16 +48,19 @@ Frontend Tests 28 June 2023
 
 - [x] Show 10 per page, 50, 100 clients
 - [ ] View more than 1000 clients  
-**how should I test this?  Just click through pages?**
+**how should I test this?  Just click through pages?** 
+**REID: YES**
 - [x] Make note
 - [x] Set as contacted/not contacted
   
   **we can make notes async so we don't have to reload.  Worth the effort?**
-
+  **REID: Not at this time because I don't think hardly anyone uses the note feature**
   - [ ] This is not updating automatically on the site. You pretty much have to refresh the page to get the clients again and then it is accurate
 
   **what do you mean "update numbers properly"**
-  
+  **REID: When you press contacted, if the status of that client is "House For Sale" then the large number at the top**
+  **should decrease by one. This is the same for Recently Sold. Then if you click them to be uncontacted, then**
+  **the number should increase by one.**
   - [ ] Ensure this updates the numbers properly
 
 
