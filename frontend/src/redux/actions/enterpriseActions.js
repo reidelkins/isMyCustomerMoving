@@ -43,7 +43,7 @@ export const switchCompany = (company) => async (dispatch, getState) => {
       },
     };
 
-    const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/enterprise/`, { company }, config);
+    const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/enterprise/`, { company_id: company.id }, config);
     dispatch(login(data));
     localStorage.setItem('userInfo', JSON.stringify(data));
     dispatch(enterpriseAsync());
