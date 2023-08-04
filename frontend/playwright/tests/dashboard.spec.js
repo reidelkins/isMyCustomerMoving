@@ -1,6 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-import { generateRandomString } from "./helpers"
+import { delay, generateRandomString, getFinalCounterNumber } from './helpers';
 
 test.describe('pagination', () => {
   test.beforeEach(async ({ page }) => {
@@ -16,21 +16,21 @@ test.describe('pagination', () => {
     const rows = page.locator('tr');
 
     // Click pagination and change to 50 rows
-    await page.getByLabel('10').click()
-    await page.getByRole('option', { name: '50' }).click()
+    await page.getByLabel('10').click();
+    await page.getByRole('option', { name: '50' }).click();
 
     expect(await rows.count()).toBe(51);
   });
 
-  test('show 100 clients', async ({page}) => {
+  test('show 100 clients', async ({ page }) => {
     const rows = page.locator('tr');
 
     // Click pagination and change to 50 rows
-    await page.getByLabel('10').click()
-    await page.getByRole('option', { name: '100' }).click()
+    await page.getByLabel('10').click();
+    await page.getByRole('option', { name: '100' }).click();
 
     expect(await rows.count()).toBe(101);
-  })
+  });
 });
 
 test.describe('contact and delete customer(s)', () => {
@@ -38,27 +38,51 @@ test.describe('contact and delete customer(s)', () => {
     await setupCustomerDashboard(page);
   });
 
-  test('click contacted', async({page})=> {
+  test('click contacted', async ({ page }) => {
     const responsePromise = page.waitForResponse('**/api/v1/data/updateclient/');
     const firstContactButton = page.locator('tr').getByLabel('Not Contacted').first();
-    firstContactButton.click()
+    await firstContactButton.click();
     const response = await responsePromise;
     expect(response.status()).toBe(201);
     // TODO - figure out how to verify check mark is visible
-  })
-  test('un-click contacted', async({page})=> {
+  });
+
+  test('un-click contacted', async ({ page }) => {
     const responsePromise = page.waitForResponse('**/api/v1/data/updateclient/');
     const firstContactedButton = page.locator('tr').getByLabel('Contacted').first();
-    firstContactedButton.click()
+    await firstContactedButton.click();
     const response = await responsePromise;
     expect(response.status()).toBe(201);
-  })
-  test('make note', async({page}) => {
-    const note = generateRandomString(6)
+  });
+
+  test('for sale number updates', async ({ page }) => {
+    const oldForSaleNumber = await getFinalCounterNumber(page, 'For Sale');
+
+    // Contact a for sale customer
+    const firstNotContactedHouseForSale = page
+      .locator('tr')
+      .filter({ hasText: 'House for sale' })
+      .getByLabel('Not Contacted')
+      .first();
+    await firstNotContactedHouseForSale.click();
+
+    const newForSaleNumber = await getFinalCounterNumber(page, 'For Sale');
+    expect(newForSaleNumber).toEqual(oldForSaleNumber - 1);
+  });
+
+});
+
+test.describe('make note', () => {
+  test.beforeEach(async ({ page }) => {
+    await setupCustomerDashboard(page);
+  });
+
+  test('random string', async ({ page }) => {
+    const note = generateRandomString(6);
     const responsePromise = page.waitForResponse('**/api/v1/data/updateclient/');
 
     await page.getByLabel('View/Edit Note').first().click();
-    const noteForm = page.getByTestId('note-form')
+    const noteForm = page.getByTestId('note-form');
     await noteForm.getByRole('textbox').fill(note);
     await page.getByRole('button', { name: 'Submit' }).click();
 
@@ -70,8 +94,7 @@ test.describe('contact and delete customer(s)', () => {
     // Click note and verify it has text "this is a note"
     await page.getByLabel('View/Edit Note').first().click();
     await expect(noteForm).toHaveText(new RegExp(note, 'g'));
-  })
-
+  });
 });
 
 const setupCustomerDashboard = async (page) => {
@@ -82,4 +105,4 @@ const setupCustomerDashboard = async (page) => {
   const responsePromise = page.waitForResponse('**/api/v1/data/clients/?page=1');
   const response = await responsePromise;
   expect(response.status()).toBe(200);
-}
+};

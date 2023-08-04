@@ -1,14 +1,7 @@
 /* eslint-disable camelcase */
 import React, { useState, useEffect } from 'react';
 // material
-import {
-  Alert,
-  IconButton,
-  Collapse,
-  Stack,
-  Container,
-  Typography,
-} from '@mui/material';
+import { Alert, IconButton, Collapse, Stack, Container, Typography } from '@mui/material';
 
 import { useSelector } from 'react-redux';
 
@@ -22,9 +15,7 @@ import CustomerData from '../../components/CustomerData';
 import NewAddressData from '../../components/NewAddressData';
 
 import ClientsListCall from '../../redux/calls/ClientsListCall';
-import {
-  selectClients,
-} from '../../redux/actions/usersActions';
+import { selectClients } from '../../redux/actions/usersActions';
 import { showLoginInfo } from '../../redux/actions/authActions';
 
 import '../../theme/map.css';
@@ -57,13 +48,12 @@ export default function HomePage() {
     setSelectedTab(newSelectedTab);
   };
 
-
   return (
     <div>
       {userInfo && (
         <Page title="Customer Data" userInfo={userInfo}>
           <Container>
-            {userInfo ? <ClientsListCall /> : null}            
+            {userInfo ? <ClientsListCall /> : null}
             {userInfo && (
               <>
                 <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
@@ -79,7 +69,7 @@ export default function HomePage() {
                 </Stack>
                 <Stack direction="row" alignItems="center" justifyContent="space-around" mb={5} mx={10}>
                   <Stack direction="column" alignItems="center" justifyContent="center">
-                    <CounterCard start={0} end={forSale.current} title="For Sale" />
+                      <CounterCard start={0} end={forSale.current} title="For Sale" />
                     <Typography variant="h6" gutterBottom mt={-3}>
                       {' '}
                       All Time: {forSale.total}
@@ -87,24 +77,34 @@ export default function HomePage() {
                   </Stack>
 
                   <Stack direction="column" alignItems="center" justifyContent="center">
-                    <CounterCard start={0} end={recentlySold.current} title="Recently Sold" />
+                    <div data-testid="recently-sold-counter">
+                      <CounterCard start={0} end={recentlySold.current} title="Recently Sold" />
+                    </div>
                     <Typography variant="h6" gutterBottom mt={-3}>
                       {' '}
                       All Time: {recentlySold.total}
                     </Typography>
                   </Stack>
                 </Stack>
-                
-                
-                
-                <TabComponent selectedTab={selectedTab} setSelectedTab={handleSelectedTabChange} tabLabels={tabLabels}/>
-                
+
+                <TabComponent
+                  selectedTab={selectedTab}
+                  setSelectedTab={handleSelectedTabChange}
+                  tabLabels={tabLabels}
+                />
+
                 {selectedTab === 0 ? (
-                  <CustomerData userInfo={userInfo} CLIENTLIST={CLIENTLIST} loading={loading} customerDataFilters={customerDataFilters} count={count}/>
+                  <CustomerData
+                    userInfo={userInfo}
+                    CLIENTLIST={CLIENTLIST}
+                    loading={loading}
+                    customerDataFilters={customerDataFilters}
+                    count={count}
+                  />
                 ) : (
-                  <NewAddressData userInfo={userInfo} />                                    
+                  <NewAddressData userInfo={userInfo} />
                 )}
-                  
+
                 <Collapse in={deletedAlertOpen}>
                   <Alert
                     action={
@@ -126,7 +126,7 @@ export default function HomePage() {
                     You tried to upload {deleted} clients more than allowed for your subscription tier. If you would
                     like to upload more clients, please upgrade your subscription.
                   </Alert>
-                </Collapse>                
+                </Collapse>
 
                 {userInfo.status === 'admin' && <FileUploader />}
 

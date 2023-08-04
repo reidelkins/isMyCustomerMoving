@@ -34,10 +34,12 @@ function CounterCard({ color, start, end, title, description, ...rest }) {
   return (
     <Box p={2} textAlign="center" lineHeight={1}>
       <Typography variant="h2" color={color}>
-        <CountUp start={start} end={end} duration={1} {...rest} />
+        <div data-testid={title}>
+          <CountUp start={start} end={end} duration={1} {...rest} />
+        </div>
       </Typography>
       {title && (
-        <Typography variant="h3" mt={2} mb={1}>
+      <Typography variant="h3" mt={2} mb={1}>
           {title}
         </Typography>
       )}

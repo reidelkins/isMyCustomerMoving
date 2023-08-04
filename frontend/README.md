@@ -52,19 +52,11 @@ Frontend Tests 28 June 2023
 **REID: YES**
 - [x] Make note
 - [x] Set as contacted/not contacted
-  
-  **we can make notes async so we don't have to reload.  Worth the effort?**
-  **REID: Not at this time because I don't think hardly anyone uses the note feature**
-  - [ ] This is not updating automatically on the site. You pretty much have to refresh the page to get the clients again and then it is accurate
 
-  **what do you mean "update numbers properly"**
   **REID: When you press contacted, if the status of that client is "House For Sale" then the large number at the top**
   **should decrease by one. This is the same for Recently Sold. Then if you click them to be uncontacted, then**
   **the number should increase by one.**
   - [ ] Ensure this updates the numbers properly
-
-  **what do you mean "update numbers properly"**
-
   - [ ] Make sure cannot see contacted checkbox if status is “No Change”
 - [ ] Delete a client
 - [ ] Delete multiple clients
