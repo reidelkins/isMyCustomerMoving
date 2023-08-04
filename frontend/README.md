@@ -53,12 +53,10 @@ Frontend Tests 28 June 2023
   
   **we can make notes async so we don't have to reload.  Worth the effort?**
 
-  - [ ] This is not updating automatically on the site. You pretty much have to refresh the page to get the clients again and then it is accurate
-
-  **what do you mean "update numbers properly"**
   
   - [ ] Ensure this updates the numbers properly
 
+  **what do you mean "update numbers properly"**
 
   - [ ] Make sure cannot see contacted checkbox if status is “No Change”
 - [ ] Delete a client
