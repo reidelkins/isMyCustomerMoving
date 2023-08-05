@@ -33,7 +33,7 @@ test.describe('pagination', () => {
   });
 });
 
-test.describe('contact and delete customer(s)', () => {
+test.describe('contact for sale customers', () => {
   test.beforeEach(async ({ page }) => {
     await setupCustomerDashboard(page);
   });
@@ -55,7 +55,7 @@ test.describe('contact and delete customer(s)', () => {
     expect(response.status()).toBe(201);
   });
 
-  test('for sale number updates', async ({ page }) => {
+  test('for sale number decreases', async ({ page }) => {
     const oldForSaleNumber = await getFinalCounterNumber(page, 'For Sale');
 
     // Contact a for sale customer
@@ -70,7 +70,73 @@ test.describe('contact and delete customer(s)', () => {
     expect(newForSaleNumber).toEqual(oldForSaleNumber - 1);
   });
 
+  test('for sale number increases', async ({ page }) => {
+    const oldForSaleNumber = await getFinalCounterNumber(page, 'For Sale');
+
+    // (Un)contact a for sale customer
+    const firstNotContactedHouseForSale = page
+      .locator('tr')
+      .filter({ hasText: 'House for sale' })
+      .getByLabel('Contacted')
+      .first();
+    await firstNotContactedHouseForSale.click();
+
+    const newForSaleNumber = await getFinalCounterNumber(page, 'For Sale');
+    expect(newForSaleNumber).toEqual(oldForSaleNumber + 1);
+  });
 });
+
+test.describe('contact recently sold customers', () => {
+  test.beforeEach(async ({ page }) => {
+    await setupCustomerDashboard(page);
+  });
+
+  test('contact', async ({ page }) => {
+    const responsePromise = page.waitForResponse('**/api/v1/data/updateclient/');
+    const oldRecentlySoldNumber = await getFinalCounterNumber(page, 'Recently Sold');
+
+    // Filter for recently sold and contact the first customer
+    await page.getByLabel('Filter list').click();
+    await page.getByLabel('Recently Sold').check();
+    await page.getByRole('button', { name: 'Apply Filters' }).click();
+    await page.locator('tr').filter({ hasText: 'recently sold' }).getByLabel('Not Contacted').first().click();
+    const response = await responsePromise;
+
+    //  Assert API request successful and counter decremented
+    expect(response.status()).toBe(201);
+    const newRecentlySoldNumber = await getFinalCounterNumber(page, 'Recently Sold');
+    expect(newRecentlySoldNumber).toEqual(oldRecentlySoldNumber - 1);
+  });
+
+  test('uncontact', async ({ page }) => {
+    const responsePromise = page.waitForResponse('**/api/v1/data/updateclient/');
+    const oldRecentlySoldNumber = await getFinalCounterNumber(page, 'Recently Sold');
+
+    // Filter for recently sold and contact the first customer
+    await page.getByLabel('Filter list').click();
+    await page.getByLabel('Recently Sold').check();
+    await page.getByRole('button', { name: 'Apply Filters' }).click();
+    await page.locator('tr').filter({ hasText: 'recently sold' }).getByLabel('Contacted').first().click();
+    const response = await responsePromise;
+
+    //  Assert API request successful and counter decremented
+    expect(response.status()).toBe(201);
+    const newRecentlySoldNumber = await getFinalCounterNumber(page, 'Recently Sold');
+    expect(newRecentlySoldNumber).toEqual(oldRecentlySoldNumber + 1);
+  });
+});
+
+test.describe('delete clients', () => {
+  test.beforeEach(async ({ page }) => {
+    await setupCustomerDashboard(page);
+  });
+  
+  test('first customer', async ({ page }) => {
+    await page.locator('tr').getByRole('checkbox').first().check();
+    await page.getByLabel('Delete').first().click();
+    // TODO - assert something
+  })
+})
 
 test.describe('make note', () => {
   test.beforeEach(async ({ page }) => {

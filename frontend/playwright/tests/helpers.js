@@ -20,7 +20,8 @@ export function delay(time) {
 // Function to get the final number in a fancy counter
 export async function getFinalCounterNumber(page, testId) {
   const forSaleCounter = page.getByTestId(testId); 
-  let oldForSaleNumber = parseInt(await forSaleCounter.textContent());
+  const oldForSaleStr = await forSaleCounter.textContent();
+  let oldForSaleNumber = parseInt(oldForSaleStr);
 
   let currentNumberStr, currentNumber;
   do {

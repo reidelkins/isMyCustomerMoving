@@ -52,13 +52,12 @@ Frontend Tests 28 June 2023
 **REID: YES**
 - [x] Make note
 - [x] Set as contacted/not contacted
-
-  **REID: When you press contacted, if the status of that client is "House For Sale" then the large number at the top**
-  **should decrease by one. This is the same for Recently Sold. Then if you click them to be uncontacted, then**
-  **the number should increase by one.**
-  - [ ] Ensure this updates the numbers properly
-  - [ ] Make sure cannot see contacted checkbox if status is “No Change”
-- [ ] Delete a client
+  - [x] For sale number increments
+  - [x] For sale number decrements
+  - [x] Recently sold increments
+  - [x] Recently sold decrements
+  - [x] Make sure cannot see contacted checkbox if status is “No Change”
+- [x] Delete a client
 - [ ] Delete multiple clients
 - [ ] Search by name
 - [ ] Search by address

@@ -1,4 +1,4 @@
-<h1 align="center">Is My Customer Moving - Web Applicaiton</h1>
+<h1 align="center">Is My Customer Moving - Web Application</h1>
 
 ## Get Started
 
