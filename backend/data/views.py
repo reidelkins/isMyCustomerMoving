@@ -4,8 +4,10 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Count, Min, Case, When, DateField
+from django.db.models.functions import Coalesce
 from django.http import HttpResponse
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import logging
 import json
 import csv
@@ -897,10 +899,10 @@ class CompanyDashboardView(APIView):
         Return the number of months a company has been active.
         """
         company = Company.objects.get(id=company_id)
-        first_client = CustomUser.objects.filter(
+        self.first_client = CustomUser.objects.filter(
             company=company).order_by("date_joined")[0]
-        first_month = first_client.date_joined.month
-        first_year = first_client.date_joined.year
+        first_month = self.first_client.date_joined.month
+        first_year = self.first_client.date_joined.year
 
         current_month = datetime.now().month
         current_year = datetime.now().year
@@ -1012,7 +1014,7 @@ class CompanyDashboardView(APIView):
         """
         company = Company.objects.get(id=company_id)
         all_clients = Client.objects.filter(company=company)
-        clients_with_new_add = all_clients.exclude(new_add=None)
+        clients_with_new_add = all_clients.exclude(new_address=None)
 
         new_adds = clients_with_new_add.values_list(
             "new_address", flat=True)
@@ -1045,6 +1047,78 @@ class CompanyDashboardView(APIView):
                 clients_with_new_add_and_rev_and_new_rev.count(),
         }
 
+    def _get_customers_acquired(self, company_id):
+        company = Company.objects.get(id=company_id)
+        clients = Client.objects.filter(company=company)
+        self.clients_acquired_by_month = self._get_month_dictionary()
+
+        # Replace None values with Jan 1, 1900
+        earliest_date_coalesced = Coalesce(
+            Min('service_titan_customer_since'), date(1900, 1, 1))
+
+        # First, annotate the queryset with the count of clients for
+        # each address and the minimum service_titan_customer_since date
+        # for each address
+        address_info = clients.values('address').annotate(
+            count=Count('address'),
+            earliest_date=Case(
+                When(count=0, then=None),
+                default=earliest_date_coalesced,
+                output_field=DateField()
+            )
+        )
+
+        # Next, get the addresses that have more than one client associated with them
+        duplicate_addresses = [item['address']
+                               for item in address_info if item['count'] > 1]
+
+        # Now, get the minimum service_titan_customer_since date for each
+        # address with more than one client
+        duplicate_address_earliest_dates = {
+            item['address']: item['earliest_date']
+            for item in address_info
+            if item['count'] > 1 and item['earliest_date']
+        }
+
+        filtered_clients = []
+        for address in duplicate_addresses:
+            tmp_clients = clients.filter(
+                address=address, company=company)
+
+            for client in tmp_clients:
+                if client.service_titan_customer_since != \
+                    duplicate_address_earliest_dates[address] and \
+                        client.service_titan_customer_since is not None and \
+                        client.service_titan_customer_since > \
+                        self.first_client.date_joined.date():
+                    filtered_clients.append(client)
+
+        # Now, filtered_clients contains the queryset with clients having
+        # duplicate addresses, but the ones with the earliest
+        # service_titan_customer_since dates are removed.
+        self.clients_acquired = len(filtered_clients)
+        # Now, duplicate_clients contains the queryset with clients
+        # having duplicate addresses
+
+        today = date.today()
+        first_day_of_month = today.replace(day=1)
+        first_day_next_month = (first_day_of_month +
+                                timedelta(days=32)).replace(day=1)
+        last_day_of_month = first_day_next_month - timedelta(days=1)
+
+        for i in range(6):
+
+            acquired_count = 0
+            for client in filtered_clients:
+                if client.service_titan_customer_since >= first_day_of_month and \
+                        client.service_titan_customer_since <= last_day_of_month:
+                    acquired_count += 1
+            self.clients_acquired_by_month[last_day_of_month.strftime("%B")] = \
+                acquired_count
+
+            last_day_of_month = first_day_of_month - timedelta(days=1)
+            first_day_of_month = last_day_of_month.replace(day=1)
+
     def get(self, *args, **kwargs):
         company_id = self.request.user.company.id
         try:
@@ -1053,6 +1127,7 @@ class CompanyDashboardView(APIView):
             self._get_months_active(company_id)
             self._get_leads(company_id)
             self._get_customer_retention(company_id)
+            self._get_customers_acquired(company_id)
             return Response(
                 {
                     "totalRevenue": self.total_revenue,
@@ -1060,7 +1135,9 @@ class CompanyDashboardView(APIView):
                     "revenueByMonth": self.revenue_by_month,
                     "forSaleByMonth": self.for_sale_by_month,
                     "recentlySoldByMonth": self.recently_sold_by_month,
-                    "customerRetention": self.client_retention
+                    "customerRetention": self.client_retention,
+                    "clientsAcquired": self.clients_acquired,
+                    "clientsAcquiredByMonth": self.clients_acquired_by_month,
                 },
                 status=status.HTTP_200_OK,
                 headers="",

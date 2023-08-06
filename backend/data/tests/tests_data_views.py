@@ -38,9 +38,11 @@ class CompanyDashboardView(TestCase):
 
         current_date = datetime.today()
         client = Client.objects.create(
-            company=self.company, service_titan_customer_since=current_date-timedelta(days=360))
+            company=self.company, name="client1", service_titan_customer_since=current_date-timedelta(days=360), address="123 Main St")
         client2 = Client.objects.create(
-            company=company2, service_titan_customer_since=current_date-timedelta(days=360))
+            company=company2, name="client2", service_titan_customer_since=current_date-timedelta(days=360), address="456 Main St")
+        Client.objects.create(
+            company=self.company, name="client3", service_titan_customer_since=current_date, address="123 Main St")
         # Get the first day of the current month
         first_day_of_current_month = current_date.replace(day=1)
 
@@ -96,6 +98,9 @@ class CompanyDashboardView(TestCase):
         assert "revenueByMonth" in data
         assert "forSaleByMonth" in data
         assert "recentlySoldByMonth" in data
+        assert "customerRetention" in data
+        assert "clientsAcquired" in data
+        assert "clientsAcquiredByMonth" in data
 
         # Validate the format of the response data.
         assert isinstance(data["totalRevenue"], int)
@@ -103,6 +108,11 @@ class CompanyDashboardView(TestCase):
         assert isinstance(data["revenueByMonth"], dict)
         assert isinstance(data["forSaleByMonth"], dict)
         assert isinstance(data["recentlySoldByMonth"], dict)
+        assert isinstance(data["customerRetention"], dict)
+        assert isinstance(data["clientsAcquired"], int)
+        assert isinstance(data["clientsAcquiredByMonth"], dict)
+
+        assert data["clientsAcquired"] == 1
 
         assert data["totalRevenue"] == 350
         assert data["monthsActive"] == 13
@@ -137,6 +147,8 @@ class CompanyDashboardView(TestCase):
         previous_month_name = first_day_of_last_month.strftime("%B")
         assert data["recentlySoldByMonth"][previous_month_name] == 1
         assert data["revenueByMonth"][previous_month_name] == 100.0
+
+        # TODO: Test Customer Retention Data
 
 
 class ZapierClientView(TestCase):

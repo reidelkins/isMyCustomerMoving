@@ -18,7 +18,7 @@ export default function Home() {
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
   const dashboardData = useSelector(companyDashboardData);  
-  const { retrieved, monthsActive, totalRevenue, revenueByMonth, forSaleByMonth, recentlySoldByMonth, customerRetention } = dashboardData;
+  const { retrieved, monthsActive, totalRevenue, revenueByMonth, forSaleByMonth, recentlySoldByMonth, customerRetention, clientsAcquired, clientsAcquiredByMonth } = dashboardData;
   
   const clientInfo = useSelector(selectClients);
   const { forSale, recentlySold } = clientInfo;
@@ -59,9 +59,9 @@ export default function Home() {
             icon="/static/icons/revenue.svg"
           />
           <DashboardData
-            mainText={forSale.total+recentlySold.total}
-            topText="Total Leads Found"
-            bottomText={`${Object.values(recentlySoldByMonth)[0]+Object.values(forSaleByMonth)[0]} This Month`}
+            mainText={clientsAcquired}
+            topText="Clients Acquired"
+            bottomText={`${Object.values(clientsAcquiredByMonth)[0]} This Month`}
             color="#7BAFD4"
             icon="/static/icons/lead.svg"
           />
