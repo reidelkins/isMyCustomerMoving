@@ -96,10 +96,18 @@ test.describe('contact recently sold customers', () => {
     const oldRecentlySoldNumber = await getFinalCounterNumber(page, 'Recently Sold');
 
     // Filter for recently sold and contact the first customer
-    await page.getByLabel('Filter list').click();
-    await page.getByLabel('Recently Sold').check();
-    await page.getByRole('button', { name: 'Apply Filters' }).click();
-    await page.locator('tr').filter({ hasText: 'recently sold' }).getByLabel('Not Contacted').first().click();
+    // await page.getByLabel('Filter list').click();
+    // await page.getByLabel('Recently Sold').check();
+    // await page.getByRole('button', { name: 'Apply Filters' }).click();
+    // await page.locator('tr').filter({ hasText: 'recently sold' }).getByLabel('Not Contacted').first().click();
+
+    // (Un)contact a for sale customer
+    const firstNotContactedRecentlySoldClient = page
+      .locator('tr')
+      .filter({ hasText: 'recently sold' })
+      .getByLabel('Not Contacted')
+      .first();
+    await firstNotContactedRecentlySoldClient.click();
     const response = await responsePromise;
 
     //  Assert API request successful and counter decremented
@@ -113,9 +121,9 @@ test.describe('contact recently sold customers', () => {
     const oldRecentlySoldNumber = await getFinalCounterNumber(page, 'Recently Sold');
 
     // Filter for recently sold and contact the first customer
-    await page.getByLabel('Filter list').click();
-    await page.getByLabel('Recently Sold').check();
-    await page.getByRole('button', { name: 'Apply Filters' }).click();
+    // await page.getByLabel('Filter list').click();
+    // await page.getByLabel('Recently Sold').check();
+    // await page.getByRole('button', { name: 'Apply Filters' }).click();
     await page.locator('tr').filter({ hasText: 'recently sold' }).getByLabel('Contacted').first().click();
     const response = await responsePromise;
 
@@ -130,13 +138,100 @@ test.describe('delete clients', () => {
   test.beforeEach(async ({ page }) => {
     await setupCustomerDashboard(page);
   });
-  
-  // test('first customer', async ({ page }) => {
-  //   await page.locator('tr').getByRole('checkbox').first().check();
-  //   await page.getByLabel('Delete').first().click();
-  //   // TODO - assert something
-  // })
-})
+
+  test('delete Bruce Wayne', async ({ page }) => {
+    await page
+      .locator('tr')
+      .filter({ hasText: 'Bruce Wayne1007 Mountain DriveGotham CityNY37919House for sale(414) 326-8313' })
+      .getByRole('checkbox')
+      .check();
+    await page.getByLabel('Delete').click();
+    await expect(
+      page
+        .locator('tr')
+        .filter({ hasText: 'Bruce Wayne1007 Mountain DriveGotham CityNY37919House for sale(414) 326-8313' })
+    ).toHaveCount(0);
+  });
+
+  test('delete both Gordons', async ({ page }) => {
+    await page
+      .locator('tr')
+      .filter({ hasText: 'Barbara Gordon500 Oracle StGotham CityNY37919House for sale(414) 326-8315' })
+      .getByRole('checkbox')
+      .check();
+    await page
+      .locator('tr')
+      .filter({ hasText: 'Jim Gordon1 Police PlazaGotham CityNY37919House for sale(414) 326-8316' })
+      .getByRole('checkbox')
+      .check();
+    await page.getByLabel('Delete').click();
+    await expect(
+      page
+        .locator('tr')
+        .filter({ hasText: 'Barbara Gordon500 Oracle StGotham CityNY37919House for sale(414) 326-8315' })
+    ).toHaveCount(0);
+    await expect(
+      page.locator('tr').filter({ hasText: 'Jim Gordon1 Police PlazaGotham CityNY37919House for sale(414) 326-8316' })
+    ).toHaveCount(0);
+  });
+});
+
+test.describe('search and view map', () => {
+  test.beforeEach(async ({ page }) => {
+    await setupCustomerDashboard(page);
+  });
+
+  test('search for Harvey Dent by name', async ({ page }) => {
+    await page.getByPlaceholder('Search user...').click();
+    await page.getByPlaceholder('Search user...').fill('Harvey Dent');
+    await page.getByPlaceholder('Search user...').press('Enter');
+    
+    const results = page.getByLabel('Click For Expanded Details')
+    await expect(results).toHaveText(/Harvey Dent/);
+  });
+
+  test('search for Selina Kyle by address', async ({ page }) => {
+    await page.getByPlaceholder('Search user...').click();
+    await page.getByPlaceholder('Search user...').fill('69 Meow St');
+    await page.getByPlaceholder('Search user...').press('Enter');
+
+    const results = page.getByLabel('Click For Expanded Details')
+    await expect(results).toHaveText(/Selina Kyle/);
+  })
+
+  test('view map', async ({ page}) => {
+    await page.getByRole('button', { name: 'Map' }).click();
+    const map = page.locator('div').filter({ hasText: /^To navigate, press the arrow keys\.$/ }).first()
+    await expect(map).toBeVisible();
+  })  
+});
+
+test.describe('filter table', () => {
+  test.beforeEach(async ({ page }) => {
+    await setupCustomerDashboard(page);
+  });
+
+  test('for sale',async ({ page }) => {
+    await page.getByLabel('Filter list').click();
+    await page.getByLabel('For Sale').check();
+    await page.getByRole('button', { name: 'Apply Filters' }).click();
+
+    const firstRow = page.getByLabel('Click For Expanded Details').first();
+    await expect(firstRow).toHaveText(/for sale/);
+  })
+
+  test('recently sold',async ({ page }) => {
+    const filterRequestPromise = page.waitForResponse('**api/v1/data/clients?page=1&status=Recently%20Sold');
+    await page.getByLabel('Filter list').click();
+    await page.getByLabel('Recently Sold').check();
+    await page.getByRole('button', { name: 'Apply Filters' }).click();
+    
+    const response = await filterRequestPromise;
+    expect(response.status()).toBe(200);
+
+    const firstRow = page.getByLabel('Click For Expanded Details').first();
+    await expect(firstRow).toHaveText(/recently sold/);
+  })});
 
 test.describe('make note', () => {
   test.beforeEach(async ({ page }) => {

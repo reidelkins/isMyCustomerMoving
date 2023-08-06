@@ -2,7 +2,7 @@ Frontend Tests 28 June 2023
 
 ## End to End tests
  
- This CRA app uses Playwright for end-to-end testing.  Below is a list of the completed and to be completed tests.
+ This CRA (create-react-app) uses Playwright for end-to-end testing.  Below is a list of the completed and to be completed tests.
 
 #### Auth
 
@@ -58,13 +58,13 @@ Frontend Tests 28 June 2023
   - [x] Recently sold decrements
   - [x] Make sure cannot see contacted checkbox if status is “No Change”
 - [x] Delete a client
-- [ ] Delete multiple clients
-- [ ] Search by name
-- [ ] Search by address
-- [ ] View map
+- [x] Delete multiple clients
+- [x] Search by name
+- [x] Search by address
+- [x] View map
 - [ ] Filter by
   - [ ] For Sale
-  - [x] Recently Sold (accomplished by recently sold contact tests)
+  - [ ] Recently Sold
   - [ ] Off Market (No Change)
   - [ ] Zip
   - [ ] City
