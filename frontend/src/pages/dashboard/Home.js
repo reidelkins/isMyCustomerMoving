@@ -32,7 +32,7 @@ export default function Home() {
       setAllClientCustomerRetention(Math.ceil((customerRetention.locations_with_new_address / customerRetention.new_address_total)*100));
       setRevClientCustomerRetention(Math.ceil((customerRetention.customers_with_new_address_and_revenue / customerRetention.new_address_with_revenue)*100));
     }
-  }, [userInfo, retrieved, dashboardData]);
+  }, [userInfo, retrieved, dashboardData, customerRetention]);
 
   useEffect(() => {
     if (userInfo && !retrieved) {

@@ -17,8 +17,8 @@ const Speedometer = ({ title, needleValue}) => {
         // label: dataLabel,
         data: [100],
         backgroundColor: (context) => {
-          const chart = context.chart;
-          const { ctx, chartArea } = chart;
+          const { chart } = context;
+          const { chartArea } = chart;
           if (!chartArea) {
             // This case happens on initial chart load
             return null;
@@ -57,11 +57,11 @@ const Speedometer = ({ title, needleValue}) => {
 
   const guageNeedle = {
     id: 'guageNeedle',
-    afterDatasetsDraw(chart, args, pluginOptions) {
+    afterDatasetsDraw(chart) {
       const {ctx, data } = chart;
 
       ctx.save();
-      const needleValue = data.datasets[0].needleValue;
+      const { needleValue } = data.datasets[0];
       const xCenter = chart.getDatasetMeta(0).data[0].x;
       const yCenter = chart.getDatasetMeta(0).data[0].y;
       const outerRadius = chart.getDatasetMeta(0).data[0].outerRadius - 10;
@@ -117,7 +117,7 @@ const Speedometer = ({ title, needleValue}) => {
   // }  
 
   function getGradient(chart){
-    const {ctx, chartArea: {top, bottom, left, right}} = chart;
+    const {ctx, chartArea: {left, right}} = chart;
     const gradient = ctx.createLinearGradient(left, 0, right, 0);
     gradient.addColorStop(0, 'rgba(255, 0, 0)');
     gradient.addColorStop(0.5, 'rgba(255, 255, 0)');

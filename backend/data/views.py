@@ -1012,33 +1012,37 @@ class CompanyDashboardView(APIView):
         """
         company = Company.objects.get(id=company_id)
         all_clients = Client.objects.filter(company=company)
-        clients_with_new_address = all_clients.exclude(new_address=None)
+        clients_with_new_add = all_clients.exclude(new_add=None)
 
-        new_addresses = clients_with_new_address.values_list(
+        new_adds = clients_with_new_add.values_list(
             "new_address", flat=True)
 
-        clients_with_moved_to_address = all_clients.filter(
-            address__in=new_addresses
+        clients_with_moved_to_add = all_clients.filter(
+            address__in=new_adds
         )
 
-        all_clients_with_new_address_and_revenue = all_clients.filter(
+        all_clients_with_new_add_and_rev = all_clients.filter(
             service_titan_lifetime_revenue__gt=0
         ).exclude(new_address=None)
-        new_addresses = all_clients_with_new_address_and_revenue.values_list(
+        new_adds = all_clients_with_new_add_and_rev.values_list(
             "new_address", flat=True)
 
-        clients_with_new_address_and_revenue = all_clients.filter(
-            address__in=new_addresses
+        clients_with_new_add_and_rev = all_clients.filter(
+            address__in=new_adds
         )
-        clients_with_new_address_and_revenue_and_new_rev = clients_with_new_address_and_revenue.filter(
-            service_titan_lifetime_revenue__gt=0)
+        clients_with_new_add_and_rev_and_new_rev = \
+            clients_with_new_add_and_rev.filter(
+                service_titan_lifetime_revenue__gt=0
+            )
 
         self.client_retention = {
-            "new_address_total": clients_with_new_address.count(),
-            "locations_with_new_address": clients_with_moved_to_address.count(),
-            "new_address_with_revenue": all_clients_with_new_address_and_revenue.count(),
-            "locations_with_new_address_and_revenue": clients_with_new_address_and_revenue.count(),
-            "customers_with_new_address_and_revenue": clients_with_new_address_and_revenue_and_new_rev.count(),
+            "new_address_total": clients_with_new_add.count(),
+            "locations_with_new_address": clients_with_moved_to_add.count(),
+            "new_address_with_revenue": all_clients_with_new_add_and_rev.count(),
+            "locations_with_new_address_and_revenue":
+                clients_with_new_add_and_rev.count(),
+            "customers_with_new_address_and_revenue":
+                clients_with_new_add_and_rev_and_new_rev.count(),
         }
 
     def get(self, *args, **kwargs):
