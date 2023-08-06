@@ -1006,6 +1006,41 @@ class CompanyDashboardView(APIView):
             last_day_of_month = first_day_of_month - timedelta(days=1)
             first_day_of_month = last_day_of_month.replace(day=1)
 
+    def _get_customer_retention(self, company_id):
+        """
+        Return the customer retention rate for a company
+        """
+        company = Company.objects.get(id=company_id)
+        all_clients = Client.objects.filter(company=company)
+        clients_with_new_address = all_clients.exclude(new_address=None)
+
+        new_addresses = clients_with_new_address.values_list(
+            "new_address", flat=True)
+
+        clients_with_moved_to_address = all_clients.filter(
+            address__in=new_addresses
+        )
+
+        all_clients_with_new_address_and_revenue = all_clients.filter(
+            service_titan_lifetime_revenue__gt=0
+        ).exclude(new_address=None)
+        new_addresses = all_clients_with_new_address_and_revenue.values_list(
+            "new_address", flat=True)
+
+        clients_with_new_address_and_revenue = all_clients.filter(
+            address__in=new_addresses
+        )
+        clients_with_new_address_and_revenue_and_new_rev = clients_with_new_address_and_revenue.filter(
+            service_titan_lifetime_revenue__gt=0)
+
+        self.client_retention = {
+            "new_address_total": clients_with_new_address.count(),
+            "locations_with_new_address": clients_with_moved_to_address.count(),
+            "new_address_with_revenue": all_clients_with_new_address_and_revenue.count(),
+            "locations_with_new_address_and_revenue": clients_with_new_address_and_revenue.count(),
+            "customers_with_new_address_and_revenue": clients_with_new_address_and_revenue_and_new_rev.count(),
+        }
+
     def get(self, *args, **kwargs):
         company_id = self.request.user.company.id
         try:
@@ -1013,13 +1048,15 @@ class CompanyDashboardView(APIView):
             self._get_revenue(company_id)
             self._get_months_active(company_id)
             self._get_leads(company_id)
+            self._get_customer_retention(company_id)
             return Response(
                 {
                     "totalRevenue": self.total_revenue,
                     "monthsActive": self.months_active,
                     "revenueByMonth": self.revenue_by_month,
                     "forSaleByMonth": self.for_sale_by_month,
-                    "recentlySoldByMonth": self.recently_sold_by_month
+                    "recentlySoldByMonth": self.recently_sold_by_month,
+                    "clientRetention": self.client_retention
                 },
                 status=status.HTTP_200_OK,
                 headers="",
