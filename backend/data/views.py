@@ -1056,7 +1056,7 @@ class CompanyDashboardView(APIView):
                     "revenueByMonth": self.revenue_by_month,
                     "forSaleByMonth": self.for_sale_by_month,
                     "recentlySoldByMonth": self.recently_sold_by_month,
-                    "clientRetention": self.client_retention
+                    "customerRetention": self.client_retention
                 },
                 status=status.HTTP_200_OK,
                 headers="",
