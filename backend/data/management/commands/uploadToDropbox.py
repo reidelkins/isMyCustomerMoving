@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.http import HttpResponse
-from django.db.models import QuerySet
+
 from accounts.models import Company, Enterprise
 from config import settings
 from data.models import Client
@@ -85,7 +85,7 @@ class Command(BaseCommand):
             self.writer.writerow(header)
 
             status_type = ""
-            tmp1, tmp2, tmp3 = QuerySet(), QuerySet(), QuerySet()
+
             if options["recently_sold"]:
                 recently_sold_clients = clients.filter(
                     status="House Recently Sold (6)")
@@ -98,11 +98,12 @@ class Command(BaseCommand):
                 self.write_to_csv(status_type, moving_clients)
 
             if options["new_address"]:
-                tmp3 = clients.exclude(new_address__isnull=True)
+                new_address_clients = clients.exclude(new_address__isnull=True)
                 status_type += "_new_address"
-                self.write_to_csv(status_type, tmp3)
+                self.write_to_csv(status_type, new_address_clients)
 
             today = date.today()
             d1 = today.strftime("%m-%d-%Y")
-            dbx.files_upload(response.getvalue(), f"/BestPostcards/{name}_{d1}{status_type}.csv",
+            dbx.files_upload(response.getvalue(),
+                             f"/BestPostcards/{name}_{d1}{status_type}.csv",
                              mode=dropbox.files.WriteMode.overwrite)
