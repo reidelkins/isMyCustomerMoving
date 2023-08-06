@@ -63,7 +63,7 @@ const LineChart = ({ title, keys, values, dataLabel, height }) => {
   };
   return(
     <div className={homeStyle.main} style={{ height }}>
-      <h2>{title}</h2>
+      <h1>{title}</h1>
       <Line options={options} data={data} />
     </div>
   );

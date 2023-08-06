@@ -98,9 +98,10 @@ class StripeWebhook(APIView):
                 logging.error(f"error: {e}")
                 return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        # elif event_type == "customer.subscription.created":
-        #     return Response(status=status.HTTP_200_OK)
-        #     # print("subscription created")
+        elif event_type == "customer.subscription.created":
+            print("subscription created")
+            return Response(status=status.HTTP_200_OK)
+
         #     # try:
         #     #     obj = request.data["data"]["object"]
         #     #     customer = Company.objects.get(stripe_id=obj["customer"])
@@ -120,8 +121,9 @@ class StripeWebhook(APIView):
         #     #     print("error")
         #     #     return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        # elif event_type == "customer.subscription.updated":
-        #     return Response(status=status.HTTP_200_OK)
+        elif event_type == "customer.subscription.updated":
+            print("subscription updated")
+            return Response(status=status.HTTP_200_OK)
         #     # try:
         #     #     obj = request.data["data"]["object"]
         #     #     customer_data = stripe.Customer.list(email=email).data
@@ -136,7 +138,8 @@ class StripeWebhook(APIView):
         #     #     print(e)
         #     #     print("error")
         # # canceled subscription
-        # elif event_type == "customer.subscription.deleted":
+        elif event_type == "customer.subscription.deleted":
+            print("subscription deleted")
             return Response(status=status.HTTP_200_OK)
             # try:
             #     obj = request.data["data"]["object"]
@@ -169,3 +172,9 @@ class StripeWebhook(APIView):
             # except Exception as e:
             #     print(e)
             #     print("error")
+        elif event_type == "customer.created":
+            print("customer created")
+            return Response(status=status.HTTP_200_OK)
+        else:
+            print("event type not found")
+            return Response(status=status.HTTP_200_OK)

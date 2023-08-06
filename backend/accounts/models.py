@@ -246,7 +246,6 @@ def password_reset_token_created(
         message = get_template("resetPassword.html").render(
             {"token": reset_password_token.key}
         )
-
         msg = EmailMessage(
             subject,
             message,

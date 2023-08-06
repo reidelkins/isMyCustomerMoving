@@ -32,7 +32,7 @@ zapier_patterns = [
         "recentlySold/",
         views.ZapierRecentlySoldSubscribeView.as_view(),
         name="zapier-recentlySold-subscribe",
-    ),
+    )
 ]
 
 user_patterns = [

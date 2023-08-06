@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 
 from accounts.models import Company
 from payments.models import Product
-from data.sync_clients import (
+from data.syncClients import (
     get_service_titan_invoices,
 )
 

@@ -1299,35 +1299,37 @@ def verify_address(client_id):
     except requests.exceptions.RequestException as e:
         logging.error(e)
         return
+    try:
+        response_xml = response.text
+        parsed_response = fromstring(response_xml)
+        address_element = parsed_response.find("Address")
+        error = address_element.find("Error")
 
-    response_xml = response.text
-    parsed_response = fromstring(response_xml)
-    address_element = parsed_response.find("Address")
-    error = address_element.find("Error")
-
-    if error is None:
-        address2 = address_element.find("Address2").text.title()
-        address2 = parse_streets(address2)
-        city = address_element.find("City").text.title()
-        state = address_element.find("State").text
-        zip5 = address_element.find("Zip5").text
-        if (
-            address2 != client.address
-            or city != client.city
-            or state != client.state
-            or zip5 != zip_code
-        ):
-            client.usps_different = True
-        client.old_address = (
-            f"{client.address}, {client.city}, "
-            f"{client.state} {client.zip_code.zip_code}"
-        )
-        client.address = address2
-        client.city = city
-        client.state = state
-        zip, _ = ZipCode.objects.get_or_create(zip_code=zip5)
-        client.zip_code = zip
-        client.save()
+        if error is None:
+            address2 = address_element.find("Address2").text.title()
+            address2 = parse_streets(address2)
+            city = address_element.find("City").text.title()
+            state = address_element.find("State").text
+            zip5 = address_element.find("Zip5").text
+            if (
+                address2 != client.address
+                or city != client.city
+                or state != client.state
+                or zip5 != zip_code
+            ):
+                client.usps_different = True
+            client.old_address = (
+                f"{client.address}, {client.city}, "
+                f"{client.state} {client.zip_code.zip_code}"
+            )
+            client.address = address2
+            client.city = city
+            client.state = state
+            zip, _ = ZipCode.objects.get_or_create(zip_code=zip5)
+            client.zip_code = zip
+            client.save()
+    except Exception as e:
+        logging.error(e)
 
 
 @shared_task
@@ -1357,7 +1359,8 @@ def send_zapier_recently_sold(company_id):
         "%Y-%m-%d"
     )
     home_listings = HomeListing.objects.filter(
-        zip_code__in=zip_code_objects, listed__gt=recently_listed_date
+        zip_code__in=zip_code_objects, listed__gt=recently_listed_date,
+        status="House Recently Sold (6)"
     ).order_by("listed")
 
     saved_filters = SavedFilter.objects.filter(
@@ -1365,13 +1368,11 @@ def send_zapier_recently_sold(company_id):
     )
 
     for saved_filter in saved_filters:
-        query_params = {
-            k: v
-            for k, v in json.loads(saved_filter.saved_filters).items()
-            if v != ""
-        }
         filtered_home_listings = filter_home_listings(
-            query_params, home_listings, company_id, "Recently Sold"
+            {"saved_filter": saved_filter.name},
+            home_listings,
+            company_id,
+            "Recently Sold"
         )
 
         if filtered_home_listings:
@@ -1379,17 +1380,25 @@ def send_zapier_recently_sold(company_id):
                 serialized_data = HomeListingSerializer(
                     filtered_home_listings, many=True
                 ).data
-                for (
-                    data
-                ) in (
-                    serialized_data
-                ):  # Add saved_filter.name to each item in the list
+                for data in serialized_data:
+                    # Add saved_filter.name to each item in the list
                     data["filter_name"] = saved_filter.name
+                    del data["id"]
+                    del data["status"]
+                    del data["permalink"]
+                    del data["realtor"]
+                    # TODO: Do something with these values
+                    # 'roofing': ' ', 'garage_type': ' ',
+                    #  'heating': ' ', 'cooling': ' ',
+                    # 'heating_cooling_description': ' ',
+                    # 'interior_features_description': ' ',
+                    # 'exterior': ' ', 'pool': ' ', 'fireplace': ' ',
+                    # 'description': ' '
 
-                requests.post(
-                    company.zapier_recently_sold,
-                    data=serialized_data,
-                    timeout=10,
-                )
+                    requests.post(
+                        company.zapier_recently_sold,
+                        data=data,
+                        timeout=10,
+                    )
             except Exception as e:
                 logging.error(e)
