@@ -111,6 +111,35 @@ test.describe('make user admin and delete user', () => {
   });
 });
 
+test.describe('connect CRM', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/dashboard/settings/user');
+  });
+
+  test('connect service titan', async ({ page }) => {
+    const connectCRMButton = page.getByText('Connect Your CRM');
+    const readyToConnect = await connectCRMButton.isVisible();
+
+    test.skip(!readyToConnect, 'Service Titan already connected')
+
+    await connectCRMButton.click();
+    await page.getByRole('button', { name: 'ServiceTitan logo' }).click();
+    await page.getByPlaceholder('998190247').click();
+    await page.getByPlaceholder('998190247').fill('1234566');
+    await page.getByRole('button', { name: 'Submit' }).click();
+
+    await page.getByText('Add Service Titan Client ID and Secret').click();
+    await page.getByPlaceholder('1234567890').click();
+    await page.getByPlaceholder('1234567890').fill('blahl');
+    await page.getByPlaceholder('1234567890').press('Tab');
+    await page.getByPlaceholder('qwertyuiop').fill('skjdfskldjf');
+    await page.getByRole('button', { name: 'Submit' }).click();
+    
+    // Edit ids
+    await page.getByText('Add Service Titan Tag IDs').click();
+  })
+})
+
 async function createUser(page, email) {
   await page.goto('/dashboard/settings/user');
   const targetUserROw = page.locator(`tr:has-text("${USER_TO_BE_DELETED}")`);

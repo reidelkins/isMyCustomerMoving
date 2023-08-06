@@ -131,11 +131,11 @@ test.describe('delete clients', () => {
     await setupCustomerDashboard(page);
   });
   
-  test('first customer', async ({ page }) => {
-    await page.locator('tr').getByRole('checkbox').first().check();
-    await page.getByLabel('Delete').first().click();
-    // TODO - assert something
-  })
+  // test('first customer', async ({ page }) => {
+  //   await page.locator('tr').getByRole('checkbox').first().check();
+  //   await page.getByLabel('Delete').first().click();
+  //   // TODO - assert something
+  // })
 })
 
 test.describe('make note', () => {

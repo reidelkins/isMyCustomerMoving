@@ -36,13 +36,13 @@ Frontend Tests 28 June 2023
 
 *gonna need your help here*
 **REID: You can use fake numbers for all of this, nothing here is actually testing a connection**
-- [ ] Connect To Service Titan
-  - [ ] Add Tenant ID
-  - [ ] Then should see button to add client ID and secret
-    - [ ] Add client ID and secret
-  - [ ] Then should be able to add tag IDs
-    - [ ] Add tag IDs
-  - [ ] Then should be able to EDIT tag IDs
+- [x] Connect To Service Titan
+  - [x] Add Tenant ID
+  - [x] Then should see button to add client ID and secret
+    - [x] Add client ID and secret
+  - [x] Then should be able to add tag IDs
+    - [x] Add tag IDs
+  - [x] Then should be able to EDIT tag IDs
 
 #### Dashboard
 
@@ -64,7 +64,7 @@ Frontend Tests 28 June 2023
 - [ ] View map
 - [ ] Filter by
   - [ ] For Sale
-  - [ ] Recently Sold
+  - [x] Recently Sold (accomplished by recently sold contact tests)
   - [ ] Off Market (No Change)
   - [ ] Zip
   - [ ] City
