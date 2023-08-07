@@ -3,19 +3,23 @@ import Box from '@mui/material/Box';
 import { Typography, Divider } from '@mui/material';
 import PropTypes from 'prop-types';
 
-const ROICard = ({total, revenues, height, company, monthsActive}) => {
-    // const [revenueByMonth, setRevenueByMonth] = React.useState(revenues);
+const PrevThreeMonths = ({title, total, values, height, company, monthsActive}) => {
     const price = (company.product.interval === 'month' ? company.product.amount : company.product.amount / 12);
     const [totalROI, setTotalROI] = useState(0);
-    const revenuesByMonth = Object.values(revenues);
-    const months = Object.keys(revenues);
-    const [rois, setROIs] = useState([]);
+    const [costPerClient, setCostPerClient] = useState(0);
+    const valuesByMonth = Object.values(values);
+    const months = Object.keys(values);
+    const [vals, setVals] = useState([]);
 
     useEffect(() => {
-        setTotalROI(Math.ceil(total / (price * monthsActive)));
-        setROIs(revenuesByMonth.map((revenue) => Math.ceil(revenue / price)));        
+        if (title === 'Total ROI') {
+            setTotalROI(Math.ceil(total / (price * monthsActive)));
+        } else {
+            setCostPerClient(((price * monthsActive) / total).toFixed(2));
+        }
+        setVals(valuesByMonth.map((value) => Math.ceil(value / price)));        
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [total, price]);
+    }, [total, price, title]);
 
     return(
     <div style={{ height, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -36,10 +40,10 @@ const ROICard = ({total, revenues, height, company, monthsActive}) => {
             }}
         >    
             <Typography variant="body1" color="text.primary" sx={{ fontSize: '3vh', mb: 1, ml: 3 }}>
-            Total ROI
+                {title}
             </Typography>
             <Typography variant="body1" color="text.primary" sx={{ fontSize: '6vh', mb: 1, ml: 5 }}>
-            {totalROI}x
+            {title === 'Total ROI' ? `${totalROI}x` : `$${costPerClient}`}
             </Typography>                                                        
             {months.slice(0, 3).map((month, index) => (
             <div key={month}>
@@ -49,7 +53,7 @@ const ROICard = ({total, revenues, height, company, monthsActive}) => {
                     {month}
                     </Typography>
                     <Typography variant="body1" color="text.primary" sx={{ fontSize: '2vh', mb: 1 }}>
-                    {rois[index]}x
+                    {vals[index]}{title === 'Total ROI' && 'x'}
                     </Typography>
                 </Box>
             </div>
@@ -59,12 +63,13 @@ const ROICard = ({total, revenues, height, company, monthsActive}) => {
     );
 };
 
-ROICard.propTypes = {
+PrevThreeMonths.propTypes = {
+  title: PropTypes.string.isRequired,
   total: PropTypes.number.isRequired,
-  revenues: PropTypes.objectOf(PropTypes.number).isRequired,
+  values: PropTypes.objectOf(PropTypes.number).isRequired,
   height: PropTypes.string.isRequired,
-  company: PropTypes.object,
+  company: PropTypes.object.isRequired,
   monthsActive: PropTypes.number.isRequired
 };
 
-export default ROICard;
+export default PrevThreeMonths;

@@ -18,7 +18,7 @@ import homeStyle from '../../theme/Home.module.css';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler, Legend);
 
 
-const LineChart = ({ title, keys, values, dataLabel, height }) => {
+const LineChart = ({ title, keys, values, dataLabel, height, borderColor, backgroundColor }) => {
   const labels = keys;
   const data = {
   labels,
@@ -26,16 +26,10 @@ const LineChart = ({ title, keys, values, dataLabel, height }) => {
     {
       fill: true,
       data: values,      
-      borderColor: 'rgb(107, 128, 104)',
-      backgroundColor: 'rgba(107, 128, 104, 0.5)',
+      borderColor,
+      backgroundColor,
       label: dataLabel,
     },
-    // {
-    //   label: 'Dataset 2',
-    //   data: [28, 48, 40, 19, 86, 27, 90],
-    //   borderColor: 'rgb(53, 162, 235)',
-    //   backgroundColor: 'rgba(53, 162, 235, 0.5)',
-    // },
   ],
 };
   const options = {
@@ -75,6 +69,8 @@ LineChart.propTypes = {
   values: PropTypes.arrayOf(PropTypes.number).isRequired,
   dataLabel: PropTypes.string.isRequired,
   height: PropTypes.string.isRequired,
+  borderColor: PropTypes.string.isRequired,
+  backgroundColor: PropTypes.string.isRequired,
 };
 
 export default LineChart;

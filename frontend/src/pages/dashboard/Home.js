@@ -10,7 +10,7 @@ import BarChart from '../../components/charts/Bar';
 import Speedometer from '../../components/charts/Speedometer';
 import LineChart from '../../components/charts/Line';
 import DashboardData from '../../components/cards/DashboardData';
-import ROICard from '../../components/cards/ROICard';
+import PrevThreeMonths from '../../components/cards/PrevThreeMonths';
 
 export default function Home() {
   const dispatch = useDispatch();
@@ -18,7 +18,7 @@ export default function Home() {
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
   const dashboardData = useSelector(companyDashboardData);  
-  const { retrieved, monthsActive, totalRevenue, revenueByMonth, forSaleByMonth, recentlySoldByMonth, customerRetention } = dashboardData;
+  const { retrieved, monthsActive, totalRevenue, revenueByMonth, forSaleByMonth, recentlySoldByMonth, customerRetention, clientsAcquired, clientsAcquiredByMonth } = dashboardData;
   
   const clientInfo = useSelector(selectClients);
   const { forSale, recentlySold } = clientInfo;
@@ -59,9 +59,9 @@ export default function Home() {
             icon="/static/icons/revenue.svg"
           />
           <DashboardData
-            mainText={forSale.total+recentlySold.total}
-            topText="Total Leads Found"
-            bottomText={`${Object.values(recentlySoldByMonth)[0]+Object.values(forSaleByMonth)[0]} This Month`}
+            mainText={clientsAcquired}
+            topText="Customers Acquired"
+            bottomText={`${Object.values(clientsAcquiredByMonth)[0]} This Month`}
             color="#7BAFD4"
             icon="/static/icons/lead.svg"
           />
@@ -81,6 +81,28 @@ export default function Home() {
           />
         </Stack>
         <Grid container spacing={2}>
+          <Grid item xs={12} md={4}>
+            <PrevThreeMonths
+              title={'Cost Per Client'}
+              total={clientsAcquired} 
+              values={clientsAcquiredByMonth}              
+              company = {userInfo.company}
+              monthsActive={monthsActive}
+              height={'40vh'}
+            />            
+          </Grid>
+          <Grid item xs={12} md={8}>
+            <LineChart 
+              title={'Clients Acquired'}
+              keys={clientsAcquiredByMonth !== {} ? Object.keys(clientsAcquiredByMonth).reverse() : ['January', 'February', 'March', 'April', 'May', 'June']}
+              values={clientsAcquiredByMonth !== {} ? Object.values(clientsAcquiredByMonth).reverse() : [0,0,0,0,0,0]}                            
+              dataLabel={'Clients Acquired'}
+              height={'40vh'}
+              borderColor='rgb(148, 114, 201)'
+              backgroundColor='rgba(148, 114, 201, 0.5)'
+            />
+          </Grid>
+          
           {userInfo.company.crm === "ServiceTitan" && (
             <>
               <Grid item xs={12} md={8}>
@@ -90,18 +112,20 @@ export default function Home() {
                   values={revenueByMonth !== {} ? Object.values(revenueByMonth).reverse() : [0,0,0,0,0,0]}                            
                   dataLabel={'Revenue'}
                   height={'40vh'}
+                  borderColor='rgb(107, 128, 104)'
+                  backgroundColor='rgba(107, 128, 104, 0.5)'
 
                 />
               </Grid>
               <Grid item xs={12} md={4}>
-                <ROICard
+                <PrevThreeMonths
+                  title={'Total ROI'}
                   total={totalRevenue} 
-                  revenues={revenueByMonth}
+                  values={revenueByMonth}
                   height={'40vh'}
                   company = {userInfo.company}
                   monthsActive={monthsActive}
                 />
-                {/* <StateRevenueDonut /> */}
               </Grid>
             </>
           )}

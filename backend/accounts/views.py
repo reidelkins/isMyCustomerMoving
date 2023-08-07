@@ -915,7 +915,7 @@ class UserEnterpriseView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        company_id = request.data.get("company_id")
+        company_id = request.data.get("company")
         try:
             company = Company.objects.get(id=company_id)
         except Company.DoesNotExist:
