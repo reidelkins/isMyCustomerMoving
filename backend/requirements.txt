@@ -39,6 +39,7 @@ django-rest-framework-social-oauth2==1.1.0
 django-rest-passwordreset==1.3.0
 djangorestframework==3.12.4
 djangorestframework-simplejwt==5.0.0
+dropbox==11.36.2
 environ==1.0
 exceptiongroup==1.1.1
 filelock==3.11.0
