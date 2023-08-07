@@ -22,6 +22,30 @@ def get_token():
     return serializer.validated_data["access_token"]
 
 
+def get_month_names():
+    first_day_of_current_month = datetime.now().replace(day=1)
+    current_month_name = first_day_of_current_month.strftime("%B")
+
+    # Calculate the last day of the previous month
+    last_day_of_last_month = first_day_of_current_month - \
+        timedelta(days=1)
+
+    # Calculate the first day of the previous month
+    first_day_of_last_month = last_day_of_last_month.replace(day=1)
+
+    # Get the name of the previous month as a string (full month name)
+    previous_month_name = first_day_of_last_month.strftime("%B")
+
+    # Calculate the last day of the previous month
+    last_day_of_two_months_ago = first_day_of_last_month - \
+        timedelta(days=1)
+
+    # Get the name of the previous month as a string (full month name)
+    two_months_ago_name = last_day_of_two_months_ago.strftime("%B")
+
+    return current_month_name, previous_month_name, two_months_ago_name
+
+
 class CompanyDashboardView(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -38,9 +62,9 @@ class CompanyDashboardView(TestCase):
 
         current_date = datetime.today()
         client = Client.objects.create(
-            company=self.company, service_titan_customer_since=current_date-timedelta(days=360))
+            company=self.company, name="client1", service_titan_customer_since=current_date-timedelta(days=360), address="123 Main St")
         client2 = Client.objects.create(
-            company=company2, service_titan_customer_since=current_date-timedelta(days=360))
+            company=company2, name="client2", service_titan_customer_since=current_date-timedelta(days=360), address="456 Main St")
         # Get the first day of the current month
         first_day_of_current_month = current_date.replace(day=1)
 
@@ -55,6 +79,10 @@ class CompanyDashboardView(TestCase):
         last_day_of_two_months_prior = first_day_of_previous_month - \
             timedelta(days=1)
 
+        Client.objects.create(
+            company=self.company, name="client3", service_titan_customer_since=current_date, address="123 Main St")
+        Client.objects.create(
+            company=self.company, name="client4", service_titan_customer_since=last_day_of_two_months_prior, address="123 Main St")
         # TODO: Create clients with join dates of a couple months ago and then of less than a year ago
         # but in the previous year and test that the math works out correctly
 
@@ -96,6 +124,9 @@ class CompanyDashboardView(TestCase):
         assert "revenueByMonth" in data
         assert "forSaleByMonth" in data
         assert "recentlySoldByMonth" in data
+        assert "customerRetention" in data
+        assert "clientsAcquired" in data
+        assert "clientsAcquiredByMonth" in data
 
         # Validate the format of the response data.
         assert isinstance(data["totalRevenue"], int)
@@ -103,40 +134,27 @@ class CompanyDashboardView(TestCase):
         assert isinstance(data["revenueByMonth"], dict)
         assert isinstance(data["forSaleByMonth"], dict)
         assert isinstance(data["recentlySoldByMonth"], dict)
+        assert isinstance(data["customerRetention"], dict)
+        assert isinstance(data["clientsAcquired"], int)
+        assert isinstance(data["clientsAcquiredByMonth"], dict)
+
+        current_month, previous_month, two_months_ago = get_month_names()
 
         assert data["totalRevenue"] == 350
         assert data["monthsActive"] == 13
+        assert data["clientsAcquired"] == 2
 
-        first_day_of_current_month = datetime.now().replace(day=1)
-        assert first_day_of_current_month.strftime(
-            "%B") in data["forSaleByMonth"]
+        assert current_month in data["forSaleByMonth"]
 
-        # Calculate the last day of the previous month
-        last_day_of_last_month = first_day_of_current_month - \
-            timedelta(days=1)
+        assert data["revenueByMonth"][previous_month] == 250.0
+        assert data["forSaleByMonth"][previous_month] == 1
+        assert data["recentlySoldByMonth"][previous_month] == 0
+        assert data["clientsAcquiredByMonth"][previous_month] == 0
 
-        # Calculate the first day of the previous month
-        first_day_of_last_month = last_day_of_last_month.replace(day=1)
-
-        # Get the name of the previous month as a string (full month name)
-        previous_month_name = first_day_of_last_month.strftime("%B")
-
-        assert data["revenueByMonth"][previous_month_name] == 250.0
-        assert data["forSaleByMonth"][previous_month_name] == 1
-
-        first_day_of_current_month = first_day_of_last_month.replace(day=1)
-
-        # Calculate the last day of the previous month
-        last_day_of_last_month = first_day_of_current_month - \
-            timedelta(days=1)
-
-        # Calculate the first day of the previous month
-        first_day_of_last_month = last_day_of_last_month.replace(day=1)
-
-        # Get the name of the previous month as a string (full month name)
-        previous_month_name = first_day_of_last_month.strftime("%B")
-        assert data["recentlySoldByMonth"][previous_month_name] == 1
-        assert data["revenueByMonth"][previous_month_name] == 100.0
+        assert data["revenueByMonth"][two_months_ago] == 100.0
+        assert data["forSaleByMonth"][two_months_ago] == 0
+        assert data["recentlySoldByMonth"][two_months_ago] == 1
+        assert data["clientsAcquiredByMonth"][two_months_ago] == 1
 
 
 class ZapierClientView(TestCase):

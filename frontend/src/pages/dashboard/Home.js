@@ -1,5 +1,5 @@
-import React, { useEffect} from 'react';
-import { Grid, Stack, Container, Typography } from '@mui/material';
+import React, { useEffect, useState} from 'react';
+import { Button, Grid, Stack, Container, Typography, Tooltip} from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 
 import ClientsListCall from '../../redux/calls/ClientsListCall';
@@ -7,10 +7,10 @@ import { showLoginInfo } from '../../redux/actions/authActions';
 import { companyDashboardData, getCompanyDashboardDataAsync, selectClients } from '../../redux/actions/usersActions';
 import Page from '../../components/Page';
 import BarChart from '../../components/charts/Bar';
-// import { StateRevenueDonut } from '../../components/charts/Donut';
+import Speedometer from '../../components/charts/Speedometer';
 import LineChart from '../../components/charts/Line';
 import DashboardData from '../../components/cards/DashboardData';
-import ROICard from '../../components/cards/ROICard';
+import PrevThreeMonths from '../../components/cards/PrevThreeMonths';
 
 export default function Home() {
   const dispatch = useDispatch();
@@ -18,9 +18,21 @@ export default function Home() {
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
   const dashboardData = useSelector(companyDashboardData);  
-  const { retrieved, monthsActive, totalRevenue, revenueByMonth, forSaleByMonth, recentlySoldByMonth } = dashboardData;
+  const { retrieved, monthsActive, totalRevenue, revenueByMonth, forSaleByMonth, recentlySoldByMonth, customerRetention, clientsAcquired, clientsAcquiredByMonth } = dashboardData;
+  
   const clientInfo = useSelector(selectClients);
   const { forSale, recentlySold } = clientInfo;
+
+  const [allClients, setAllClients] = useState(true);
+  const [allClientCustomerRetention, setAllClientCustomerRetention] = useState(0);
+  const [revClientCustomerRetention, setRevClientCustomerRetention] = useState(0);
+
+  useEffect(() => {
+    if (userInfo && retrieved) {      
+      setAllClientCustomerRetention(Math.ceil((customerRetention.locations_with_new_address / customerRetention.new_address_total)*100));
+      setRevClientCustomerRetention(Math.ceil((customerRetention.customers_with_new_address_and_revenue / customerRetention.new_address_with_revenue)*100));
+    }
+  }, [userInfo, retrieved, dashboardData, customerRetention]);
 
   useEffect(() => {
     if (userInfo && !retrieved) {
@@ -47,9 +59,9 @@ export default function Home() {
             icon="/static/icons/revenue.svg"
           />
           <DashboardData
-            mainText={forSale.total+recentlySold.total}
-            topText="Total Leads Found"
-            bottomText={`${Object.values(recentlySoldByMonth)[0]+Object.values(forSaleByMonth)[0]} This Month`}
+            mainText={clientsAcquired}
+            topText="Customers Acquired"
+            bottomText={`${Object.values(clientsAcquiredByMonth)[0]} This Month`}
             color="#7BAFD4"
             icon="/static/icons/lead.svg"
           />
@@ -69,6 +81,28 @@ export default function Home() {
           />
         </Stack>
         <Grid container spacing={2}>
+          <Grid item xs={12} md={4}>
+            <PrevThreeMonths
+              title={'Cost Per Client'}
+              total={clientsAcquired} 
+              values={clientsAcquiredByMonth}              
+              company = {userInfo.company}
+              monthsActive={monthsActive}
+              height={'40vh'}
+            />            
+          </Grid>
+          <Grid item xs={12} md={8}>
+            <LineChart 
+              title={'Clients Acquired'}
+              keys={clientsAcquiredByMonth !== {} ? Object.keys(clientsAcquiredByMonth).reverse() : ['January', 'February', 'March', 'April', 'May', 'June']}
+              values={clientsAcquiredByMonth !== {} ? Object.values(clientsAcquiredByMonth).reverse() : [0,0,0,0,0,0]}                            
+              dataLabel={'Clients Acquired'}
+              height={'40vh'}
+              borderColor='rgb(148, 114, 201)'
+              backgroundColor='rgba(148, 114, 201, 0.5)'
+            />
+          </Grid>
+          
           {userInfo.company.crm === "ServiceTitan" && (
             <>
               <Grid item xs={12} md={8}>
@@ -78,36 +112,61 @@ export default function Home() {
                   values={revenueByMonth !== {} ? Object.values(revenueByMonth).reverse() : [0,0,0,0,0,0]}                            
                   dataLabel={'Revenue'}
                   height={'40vh'}
+                  borderColor='rgb(107, 128, 104)'
+                  backgroundColor='rgba(107, 128, 104, 0.5)'
 
                 />
               </Grid>
               <Grid item xs={12} md={4}>
-                <ROICard
+                <PrevThreeMonths
+                  title={'Total ROI'}
                   total={totalRevenue} 
-                  revenues={revenueByMonth}
+                  values={revenueByMonth}
                   height={'40vh'}
                   company = {userInfo.company}
                   monthsActive={monthsActive}
                 />
-                {/* <StateRevenueDonut /> */}
               </Grid>
             </>
           )}
           
+          
           <Grid item xs={12} md={6}>
-            <BarChart
-              title={'Recently Moved Customers'}
-              keys={recentlySoldByMonth !== {} ? Object.keys(recentlySoldByMonth).reverse() : ['January', 'February', 'March', 'April', 'May', 'June']}
-              values={recentlySoldByMonth !== {} ? Object.values(recentlySoldByMonth).reverse() : [0,0,0,0,0,0]}              
-              dataLabel={'Recently Moved'}
-            />
+            <Stack spacing={-10} direction="column" alignItems="center">
+              {/* Your Speedometer component */}
+              <Speedometer
+                title={'Customer Retention'}
+                needleValue={allClients ? allClientCustomerRetention : revClientCustomerRetention}
+              />
+              <Stack spacing={0} direction="column" alignItems="center">
+                {/* Typography component */}
+                <Typography variant="h1" gutterBottom>
+                  {allClients ? allClientCustomerRetention : revClientCustomerRetention}%
+                </Typography>
+                {/* Stack for Buttons */}
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Tooltip title="All Clients in Your Database">
+                    <Button onClick={() => setAllClients(true)} variant={allClients ? 'contained' : 'outlined'}>
+                      All Clients
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="Clients With an Invoice">
+                    <Button onClick={() => setAllClients(false)} variant={!allClients ? 'contained' : 'outlined'}>
+                      Existing Clients
+                    </Button>
+                  </Tooltip>
+                </Stack>
+              </Stack>
+            </Stack>
           </Grid>
           <Grid item xs={12} md={6}>
-            <BarChart 
-              title={'Customers Moving'}
-              keys={forSaleByMonth !== {} ? Object.keys(forSaleByMonth).reverse() : ['January', 'February', 'March', 'April', 'May', 'June']}
-              values={forSaleByMonth !== {} ? Object.values(forSaleByMonth).reverse() : [0,0,0,0,0,0]} 
-              dataLabel={'Moving'} 
+            <BarChart
+              title={'Lead Data'}
+              keys={recentlySoldByMonth !== {} ? Object.keys(recentlySoldByMonth).reverse() : ['January', 'February', 'March', 'April', 'May', 'June']}
+              values1={recentlySoldByMonth === {} ? Object.values(recentlySoldByMonth).reverse() : [98, 43, 12, 32, 76, 33]}              
+              dataLabel1={'Recently Moved'}
+              values2={forSaleByMonth === {} ? Object.values(forSaleByMonth).reverse() : [25,15,76,45,22,88]}
+              dataLabel2={'Customer Moving'}
             />
           </Grid>
         </Grid>
