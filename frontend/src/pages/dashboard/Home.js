@@ -59,9 +59,9 @@ export default function Home() {
             icon="/static/icons/revenue.svg"
           />
           <DashboardData
-            mainText={recentlySold.total+forSale.total}
-            topText="Total Leads"
-            bottomText={`${Object.values(recentlySoldByMonth)[0]+Object.values(forSaleByMonth)[0]} This Month`}
+            mainText={clientsAcquired}
+            topText="Customers Acquired"
+            bottomText={`${Object.values(clientsAcquiredByMonth)[0]} This Month`}
             color="#7BAFD4"
             icon="/static/icons/lead.svg"
           />
@@ -83,10 +83,11 @@ export default function Home() {
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
             <PrevThreeMonths
-              title={'Clients Acquired'}
+              title={'Cost Per Client'}
               total={clientsAcquired} 
               values={clientsAcquiredByMonth}              
-              company = {userInfo.company}              
+              company = {userInfo.company}
+              monthsActive={monthsActive}
               height={'40vh'}
             />            
           </Grid>
@@ -98,7 +99,7 @@ export default function Home() {
               dataLabel={'Clients Acquired'}
               height={'40vh'}
               borderColor='rgb(148, 114, 201)'
-                backgroundColor='rgba(148, 114, 201, 0.5)'
+              backgroundColor='rgba(148, 114, 201, 0.5)'
             />
           </Grid>
           

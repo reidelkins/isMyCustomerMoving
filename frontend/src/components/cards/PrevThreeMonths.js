@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 const PrevThreeMonths = ({title, total, values, height, company, monthsActive}) => {
     const price = (company.product.interval === 'month' ? company.product.amount : company.product.amount / 12);
     const [totalROI, setTotalROI] = useState(0);
+    const [costPerClient, setCostPerClient] = useState(0);
     const valuesByMonth = Object.values(values);
     const months = Object.keys(values);
     const [vals, setVals] = useState([]);
@@ -13,7 +14,9 @@ const PrevThreeMonths = ({title, total, values, height, company, monthsActive}) 
     useEffect(() => {
         if (title === 'Total ROI') {
             setTotalROI(Math.ceil(total / (price * monthsActive)));
-        }        
+        } else {
+            setCostPerClient(((price * monthsActive) / total).toFixed(2));
+        }
         setVals(valuesByMonth.map((value) => Math.ceil(value / price)));        
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [total, price, title]);
@@ -40,7 +43,7 @@ const PrevThreeMonths = ({title, total, values, height, company, monthsActive}) 
                 {title}
             </Typography>
             <Typography variant="body1" color="text.primary" sx={{ fontSize: '6vh', mb: 1, ml: 5 }}>
-            {totalROI}{title === 'Total ROI' && 'x'}
+            {title === 'Total ROI' ? `${totalROI}x` : `$${costPerClient}`}
             </Typography>                                                        
             {months.slice(0, 3).map((month, index) => (
             <div key={month}>
@@ -65,8 +68,8 @@ PrevThreeMonths.propTypes = {
   total: PropTypes.number.isRequired,
   values: PropTypes.objectOf(PropTypes.number).isRequired,
   height: PropTypes.string.isRequired,
-  company: PropTypes.object,
-  monthsActive: PropTypes.number
+  company: PropTypes.object.isRequired,
+  monthsActive: PropTypes.number.isRequired
 };
 
 export default PrevThreeMonths;
