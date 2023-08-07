@@ -64,7 +64,10 @@ export const userSlice = createSlice({
       revenueByMonth: {},
       forSaleByMonth: {},
       recentlySoldByMonth: {},
+      customerRetention: {},
       monthsActive: 0,
+      clientsAcquired: 0,
+      clientsAcquiredByMonth: {},
       retrieved: false,
     }
   },
@@ -220,6 +223,9 @@ export const userSlice = createSlice({
       state.dashboardData.forSaleByMonth = action.payload.forSaleByMonth;
       state.dashboardData.recentlySoldByMonth = action.payload.recentlySoldByMonth;
       state.dashboardData.monthsActive = action.payload.monthsActive;
+      state.dashboardData.customerRetention = action.payload.customerRetention;
+      state.dashboardData.clientsAcquired = action.payload.clientsAcquired;
+      state.dashboardData.clientsAcquiredByMonth = action.payload.clientsAcquiredByMonth;
       state.dashboardData.loading = false;
       state.dashboardData.error = null;
       state.dashboardData.retrieved = true;
