@@ -47,6 +47,7 @@ export const switchCompany = (company) => async (dispatch, getState) => {
     dispatch(login(data));
     localStorage.setItem('userInfo', JSON.stringify(data));
     dispatch(enterpriseAsync());
+    window.location.reload();
   } catch (error) {
     console.log(error.response.data);
 
