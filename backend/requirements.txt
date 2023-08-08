@@ -105,7 +105,7 @@ typing-extensions==4.7.1
 uritemplate==4.1.1
 urllib3==2.0.3
 vine==5.0.0
-w3lib==2.1.1
+w3lib==2.1.2
 wcwidth==0.2.6
 whitenoise==6.4.0
 wrapt==1.15.0
