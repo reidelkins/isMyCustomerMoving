@@ -19,15 +19,15 @@ class Command(BaseCommand):
             for index, row in df.iterrows():
                 print(index)
                 try:
-                    input_address = row['input_Street']
+                    input_address = row['input_address']
                     new_address = parse_streets(row['address'])
                     if input_address != new_address:
                         zip_code = ZipCode.objects.get(
-                            zip_code=row['input_Zip Code'])
+                            zip_code=row['input_zip_code'])
                         client = Client.objects.filter(
                             address=input_address,
-                            city=row['input_City'],
-                            state=row['input_State'],
+                            city=row['input_city'],
+                            state=row['input_state'],
                             zip_code=zip_code
                         )
                         if client.count() == 0:
