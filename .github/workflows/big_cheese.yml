@@ -3,7 +3,7 @@ name: Big Cheese
 on:
   push:
     branches:
-      - frontend_tests
+      - no_branch
 
 env:
   DJANGO_SECRET_KEY: ${{secrets.DJANGO_SECRET_KEY}}

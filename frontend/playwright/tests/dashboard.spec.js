@@ -212,16 +212,20 @@ test.describe('filter table', () => {
   });
 
   test('for sale',async ({ page }) => {
+    const filterRequestPromise = page.waitForResponse('**/api/v1/data/clients/?page=1&status=For%20Sale');
     await page.getByLabel('Filter list').click();
     await page.getByLabel('For Sale').check();
     await page.getByRole('button', { name: 'Apply Filters' }).click();
+
+    const response = await filterRequestPromise;
+    expect(response.status()).toBe(200);
 
     const firstRow = page.getByLabel('Click For Expanded Details').first();
     await expect(firstRow).toHaveText(/for sale/);
   })
 
   test('recently sold',async ({ page }) => {
-    const filterRequestPromise = page.waitForResponse('**api/v1/data/clients?page=1&status=Recently%20Sold');
+    const filterRequestPromise = page.waitForResponse('**/api/v1/data/clients/?page=1&status=Recently%20Sold');
     await page.getByLabel('Filter list').click();
     await page.getByLabel('Recently Sold').check();
     await page.getByRole('button', { name: 'Apply Filters' }).click();
