@@ -14,7 +14,21 @@
 
 ## Frontend ⭐
 
--
+Run the E2E Playwright tests
+
+```bash
+cd frontend
+npm run test
+```
+
+*frontend and backend applications must be running at localhost:8000 and localhost:3000 respectively*
+
+Test data must be reloaded between test runs with the following command
+
+```bash
+docker-compose exec backend python manage.py loaddata data
+```
+
 
 ## Backend🛠
 

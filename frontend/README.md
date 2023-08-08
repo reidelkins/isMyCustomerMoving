@@ -62,10 +62,10 @@ Frontend Tests 28 June 2023
 - [x] Search by name
 - [x] Search by address
 - [x] View map
-- [ ] Filter by
-  - [ ] For Sale
-  - [ ] Recently Sold
-  - [ ] Off Market (No Change)
+- [x] Filter by
+  - [x] For Sale
+  - [x] Recently Sold
+  - [x] Off Market (No Change)
   - [ ] Zip
   - [ ] City
   - [ ] State
