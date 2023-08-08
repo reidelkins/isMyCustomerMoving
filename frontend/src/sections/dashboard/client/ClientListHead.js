@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { TableCell, TableSortLabel, Box } from '@mui/material';
+import { TableCell, TableSortLabel, Box, TableHead, TableRow } from '@mui/material';
 
 const ClientListHead = ({ order, orderBy, headLabel, onRequestSort }) => {
   const createSortHandler = (property) => (event) => {
@@ -23,7 +23,7 @@ const ClientListHead = ({ order, orderBy, headLabel, onRequestSort }) => {
             >
               {headCell.label}
               {orderBy === headCell.id ? (
-                <Box sx={{ ...visuallyHidden }}>
+                <Box sx={{ display: 'none' }}>
                   {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
                 </Box>
               ) : null}
