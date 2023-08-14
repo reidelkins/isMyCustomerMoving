@@ -64,6 +64,7 @@ class Client(models.Model):
     note = models.TextField(default="", blank=True, null=True)
     serv_titan_id = models.IntegerField(blank=True, null=True)
     phone_number = models.CharField(max_length=100, blank=True, null=True)
+    email = models.CharField(max_length=100, blank=True, null=True)
     price = models.IntegerField(default=0, blank=True, null=True)
     housing_type = models.CharField(
         max_length=100, default=" ", blank=True, null=True
