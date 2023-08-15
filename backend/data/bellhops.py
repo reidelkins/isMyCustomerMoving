@@ -50,8 +50,8 @@ def create_bellhops_lead(client_id, access_token):
         "destination_city": new_city,
         "destination_postal_code": new_zip_code,
         "destination_state": new_state,
-        "lead_type": "Is My Customer Moving",
-        "lead_record_type": "Is My Customer Moving",
+        "lead_type": "IMCM",
+        "lead_record_type": "IMCM",
         "load_date": "N/A",
         "close_date": "N/A"
     }
