@@ -591,7 +591,7 @@ export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
     };
 
     dispatch(clientsLoading());
-    const { data } = await axios.put(`${DOMAIN}/api/v1/data/upload/`, customers, config);
+    const { data } = await axios.put(`${DOMAIN}/api/v1/data/upload/clients/`, customers, config);
     dispatch(clientsUpload(data.data));
     dispatch(uploadClientsUpdateAsync(data.task));
   } catch (error) {
@@ -601,6 +601,31 @@ export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
     }
   }
 };
+
+export const uploadServiceAreasAsync = (zipCodes) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const { userInfo } = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access_token}`,
+      },
+    };
+
+    dispatch(clientsLoading());
+    const { data } = await axios.put(`${DOMAIN}/api/v1/data/upload/zips/`, zipCodes, config);
+    dispatch(clientsUpload(data.data));    
+  } catch (error) {
+    dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    if (error.response.status === 403) {
+      dispatch(getRefreshToken(dispatch, uploadServiceAreasAsync(zipCodes)));
+    }
+  }
+};
+
+
+
 
 export const filterClientsAsync =
   (

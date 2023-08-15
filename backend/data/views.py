@@ -26,6 +26,7 @@ from .serializers import (
 from .syncClients import get_salesforce_clients, complete_service_titan_sync
 from .realtor import get_all_zipcodes
 from .utils import (
+    save_service_area_list,
     save_client_list,
     add_service_titan_contacted_tag,
     filter_home_listings,
@@ -617,7 +618,7 @@ class UpdateStatusView(APIView):
         return Response("", status=status.HTTP_200_OK, headers="")
 
 
-class UploadFileView(generics.ListAPIView):
+class UploadClientListView(generics.ListAPIView):
     """
     An API view to upload a list of clients and track the task status.
     """
@@ -672,6 +673,30 @@ class UploadFileView(generics.ListAPIView):
                 "data": """Clients Uploaded!
                 Come back in about an hour to see your results""",
                 "task": task.id,
+            },
+            status=status.HTTP_201_CREATED,
+            headers="",
+        )
+
+
+class UploadServiceAreaListView(generics.ListAPIView):
+    """
+    An API view to upload a list of clients and track the task status.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, *args, **kwargs):
+        try:
+            save_service_area_list.delay(
+                request.data, self.request.user.company.id
+            )
+        except Exception as e:
+            logging.error(e)
+            return Response({"status": e}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {
+                "data": "Service Area Saved!"
             },
             status=status.HTTP_201_CREATED,
             headers="",

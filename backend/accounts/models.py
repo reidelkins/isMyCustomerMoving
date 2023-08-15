@@ -165,6 +165,9 @@ class Company(models.Model):
     zapier_recently_sold = models.CharField(
         max_length=100, blank=True, null=True
     )
+    service_area_zip_codes = models.ManyToManyField(
+        "data.ZipCode", blank=True, related_name="service_area_zip_codes"
+    )
 
     def __str__(self):
         return self.name
