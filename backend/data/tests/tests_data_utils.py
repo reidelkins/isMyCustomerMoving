@@ -9,6 +9,7 @@ import pytest
 
 from accounts.models import Company, CustomUser
 from data.models import Client, HomeListing, SavedFilter, ZipCode
+from payments.models import Product
 from data.syncClients import (
     complete_service_titan_sync,
     get_service_titan_locations,
@@ -25,7 +26,8 @@ from data.utils import (
     reactivate_clients,
     delete_extra_clients,
     verify_address,
-    send_zapier_recently_sold
+    send_zapier_recently_sold,
+    update_clients_statuses
 )
 from payments.models import ServiceTitanInvoice
 
@@ -103,8 +105,20 @@ def mock_company():
 
 
 @pytest.fixture
+def mock_company_all():
+    with patch("accounts.models.Company.objects.all") as mock:
+        yield mock
+
+
+@pytest.fixture
 def mock_client():
     with patch("data.models.Client.objects.filter") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_update_status():
+    with patch("data.utils.update_status.delay") as mock:
         yield mock
 
 
@@ -167,9 +181,29 @@ def mock_filter_home_listings():
 
 class TestUtilFunctions(TestCase):
     def setUp(self):
+        normal_product = Product.objects.create(
+            id="12345678",
+            amount="100",
+            name="product"
+        )
         self.company = Company.objects.create(
             name="company_name",
-            zapier_recently_sold="zapier.com"
+            zapier_recently_sold="zapier.com",
+            product=normal_product
+        )
+        company2 = Company.objects.create(
+            name="company_name2",
+            zapier_recently_sold="zapier.com",
+            product=normal_product
+        )
+        free_product = Product.objects.create(
+            id="price_1MhxfPAkLES5P4qQbu8O45xy",
+            amount="0",
+            name="free product"
+        )
+        self.free_company = Company.objects.create(
+            name="free_company",
+            product=free_product
         )
         zip = ZipCode.objects.create(zip_code="32952")
         self.client = Client.objects.create(
@@ -178,7 +212,14 @@ class TestUtilFunctions(TestCase):
             city="Merritt Island",
             state="FL",
             zip_code=zip,
-            company=self.company,)
+            company=self.company)
+        company2_client = Client.objects.create(
+            name="Test Client2",
+            address="260 Milford Point Rd",
+            city="Merritt Island",
+            state="FL",
+            zip_code=zip,
+            company=company2)
         self.home_listing = HomeListing.objects.create(
             zip_code=zip,
             address="260 Milford Point Rd",
@@ -415,6 +456,45 @@ class TestUtilFunctions(TestCase):
 
         # this shows the function was called once given the one filtered home listing
         mock_post.assert_called_once()
+
+    @patch("data.utils.update_status.delay")
+    @patch("data.models.Client.objects.filter")
+    @patch("accounts.models.Company.objects.all")
+    def test_update_clients_statuses(self, mock_company_all, mock_client, mock_update_status):
+        # TESTING Parameter Working
+
+        # Call the function
+        update_clients_statuses(self.free_company.id)
+        mock_client.assert_not_called()
+
+        # Setup Function Retuns
+        # TODO: See why this isn't working
+        mock_client.return_value.values.distinct.order_by = [
+            {"zip_code": "32952"}]
+
+        # Call the function
+        update_clients_statuses(self.company.id)
+
+        mock_company_all.assert_not_called()
+        mock_client.assert_called()
+        # mock
+        assert mock_update_status.call_count == 2
+
+        mock_company_all.reset_mock()
+        mock_update_status.reset_mock()
+
+        # Call the function without company
+        update_clients_statuses()
+
+        mock_company_all.assert_called()
+        assert mock_update_status.call_count == 4
+
+        # Reset Call Count
+        mock_company_all.reset_mock()
+
+
+def mock_update_status(self):
+    return
 
 
 class TestSyncClientFunctions(TestCase):

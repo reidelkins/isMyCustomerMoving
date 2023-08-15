@@ -360,6 +360,7 @@ def update_client_list(numbers):
 
 @shared_task
 def update_status(zip_code, company_id, status):
+    from .realtor import get_realtor_property_details
     """
     Update the status of listings based on the provided zip code and status.
 
@@ -398,6 +399,7 @@ def update_status(zip_code, company_id, status):
 
     newly_listed = clients_to_update.difference(previous_listed)
 
+    scrapfly_count = 0
     for to_list in newly_listed:
         existing_updates = ClientUpdate.objects.filter(
             client=to_list,
@@ -420,6 +422,8 @@ def update_status(zip_code, company_id, status):
             home_listing = HomeListing.objects.get(
                 address=to_list.address, status=status
             )
+            get_realtor_property_details.delay(home_listing.id, scrapfly_count)
+            scrapfly_count += 1
             to_list.status = status
             to_list.price = home_listing.price
             to_list.year_built = home_listing.year_built
