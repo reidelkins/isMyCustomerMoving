@@ -1,6 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-import { delay, generateRandomString, getFinalCounterNumber } from './helpers';
+import { generateRandomString, getFinalCounterNumber } from '../helpers';
 
 test.describe('pagination', () => {
   test.beforeEach(async ({ page }) => {

@@ -2,7 +2,7 @@ Frontend Tests 28 June 2023
 
 ## End to End tests
  
- This CRA (create-react-app) uses Playwright for end-to-end testing.  Below is a list of the completed and to be completed tests.
+ This CRA (create-react-app) uses Playwright for end-to-end testing.  Below is the end-to-end test plan.
 
 #### Auth
 
@@ -44,10 +44,10 @@ Frontend Tests 28 June 2023
     - [x] Add tag IDs
   - [x] Then should be able to EDIT tag IDs
 
-#### Dashboard
+#### Customer Data
 
 - [x] Show 10 per page, 50, 100 clients
-- [ ] View more than 1000 clients  
+- [ ] View more than 1000 clients  *this test would take 2+ mins*
 **how should I test this?  Just click through pages?** 
 **REID: YES**
 - [x] Make note
@@ -74,7 +74,7 @@ Frontend Tests 28 June 2023
   - [ ] Min/max customer since date
   - [ ] Tags
   - [ ] Equipment Install Date (Not Tested Yet)
-- [ ] Download all to CSV
+- [ ] Download all to CSV *hard to verify the download*
   - [ ] Download all
   - [ ] Download filtered list
 - [ ] Upload Clients with File (Not Tested Yet)
