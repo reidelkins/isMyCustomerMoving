@@ -13,8 +13,8 @@ import json
 import csv
 from re import sub
 
-# from accounts.serializers import UserSerializerWithToken
 from accounts.models import Company, CustomUser
+from accounts.serializers import UserSerializerWithToken
 from config import settings
 from payments.models import ServiceTitanInvoice
 from .models import Client, ClientUpdate, HomeListing, Task, SavedFilter, ZipCode
@@ -688,19 +688,14 @@ class UploadServiceAreaListView(generics.ListAPIView):
 
     def put(self, request, *args, **kwargs):
         try:
-            save_service_area_list.delay(
+            save_service_area_list(
                 request.data, self.request.user.company.id
             )
         except Exception as e:
             logging.error(e)
             return Response({"status": e}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(
-            {
-                "data": "Service Area Saved!"
-            },
-            status=status.HTTP_201_CREATED,
-            headers="",
-        )
+        serializer = UserSerializerWithToken(self.request.user, many=False)
+        return Response(serializer.data)
 
 
 # create a class for update client that will be used for the put and delete requests
