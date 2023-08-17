@@ -81,9 +81,9 @@ Frontend Tests 28 June 2023
 - [ ] Sync Clients with service titan (Must have added service titan integration in order to see this)
 - [ ] Check for all three options
 
-#### Recently sold data
-- [ ] Show 10 per page, 50, 100
-- [ ] View more than 1000 clients
+#### Recently sold data and for sale
+- [x] Show 10 per page, 50, 100
+- [ ] View more than 1000 clients *same problem here*
 - [ ] Download (TODO: not currently auto filtering for less than 30 days)
   - [ ] All
   - [ ] Filtered
