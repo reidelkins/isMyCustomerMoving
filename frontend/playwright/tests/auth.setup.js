@@ -1,8 +1,7 @@
 import { test as setup, expect } from '@playwright/test';
+import { TEST_LOGIN_EMAIL, TEST_LOGIN_PASSWORD } from './utils/constants';
 
 const authFile = 'playwright/.auth/user.json';
-const TEST_LOGIN_EMAIL = 'testuser1@test.com'
-const TEST_LOGIN_PASSWORD = 'ThisIsAStrongPassword'
 
 setup('authenticate', async ({ page }) => {
   // Perform authentication

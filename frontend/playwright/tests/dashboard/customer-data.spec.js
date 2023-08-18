@@ -1,6 +1,6 @@
 // @ts-check
-const { test, expect } = require('@playwright/test');
-import { generateRandomString, getFinalCounterNumber } from '../helpers';
+import { test, expect } from '@playwright/test';
+import { generateRandomString, getFinalCounterNumber } from '../utils/helpers';
 
 test.describe('pagination', () => {
   test.beforeEach(async ({ page }) => {
@@ -263,11 +263,11 @@ test.describe('make note', () => {
 });
 
 const setupCustomerDashboard = async (page) => {
+  const responsePromise = page.waitForResponse('**/api/v1/data/clients/?page=1');
   await page.goto('/dashboard/customers');
   await page.waitForLoadState('load');
 
   // Wait for the first page of clients from the API
-  const responsePromise = page.waitForResponse('**/api/v1/data/clients/?page=1');
   const response = await responsePromise;
   expect(response.status()).toBe(200);
 };

@@ -87,11 +87,11 @@ Frontend Tests 28 June 2023
 - [ ] Download (TODO: not currently auto filtering for less than 30 days)
   - [ ] All
   - [ ] Filtered
-- [ ] Filter by
+- [x] Filter by
   - [ ] Saved Filter
-  - [ ] Zip
-  - [ ] City
-  - [ ] State
+  - [x] Zip
+  - [x] City
+  - [x] State
   - [ ] Min/Max Housing Price
   - [ ] Min/Max year built
   - [ ] Tags

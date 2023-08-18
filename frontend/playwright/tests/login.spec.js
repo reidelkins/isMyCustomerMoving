@@ -1,8 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-
-const TEST_LOGIN_EMAIL = 'testuser1@test.com'
-const TEST_LOGIN_PASSWORD = 'ThisIsAStrongPassword'
+import { TEST_LOGIN_EMAIL, TEST_LOGIN_PASSWORD } from './utils/constants';
 
 test.describe('Login', () => {
   /*
