@@ -25,6 +25,7 @@ export default function Map({ mapClass, mapCardStyle, mapCenter, zoomLevel,  cli
   const [infoWindowData, setInfoWindowData] = useState();
   const [markers, setMarkers] = useState([]);
   const [circles, setCircles] = useState([]);
+  const [doneGettingCoords, setDoneGettingCoords] = useState(false);
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_API_KEY,
@@ -67,6 +68,10 @@ export default function Map({ mapClass, mapCardStyle, mapCenter, zoomLevel,  cli
         setCircles((circles) => [...circles, { lat: coordinateData.lat, lng: coordinateData.lng }]);
       }
     });
+    // wait for 1 seconds before setting doneGettingCoords to true
+    setTimeout(() => {
+      setDoneGettingCoords(true);
+    }, 1000);
   }, [serviceAreas]);
       
 
@@ -123,6 +128,13 @@ export default function Map({ mapClass, mapCardStyle, mapCenter, zoomLevel,  cli
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const renderZipCodeCircle = () => {
+    if (doneGettingCoords) {
+      return <ZipCodeCircle coordinates={circles} />;
+    }
+    return <div />;
+  };
+
   return (
     <Card className={mapCardStyle}>
       {!isLoaded ? (
@@ -165,10 +177,7 @@ export default function Map({ mapClass, mapCardStyle, mapCenter, zoomLevel,  cli
               )
           )
           ):(
-            circles.map((area, ind) => (              
-              <ZipCodeCircle key={ind} lat={area.lat} lng={area.lng} randomColor={`#ff0`} />
-            )          
-          )
+            renderZipCodeCircle()            
           )}
         </GoogleMap>
       )}
