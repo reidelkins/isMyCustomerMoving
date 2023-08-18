@@ -32,21 +32,23 @@ def get_all_zipcodes(company, zip=None):
     # Initialization of variables
     company_object, zip_code_objects, zip_codes, zips = "", "", "", ""
     try:
-        company_object = Company.objects.get(id=company)
-        zip_code_objects = Client.objects.filter(
-            company=company_object, active=True
-        ).values("zip_code")
+        company = Company.objects.get(id=company)
+        if company.service_area_zip_codes:
+            zip_code_objects = company.service_area_zip_codes.values_list(
+                'zip_code', flat=True)
+        else:
+            zip_code_objects = Client.objects.filter(
+                company=company, active=True
+            ).values_list('zip_code', flat=True)
         zip_codes = zip_code_objects.distinct()
-        zip_codes = ZipCode.objects.filter(
-            zip_code__in=zip_code_objects,
+        zip_codes = list(zip_codes.filter(
             last_updated__lt=(datetime.today()).strftime("%Y-%m-%d"),
-        )
-        zips = list(zip_codes.order_by("zip_code").values("zip_code"))
+        ))
         zip_codes.update(last_updated=datetime.today().strftime("%Y-%m-%d"))
 
     except Exception as e:
         if zip:
-            zips = [{"zip_code": str(zip)}]
+            zips = [str(zip)]
         else:
             logging.error(e)
 
@@ -61,7 +63,7 @@ def get_all_zipcodes(company, zip=None):
             url = "https://www.realtor.com/realestateandhomes-search"
             extra = "show-recently-sold/"
         find_data.delay(
-            str(zips[i // 2]["zip_code"]), i, status, url, extra)
+            str(zips[i // 2]), i, status, url, extra)
 
     # send listings to zapier
     days_to_run = [0]  # Only on Monday

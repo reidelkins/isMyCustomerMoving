@@ -123,6 +123,12 @@ class ClientListView(generics.ListAPIView):
             clients = Client.objects.filter(
                 company=user.company, active=True
             ).exclude(new_address=None)
+            if user.company.service_area_zip_codes:
+                zip_code_objects = user.company.service_area_zip_codes.values(
+                    'zip_code')
+                clients = clients.filter(
+                    zip_code__in=zip_code_objects)
+
             serializer = self.get_serializer(clients, many=True)
             clients = serializer.data
             return Response({"clients": clients}, status=status.HTTP_200_OK)
@@ -250,9 +256,13 @@ class RecentlySoldView(generics.ListAPIView):
         query_params = self.request.query_params
         company = self.request.user.company
         if company.recently_sold_purchased:
-            zip_code_objects = Client.objects.filter(company=company).values(
-                "zip_code"
-            )
+            if company.service_area_zip_codes:
+                zip_code_objects = company.service_area_zip_codes.values(
+                    'zip_code')
+            else:
+                zip_code_objects = Client.objects.filter(
+                    company=company, active=True
+                ).values('zip_code')
             queryset = HomeListing.objects.filter(
                 zip_code__in=zip_code_objects,
                 status="House Recently Sold (6)",
@@ -402,9 +412,13 @@ class AllRecentlySoldView(generics.ListAPIView):
         query_params = self.request.query_params
         company = self.request.user.company
         if company.recently_sold_purchased:
-            zip_code_objects = Client.objects.filter(
-                company=company, active=True
-            ).values("zip_code")
+            if company.service_area_zip_codes:
+                zip_code_objects = company.service_area_zip_codes.values(
+                    'zip_code')
+            else:
+                zip_code_objects = Client.objects.filter(
+                    company=company, active=True
+                ).values('zip_code')
             queryset = HomeListing.objects.filter(
                 zip_code__in=zip_code_objects,
                 status="House Recently Sold (6)",
@@ -428,9 +442,13 @@ class ForSaleView(generics.ListAPIView):
         query_params = self.request.query_params
         company = self.request.user.company
         if company.for_sale_purchased:
-            zip_code_objects = Client.objects.filter(company=company).values(
-                "zip_code"
-            )
+            if company.service_area_zip_codes:
+                zip_code_objects = company.service_area_zip_codes.values(
+                    'zip_code')
+            else:
+                zip_code_objects = Client.objects.filter(
+                    company=company, active=True
+                ).values('zip_code')
             queryset = HomeListing.objects.filter(
                 zip_code__in=zip_code_objects,
                 status="House For Sale",
@@ -580,9 +598,13 @@ class AllForSaleView(generics.ListAPIView):
         query_params = self.request.query_params
         company = self.request.user.company
         if company.for_sale_purchased:
-            zip_code_objects = Client.objects.filter(
-                company=company, active=True
-            ).values("zip_code")
+            if company.service_area_zip_codes:
+                zip_code_objects = company.service_area_zip_codes.values(
+                    'zip_code')
+            else:
+                zip_code_objects = Client.objects.filter(
+                    company=company, active=True
+                ).values('zip_code')
             queryset = HomeListing.objects.filter(
                 zip_code__in=zip_code_objects,
                 status="House For Sale",
@@ -1033,24 +1055,27 @@ class CompanyDashboardView(APIView):
         Return the customer retention rate for a company
         """
         company = Company.objects.get(id=company_id)
+        if company.service_area_zip_codes:
+            zip_code_objects = company.service_area_zip_codes.values(
+                'zip_code')
+        else:
+            zip_code_objects = ZipCode.objects.all().values('zip_code')
         all_clients = Client.objects.filter(company=company)
-        clients_with_new_add = all_clients.exclude(new_address=None)
 
-        new_adds = clients_with_new_add.values_list(
+        clients_with_new_add = all_clients.filter(new_zip_code__in=zip_code_objects).values_list(
             "new_address", flat=True)
 
         clients_with_moved_to_add = all_clients.filter(
-            address__in=new_adds
+            address__in=clients_with_new_add
         )
 
         all_clients_with_new_add_and_rev = all_clients.filter(
             service_titan_lifetime_revenue__gt=0
-        ).exclude(new_address=None)
-        new_adds = all_clients_with_new_add_and_rev.values_list(
+        ).exclude(new_address=None).values_list(
             "new_address", flat=True)
 
         clients_with_new_add_and_rev = all_clients.filter(
-            address__in=new_adds
+            address__in=all_clients_with_new_add_and_rev
         )
         clients_with_new_add_and_rev_and_new_rev = \
             clients_with_new_add_and_rev.filter(
