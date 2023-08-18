@@ -256,7 +256,7 @@ class RecentlySoldView(generics.ListAPIView):
         query_params = self.request.query_params
         company = self.request.user.company
         if company.recently_sold_purchased:
-            if company.service_area_zip_codes:
+            if company.service_area_zip_codes.count() > 0:
                 zip_code_objects = company.service_area_zip_codes.values(
                     'zip_code')
             else:
@@ -412,7 +412,7 @@ class AllRecentlySoldView(generics.ListAPIView):
         query_params = self.request.query_params
         company = self.request.user.company
         if company.recently_sold_purchased:
-            if company.service_area_zip_codes:
+            if company.service_area_zip_codes.count() > 0:
                 zip_code_objects = company.service_area_zip_codes.values(
                     'zip_code')
             else:
@@ -442,7 +442,7 @@ class ForSaleView(generics.ListAPIView):
         query_params = self.request.query_params
         company = self.request.user.company
         if company.for_sale_purchased:
-            if company.service_area_zip_codes:
+            if company.service_area_zip_codes.count() > 0:
                 zip_code_objects = company.service_area_zip_codes.values(
                     'zip_code')
             else:
@@ -598,7 +598,7 @@ class AllForSaleView(generics.ListAPIView):
         query_params = self.request.query_params
         company = self.request.user.company
         if company.for_sale_purchased:
-            if company.service_area_zip_codes:
+            if company.service_area_zip_codes.count() > 0:
                 zip_code_objects = company.service_area_zip_codes.values(
                     'zip_code')
             else:
@@ -1055,14 +1055,16 @@ class CompanyDashboardView(APIView):
         Return the customer retention rate for a company
         """
         company = Company.objects.get(id=company_id)
-        if company.service_area_zip_codes:
+        if company.service_area_zip_codes.count() > 0:
             zip_code_objects = company.service_area_zip_codes.values(
                 'zip_code')
         else:
             zip_code_objects = ZipCode.objects.all().values('zip_code')
         all_clients = Client.objects.filter(company=company)
 
-        clients_with_new_add = all_clients.filter(new_zip_code__in=zip_code_objects).values_list(
+        clients_with_new_add = all_clients.filter(
+            new_zip_code__in=zip_code_objects
+        ).values_list(
             "new_address", flat=True)
 
         clients_with_moved_to_add = all_clients.filter(

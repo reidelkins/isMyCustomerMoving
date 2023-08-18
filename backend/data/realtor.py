@@ -33,15 +33,17 @@ def get_all_zipcodes(company, zip=None):
     company_object, zip_code_objects, zip_codes, zips = "", "", "", ""
     try:
         company = Company.objects.get(id=company)
-        if company.service_area_zip_codes:
-            zip_code_objects = company.service_area_zip_codes.values_list(
-                'zip_code', flat=True)
+        if company.service_area_zip_codes.count() > 0:
+            zip_codes = company.service_area_zip_codes.values_list(
+                'zip_code', flat=True).distinct()
         else:
-            zip_code_objects = Client.objects.filter(
+            zip_codes = Client.objects.filter(
                 company=company, active=True
-            ).values_list('zip_code', flat=True)
-        zip_codes = zip_code_objects.distinct()
-        zip_codes = list(zip_codes.filter(
+            ).values_list('zip_code', flat=True).distinct()
+            zip_codes = ZipCode.objects.filter(
+                zip_code__in=zip_codes
+            ).values_list('zip_code', flat=True).distinct()
+        zips = list(zip_codes.filter(
             last_updated__lt=(datetime.today()).strftime("%Y-%m-%d"),
         ))
         zip_codes.update(last_updated=datetime.today().strftime("%Y-%m-%d"))
