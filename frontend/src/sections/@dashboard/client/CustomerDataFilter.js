@@ -40,18 +40,7 @@ const useStyles = makeStyles((theme) => ({
     position: 'absolute',
     right: theme.spacing(1),
     top: theme.spacing(1),
-  },
-  filterBox: {
-    position: 'absolute',
-    margin: 'auto',
-    maxHeight: '50vh',
-    overflowY: 'auto',
-    backgroundColor: theme.palette.background.paper,
-    boxShadow: theme.shadows[5],
-    padding: theme.spacing(2),
-    width: '30%',
-    minWidth: '500px',
-  },
+  }
 }));
 
 CustomerDataFilter.propTypes = {
@@ -433,12 +422,10 @@ export default function CustomerDataFilter({
       </Stack>
       {showFilters && (
         <Dialog
-          sx={{ padding: '200px' }}
-          className={classes.filterBox}
           open={showFilters}
           onClose={() => setShowFilters(false)}
         >
-          <DialogTitle>Filter List</DialogTitle>
+          <DialogTitle>Customer Data Filter </DialogTitle>
           <Divider />
           <DialogContent>
             <form onSubmit={handleFilterSubmit}>
@@ -790,8 +777,6 @@ export default function CustomerDataFilter({
       )}
       {showSaveFilter && (
         <Dialog
-          sx={{ padding: '200px' }}
-          className={classes.filterBox}
           open={showSaveFilter}
           onClose={() => setShowSaveFilter(false)}
         >
