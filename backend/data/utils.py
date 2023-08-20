@@ -1,7 +1,15 @@
-from re import sub
-from time import sleep
-from accounts.models import Company, CustomUser
-from config import settings
+from django.core.mail import EmailMessage, send_mail
+from django.template.loader import get_template
+from django.db.models import Q
+from defusedxml.ElementTree import fromstring
+import traceback
+import requests
+import logging
+import json
+import gc
+from datetime import datetime, timedelta, date
+from celery import shared_task
+from .serializers import ZapierClientSerializer, HomeListingSerializer
 from .models import (
     Client,
     ZipCode,
@@ -11,20 +19,11 @@ from .models import (
     HomeListingTags,
     SavedFilter,
 )
-from .serializers import ZapierClientSerializer, HomeListingSerializer
-
-from celery import shared_task
-from datetime import datetime, timedelta, date
-import gc
-import json
-import logging
-import requests
-import traceback
-from defusedxml.ElementTree import fromstring
-
-from django.db.models import Q
-from django.template.loader import get_template
-from django.core.mail import EmailMessage, send_mail
+from re import sub
+from time import sleep
+from accounts.models import Company, CustomUser
+from config import settings
+from .bellhops import get_bellhop_auth, create_bellhops_lead
 
 
 def del_variables(vars):
@@ -480,6 +479,10 @@ def update_status(zip_code, company_id, status):
         update_service_titan_client_tags.delay(
             clients_to_update, company.id, status
         )
+    if company.name == "Bellhop":
+        access_token = get_bellhop_auth()
+        for client in newly_listed:
+            create_bellhops_lead.delay(client.id, access_token)
 
 
 @shared_task
