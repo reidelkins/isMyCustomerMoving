@@ -678,6 +678,7 @@ def get_realtor_property_details(listing_id, i):
     scrapfly = detail_scrapflies[i % 20]
     listing = HomeListing.objects.get(id=listing_id)
     url = create_detail_url(listing)
+
     result = scrapfly.scrape(
         ScrapeConfig(
             url, country="US", asp=False, proxy_pool="public_datacenter_pool"
