@@ -15,7 +15,7 @@ def get_bellhop_auth():
         "audience": "https://partners.bellhop.com"
     }
 
-    response = requests.post(url, data=data)
+    response = requests.post(url, data=data, timeout=5)
     if response.status_code != 200:
         raise Exception("Bellhop authentication failed")
     return response.data["access_token"]
@@ -58,6 +58,6 @@ def create_bellhops_lead(client_id, access_token):
     headers = {
         "Authorization": f"Bearer {access_token}"
     }
-    response = requests.post(url, data=data, headers=headers)
+    response = requests.post(url, data=data, headers=headers, timeout=5)
     if response.status_code != 200:
         logging.error(f"Bellhop lead creation failed for client {client.id}")
