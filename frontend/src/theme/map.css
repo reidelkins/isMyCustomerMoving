@@ -2,3 +2,13 @@
   height: 100%;
   width: 100%;
 }
+
+.main-map-card-style {
+  height: 80vh;
+  width: 100%;
+}
+
+.service-area-map-card-style {
+  height: 40vh;
+  width: 50%;
+}

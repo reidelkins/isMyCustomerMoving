@@ -22,9 +22,11 @@ from data.syncClients import (
 from data.utils import (
     find_client_count,
     find_clients_to_delete,
+    format_zip,
     reactivate_clients,
     delete_extra_clients,
     verify_address,
+    save_service_area_list,
     send_zapier_recently_sold
 )
 from payments.models import ServiceTitanInvoice
@@ -415,6 +417,40 @@ class TestUtilFunctions(TestCase):
 
         # this shows the function was called once given the one filtered home listing
         mock_post.assert_called_once()
+
+    def test_save_service_area_list(self):
+
+        sample_service_area_list = [
+            {
+                'Zip_Code': '12345',
+            },
+            {
+                'Zip_Code': '67890',
+            },
+            {
+                'Zip_Code': '13579',
+            }
+        ]
+
+        # Call the function
+        save_service_area_list(sample_service_area_list, self.company.id)
+
+        self.client.refresh_from_db()
+
+        # Verify that the service area list was saved
+        zip_code_queryset = ZipCode.objects.filter(
+            zip_code__in=['12345', '67890', '13579'])
+
+        # Convert the queryset of ZipCode objects into a set of primary keys
+        expected_zip_codes = set(
+            zip_code_queryset.values_list('pk', flat=True))
+
+        # Convert the ManyToMany field into a set of primary keys
+        actual_zip_codes = set(
+            self.company.service_area_zip_codes.values_list('pk', flat=True))
+
+        # Compare the sets of primary keys
+        self.assertEqual(expected_zip_codes, actual_zip_codes)
 
 
 class TestSyncClientFunctions(TestCase):

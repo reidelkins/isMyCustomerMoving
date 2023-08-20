@@ -31,6 +31,7 @@ import Scrollbar from '../../../components/Scrollbar';
 import { UserListHead, UserListToolbar } from '../../../sections/@dashboard/user';
 import NewUserModal from '../../../components/NewUserModal';
 
+import ServiceArea from '../../../components/ServiceArea'
 import TwoFactorAuth from '../../../components/TwoFactorAuth';
 import CRMIntegrationModal from '../../../components/CRMIntegrationModal';
 import UpgradeFromFree from '../../../components/UpgradeFromFree';
@@ -343,6 +344,7 @@ export default function ProfileSettings() {
             )}
           </>
         )}
+        <ServiceArea serviceAreas={userInfo ? userInfo.company.service_area_zip_codes : []}/>        
 
         <Box>
           <Typography variant="h3" sx={{ mt: 5 }}>

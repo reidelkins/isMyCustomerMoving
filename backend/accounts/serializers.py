@@ -54,6 +54,7 @@ class CompanySerializer(serializers.ModelSerializer):
     users_count = serializers.SerializerMethodField()
     leads_count = serializers.SerializerMethodField()
     clients_count = serializers.SerializerMethodField()
+    service_area_zip_codes = serializers.SerializerMethodField()
 
     class Meta:
         model = Company
@@ -79,6 +80,7 @@ class CompanySerializer(serializers.ModelSerializer):
             "service_titan_customer_sync_option",
             "product",
             "service_titan_app_version",
+            "service_area_zip_codes"
         ]
 
     def create(self, validated_data):
@@ -100,6 +102,9 @@ class CompanySerializer(serializers.ModelSerializer):
 
     def get_clients_count(self, obj):
         return Client.objects.filter(company=obj).count()
+
+    def get_service_area_zip_codes(self, obj):
+        return list(obj.service_area_zip_codes.values_list('zip_code', flat=True))
 
 
 # Serializer for Enterprise model
