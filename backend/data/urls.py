@@ -58,7 +58,7 @@ upload_file_patterns = [
     path(
         "zips/",
         views.UploadServiceAreaListView.as_view(),
-        name="upload-file",
+        name="upload-service-area",
     ),
     path(
         "<str:task>/",
