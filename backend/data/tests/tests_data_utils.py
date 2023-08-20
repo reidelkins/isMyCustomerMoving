@@ -191,7 +191,7 @@ class TestUtilFunctions(TestCase):
             zapier_recently_sold="zapier.com",
             product=normal_product
         )
-        company2 = Company.objects.create(
+        self.company2 = Company.objects.create(
             name="company_name2",
             zapier_recently_sold="zapier.com",
             product=normal_product
@@ -212,14 +212,15 @@ class TestUtilFunctions(TestCase):
             city="Merritt Island",
             state="FL",
             zip_code=zip,
-            company=self.company)
+            company=self.company,
+            active=True)
         company2_client = Client.objects.create(
             name="Test Client2",
             address="260 Milford Point Rd",
             city="Merritt Island",
             state="FL",
             zip_code=zip,
-            company=company2)
+            company=self.company2)
         self.home_listing = HomeListing.objects.create(
             zip_code=zip,
             address="260 Milford Point Rd",
@@ -467,10 +468,10 @@ class TestUtilFunctions(TestCase):
         update_clients_statuses(self.free_company.id)
         mock_client.assert_not_called()
 
-        # Setup Function Retuns
-        # TODO: See why this isn't working
-        mock_client.return_value.values.distinct.order_by = [
-            {"zip_code": "32952"}]
+        # Setup Function Returns
+        mock_client.return_value.values.return_value.distinct.return_value.order_by.return_value = [
+            {"zip_code": "32952"}
+        ]
 
         # Call the function
         update_clients_statuses(self.company.id)
@@ -483,10 +484,14 @@ class TestUtilFunctions(TestCase):
         mock_company_all.reset_mock()
         mock_update_status.reset_mock()
 
+        mock_company_all.return_value = [
+            self.company, self.free_company, self.company2]
+
         # Call the function without company
         update_clients_statuses()
 
         mock_company_all.assert_called()
+        # 2 for each besides the free one
         assert mock_update_status.call_count == 4
 
         # Reset Call Count
