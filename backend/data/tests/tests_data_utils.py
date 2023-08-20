@@ -27,7 +27,8 @@ from data.utils import (
     delete_extra_clients,
     verify_address,
     send_zapier_recently_sold,
-    update_clients_statuses
+    update_clients_statuses,
+    update_status
 )
 from payments.models import ServiceTitanInvoice
 
@@ -497,9 +498,11 @@ class TestUtilFunctions(TestCase):
         # Reset Call Count
         mock_company_all.reset_mock()
 
+    def test_update_status(self):
 
-def mock_update_status(self):
-    return
+        # Call Function
+        update_status("32952", self.company.id, "Recently Sold (6)")
+        return
 
 
 class TestSyncClientFunctions(TestCase):
