@@ -100,9 +100,10 @@ def reactivate_clients(company_id):
         to_reactive_count = (
             client_ceiling - clients.filter(active=True).count()
         )
-        clients.filter(active=False).order_by("id")[
-            :to_reactive_count
-        ].update(active=True)
+        if to_reactive_count > 0:
+            clients.filter(active=False).order_by("id")[
+                :to_reactive_count
+            ].update(active=True)
 
 
 @shared_task

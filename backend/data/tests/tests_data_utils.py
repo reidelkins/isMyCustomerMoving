@@ -180,6 +180,12 @@ def mock_filter_home_listings():
         yield mock
 
 
+@pytest.fixture
+def mock_find_client_count():
+    with patch("data.utils.find_client_count") as mock:
+        yield mock
+
+
 class TestUtilFunctions(TestCase):
     def setUp(self):
         normal_product = Product.objects.create(
@@ -312,56 +318,70 @@ class TestUtilFunctions(TestCase):
         mock_find_client_count.return_value = 100
         self.assertEqual(find_clients_to_delete(80, "test_product"), 0)
 
-    # @patch("data.utils.Company.objects.get")
-    # @patch("data.utils.Client.objects.filter")
-    # @patch("data.utils.find_client_count")
-    # def test_reactivate_clients(
-    #     self, mock_find_client_count, mock_client_filter, mock_company_get
-    # ):
-    #     mock_find_client_count.return_value = 100
-    #     mock_client_filter.return_value = MagicMock()
-    #     mock_client_filter.return_value.count.return_value = 80
-    #     mock_company_get.return_value = MagicMock()
+    @patch("data.utils.Company.objects.get")
+    @patch("data.utils.Client.objects.filter")
+    @patch("data.utils.find_client_count")
+    def test_reactivate_clients(
+        self, mock_find_client_count, mock_client_filter, mock_company_get
+    ):
+        # client_celing > clients.count
+        mock_find_client_count.return_value = 100
+        mock_client_filter.return_value = MagicMock()
+        mock_client_filter.return_value.count.return_value = 80
+        mock_company_get.return_value = MagicMock()
 
-    #     reactivate_clients(1)
-    #     mock_client_filter.return_value.update.assert_called_once_with(
-    #         active=True
-    #     )
+        reactivate_clients(1)
+        mock_client_filter.return_value.update.assert_called_once_with(
+            active=True
+        )
 
-    #     mock_client_filter.return_value.count.return_value = 120
-    #     mock_client_filter.return_value.update.assert_not_called()
+        # RESET
+        mock_client_filter.reset_mock()
 
-    # @patch("data.utils.Company.objects.get")
-    # @patch("data.utils.Client.objects.filter")
-    # @patch("data.utils.find_clients_to_delete")
-    # @patch("data.utils.send_mail")
-    # @patch("data.utils.CustomUser.objects.filter")
-    # @patch("data.utils.Task.objects.get")
-    # def test_delete_extra_clients(
-    #     self,
-    #     mock_task_get,
-    #     mock_user_filter,
-    #     mock_send_mail,
-    #     mock_find_clients_to_delete,
-    #     mock_client_filter,
-    #     mock_company_get,
-    # ):
-    #     mock_find_clients_to_delete.return_value = 10
-    #     mock_client_filter.return_value = MagicMock()
-    #     mock_client_filter.return_value.count.return_value = 120
-    #     mock_client_filter.return_value.values_list.return_value = range(120)
-    #     mock_user_filter.return_value = [MagicMock()]
-    #     mock_company_get.return_value = MagicMock()
-    #     mock_task_get.return_value = MagicMock()
+        # client_celing < clients.count, some clients to reactivate
+        mock_client_filter.return_value.count.return_value = 120
+        mock_client_filter.return_value.filter.return_value.count.return_value = 50
+        reactivate_clients(1)
+        mock_client_filter.return_value.update.assert_not_called()
+        mock_client_filter.return_value.filter.return_value.order_by.assert_called()
 
-    #     delete_extra_clients(1)
-    #     mock_send_mail.assert_called_once()
-    #     mock_task_get.return_value.save.assert_not_called()
+        # RESET
+        mock_client_filter.reset_mock()
 
-    #     delete_extra_clients(1, 1)
-    #     mock_task_get.return_value.save.assert_called_once()
+        # client_celing < clients.count, no clients to reactivate
+        mock_client_filter.return_value.count.return_value = 120
+        mock_client_filter.return_value.filter.return_value.count.return_value = 100
+        reactivate_clients(1)
+        mock_client_filter.return_value.update.assert_not_called()
+        mock_client_filter.return_value.filter.return_value.order_by.assert_not_called()
 
-    # @patch("Client.objects")
+    @patch("data.utils.Client.objects.filter")
+    @patch("data.utils.find_clients_to_delete")
+    @patch("data.utils.Task.objects.get")
+    def test_delete_extra_clients(
+        self,
+        mock_task_get,
+        mock_find_clients_to_delete,
+        mock_client_filter,
+    ):
+        # deleted clients == 0, nothing happens.
+        mock_find_clients_to_delete.return_value = 0
+        delete_extra_clients(1)
+        mock_client_filter.return_value.update.assert_not_called()
+        # if task_id = none, not called
+        mock_task_get.assert_not_called()
+
+        # RESET
+        mock_client_filter.reset_mock()
+        mock_task_get.reset_mock()
+
+        # else make sure update called with active=False
+        mock_find_clients_to_delete.return_value = 10
+        delete_extra_clients(1, "taskid")
+        mock_client_filter.return_value.update.assert_called_once_with(
+            active=False)
+        mock_task_get.assert_called_once_with(id="taskid")
+
     @patch("requests.get")
     def test_verify_address(self, mock_get):
         response_text = """
