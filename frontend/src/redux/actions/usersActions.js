@@ -451,7 +451,7 @@ export const clientsAsync =
         }
         if (data.results.clients.length > 0) {
           dispatch(newPage(page));
-          if (data.results.clients.length === 1000) {
+          if (data.results.clients.length === 1000 && reduxStore.user.clientsInfo.count !== page * 1000) {
             dispatch(clientsAsync(page + 1));
           }
         }
