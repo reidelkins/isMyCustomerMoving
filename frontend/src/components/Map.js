@@ -5,30 +5,76 @@ import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import { updateClientAsync } from '../redux/actions/usersActions';
+import ZipCodeCircle from './ZipCodeArea';
 import '../theme/map.css';
 
 Map.propTypes = {
   clients: PropTypes.array,
+  serviceAreas: PropTypes.array,
+  mapClass: PropTypes.string,
+  mapCardStyle: PropTypes.string,
+  mapCenter: PropTypes.object,
+  zoomLevel: PropTypes.number,
 };
 
-export default function Map({ clients }) {
+export default function Map({ mapClass, mapCardStyle, mapCenter, zoomLevel,  clients = [], serviceAreas = [] }) {
   const dispatch = useDispatch();
 
   // const [mapRef, setMapRef] = useState();
   const [isOpen, setIsOpen] = useState(false);
   const [infoWindowData, setInfoWindowData] = useState();
   const [markers, setMarkers] = useState([]);
+  const [circles, setCircles] = useState([]);
+  const [doneGettingCoords, setDoneGettingCoords] = useState(false);
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_API_KEY,
   });
-  const center = useMemo(() => ({ lat: 39.5, lng: -98.35 }), []);
+  const center = useMemo(() => (mapCenter), [mapCenter]);
 
   const handleMarkerClick = (id, lat, lng, address, city, state, zip, name, status) => {
     // mapRef?.panTo({ lat, lng });
     setInfoWindowData({ id, address, city, state, zip, name, status });
     setIsOpen(true);
   };
+
+  const serviceAreaMapOptions = {
+    fullscreenControl: false,
+    mapTypeControl: false,    
+    mapTypeId: "terrain",    
+    streetViewControl: false,                
+  };
+
+  const mapOptions = {
+    
+  };
+
+  const getCoordinates = async (zip) => {
+    const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${zip}&key=${
+        process.env.REACT_APP_GOOGLE_API_KEY
+      }`)
+      const data = await response.json();
+  
+    if (data.results[0]) {
+      return data.results[0].geometry.location;
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    serviceAreas.forEach(async (serviceArea) => {
+      const coordinateData = await getCoordinates(serviceArea);
+      if (coordinateData) {
+        setCircles((circles) => [...circles, { lat: coordinateData.lat, lng: coordinateData.lng }]);
+      }
+    });
+    // wait for 1 seconds before setting doneGettingCoords to true
+    setTimeout(() => {
+      setDoneGettingCoords(true);
+    }, 1000);
+  }, [serviceAreas]);
+      
+
 
   async function getLatLngFromAddress(id, address, city, state, zip) {
     const fullAddress = `${address}, ${city}, ${state} ${zip}`;
@@ -82,13 +128,21 @@ export default function Map({ clients }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const renderZipCodeCircle = () => {
+    if (doneGettingCoords) {
+      return <ZipCodeCircle coordinates={circles} />;
+    }
+    return <div />;
+  };
+
   return (
-    <Card style={{ width: '100%', height: '80vh' }}>
+    <Card className={mapCardStyle}>
       {!isLoaded ? (
         <h1>Loading...</h1>
       ) : (
-        <GoogleMap mapContainerClassName="map-container" center={center} zoom={4.5}>
-          {markers.map(
+        <GoogleMap mapContainerClassName={mapClass} center={circles ? circles[0] : center} zoom={zoomLevel} options={mapCardStyle === "main-map-card-style" ? mapOptions : serviceAreaMapOptions}>
+          { mapCardStyle === "main-map-card-style" ? (
+            markers.map(
             ({ address, city, state, zip, name, status, lat, lng }, ind) =>
               lat !== 0 &&
               lng !== 0 && (
@@ -121,6 +175,9 @@ export default function Map({ clients }) {
                   )}
                 </Marker>
               )
+          )
+          ):(
+            renderZipCodeCircle()            
           )}
         </GoogleMap>
       )}

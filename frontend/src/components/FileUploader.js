@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Papa from 'papaparse';
+import PropTypes from 'prop-types';
 import {
   Button,
   FormControl,
@@ -17,7 +18,7 @@ import {
 } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import Iconify from './Iconify';
-import { uploadClientsAsync, selectClients } from '../redux/actions/usersActions';
+import { uploadClientsAsync, selectClients, uploadServiceAreasAsync } from '../redux/actions/usersActions';
 
 const useStyles = makeStyles(() => ({
   uploaderDiv: {
@@ -30,7 +31,9 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const FileUploader = () => {
+
+
+const FileUploader = ({ fileType }) => {
   const dispatch = useDispatch();
   const classes = useStyles();
 
@@ -105,6 +108,14 @@ const FileUploader = () => {
     fetchData();
   }, [file]);
 
+  useEffect(() => {
+    if (fileType === "ServiceArea") {
+      setHeaderMappings({
+        Zip_Code: '',
+      });      
+    }
+  }, [fileType]);
+
   // eslint-disable-next-line arrow-body-style
   const readFile = (file) => {
     return new Promise((resolve, reject) => {
@@ -177,7 +188,11 @@ const FileUploader = () => {
   };
 
   const sendData = (data) => {
-    dispatch(uploadClientsAsync(data));
+    if (fileType === "ClientFile") {
+      dispatch(uploadClientsAsync(data));
+    } else if (fileType === "ServiceArea") {
+      dispatch(uploadServiceAreasAsync(data));
+    }
   };
 
   return (
@@ -193,7 +208,8 @@ const FileUploader = () => {
               <label htmlFor="file" style={{ cursor: 'pointer', textDecoration: 'underline' }}>
                 {!file && uploaded && `Success! ${fileName} has been uploaded.`}
                 {file && `Uploading ${fileName}`}
-                {!file && !uploaded && 'Upload Your Client List'}
+                {!file && !uploaded && fileType === "ClientFile" && 'Upload Your Client List'}
+                {!file && !uploaded && fileType === "ServiceArea" && 'Upload Your Service Areas'}
               </label>
               <input
                 type="file"
@@ -248,7 +264,7 @@ const FileUploader = () => {
           </form>
 
           <br />
-          {!file && !uploaded && (
+          {fileType === "clientFile" && !file && !uploaded && (
             <IconButton onClick={() => setUploadInfo(true)}>
               <Iconify icon="bi:question-circle-fill" />
             </IconButton>
@@ -318,6 +334,10 @@ const FileUploader = () => {
       </Modal>
     </div>
   );
+};
+
+FileUploader.propTypes = {
+  fileType: PropTypes.string.isRequired,
 };
 
 export default FileUploader;
