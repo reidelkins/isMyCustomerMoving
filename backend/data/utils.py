@@ -359,6 +359,57 @@ def update_client_list(numbers):
     del_variables([phone_numbers, clients, numbers])
 
 
+def find_clients_to_update(zip_code, company_id, status):
+
+    company = Company.objects.get(id=company_id)
+    zip_code_object = ZipCode.objects.get(zip_code=zip_code)
+
+    listed_addresses = HomeListing.objects.filter(
+        zip_code=zip_code_object, status=status
+    ).values("address")
+
+    previous_listed = Client.objects.filter(
+        company=company,
+        zip_code=zip_code_object,
+        status=status,
+        active=True,
+        error_flag=False,
+    )
+
+    clients_to_update = Client.objects.filter(
+        company=company,
+        address__in=listed_addresses,
+        zip_code=zip_code_object,
+        active=True,
+        error_flag=False,
+    )
+
+    newly_listed = clients_to_update.difference(previous_listed)
+    del_variables([listed_addresses, previous_listed,
+                  company, zip_code_object])
+
+    return clients_to_update, newly_listed
+
+
+def check_if_needs_update(client_id, status):
+    client = Client.objects.get(id=client_id)
+    listing_updates = ClientUpdate.objects.filter(
+        client=client,
+        status__in=["House For Sale", "House Recently Sold (6)"],
+    )
+    update = True
+
+    for listing_update in listing_updates:
+        if (
+            listing_update.listed
+            > HomeListing.objects.get(
+                address=client.address, status=status
+            ).listed
+        ):
+            update = False
+    return update
+
+
 @shared_task
 def update_status(zip_code, company_id, status):
     from .realtor import get_realtor_property_details
@@ -378,48 +429,14 @@ def update_status(zip_code, company_id, status):
         )
         return
 
-    listed_addresses = HomeListing.objects.filter(
-        zip_code=zip_code_object, status=status
-    ).values("address")
-
-    clients_to_update = Client.objects.filter(
-        company=company,
-        address__in=listed_addresses,
-        zip_code=zip_code_object,
-        active=True,
-        error_flag=False,
-    )
-
-    previous_listed = Client.objects.filter(
-        company=company,
-        zip_code=zip_code_object,
-        status=status,
-        active=True,
-        error_flag=False,
-    )
-
-    newly_listed = clients_to_update.difference(previous_listed)
+    clients_to_update, newly_listed = find_clients_to_update(
+        zip_code, company_id, status)
 
     scrapfly_count = 0
     for to_list in newly_listed:
-        existing_updates = ClientUpdate.objects.filter(
-            client=to_list,
-            status__in=["House For Sale", "House Recently Sold (6)"],
-        )
-        update = True
-        try:
-            for listing in existing_updates:
-                if (
-                    listing.listed
-                    > HomeListing.objects.get(
-                        address=to_list.address, status=status
-                    ).listed
-                ):
-                    update = False
-        except Exception as e:
-            logging.error(e)
 
-        if update:
+        to_update = check_if_needs_update(to_list.id, status)
+        if to_update:
             home_listing = HomeListing.objects.get(
                 address=to_list.address, status=status
             )
@@ -457,7 +474,6 @@ def update_status(zip_code, company_id, status):
             )
         except Exception as e:
             logging.error(f"Cant find listing to list {e}")
-            logging.error("This should not be the case")
 
     clients_to_update = [
         client

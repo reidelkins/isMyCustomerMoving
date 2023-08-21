@@ -7,7 +7,7 @@ from datetime import date, datetime, timedelta
 import requests
 import pytest
 
-from accounts.models import Company, CustomUser
+from accounts.models import Company
 from data.models import Client, HomeListing, SavedFilter, ZipCode
 from payments.models import Product
 from data.syncClients import (
@@ -21,14 +21,15 @@ from data.syncClients import (
     get_customer_since_data_from_invoices
 )
 from data.utils import (
+    check_if_needs_update,
     find_client_count,
     find_clients_to_delete,
+    find_clients_to_update,
     reactivate_clients,
     delete_extra_clients,
     verify_address,
     send_zapier_recently_sold,
-    update_clients_statuses,
-    update_status
+    update_clients_statuses
 )
 from payments.models import ServiceTitanInvoice
 
@@ -100,6 +101,24 @@ def mock_get_service_titan_invoices():
 
 
 @pytest.fixture
+def mock_zip():
+    with patch("data.models.ZipCode.objects.get") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_home_listing_get():
+    with patch("data.models.HomeListing.objects.get") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_home_listing_filter():
+    with patch("data.models.HomeListing.objects.filter") as mock:
+        yield mock
+
+
+@pytest.fixture
 def mock_company():
     with patch("accounts.models.Company.objects.get") as mock:
         yield mock
@@ -112,8 +131,26 @@ def mock_company_all():
 
 
 @pytest.fixture
+def mock_client_get():
+    with patch("data.models.Client.objects.get") as mock:
+        yield mock
+
+
+@pytest.fixture
 def mock_client():
     with patch("data.models.Client.objects.filter") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_client_difference():
+    with patch("data.models.Client.objects.difference") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_client_update_filter():
+    with patch("data.models.ClientUpdate.objects.filter") as mock:
         yield mock
 
 
@@ -186,6 +223,21 @@ def mock_find_client_count():
         yield mock
 
 
+class MockedQuerySet:
+
+    def __init__(self, items):
+        self.items = items
+
+    def values(self, *args, **kwargs):
+        return self.items
+
+    def count(self):
+        return len(self.items)
+
+    def difference(self, other):
+        return list(set(self.items).difference(other.items))
+
+
 class TestUtilFunctions(TestCase):
     def setUp(self):
         normal_product = Product.objects.create(
@@ -212,24 +264,34 @@ class TestUtilFunctions(TestCase):
             name="free_company",
             product=free_product
         )
-        zip = ZipCode.objects.create(zip_code="32952")
+        self.zip = ZipCode.objects.create(zip_code="32952")
         self.client = Client.objects.create(
             name="Test Client1",
             address="260 Milford Point Rd",
             city="Merritt Island",
             state="FL",
-            zip_code=zip,
+            zip_code=self.zip,
             company=self.company,
-            active=True)
+            active=True,
+            status="House For Sale")
+        self.client2 = Client.objects.create(
+            name="Test Client2",
+            address="261 Milford Point Rd",
+            city="Merritt Island",
+            state="FL",
+            zip_code=self.zip,
+            company=self.company,
+            active=True,
+            status="House For Sale")
         company2_client = Client.objects.create(
             name="Test Client2",
             address="260 Milford Point Rd",
             city="Merritt Island",
             state="FL",
-            zip_code=zip,
+            zip_code=self.zip,
             company=self.company2)
         self.home_listing = HomeListing.objects.create(
-            zip_code=zip,
+            zip_code=self.zip,
             address="260 Milford Point Rd",
             city="Merritt Island",
             state="FL",
@@ -246,7 +308,7 @@ class TestUtilFunctions(TestCase):
         self.home_listing_2 = HomeListing.objects.create(
             listed=date.today()-timedelta(days=8),
             status="House Recently Sold (6)",
-            zip_code=zip
+            zip_code=self.zip
         )
 
         self.saved_filter = SavedFilter.objects.create(
@@ -366,7 +428,7 @@ class TestUtilFunctions(TestCase):
     ):
         # deleted clients == 0, nothing happens.
         mock_find_clients_to_delete.return_value = 0
-        delete_extra_clients(1)
+        delete_extra_clients(self.company.id)
         mock_client_filter.return_value.update.assert_not_called()
         # if task_id = none, not called
         mock_task_get.assert_not_called()
@@ -377,7 +439,7 @@ class TestUtilFunctions(TestCase):
 
         # else make sure update called with active=False
         mock_find_clients_to_delete.return_value = 10
-        delete_extra_clients(1, "taskid")
+        delete_extra_clients(self.company.id, "taskid")
         mock_client_filter.return_value.update.assert_called_once_with(
             active=False)
         mock_task_get.assert_called_once_with(id="taskid")
@@ -518,11 +580,118 @@ class TestUtilFunctions(TestCase):
         # Reset Call Count
         mock_company_all.reset_mock()
 
-    def test_update_status(self):
+    @patch("data.models.Client.objects.difference")
+    @patch("data.models.Client.objects.filter")
+    @patch("data.models.HomeListing.objects.filter")
+    @patch("data.models.ZipCode.objects.get")
+    @patch("accounts.models.Company.objects.get")
+    # Clients To Update exists, previous listed is none, return value is all of clients to update
+    def test_clients_to_update_exists_and_previous_none(self, mock_company, mock_zip, mock_home_listing_filter, mock_client, mock_difference):
+        mock_company.return_value = self.company
+        mock_zip.return_value = self.zip
+        mock_home_listing_filter.return_value = MockedQuerySet(
+            [{'address': self.home_listing.address}])
 
-        # Call Function
-        update_status("32952", self.company.id, "Recently Sold (6)")
-        return
+        mock_client.side_effect = [
+            MockedQuerySet([]),
+            MockedQuerySet([self.client, self.client2])
+        ]
+        mock_difference.return_value = MockedQuerySet([self.client2])
+
+        clients_to_update, newly_listed = find_clients_to_update(
+            "32952", self.company.id, "House For Sale")
+
+        assert newly_listed == [self.client, self.client2] or newly_listed == [
+            self.client2, self.client]
+
+    @patch("data.models.Client.objects.difference")
+    @patch("data.models.Client.objects.filter")
+    @patch("data.models.HomeListing.objects.filter")
+    @patch("data.models.ZipCode.objects.get")
+    @patch("accounts.models.Company.objects.get")
+    # Clients to update is 2 values, previous listed is one of those, clients to update is the other one
+    def test_two_clients_to_update_and_previous_one(self, mock_company, mock_zip, mock_home_listing_filter, mock_client, mock_difference):
+        mock_company.return_value = self.company
+        mock_zip.return_value = self.zip
+        mock_home_listing_filter.return_value = MockedQuerySet(
+            [{'address': self.home_listing.address}])
+
+        mock_client.side_effect = [
+            MockedQuerySet([self.client]),
+            MockedQuerySet([self.client, self.client2])
+        ]
+        mock_difference.return_value = MockedQuerySet([self.client2])
+
+        clients_to_update, newly_listed = find_clients_to_update(
+            "32952", self.company.id, "House For Sale")
+
+        assert newly_listed == [self.client2]
+
+    @patch("data.models.Client.objects.difference")
+    @patch("data.models.Client.objects.filter")
+    @patch("data.models.HomeListing.objects.filter")
+    @patch("data.models.ZipCode.objects.get")
+    @patch("accounts.models.Company.objects.get")
+    # clients to update is none, previous listed is something, return value is nothing
+    def test_none_clients_to_update_and_previous_exists(self, mock_company, mock_zip, mock_home_listing_filter, mock_client, mock_difference):
+        mock_company.return_value = self.company
+        mock_zip.return_value = self.zip
+        mock_home_listing_filter.return_value = MockedQuerySet(
+            [{'address': self.home_listing.address}])
+
+        mock_client.side_effect = [
+            MockedQuerySet([self.client, self.client2]),
+            MockedQuerySet([])
+        ]
+        mock_difference.return_value = MockedQuerySet([self.client2])
+
+        clients_to_update, newly_listed = find_clients_to_update(
+            "32952", self.company.id, "House For Sale")
+
+        assert newly_listed == []
+
+    @patch("data.models.ClientUpdate.objects.filter")
+    @patch("data.models.Client.objects.get")
+    def test_no_existing_updates(self, mock_client_get, mock_client_update_filter):
+        mock_client_get.return_value = self.client
+        mock_client_update_filter.return_value = []
+
+        result = check_if_needs_update(self.client.id, "House For Sale")
+        assert result == True
+
+    @patch("data.models.HomeListing.objects.get")
+    @patch("data.models.ClientUpdate.objects.filter")
+    @patch("data.models.Client.objects.get")
+    def test_existing_update_yesterday_homelisting_today(self, mock_client_get, mock_client_update_filter, mock_home_listing_get):
+        mock_client_get.return_value = self.client
+        mock_home_listing = Mock()
+        mock_home_listing.listed = date.today()
+
+        mock_client_update = Mock()
+        mock_client_update.listed = date.today() - timedelta(days=1)
+
+        mock_client_update_filter.return_value = [mock_client_update]
+        mock_home_listing_get.return_value = mock_home_listing
+
+        result = check_if_needs_update(self.client.id, "House For Sale")
+        assert result == True
+
+    @patch("data.models.HomeListing.objects.get")
+    @patch("data.models.ClientUpdate.objects.filter")
+    @patch("data.models.Client.objects.get")
+    def test_existing_update_yesterday_homelisting_today(self, mock_client_get, mock_client_update_filter, mock_home_listing_get):
+        mock_client_get.return_value = self.client
+        mock_home_listing = Mock()
+        mock_home_listing.listed = date.today() - timedelta(days=1)
+
+        mock_client_update = Mock()
+        mock_client_update.listed = date.today()
+
+        mock_client_update_filter.return_value = [mock_client_update]
+        mock_home_listing_get.return_value = mock_home_listing
+
+        result = check_if_needs_update(self.client.id, "House For Sale")
+        assert result == False
 
 
 class TestSyncClientFunctions(TestCase):
