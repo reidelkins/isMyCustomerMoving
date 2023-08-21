@@ -691,14 +691,12 @@ def process_client_tags(client_id):
             str(company.service_titan_for_sale_contacted_tag_id),
             str(company.service_titan_recently_sold_contacted_tag_id),
         ]
-        tag_ids = [tag_id for tag_id in tag_ids if tag_id]
 
-        for tag_id in tag_ids:
-            payload = {
-                "customerIds": [str(client.serv_titan_id)],
-                "tagTypeIds": [tag_id],
-            }
-            handle_tag_deletion_request(payload, headers, client.company)
+        payload = {
+            "customerIds": [str(client.serv_titan_id)],
+            "tagTypeIds": tag_ids,
+        }
+        handle_tag_deletion_request(payload, headers, client.company)
 
     except Exception as e:
         logging.error(e)
@@ -827,17 +825,6 @@ def handle_tag_addition_request(payload, headers, company, for_sale):
     return response
 
 
-def cleanup_variables(variable_list):
-    """
-    Clean up variables by deleting them.
-
-    Parameters:
-    variable_list (list): List of variables to delete.
-    """
-    for var in variable_list:
-        del var
-
-
 @shared_task
 def update_service_titan_client_tags(for_sale, company, status):
     """
@@ -887,7 +874,7 @@ def update_service_titan_client_tags(for_sale, company, status):
         logging.error(f"ERROR: {e}")
         logging.error(traceback.format_exc())
 
-    cleanup_variables(
+    del_variables(
         [
             headers,
             response,

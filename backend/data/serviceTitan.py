@@ -5,14 +5,14 @@ import logging
 from time import sleep
 
 from datetime import datetime, date, timedelta
-from django.conf import settings
 from django.db.models.functions import Coalesce
+from django.db.models import Q
+from django.db import transaction
 
 from accounts.models import Company
-from .models import Client, ClientUpdate
+from .models import Client, ClientUpdate, ServiceTitanJob
 from .utils import (
     save_client_list,
-    update_client_list,
     do_it_all,
     delete_extra_clients,
     del_variables,
@@ -20,72 +20,6 @@ from .utils import (
     verify_address
 )
 from payments.models import ServiceTitanInvoice
-from simple_salesforce import Salesforce
-
-
-# @shared_task
-# def get_fieldEdge_clients(company_id, task_id):
-#     Company.objects.get(id=company_id)
-
-
-# @shared_task
-# def get_hubspot_clients(company_id, task_id):
-#     Company.objects.get(id=company_id)
-
-
-@shared_task
-def get_salesforce_clients(company_id, task_id=None):
-    company = Company.objects.get(id=company_id)
-    url = "https://ismycustomermoving-dev-ed.develop.my.salesforce.com"
-    sf = Salesforce(
-        instance_url=url,
-        session_id=company.sf_access_token,
-        consumer_key=settings.SALESFORCE_CONSUMER_KEY,
-        consumer_secret=settings.SALESFORCE_CONSUMER_SECRET,
-    )
-
-    contacts = sf.query(
-        "SELECT FirstName, LastName, Phone, MailingStreet FROM Contact"
-    )
-    clients = []
-    count = 0
-    for contact in contacts["records"]:
-        x = contact["MailingStreet"]
-        count += 1
-        if x is not None:
-            x = x.split("\n")
-            if len(x) > 1:
-                street = x[0]
-                x = x[1].replace(",", "")
-                x = x.split(" ")
-                if len(x) == 3 and street is not None:
-                    client = {
-                        "name": f"{contact['FirstName']} {contact['LastName']}",
-                        "phone number": contact["Phone"],
-                        "address": street,
-                        "city": x[0],
-                        "state": x[1],
-                        "zip code": x[2],
-                    }
-                    clients.append(client)
-
-    save_client_list(clients, company_id)
-
-    # bulk = SalesforceBulk(
-    #     sessionId="""https://login.salesforce.com/
-    #           id/00DDn00000DsoYnMAJ/005Dn000007Eo6XIAS""",
-    #     host="https://ismycustomermoving-dev-ed.develop.my.salesforce.com",
-    # )
-    # job = bulk.create_query_job("Contact", contentType="JSON")
-    # batch = bulk.query(job, "select Id,LastName from Contact")
-    # bulk.close_job(job)
-    # while not bulk.is_batch_done(batch):
-    #     time.sleep(10)
-
-    # for result in bulk.get_all_results_for_query_batch(batch):
-    #     result = json.load(IteratorBytesIO(result))
-    #     for row in result:
-    #         print(row)  # dictionary rows
 
 
 @shared_task
@@ -119,6 +53,45 @@ def complete_service_titan_sync(company_id, task_id, option=None, automated=Fals
 
 
 def get_service_titan_locations(company_id, tenant, option):
+    # Retrieve the access token for ServiceTitan API
+    headers = get_service_titan_access_token(company_id)
+    clients = []
+    moreClients = True
+    page = 1
+
+    # Fetch client data in paginated requests
+    results = []
+    while moreClients:
+        response = requests.get(
+            url=(
+                f"https://api.servicetitan.io/crm/v2/tenant/"
+                f"{tenant}/locations?page={page}&pageSize=2500"
+            ),
+            headers=headers,
+            timeout=10,
+        )
+        page += 1
+        clients = response.json()["data"]
+        if not response.json()["hasMore"]:
+            moreClients = False
+
+        if option == "option3":
+            # Modify client names if option3 is selected
+            for client in clients:
+                client["name"] = " "
+
+        results.append(save_client_list.delay(clients, company_id))
+
+    count = 0
+    while any(not result.ready() for result in results) and count < 30:
+        sleep(1)
+        count += 1
+
+    # Clean up variables to free up memory
+    del_variables([clients, response, headers])
+
+
+def get_service_titan_jobs(company_id, tenant, option):
     # Retrieve the access token for ServiceTitan API
     headers = get_service_titan_access_token(company_id)
     clients = []
@@ -225,27 +198,40 @@ def update_clients_with_last_day_of_equipment_installation(company_id, equipment
 
 @shared_task
 def get_service_titan_customers(company_id, tenant):
-    headers = get_service_titan_access_token(company_id)
-    frm = ""
-    moreClients = True
-    page = 0
-    while moreClients:
-        page += 1
-        response = requests.get(
-            url=(
-                f"https://api.servicetitan.io/crm/v2/tenant/"
-                f"{tenant}/export/customers/contacts?from={frm}"
-            ),
-            headers=headers,
-            timeout=10,
-        )
-        numbers = response.json()["data"]
-        if response.json()["hasMore"]:
-            frm = response.json()["continueFrom"]
-        else:
-            moreClients = False
-        update_client_list.delay(numbers)
-    del_variables([numbers, response, headers])
+    company = Company.objects.get(id=company_id)
+    clients = Client.objects.filter(
+        Q(phone_number=None) | Q(email=None),
+        company=company,
+    ).exclude(
+        serv_titan_id=None
+    )
+    count = 0
+    for client in clients:
+        if count % 1500 == 0:
+            headers = get_service_titan_access_token(company_id)
+        try:
+            response = requests.get(
+                url=(
+                    f"https://api.servicetitan.io/crm/v2/tenant/"
+                    f"{tenant}/customers/{client.serv_titan_id}/contacts"
+                ),
+                headers=headers,
+                timeout=10,
+            )
+
+            if response.status_code == 200:
+                contact_info = response.json()["data"]
+                found_phone = False
+                for info in contact_info:
+                    if info["type"] == "MobilePhone" and found_phone is False:
+                        client.phone_number = info["value"]
+                        found_phone = True
+                    elif info["type"] == "Email":
+                        client.email = info["value"]
+                client.save()
+        except Exception as e:
+            logging.error(f"ERROR: {e}")
+    del_variables([clients, response, headers])
 
 
 @shared_task
@@ -399,6 +385,67 @@ def get_customer_since_data_from_invoices(company_id):
                         ])
     del_variables([clients, company, invoices])
 
+
+def get_service_titan_job_types(headers, tenant):
+    url = (
+        f"https://api.servicetitan.io/jpm/v2"
+        f"/tenant/{tenant}/job-types?pageSize=1000"
+    )
+    response = requests.get(url=url, headers=headers, timeout=10)
+    data = response.json()["data"]
+    job_types = {}
+    for job_type in data:
+        job_types[job_type["id"]] = job_type["name"]
+    del_variables([headers, response, data])
+    return job_types
+
+
+@shared_task
+def get_service_titan_jobs(company_id, tenant):
+    headers = get_service_titan_access_token(company_id)
+    job_types = get_service_titan_job_types(headers, tenant)
+    more_jobs = True
+    page = 1
+
+    while more_jobs:
+        jobs = []
+        url = (
+            f"https://api.servicetitan.io/jpm/v2/tenant/"
+            f"{tenant}/job-types?pageSize=1000&page={page}"
+        )
+        response = requests.get(url=url, headers=headers, timeout=10)
+        page += 1
+        jobs = response.json()["data"]
+        if response.json()["hasMore"] == False:
+            more_jobs = False
+        jobs_to_create = []
+        jobs_to_update = []
+
+        for job in jobs:
+            job_data = {
+                "id": job["id"],
+                "name": job_types[job["jobTypeId"]],
+                "client": Client.objects.get(serv_titan_id=job["customerId"])
+            }
+
+            if ServiceTitanJob.objects.filter(id=job_data["id"]).exists():
+                jobs_to_update.append(job_data)
+            else:
+                jobs_to_create.append(ServiceTitanJob(**job_data))
+
+        # Bulk update
+        with transaction.atomic():
+            for job_data in jobs_to_update:
+                ServiceTitanJob.objects.filter(
+                    id=job_data["id"]).update(**job_data)
+
+        # Bulk create
+        ServiceTitanJob.objects.bulk_create(jobs_to_create)
+
+    del_variables([headers, response, jobs, job_types,
+                  jobs_to_create, jobs_to_update])
+
+
 # TODO: Figure out where/when to use this
 # @shared_task
 # def update_clients_with_revenue(invoices, company_id):
@@ -440,3 +487,8 @@ def get_customer_since_data_from_invoices(company_id):
 #         )
 
 #     Client.objects.bulk_update(clients, ["revenue"])
+
+
+# from data.serviceTitan import *
+# company = Company.objects.get(name="Test Company")
+# get_service_titan_customers(company.id, company.tenant_id)
