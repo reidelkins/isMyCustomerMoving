@@ -36,6 +36,10 @@ for_sale_patterns = [
     ),
 ]
 
+realtor_patterns = [
+    path("", views.RealtorView.as_view(), name="for-sale"),
+]
+
 service_titan_patterns = [
     path(
         "",
@@ -75,6 +79,7 @@ urlpatterns = [
         name="all-recently-sold",
     ),
     path("forsale/", include(for_sale_patterns)),
+    path("realtor/", include(realtor_patterns)),
     path(
         "downloadforsale/",
         views.AllForSaleView.as_view(),

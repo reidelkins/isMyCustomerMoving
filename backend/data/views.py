@@ -4,7 +4,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Count, Min, Case, When, DateField
+from django.db.models import Count, Min, Case, When, DateField, Q
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse
 from datetime import date, datetime, timedelta
@@ -17,11 +17,12 @@ from accounts.models import Company, CustomUser
 from accounts.serializers import UserSerializerWithToken
 from config import settings
 from payments.models import ServiceTitanInvoice
-from .models import Client, ClientUpdate, HomeListing, Task, SavedFilter, ZipCode
+from .models import Client, ClientUpdate, HomeListing, Realtor, Task, SavedFilter, ZipCode
 from .serializers import (
     ClientSerializer,
     ClientListSerializer,
-    HomeListingSerializer
+    HomeListingSerializer,
+    RealtorSerializer
 )
 from .syncClients import get_salesforce_clients, complete_service_titan_sync
 from .realtor import get_all_zipcodes
@@ -617,6 +618,42 @@ class AllForSaleView(generics.ListAPIView):
             )
         else:
             return HomeListing.objects.none()
+
+
+class RealtorView(generics.ListAPIView):
+    serializer_class = RealtorSerializer
+    pagination_class = CustomPagination
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        service_area = self.request.user.company.service_area_zip_codes
+        for_sale_listing_realtors = list(
+            HomeListing.objects.filter(
+                zip_code__in=service_area, active=True,
+                status="House For Sale"
+            ).values_list("realtor", flat=True)
+        )
+        recently_sold_listing_realtors = list(
+            HomeListing.objects.filter(
+                zip_code__in=service_area, active=True,
+                status="House Recently Sold (6)"
+            ).values_list("realtor", flat=True)
+        )
+        realtors = Realtor.objects.filter(
+            Q(id__in=for_sale_listing_realtors) |
+            Q(id__in=recently_sold_listing_realtors)
+        ).distinct()
+        page = self.paginate_queryset(realtors)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            realtors = serializer.data
+            return self.get_paginated_response(
+                {"data": realtors}
+            )
+
+        serializer = self.get_serializer(realtors, many=True)
+        realtors = serializer.data
+        return Response({"data": realtors})
 
 
 class UpdateStatusView(APIView):

@@ -5,8 +5,9 @@ from .models import (
     Client,
     ClientUpdate,
     HomeListing,
-    Referral,
     HomeListingTags,
+    Realtor,
+    Referral
 )
 
 
@@ -115,5 +116,17 @@ class ReferralSerializer(serializers.ModelSerializer):
             "referred_from",
             "referred_to",
             "client",
+        ]
+        read_only_fields = fields
+
+
+class RealtorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Realtor
+        fields = [
+            "name",
+            "company",
+            "phone_number",
+            "email",
         ]
         read_only_fields = fields
