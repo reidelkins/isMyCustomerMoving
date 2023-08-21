@@ -47,6 +47,13 @@ export const userSlice = createSlice({
       highestPage: 0,
       count: 0,
     },
+    realtorInfo: {
+      loading: false,
+      error: null,
+      REALTORLIST: [],
+      highestPage: 0,
+      count: 0,
+    },
     referralInfo: {
       loading: false,
       error: null,
@@ -193,6 +200,34 @@ export const userSlice = createSlice({
       state.forSaleInfo.highestPage = action.payload;
     },
 
+    // -----------------  REALTOR  -----------------
+    realtor: (state, action) => {
+      state.realtorInfo.REALTORLIST = action.payload.results.data;
+      state.realtorInfo.loading = false;
+      state.realtorInfo.error = null;
+      state.realtorInfo.count = action.payload.count;      
+    },
+    realtorError: (state, action) => {
+      state.realtorInfo.error = action.payload;
+      state.realtorInfo.loading = false;
+      state.realtorInfo.REALTORLIST = [];
+    },
+    realtorLoading: (state) => {
+      state.realtorInfo.loading = true;
+      state.realtorInfo.REALTORLIST = [];
+      state.realtorInfo.highestPage = 0;
+    },
+    moreRealtor: (state, action) => {
+      state.realtorInfo.REALTORLIST = [...state.realtorInfo.REALTORLIST, ...action.payload.results.data];
+      state.realtorInfo.loading = false;
+      state.realtorInfo.error = null;
+      state.realtorInfo.count = action.payload.count;
+    },
+
+    newRealtorPage: (state, action) => {
+      state.realtorInfo.highestPage = action.payload;
+    },
+
     // -----------------  REFERRALS  -----------------
     referrals: (state, action) => {
       state.referralInfo.REFERRALLIST = action.payload;
@@ -322,10 +357,16 @@ export const {
   companyDashboard,
   companyDashboardLoading,
   companyDashboardError,
+  realtor,
+  realtorLoading,
+  realtorError,
+  newRealtorPage,
+  moreRealtor,
 } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
 export const selectRecentlySold = (state) => state.user.recentlySoldInfo;
 export const selectForSale = (state) => state.user.forSaleInfo;
+export const selectRealtorInfo = (state) => state.user.realtorInfo;
 export const selectUsers = (state) => state.user.usersInfo;
 export const selectReferrals = (state) => state.user.referralInfo;
 export const saveFilterSuccess = (state) => state.user.saveFilter.success;
@@ -1099,6 +1140,44 @@ export const recentlySoldAsync = (page, refreshed = false) => async (dispatch, g
     );
     if (error.response.status === 403 && !refreshed) {
       dispatch(getRefreshToken(dispatch, recentlySoldAsync(page, true)));
+    }
+  }
+};
+
+export const realtorAsync = (page, refreshed = false) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const { userInfo } = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access_token}`,
+      },
+    };
+    
+    if (page === 1 && reduxStore.user.realtorInfo.highestPage === 0) {
+      dispatch(realtorLoading());
+    }
+    if (page > reduxStore.user.realtorInfo.highestPage) {
+      const { data } = await axios.get(`${DOMAIN}/api/v1/data/realtor/?page=${page}`, config);
+      if (data.results.data.length > 0) {
+        dispatch(newRealtorPage(page));
+        if (data.results.data.length === 1000) {
+          dispatch(realtorAsync(page + 1));
+        }
+      }
+      if (page === 1) {
+        dispatch(realtor(data));
+      } else {
+        dispatch(moreRealtor(data));
+      }
+    }
+  } catch (error) {
+    dispatch(
+      realtorError(error.response && error.response.data.detail ? error.response.data.detail : error.message)
+    );
+    if (error.response.status === 403 && !refreshed) {
+      dispatch(getRefreshToken(dispatch, realtorAsync(page, true)));
     }
   }
 };
