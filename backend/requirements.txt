@@ -90,7 +90,7 @@ requests-toolbelt==1.0.0
 rsa==4.9
 scrapfly-sdk==0.8.8
 Scrapy==2.9.0
-service-identity==21.1.0
+service-identity==23.1.0
 simple-salesforce==1.12.3
 six==1.16.0
 social-auth-app-django==5.2.0
