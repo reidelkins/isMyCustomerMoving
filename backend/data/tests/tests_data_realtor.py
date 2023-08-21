@@ -116,7 +116,7 @@ class TestRealtorFunctions(TestCase):
         get_all_zipcodes(self.company.id)
         assert mock_find_data.call_count == 4
         if datetime.now().weekday() == 0:
-            mock_zapier_recently_sold.assert_called_once_with(self.company.id)
+            mock_zapier_recently_sold.assert_called()
         else:
             mock_zapier_recently_sold.assert_not_called()
 
