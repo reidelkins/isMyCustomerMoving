@@ -91,6 +91,45 @@ def get_service_titan_locations(company_id, tenant, option):
     del_variables([clients, response, headers])
 
 
+def update_sold_listed_date_on_location(company_id, tenant, customer_id, status, date):
+    company = Company.objects.get(id=company_id)
+    client = Client.objects.get(company=company, serv_titan_id=customer_id)
+    headers = get_service_titan_access_token(company_id)
+    response = requests.get(
+        url=(
+            f"https://api.servicetitan.io/crm/v2/tenant/"
+            f"{tenant}/locations?customerId={customer_id}"
+        ),
+        headers=headers,
+        timeout=10,
+    )
+    locations = response.json()["data"]
+    for location in locations:
+        if location["address"]["street"] == client.address:
+            location_id = location["id"]
+            custom_fields = location["customFields"]
+            existed = False
+            for field in custom_fields:
+                if field["name"] == status:
+                    field["value"] = date
+                    existed = True
+                    break
+            if not existed:
+                custom_field_id = company.serv_titan_sold_field_id if status == "Home Sold Date" else company.serv_titan_listed_field_id
+                custom_fields.append(
+                    {"name": status, "value": date, "typeId": custom_field_id})
+            locations["customFields"] = custom_fields
+            response = requests.patch(
+                url=(
+                    f"https://api.servicetitan.io/crm/v2/tenant/"
+                    f"{tenant}/locations/{location_id}"
+                ),
+                headers=headers,
+                json=locations,
+                timeout=10,
+            )
+
+
 def get_service_titan_jobs(company_id, tenant, option):
     # Retrieve the access token for ServiceTitan API
     headers = get_service_titan_access_token(company_id)
