@@ -626,16 +626,32 @@ class RealtorView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
-        service_area = self.request.user.company.service_area_zip_codes
-        for_sale_listing_realtors = list(
-            HomeListing.objects.filter(
-                zip_code__in=service_area, active=True,
-                status="House For Sale"
-            ).values_list("realtor", flat=True)
-        )
+        service_area = self.request.user.company.service_area_zip_codes.values_list(
+            "zip_code", flat=True)
+        for_sale_listings = HomeListing.objects.filter(
+            zip_code__in=service_area,
+            status="House For Sale"
+        ).prefetch_related("realtor")
+
+        for_sale_realtors = [
+            home_listing.realtor for home_listing in for_sale_listings]
+        # Annotate the queryset with a count of listings for each realtor
+        realtors_with_listing_count = for_sale_listings.values(
+            'realtor__id').annotate(listing_count=Count('realtor__id'))
+
+        # Now you have a queryset with each realtor's ID and the corresponding listing count
+        # You can convert it to a dictionary for easier access
+        realtor_count_dict = {entry['realtor__id']: entry['listing_count']
+                              for entry in realtors_with_listing_count}
+
+        # Now you can loop through your Realtor objects and access their listing counts
+        for realtor in for_sale_realtors:
+            listing_count = realtor_count_dict.get(
+                realtor.id, 0)  # Default to 0 if not found
+        print(f"Realtor {realtor.name} has {listing_count} listings")
         recently_sold_listing_realtors = list(
             HomeListing.objects.filter(
-                zip_code__in=service_area, active=True,
+                zip_code__in=service_area,
                 status="House Recently Sold (6)"
             ).values_list("realtor", flat=True)
         )
