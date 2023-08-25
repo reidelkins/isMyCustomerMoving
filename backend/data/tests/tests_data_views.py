@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from rest_framework.test import APIClient
 from accounts.models import Company, CustomUser
 from accounts.serializers import MyTokenObtainPairSerializer
-from data.models import Client, ClientUpdate
+from data.models import Client, ClientUpdate, HomeListing, Realtor, ZipCode
 from payments.models import ServiceTitanInvoice
 
 
@@ -196,3 +196,51 @@ class ZapierClientView(TestCase):
         assert Client.objects.filter(company=self.company).count() == 2
         assert Client.objects.filter(
             company=self.company, name="Test Client").exists() == True
+
+
+class RealtorView(TestCase):
+    def setUp(self):
+        self.zip_code_1 = ZipCode.objects.create(zip_code="12345")
+        self.zip_code_2 = ZipCode.objects.create(zip_code="67890")
+        self.company = Company.objects.create(name="Test Company")
+        self.company.service_area_zip_codes.add(self.zip_code_1)
+        self.user = CustomUser.objects.create_user(
+            email="testuser@example.com",
+            password="testpassword",
+            company=self.company,
+            is_verified=True,
+            date_joined=datetime.today()-timedelta(days=370),
+        )
+
+        self.token = get_token()
+
+        self.realtor_1 = Realtor.objects_with_listing_count.create(
+            name="Realtor 1", company="Test Realty 1")
+        self.realtor_2 = Realtor.objects_with_listing_count.create(
+            name="Realtor 2", company="Test Realty 2")
+
+        HomeListing.objects.create(
+            zip_code=self.zip_code_1, address="123 Lane", status="For Sale", realtor=self.realtor_1)
+        HomeListing.objects.create(
+            zip_code=self.zip_code_1, address="456 Lane", status="For Sale", realtor=self.realtor_1)
+        HomeListing.objects.create(
+            zip_code=self.zip_code_2, address="654 Lane", status="For Sale", realtor=self.realtor_1)
+        HomeListing.objects.create(
+            zip_code=self.zip_code_2, address="789 Street", status="For Sale", realtor=self.realtor_2)
+
+    def test_get_realtors_by_service_area(self):
+        headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
+
+        # Make a request to your view
+        response = self.client.get(reverse("realtors"), **headers)
+
+        # Check if the response status is 200 OK
+        assert response.status_code == 200
+        data = response.data['results']['data']
+        # Check if the realtor with the most listings comes first, and that only listings in the service area are counted
+        self.assertEqual(data[0]['name'], "Realtor 1")
+        self.assertEqual(data[0]['listing_count'], 2)
+
+        # Check if Realtor 2 is not present since it's not in the service zip code area
+        realtor_names = [realtor['name'] for realtor in data]
+        self.assertNotIn("Realtor 2", realtor_names)

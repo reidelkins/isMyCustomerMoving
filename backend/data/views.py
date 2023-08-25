@@ -17,11 +17,20 @@ from accounts.models import Company, CustomUser
 from accounts.serializers import UserSerializerWithToken
 from config import settings
 from payments.models import ServiceTitanInvoice
-from .models import Client, ClientUpdate, HomeListing, Task, SavedFilter, ZipCode
+from .models import (
+    Client,
+    ClientUpdate,
+    HomeListing,
+    Realtor,
+    Task,
+    SavedFilter,
+    ZipCode
+)
 from .serializers import (
     ClientSerializer,
     ClientListSerializer,
-    HomeListingSerializer
+    HomeListingSerializer,
+    RealtorSerializer
 )
 from .syncClients import get_salesforce_clients, complete_service_titan_sync
 from .realtor import get_all_zipcodes
@@ -617,6 +626,39 @@ class AllForSaleView(generics.ListAPIView):
             )
         else:
             return HomeListing.objects.none()
+
+
+class RealtorView(generics.ListAPIView):
+    serializer_class = RealtorSerializer
+    pagination_class = CustomPagination
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if "client" in self.request.query_params:
+            print(self.request.query_params)
+            return Response("", status=status.HTTP_200_OK, headers="")
+        else:
+            service_area_zip_codes = (
+                request.user.company.service_area_zip_codes.all())
+
+            # # Get Realtors with listing counts based on the filtered HomeListings
+            realtors_with_counts =  \
+                Realtor.objects_with_listing_count \
+                .get_realtors_with_filtered_listings(
+                    service_area_zip_codes=service_area_zip_codes).distinct()
+
+            # # Sorting realtors by the annotated listing count in descending order
+            realtors_sorted = sorted(realtors_with_counts,
+                                     key=lambda x: x.listing_count, reverse=True)
+            page = self.paginate_queryset(realtors_sorted)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(
+                    {"data": serializer.data}
+                )
+            # # Serialize and return the Realtors
+            serializer = self.get_serializer(realtors_sorted, many=True)
+            return Response({"data": serializer.data})
 
 
 class UpdateStatusView(APIView):

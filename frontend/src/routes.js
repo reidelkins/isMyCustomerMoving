@@ -7,6 +7,7 @@ import Dashboard from './pages/dashboard/Home';
 import CustomerData from './pages/dashboard/CustomerData';
 import ForSaleData from './pages/dashboard/ForSaleData';
 import RecentlySoldData from './pages/dashboard/RecentlySoldData';
+import RealtorData from './pages/dashboard/RealtorData';
 import Login from './pages/root/Login';
 import Logout from './pages/root/Logout';
 import Validate2fa from './pages/account/Validate2fa';
@@ -53,6 +54,7 @@ export default function Router() {
         { path: 'settings/enterprise', element: <EnterpriseSettings /> },
         { path: 'forsale', element: <ForSaleData /> },
         { path: 'recentlysold', element: <RecentlySoldData /> },
+        { path: 'realtors', element: <RealtorData /> },
         { path: 'referrals', element: <Referrals /> },
         { path: 'adduser', element: <AddUser /> },
       ],
