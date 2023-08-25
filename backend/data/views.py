@@ -1097,6 +1097,7 @@ class CompanyDashboardView(APIView):
         Return the customer retention rate for a company
         """
         company = Company.objects.get(id=company_id)
+
         if company.service_area_zip_codes.count() > 0:
             zip_code_objects = company.service_area_zip_codes.values(
                 'zip_code')
@@ -1111,15 +1112,18 @@ class CompanyDashboardView(APIView):
 
         clients_with_moved_to_add = all_clients.filter(
             address__in=clients_with_new_add
+
         )
 
         all_clients_with_new_add_and_rev = all_clients.filter(
             service_titan_lifetime_revenue__gt=0
+
         ).exclude(new_address=None).values_list(
             "new_address", flat=True)
 
         clients_with_new_add_and_rev = all_clients.filter(
             address__in=all_clients_with_new_add_and_rev
+
         )
         clients_with_new_add_and_rev_and_new_rev = \
             clients_with_new_add_and_rev.filter(
