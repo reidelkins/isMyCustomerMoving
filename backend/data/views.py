@@ -825,9 +825,9 @@ class UpdateClientView(APIView):
                     if client.serv_titan_id:
                         remove_all_service_titan_tags.delay(client=client.id)
                 if request.data["latitude"] != "":
-                    client.latitude = request.data["latitude"]
+                    client.latitude = str(request.data["latitude"])
                 if request.data["longitude"] != "":
-                    client.longitude = request.data["longitude"]
+                    client.longitude = str(request.data["longitude"])
                 client.save()
                 return Response(
                     {"status": "Client Updated"},
