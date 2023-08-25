@@ -1144,7 +1144,7 @@ export const recentlySoldAsync = (page, refreshed = false) => async (dispatch, g
   }
 };
 
-export const realtorAsync = (page, refreshed = false) => async (dispatch, getState) => {
+export const realtorAsync = (page, clients = false, refreshed = false) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
@@ -1155,11 +1155,12 @@ export const realtorAsync = (page, refreshed = false) => async (dispatch, getSta
       },
     };
     
+    const url = clients ? `${DOMAIN}/api/v1/data/realtor/?clients=True&page=${page}` : `${DOMAIN}/api/v1/data/realtor/`;
     if (page === 1 && reduxStore.user.realtorInfo.highestPage === 0) {
       dispatch(realtorLoading());
     }
     if (page > reduxStore.user.realtorInfo.highestPage) {
-      const { data } = await axios.get(`${DOMAIN}/api/v1/data/realtor/?page=${page}`, config);
+      const { data } = await axios.get(url, config);
       if (data.results.data.length > 0) {
         dispatch(newRealtorPage(page));
         if (data.results.data.length === 1000) {
@@ -1177,7 +1178,7 @@ export const realtorAsync = (page, refreshed = false) => async (dispatch, getSta
       realtorError(error.response && error.response.data.detail ? error.response.data.detail : error.message)
     );
     if (error.response.status === 403 && !refreshed) {
-      dispatch(getRefreshToken(dispatch, realtorAsync(page, true)));
+      dispatch(getRefreshToken(dispatch, realtorAsync(page, clients, true)));
     }
   }
 };

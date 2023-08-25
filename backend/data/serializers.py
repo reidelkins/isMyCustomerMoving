@@ -121,12 +121,12 @@ class ReferralSerializer(serializers.ModelSerializer):
 
 
 class RealtorSerializer(serializers.ModelSerializer):
+    listing_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Realtor
-        fields = [
-            "name",
-            "company",
-            "phone_number",
-            "email",
-        ]
-        read_only_fields = fields
+        fields = ['id', 'name', 'company', 'phone',
+                  'email', 'url', 'listing_count']
+
+    def get_listing_count(self, obj):
+        return obj.home_listing_realtor.count()

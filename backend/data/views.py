@@ -625,51 +625,29 @@ class RealtorView(generics.ListAPIView):
     pagination_class = CustomPagination
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, format=None):
-        service_area = self.request.user.company.service_area_zip_codes.values_list(
-            "zip_code", flat=True)
-        for_sale_listings = HomeListing.objects.filter(
-            zip_code__in=service_area,
-            status="House For Sale"
-        ).prefetch_related("realtor")
+    def get(self, request):
+        if "client" in self.request.query_params:
+            print(self.request.query_params)
+            return Response("", status=status.HTTP_200_OK, headers="")
+        else:
+            service_area_zip_codes = request.user.company.service_area_zip_codes.all()
 
-        for_sale_realtors = [
-            home_listing.realtor for home_listing in for_sale_listings]
-        # Annotate the queryset with a count of listings for each realtor
-        realtors_with_listing_count = for_sale_listings.values(
-            'realtor__id').annotate(listing_count=Count('realtor__id'))
+            # # Get Realtors with listing counts based on the filtered HomeListings
+            realtors_with_counts = Realtor.objects_with_listing_count.filter(
+                home_listing_realtor__zip_code__in=service_area_zip_codes).distinct()
 
-        # Now you have a queryset with each realtor's ID and the corresponding listing count
-        # You can convert it to a dictionary for easier access
-        realtor_count_dict = {entry['realtor__id']: entry['listing_count']
-                              for entry in realtors_with_listing_count}
-
-        # Now you can loop through your Realtor objects and access their listing counts
-        for realtor in for_sale_realtors:
-            listing_count = realtor_count_dict.get(
-                realtor.id, 0)  # Default to 0 if not found
-        print(f"Realtor {realtor.name} has {listing_count} listings")
-        recently_sold_listing_realtors = list(
-            HomeListing.objects.filter(
-                zip_code__in=service_area,
-                status="House Recently Sold (6)"
-            ).values_list("realtor", flat=True)
-        )
-        realtors = Realtor.objects.filter(
-            Q(id__in=for_sale_listing_realtors) |
-            Q(id__in=recently_sold_listing_realtors)
-        ).distinct()
-        page = self.paginate_queryset(realtors)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            realtors = serializer.data
-            return self.get_paginated_response(
-                {"data": realtors}
-            )
-
-        serializer = self.get_serializer(realtors, many=True)
-        realtors = serializer.data
-        return Response({"data": realtors})
+            # # Sorting realtors by the annotated listing count in descending order
+            realtors_sorted = sorted(realtors_with_counts,
+                                     key=lambda x: x.listing_count, reverse=True)
+            page = self.paginate_queryset(realtors_sorted)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(
+                    {"data": serializer.data}
+                )
+            # # Serialize and return the Realtors
+            serializer = self.get_serializer(realtors_sorted, many=True)
+            return Response({"data": serializer.data})
 
 
 class UpdateStatusView(APIView):

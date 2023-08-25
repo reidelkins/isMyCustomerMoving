@@ -42,8 +42,7 @@ const TABLE_HEAD = [
   { id: 'name', label: 'Realtor', alignRight: false },
   { id: 'phone', label: 'Phone', alignRight: false },
   { id: 'email', label: 'Email', alignRight: false },
-  { id: 'for_sale_count', label: 'For Sale Count', alignRight: false },
-  { id: 'recently_sold_count', label: 'Recently Sold Count', alignRight: false }
+  { id: 'count', label: 'Listing Count', alignRight: false },
   
 ];
 
@@ -123,31 +122,22 @@ export default function RealtorData() {
                         {filteredRealtors.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                           const {
                             id,
-                            address,
-                            city,
-                            state,
-                            zip_code: zipCode,
-                            listed,
-                            price,
-                            year_built: yearBuilt,
+                            name,
+                            company,
+                            phone,
+                            email,
+                            listing_count: count,
+                            
                           } = row;
 
                           return (
                             <React.Fragment key={row.id}>
                               <TableRow hover key={id} tabIndex={-1} role="checkbox">
-                                <TableCell component="th" scope="row" padding="normal">
-                                  <Stack direction="row" alignItems="center" spacing={2}>
-                                    <Typography variant="subtitle2" noWrap>
-                                      {makeDate(listed.slice(0, 10))}
-                                    </Typography>
-                                  </Stack>
-                                </TableCell>
-                                <TableCell align="left">{address}</TableCell>
-                                <TableCell align="left">{city}</TableCell>
-                                <TableCell align="left">{state}</TableCell>
-                                <TableCell align="left">{zipCode}</TableCell>
-                                <TableCell align="left">{price.toLocaleString()}</TableCell>
-                                <TableCell align="left">{yearBuilt}</TableCell>
+                                <TableCell align="left">{name}</TableCell>
+                                <TableCell align="left">{company}</TableCell>
+                                <TableCell align="left">{phone}</TableCell>
+                                <TableCell align="left">{email}</TableCell>
+                                <TableCell align="left">{count}</TableCell>
                               </TableRow>
                             </React.Fragment>
                           );
@@ -163,7 +153,7 @@ export default function RealtorData() {
                         <TableBody>
                           <TableRow>
                             <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                              <SearchNotFound searchQuery={''} tipe="client" />
+                              <SearchNotFound searchQuery={''} tipe="realtor" />
                             </TableCell>
                           </TableRow>
                         </TableBody>

@@ -37,7 +37,7 @@ for_sale_patterns = [
 ]
 
 realtor_patterns = [
-    path("", views.RealtorView.as_view(), name="for-sale"),
+    path("", views.RealtorView.as_view(), name="realtors"),
 ]
 
 service_titan_patterns = [

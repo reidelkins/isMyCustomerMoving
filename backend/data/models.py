@@ -152,6 +152,11 @@ class ScrapeResponse(models.Model):
     url = models.CharField(max_length=100, blank=True, null=True)
 
 
+class RealtorWithListingCountManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().annotate(listing_count=models.Count('home_listing_realtor'))
+
+
 # Realtor model
 class Realtor(models.Model):
     id = models.UUIDField(
@@ -162,6 +167,7 @@ class Realtor(models.Model):
     phone = models.CharField(max_length=100)
     email = models.CharField(max_length=100)
     url = models.CharField(max_length=100)
+    objects_with_listing_count = RealtorWithListingCountManager()
 
 
 # HomeListing model
