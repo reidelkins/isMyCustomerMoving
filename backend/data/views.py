@@ -4,7 +4,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Count, Min, Case, When, DateField, Q
+from django.db.models import Count, Min, Case, When, DateField
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse
 from datetime import date, datetime, timedelta
@@ -17,7 +17,15 @@ from accounts.models import Company, CustomUser
 from accounts.serializers import UserSerializerWithToken
 from config import settings
 from payments.models import ServiceTitanInvoice
-from .models import Client, ClientUpdate, HomeListing, Realtor, Task, SavedFilter, ZipCode
+from .models import (
+    Client,
+    ClientUpdate,
+    HomeListing,
+    Realtor,
+    Task,
+    SavedFilter,
+    ZipCode
+)
 from .serializers import (
     ClientSerializer,
     ClientListSerializer,
@@ -630,11 +638,14 @@ class RealtorView(generics.ListAPIView):
             print(self.request.query_params)
             return Response("", status=status.HTTP_200_OK, headers="")
         else:
-            service_area_zip_codes = request.user.company.service_area_zip_codes.all()
+            service_area_zip_codes = (
+                request.user.company.service_area_zip_codes.all())
 
             # # Get Realtors with listing counts based on the filtered HomeListings
-            realtors_with_counts = Realtor.objects_with_listing_count.filter(
-                home_listing_realtor__zip_code__in=service_area_zip_codes).distinct()
+            realtors_with_counts =  \
+                Realtor.objects_with_listing_count \
+                .get_realtors_with_filtered_listings(
+                    service_area_zip_codes=service_area_zip_codes).distinct()
 
             # # Sorting realtors by the annotated listing count in descending order
             realtors_sorted = sorted(realtors_with_counts,

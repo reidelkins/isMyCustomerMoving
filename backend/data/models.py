@@ -153,8 +153,43 @@ class ScrapeResponse(models.Model):
 
 
 class RealtorWithListingCountManager(models.Manager):
-    def get_queryset(self):
-        return super().get_queryset().annotate(listing_count=models.Count('home_listing_realtor'))
+    def get_queryset(self, service_area_zip_codes=None):
+        queryset = super().get_queryset()
+
+        if service_area_zip_codes:
+            queryset = queryset.annotate(
+                listing_count=models.Count(
+                    'home_listing_realtor',
+                    filter=models.Q(
+                        home_listing_realtor__zip_code__in=service_area_zip_codes),
+                    distinct=True
+                )
+            )
+        else:
+            queryset = queryset.annotate(
+                listing_count=models.Count('home_listing_realtor')
+            )
+
+        return queryset
+
+    def get_realtors_with_filtered_listings(self, service_area_zip_codes=None):
+        queryset = super().get_queryset()
+
+        if service_area_zip_codes:
+            queryset = queryset.annotate(
+                listing_count=models.Count(
+                    'home_listing_realtor',
+                    filter=models.Q(
+                        home_listing_realtor__zip_code__in=service_area_zip_codes),
+                    distinct=True
+                )
+            )
+        else:
+            queryset = queryset.annotate(
+                listing_count=models.Count('home_listing_realtor')
+            )
+
+        return queryset.filter(listing_count__gt=0)
 
 
 # Realtor model

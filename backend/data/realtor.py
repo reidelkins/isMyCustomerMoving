@@ -398,9 +398,10 @@ def create_home_listings(results, status, resp=None):
                     try:
                         for brand in listing["branding"]:
                             if brand["name"] is not None:
-                                realtor, _ = Realtor.objects.get_or_create(
-                                    name=brand["name"]
-                                )
+                                realtor, _ = \
+                                    Realtor.objects_with_listing_count.get_or_create(
+                                        name=brand["name"]
+                                    )
                                 home_listing.realtor = realtor
                                 home_listing.save()
                     except Exception as e:
@@ -667,7 +668,7 @@ def update_advertiser(listing, advertiser):
     Returns:
         None
     """
-    realtor, _ = Realtor.objects.get_or_create(
+    realtor, _ = Realtor.objects_with_listing_count.get_or_create(
         company=advertiser.get("broker", {}).get("name"),
         email=advertiser.get("email"),
         url=advertiser.get("href"),

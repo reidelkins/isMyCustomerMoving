@@ -188,7 +188,7 @@ class TestClientUpdateModel(TestCase):
 class HomeListingModelTests(TestCase):
     def setUp(self):
         self.zip_code = ZipCode.objects.create(zip_code="12345")
-        self.realtor = Realtor.objects.create(
+        self.realtor = Realtor.objects_with_listing_count.create(
             name="John Doe",
             company="Doe Estate",
             phone="1234567890",
