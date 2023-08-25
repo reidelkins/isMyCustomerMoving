@@ -40,17 +40,6 @@ const useStyles = makeStyles((theme) => ({
     right: theme.spacing(1),
     top: theme.spacing(1),
   },
-  filterBox: {
-    position: 'absolute',
-    margin: 'auto',
-    maxHeight: '50vh',
-    overflowY: 'auto',
-    backgroundColor: theme.palette.background.paper,
-    boxShadow: theme.shadows[5],
-    padding: theme.spacing(2),
-    width: '30%',
-    minWidth: '500px',
-  },
 }));
 
 ForSaleDataFilter.propTypes = {
@@ -401,12 +390,10 @@ export default function ForSaleDataFilter({
       </Stack>
       {showFilters && (
         <Dialog
-          sx={{ padding: '200px' }}
-          className={classes.filterBox}
           open={showFilters}
           onClose={() => setShowFilters(false)}
         >
-          <DialogTitle>Filter List</DialogTitle>
+          <DialogTitle>For Sale Filter</DialogTitle>
           <Divider />
           <DialogContent>
             <form onSubmit={handleFilterSubmit}>
@@ -414,7 +401,7 @@ export default function ForSaleDataFilter({
                             <Typography variant="h5">Select Filters</Typography>                        
                         </Box> */}
               <Grid container spacing={2}>
-                {forSaleFilters && (
+                {forSaleFilters.length > 0 && (
                   <Grid item xs={12}>
                     <FormControl component="fieldset">
                       <Typography variant="h6" mb={2}>
@@ -702,8 +689,6 @@ export default function ForSaleDataFilter({
       )}
       {showSaveFilter && (
         <Dialog
-          sx={{ padding: '200px' }}
-          className={classes.filterBox}
           open={showSaveFilter}
           onClose={() => setShowSaveFilter(false)}
         >

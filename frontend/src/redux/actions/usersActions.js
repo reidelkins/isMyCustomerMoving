@@ -47,6 +47,13 @@ export const userSlice = createSlice({
       highestPage: 0,
       count: 0,
     },
+    realtorInfo: {
+      loading: false,
+      error: null,
+      REALTORLIST: [],
+      highestPage: 0,
+      count: 0,
+    },
     referralInfo: {
       loading: false,
       error: null,
@@ -193,6 +200,34 @@ export const userSlice = createSlice({
       state.forSaleInfo.highestPage = action.payload;
     },
 
+    // -----------------  REALTOR  -----------------
+    realtor: (state, action) => {
+      state.realtorInfo.REALTORLIST = action.payload.results.data;
+      state.realtorInfo.loading = false;
+      state.realtorInfo.error = null;
+      state.realtorInfo.count = action.payload.count;      
+    },
+    realtorError: (state, action) => {
+      state.realtorInfo.error = action.payload;
+      state.realtorInfo.loading = false;
+      state.realtorInfo.REALTORLIST = [];
+    },
+    realtorLoading: (state) => {
+      state.realtorInfo.loading = true;
+      state.realtorInfo.REALTORLIST = [];
+      state.realtorInfo.highestPage = 0;
+    },
+    moreRealtor: (state, action) => {
+      state.realtorInfo.REALTORLIST = [...state.realtorInfo.REALTORLIST, ...action.payload.results.data];
+      state.realtorInfo.loading = false;
+      state.realtorInfo.error = null;
+      state.realtorInfo.count = action.payload.count;
+    },
+
+    newRealtorPage: (state, action) => {
+      state.realtorInfo.highestPage = action.payload;
+    },
+
     // -----------------  REFERRALS  -----------------
     referrals: (state, action) => {
       state.referralInfo.REFERRALLIST = action.payload;
@@ -322,10 +357,16 @@ export const {
   companyDashboard,
   companyDashboardLoading,
   companyDashboardError,
+  realtor,
+  realtorLoading,
+  realtorError,
+  newRealtorPage,
+  moreRealtor,
 } = userSlice.actions;
 export const selectClients = (state) => state.user.clientsInfo;
 export const selectRecentlySold = (state) => state.user.recentlySoldInfo;
 export const selectForSale = (state) => state.user.forSaleInfo;
+export const selectRealtorInfo = (state) => state.user.realtorInfo;
 export const selectUsers = (state) => state.user.usersInfo;
 export const selectReferrals = (state) => state.user.referralInfo;
 export const saveFilterSuccess = (state) => state.user.saveFilter.success;
@@ -383,7 +424,7 @@ export const updateCounts = (contacted, status, updatedClients) => async (dispat
 
   }
 
-export const usersAsync = () => async (dispatch, getState) => {
+export const usersAsync = (refreshed = false) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
@@ -398,15 +439,15 @@ export const usersAsync = () => async (dispatch, getState) => {
     dispatch(users(data));
   } catch (error) {
     dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, usersAsync()));
+    if (error.response.status === 403 && !refreshed) {
+      dispatch(getRefreshToken(dispatch, usersAsync(true)));
     } else {
       dispatch(logout());
     }
   }
 };
 
-export const deleteUserAsync = (ids) => async (dispatch, getState) => {
+export const deleteUserAsync = (ids, refreshed = false) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
@@ -421,8 +462,8 @@ export const deleteUserAsync = (ids) => async (dispatch, getState) => {
     dispatch(users(data));
   } catch (error) {
     dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, deleteUserAsync(ids)));
+    if (error.response.status === 403 && !refreshed) {
+      dispatch(getRefreshToken(dispatch, deleteUserAsync(ids, true)));
     }
   }
 };
@@ -494,7 +535,7 @@ export const newAddressAsync = (page, refreshed = false) => async (dispatch, get
     }
   };
 
-export const deleteClientAsync = (ids) => async (dispatch, getState) => {
+export const deleteClientAsync = (ids, refreshed = false) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
@@ -519,14 +560,14 @@ export const deleteClientAsync = (ids) => async (dispatch, getState) => {
     dispatch(clientsAsync(1));
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, deleteClientAsync(ids)));
+    if (error.response.status === 403 && !refreshed) {
+      dispatch(getRefreshToken(dispatch, deleteClientAsync(ids, true)));
     }
   }
 };
 
 export const updateClientAsync =
-  (id, contacted, note, errorFlag, latitude, longitude) => async (dispatch, getState) => {
+  (id, contacted, note, errorFlag, latitude, longitude, refreshed = false) => async (dispatch, getState) => {
     try {
       const reduxStore = getState();
       const { userInfo } = reduxStore.auth.userInfo;
@@ -545,13 +586,13 @@ export const updateClientAsync =
       dispatch(clientsAsync(1));
     } catch (error) {
       dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-      if (error.response.status === 403) {
-        dispatch(getRefreshToken(dispatch, updateClientAsync(id, contacted, note, errorFlag, latitude, longitude)));
+      if (error.response.status === 403 && !refreshed) {
+        dispatch(getRefreshToken(dispatch, updateClientAsync(id, contacted, note, errorFlag, latitude, longitude, true)));
       }
     }
   };
 
-export const uploadClientsUpdateAsync = (id) => async (dispatch, getState) => {
+export const uploadClientsUpdateAsync = (id, refreshed = false) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
@@ -573,13 +614,13 @@ export const uploadClientsUpdateAsync = (id) => async (dispatch, getState) => {
     }
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, uploadClientsUpdateAsync(id)));
+    if (error.response.status === 403 && !refreshed) {
+      dispatch(getRefreshToken(dispatch, uploadClientsUpdateAsync(id, true)));
     }
   }
 };
 
-export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
+export const uploadClientsAsync = (customers, refreshed = false) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
@@ -591,16 +632,43 @@ export const uploadClientsAsync = (customers) => async (dispatch, getState) => {
     };
 
     dispatch(clientsLoading());
-    const { data } = await axios.put(`${DOMAIN}/api/v1/data/upload/`, customers, config);
+    const { data } = await axios.put(`${DOMAIN}/api/v1/data/upload/clients/`, customers, config);
     dispatch(clientsUpload(data.data));
     dispatch(uploadClientsUpdateAsync(data.task));
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, uploadClientsAsync(customers)));
+    if (error.response.status === 403 && !refreshed) {
+      dispatch(getRefreshToken(dispatch, uploadClientsAsync(customers, true)));
     }
   }
 };
+
+export const uploadServiceAreasAsync = (zipCodes, refreshed = false) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const { userInfo } = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access_token}`,
+      },
+    };
+
+    dispatch(clientsLoading());
+    const { data } = await axios.put(`${DOMAIN}/api/v1/data/upload/zips/`, zipCodes, config);    
+    dispatch(login(data));
+    localStorage.setItem('userInfo', JSON.stringify(data));
+    window.location.reload();
+  } catch (error) {
+    dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    if (error.response.status === 403 && !refreshed) {
+      dispatch(getRefreshToken(dispatch, uploadServiceAreasAsync(zipCodes, true)));
+    }
+  }
+};
+
+
+
 
 export const filterClientsAsync =
   (
@@ -626,7 +694,8 @@ export const filterClientsAsync =
     minLotSqft,
     maxLotSqft,
     savedFilter,
-    uspsChanged
+    uspsChanged,
+    refreshed = false
   ) =>
   async (dispatch, getState) => {
     try {
@@ -712,7 +781,7 @@ export const filterClientsAsync =
       dispatch(clients(data));
     } catch (error) {
       dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-      if (error.response.status === 403) {
+      if (error.response.status === 403 && !refreshed) {
         dispatch(
           getRefreshToken(
             dispatch,
@@ -739,7 +808,8 @@ export const filterClientsAsync =
               minLotSqft,
               maxLotSqft,
               savedFilter,
-              uspsChanged
+              uspsChanged,
+              true
             )
           )
         );
@@ -747,7 +817,7 @@ export const filterClientsAsync =
     }
   };
 
-export const serviceTitanUpdateAsync = (id) => async (dispatch, getState) => {
+export const serviceTitanUpdateAsync = (id, refreshed = false) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
@@ -770,13 +840,13 @@ export const serviceTitanUpdateAsync = (id) => async (dispatch, getState) => {
     }
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, serviceTitanUpdateAsync(id)));
+    if (error.response.status === 403 && !refreshed) {
+      dispatch(getRefreshToken(dispatch, serviceTitanUpdateAsync(id, true)));
     }
   }
 };
 
-export const serviceTitanSync = (option) => async (dispatch, getState) => {
+export const serviceTitanSync = (option, ) => async (dispatch, getState) => {
   try {
     dispatch(clientsLoading());
     const reduxStore = getState();
@@ -816,7 +886,7 @@ export const salesForceSync = () => async (dispatch, getState) => {
   }
 };
 
-export const addUser = (email) => async (dispatch, getState) => {
+export const addUser = (email, refreshed = false) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
@@ -836,13 +906,13 @@ export const addUser = (email) => async (dispatch, getState) => {
     dispatch(users(data));
   } catch (error) {
     dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, addUser(email)));
+    if (error.response.status === 403 && !refreshed) {
+      dispatch(getRefreshToken(dispatch, addUser(email, true)));
     }
   }
 };
 
-export const makeAdminAsync = (userId) => async (dispatch, getState) => {
+export const makeAdminAsync = (userId, refreshed = false) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
@@ -858,9 +928,9 @@ export const makeAdminAsync = (userId) => async (dispatch, getState) => {
     dispatch(users(data));
   } catch (error) {
     dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    // if (error.response.status === 403) {
-    //   dispatch(getRefreshToken(dispatch, makeAdminAsync(userId)));
-    // }
+    if (error.response.status === 403 && !refreshed) {
+      dispatch(getRefreshToken(dispatch, makeAdminAsync(userId, true)));
+    }
   }
 };
 
@@ -880,7 +950,7 @@ export const update = () => async (getState) => {
   }
 };
 
-export const forSaleAsync = (page) => async (dispatch, getState) => {
+export const forSaleAsync = (page, refreshed = false) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
@@ -910,8 +980,8 @@ export const forSaleAsync = (page) => async (dispatch, getState) => {
     }
   } catch (error) {
     dispatch(forSaleError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-    if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, forSaleAsync(page)));
+    if (error.response.status === 403 && !refreshed) {
+      dispatch(getRefreshToken(dispatch, forSaleAsync(page, true)));
     }
   }
 };
@@ -936,7 +1006,8 @@ export const filterForSaleAsync =
     maxSqft,
     minLotSqft,
     maxLotSqft,
-    savedFilter
+    savedFilter,
+    refreshed = false
   ) =>
   async (dispatch, getState) => {
     try {
@@ -1011,7 +1082,7 @@ export const filterForSaleAsync =
       dispatch(forSale(data));
     } catch (error) {
       dispatch(forSaleError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
-      if (error.response.status === 403) {
+      if (error.response.status === 403 && !refreshed) {
         dispatch(
           getRefreshToken(
             dispatch,
@@ -1026,7 +1097,8 @@ export const filterForSaleAsync =
               city,
               state,
               zipCode,
-              savedFilter
+              savedFilter,
+              true
             )
           )
         );
@@ -1034,7 +1106,7 @@ export const filterForSaleAsync =
     }
   };
 
-export const recentlySoldAsync = (page) => async (dispatch, getState) => {
+export const recentlySoldAsync = (page, refreshed = false) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
@@ -1066,8 +1138,47 @@ export const recentlySoldAsync = (page) => async (dispatch, getState) => {
     dispatch(
       recentlySoldError(error.response && error.response.data.detail ? error.response.data.detail : error.message)
     );
-    if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, recentlySoldAsync(page)));
+    if (error.response.status === 403 && !refreshed) {
+      dispatch(getRefreshToken(dispatch, recentlySoldAsync(page, true)));
+    }
+  }
+};
+
+export const realtorAsync = (page, clients = false, refreshed = false) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const { userInfo } = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access_token}`,
+      },
+    };
+    
+    const url = clients ? `${DOMAIN}/api/v1/data/realtor/?clients=True&page=${page}` : `${DOMAIN}/api/v1/data/realtor/`;
+    if (page === 1 && reduxStore.user.realtorInfo.highestPage === 0) {
+      dispatch(realtorLoading());
+    }
+    if (page > reduxStore.user.realtorInfo.highestPage) {
+      const { data } = await axios.get(url, config);
+      if (data.results.data.length > 0) {
+        dispatch(newRealtorPage(page));
+        if (data.results.data.length === 1000) {
+          dispatch(realtorAsync(page + 1));
+        }
+      }
+      if (page === 1) {
+        dispatch(realtor(data));
+      } else {
+        dispatch(moreRealtor(data));
+      }
+    }
+  } catch (error) {
+    dispatch(
+      realtorError(error.response && error.response.data.detail ? error.response.data.detail : error.message)
+    );
+    if (error.response.status === 403 && !refreshed) {
+      dispatch(getRefreshToken(dispatch, realtorAsync(page, clients, true)));
     }
   }
 };
@@ -1092,7 +1203,8 @@ export const filterRecentlySoldAsync =
     maxSqft,
     minLotSqft,
     maxLotSqft,
-    savedFilter
+    savedFilter,
+    refreshed = false
   ) =>
   async (dispatch, getState) => {
     try {
@@ -1169,7 +1281,7 @@ export const filterRecentlySoldAsync =
       dispatch(
         recentlySoldError(error.response && error.response.data.detail ? error.response.data.detail : error.message)
       );
-      if (error.response.status === 403) {
+      if (error.response.status === 403 && !refreshed) {
         dispatch(
           getRefreshToken(
             dispatch,
@@ -1184,7 +1296,8 @@ export const filterRecentlySoldAsync =
               city,
               state,
               zipCode,
-              savedFilter
+              savedFilter,
+              true
             )
           )
         );
@@ -1714,7 +1827,7 @@ export const saveForSaleFilterAsync =
     }
   };
 
-export const getCompanyDashboardDataAsync = () => async (dispatch, getState) => {
+export const getCompanyDashboardDataAsync = (refreshed = false) => async (dispatch, getState) => {
   try {
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
@@ -1731,8 +1844,8 @@ export const getCompanyDashboardDataAsync = () => async (dispatch, getState) => 
     dispatch(
       companyDashboardError(error.response && error.response.data.detail ? error.response.data.detail : error.message)
     );
-    if (error.response.status === 403) {
-      dispatch(getRefreshToken(dispatch, getCompanyDashboardDataAsync()));
+    if (error.response.status === 403 && !refreshed) {
+      dispatch(getRefreshToken(dispatch, getCompanyDashboardDataAsync(true)));
     } else {
       dispatch(logout());
     }

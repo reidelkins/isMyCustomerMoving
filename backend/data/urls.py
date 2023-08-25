@@ -36,6 +36,10 @@ for_sale_patterns = [
     ),
 ]
 
+realtor_patterns = [
+    path("", views.RealtorView.as_view(), name="realtors"),
+]
+
 service_titan_patterns = [
     path(
         "",
@@ -51,13 +55,18 @@ service_titan_patterns = [
 
 upload_file_patterns = [
     path(
-        "",
-        views.UploadFileView.as_view(),
+        "clients/",
+        views.UploadClientListView.as_view(),
         name="upload-file",
     ),
     path(
+        "zips/",
+        views.UploadServiceAreaListView.as_view(),
+        name="upload-service-area",
+    ),
+    path(
         "<str:task>/",
-        views.UploadFileView.as_view(),
+        views.UploadClientListView.as_view(),
         name="upload-file-check",
     ),
 ]
@@ -70,6 +79,7 @@ urlpatterns = [
         name="all-recently-sold",
     ),
     path("forsale/", include(for_sale_patterns)),
+    path("realtor/", include(realtor_patterns)),
     path(
         "downloadforsale/",
         views.AllForSaleView.as_view(),

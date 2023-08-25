@@ -13,19 +13,29 @@ import json
 import csv
 from re import sub
 
-# from accounts.serializers import UserSerializerWithToken
 from accounts.models import Company, CustomUser
+from accounts.serializers import UserSerializerWithToken
 from config import settings
 from payments.models import ServiceTitanInvoice
-from .models import Client, ClientUpdate, HomeListing, Task, SavedFilter, ZipCode
+from .models import (
+    Client,
+    ClientUpdate,
+    HomeListing,
+    Realtor,
+    Task,
+    SavedFilter,
+    ZipCode
+)
 from .serializers import (
     ClientSerializer,
     ClientListSerializer,
-    HomeListingSerializer
+    HomeListingSerializer,
+    RealtorSerializer
 )
 from .syncClients import get_salesforce_clients, complete_service_titan_sync
 from .realtor import get_all_zipcodes
 from .utils import (
+    save_service_area_list,
     save_client_list,
     add_service_titan_contacted_tag,
     filter_home_listings,
@@ -122,6 +132,12 @@ class ClientListView(generics.ListAPIView):
             clients = Client.objects.filter(
                 company=user.company, active=True
             ).exclude(new_address=None)
+            if user.company.service_area_zip_codes:
+                zip_code_objects = user.company.service_area_zip_codes.values(
+                    'zip_code')
+                clients = clients.filter(
+                    zip_code__in=zip_code_objects)
+
             serializer = self.get_serializer(clients, many=True)
             clients = serializer.data
             return Response({"clients": clients}, status=status.HTTP_200_OK)
@@ -249,9 +265,13 @@ class RecentlySoldView(generics.ListAPIView):
         query_params = self.request.query_params
         company = self.request.user.company
         if company.recently_sold_purchased:
-            zip_code_objects = Client.objects.filter(company=company).values(
-                "zip_code"
-            )
+            if company.service_area_zip_codes.count() > 0:
+                zip_code_objects = company.service_area_zip_codes.values(
+                    'zip_code')
+            else:
+                zip_code_objects = Client.objects.filter(
+                    company=company, active=True
+                ).values('zip_code')
             queryset = HomeListing.objects.filter(
                 zip_code__in=zip_code_objects,
                 status="House Recently Sold (6)",
@@ -401,9 +421,13 @@ class AllRecentlySoldView(generics.ListAPIView):
         query_params = self.request.query_params
         company = self.request.user.company
         if company.recently_sold_purchased:
-            zip_code_objects = Client.objects.filter(
-                company=company, active=True
-            ).values("zip_code")
+            if company.service_area_zip_codes.count() > 0:
+                zip_code_objects = company.service_area_zip_codes.values(
+                    'zip_code')
+            else:
+                zip_code_objects = Client.objects.filter(
+                    company=company, active=True
+                ).values('zip_code')
             queryset = HomeListing.objects.filter(
                 zip_code__in=zip_code_objects,
                 status="House Recently Sold (6)",
@@ -427,9 +451,13 @@ class ForSaleView(generics.ListAPIView):
         query_params = self.request.query_params
         company = self.request.user.company
         if company.for_sale_purchased:
-            zip_code_objects = Client.objects.filter(company=company).values(
-                "zip_code"
-            )
+            if company.service_area_zip_codes.count() > 0:
+                zip_code_objects = company.service_area_zip_codes.values(
+                    'zip_code')
+            else:
+                zip_code_objects = Client.objects.filter(
+                    company=company, active=True
+                ).values('zip_code')
             queryset = HomeListing.objects.filter(
                 zip_code__in=zip_code_objects,
                 status="House For Sale",
@@ -579,9 +607,13 @@ class AllForSaleView(generics.ListAPIView):
         query_params = self.request.query_params
         company = self.request.user.company
         if company.for_sale_purchased:
-            zip_code_objects = Client.objects.filter(
-                company=company, active=True
-            ).values("zip_code")
+            if company.service_area_zip_codes.count() > 0:
+                zip_code_objects = company.service_area_zip_codes.values(
+                    'zip_code')
+            else:
+                zip_code_objects = Client.objects.filter(
+                    company=company, active=True
+                ).values('zip_code')
             queryset = HomeListing.objects.filter(
                 zip_code__in=zip_code_objects,
                 status="House For Sale",
@@ -594,6 +626,39 @@ class AllForSaleView(generics.ListAPIView):
             )
         else:
             return HomeListing.objects.none()
+
+
+class RealtorView(generics.ListAPIView):
+    serializer_class = RealtorSerializer
+    pagination_class = CustomPagination
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if "client" in self.request.query_params:
+            print(self.request.query_params)
+            return Response("", status=status.HTTP_200_OK, headers="")
+        else:
+            service_area_zip_codes = (
+                request.user.company.service_area_zip_codes.all())
+
+            # # Get Realtors with listing counts based on the filtered HomeListings
+            realtors_with_counts =  \
+                Realtor.objects_with_listing_count \
+                .get_realtors_with_filtered_listings(
+                    service_area_zip_codes=service_area_zip_codes).distinct()
+
+            # # Sorting realtors by the annotated listing count in descending order
+            realtors_sorted = sorted(realtors_with_counts,
+                                     key=lambda x: x.listing_count, reverse=True)
+            page = self.paginate_queryset(realtors_sorted)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(
+                    {"data": serializer.data}
+                )
+            # # Serialize and return the Realtors
+            serializer = self.get_serializer(realtors_sorted, many=True)
+            return Response({"data": serializer.data})
 
 
 class UpdateStatusView(APIView):
@@ -617,7 +682,7 @@ class UpdateStatusView(APIView):
         return Response("", status=status.HTTP_200_OK, headers="")
 
 
-class UploadFileView(generics.ListAPIView):
+class UploadClientListView(generics.ListAPIView):
     """
     An API view to upload a list of clients and track the task status.
     """
@@ -676,6 +741,25 @@ class UploadFileView(generics.ListAPIView):
             status=status.HTTP_201_CREATED,
             headers="",
         )
+
+
+class UploadServiceAreaListView(generics.ListAPIView):
+    """
+    An API view to upload a list of clients and track the task status.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, *args, **kwargs):
+        try:
+            save_service_area_list(
+                request.data, self.request.user.company.id
+            )
+        except Exception as e:
+            logging.error(e)
+            return Response({"status": e}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = UserSerializerWithToken(self.request.user, many=False)
+        return Response(serializer.data)
 
 
 # create a class for update client that will be used for the put and delete requests
@@ -1013,24 +1097,33 @@ class CompanyDashboardView(APIView):
         Return the customer retention rate for a company
         """
         company = Company.objects.get(id=company_id)
-        all_clients = Client.objects.filter(company=company)
-        clients_with_new_add = all_clients.exclude(new_address=None)
 
-        new_adds = clients_with_new_add.values_list(
+        if company.service_area_zip_codes.count() > 0:
+            zip_code_objects = company.service_area_zip_codes.values(
+                'zip_code')
+        else:
+            zip_code_objects = ZipCode.objects.all().values('zip_code')
+        all_clients = Client.objects.filter(company=company)
+
+        clients_with_new_add = all_clients.filter(
+            new_zip_code__in=zip_code_objects
+        ).values_list(
             "new_address", flat=True)
 
         clients_with_moved_to_add = all_clients.filter(
-            address__in=new_adds
+            address__in=clients_with_new_add
+
         )
 
         all_clients_with_new_add_and_rev = all_clients.filter(
             service_titan_lifetime_revenue__gt=0
-        ).exclude(new_address=None)
-        new_adds = all_clients_with_new_add_and_rev.values_list(
+
+        ).exclude(new_address=None).values_list(
             "new_address", flat=True)
 
         clients_with_new_add_and_rev = all_clients.filter(
-            address__in=new_adds
+            address__in=all_clients_with_new_add_and_rev
+
         )
         clients_with_new_add_and_rev_and_new_rev = \
             clients_with_new_add_and_rev.filter(

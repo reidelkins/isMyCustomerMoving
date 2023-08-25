@@ -22,14 +22,19 @@ export const enterpriseNavConfig = [
     icon: getIcon('ri:share-forward-fill'),
   },
   {
-    title: 'For Sale Data',
-    path: '/dashboard/forsale',
-    icon: getIcon('material-symbols:house'),
-  },
-  {
     title: 'Recently Sold Data',
     path: '/dashboard/recentlysold',
     icon: getIcon('material-symbols:house'),
+  },
+  {
+    title: 'For Sale Data',
+    path: '/dashboard/forsale',
+    icon: getIcon('material-symbols:house'),
+  },  
+  {
+    title: 'Realtor Data',
+    path: '/dashboard/realtors',
+    icon: getIcon('material-symbols:face'),
   },
   {
     title: 'Settings',
@@ -67,6 +72,11 @@ export const navConfig = [
     title: 'For Sale Data',
     path: '/dashboard/forsale',
     icon: getIcon('material-symbols:house'),
+  },
+  {
+    title: 'Realtor Data',
+    path: '/dashboard/realtors',
+    icon: getIcon('material-symbols:face'),
   },
   {
     title: 'Settings',

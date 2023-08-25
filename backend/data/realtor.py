@@ -32,21 +32,25 @@ def get_all_zipcodes(company, zip=None):
     # Initialization of variables
     company_object, zip_code_objects, zip_codes, zips = "", "", "", ""
     try:
-        company_object = Company.objects.get(id=company)
-        zip_code_objects = Client.objects.filter(
-            company=company_object, active=True
-        ).values("zip_code")
-        zip_codes = zip_code_objects.distinct()
-        zip_codes = ZipCode.objects.filter(
-            zip_code__in=zip_code_objects,
+        company = Company.objects.get(id=company)
+        if company.service_area_zip_codes.count() > 0:
+            zip_codes = company.service_area_zip_codes.values_list(
+                'zip_code', flat=True).distinct()
+        else:
+            zip_codes = Client.objects.filter(
+                company=company, active=True
+            ).values_list('zip_code', flat=True).distinct()
+            zip_codes = ZipCode.objects.filter(
+                zip_code__in=zip_codes
+            ).values_list('zip_code', flat=True).distinct()
+        zips = list(zip_codes.filter(
             last_updated__lt=(datetime.today()).strftime("%Y-%m-%d"),
-        )
-        zips = list(zip_codes.order_by("zip_code").values("zip_code"))
+        ))
         zip_codes.update(last_updated=datetime.today().strftime("%Y-%m-%d"))
 
     except Exception as e:
         if zip:
-            zips = [{"zip_code": str(zip)}]
+            zips = [str(zip)]
         else:
             logging.error(e)
 
@@ -61,7 +65,7 @@ def get_all_zipcodes(company, zip=None):
             url = "https://www.realtor.com/realestateandhomes-search"
             extra = "show-recently-sold/"
         find_data.delay(
-            str(zips[i // 2]["zip_code"]), i, status, url, extra)
+            str(zips[i // 2]), i, status, url, extra)
 
     # send listings to zapier
     days_to_run = [0]  # Only on Monday
@@ -394,9 +398,10 @@ def create_home_listings(results, status, resp=None):
                     try:
                         for brand in listing["branding"]:
                             if brand["name"] is not None:
-                                realtor, _ = Realtor.objects.get_or_create(
-                                    name=brand["name"]
-                                )
+                                realtor, _ = \
+                                    Realtor.objects_with_listing_count.get_or_create(
+                                        name=brand["name"]
+                                    )
                                 home_listing.realtor = realtor
                                 home_listing.save()
                     except Exception as e:
@@ -663,7 +668,7 @@ def update_advertiser(listing, advertiser):
     Returns:
         None
     """
-    realtor, _ = Realtor.objects.get_or_create(
+    realtor, _ = Realtor.objects_with_listing_count.get_or_create(
         company=advertiser.get("broker", {}).get("name"),
         email=advertiser.get("email"),
         url=advertiser.get("href"),
@@ -673,9 +678,12 @@ def update_advertiser(listing, advertiser):
     listing.realtor = realtor
 
 
-def get_realtor_property_details(listingId, scrapfly):
-    listing = HomeListing.objects.get(id=listingId)
+@shared_task
+def get_realtor_property_details(listing_id, i):
+    scrapfly = detail_scrapflies[i % 20]
+    listing = HomeListing.objects.get(id=listing_id)
     url = create_detail_url(listing)
+
     result = scrapfly.scrape(
         ScrapeConfig(
             url, country="US", asp=False, proxy_pool="public_datacenter_pool"

@@ -48,7 +48,7 @@ export default function ResetPasswordModal() {
       <Button variant="contained" color="primary" aria-label="Create Company" component="label" onClick={handleOpen}>
         Change Password
       </Button>
-      <Dialog open={open} onClose={handleClose} sx={{ padding: '2px' }}>
+      <Dialog open={open} onClose={handleClose} sx={{ margin: '25px' }}>
         <DialogTitle>Add a User</DialogTitle>
         <FormikProvider value={formik}>
           <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
