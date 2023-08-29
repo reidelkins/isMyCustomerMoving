@@ -109,6 +109,7 @@ INSTALLED_APPS = [
     "rest_framework_social_oauth2",
     "oauth2_provider",
     "django_extensions",
+    "rownd_django"
 ]
 
 MIDDLEWARE = [
@@ -256,11 +257,24 @@ SECURE_HSTS_SECONDS = 31536000
 
 CSP_FRAME_ANCESTORS = "'none'"
 
+AUTHENTICATION_BACKENDS = [
+    'rownd_django.auth.backend.RowndAuthenticationBackend',
+    'django.contrib.auth.backends.ModelBackend'
+]
+
+ROWND = {
+    'APP_KEY': get_env_var('ROWND_APP_KEY'),
+    'APP_SECRET': get_env_var('ROWND_APP_SECRET'),
+}
+
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],
-    "DEFAULT_AUTHENTICATION_CLASSES": ["accounts.utils.CustomAuthentication"],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "accounts.utils.CustomAuthentication",
+        'rownd_django.auth.backend.RowndApiAuthentication',
+    ],
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 1000,  # or any other default page size you prefer

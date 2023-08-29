@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-
+import { RowndProvider } from '@rownd/react';
 // ** Redux Imports
 import { Provider } from 'react-redux';
 import store from './redux/store';
@@ -16,7 +16,7 @@ import * as serviceWorker from './serviceWorker';
 import reportWebVitals from './reportWebVitals';
 import 'font-awesome/css/font-awesome.min.css'; // font-awesome
 
-const { REACT_APP_GOOGLE_CLIENT_ID } = process.env;
+const { REACT_APP_GOOGLE_CLIENT_ID, REACT_APP_ROWND_APP_KEY } = process.env;
 
 // ----------------------------------------------------------------------
 
@@ -43,13 +43,18 @@ ReactDOM.render(
       height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
       }}
     />
-    <BrowserRouter>
-      <GoogleOAuthProvider clientId={REACT_APP_GOOGLE_CLIENT_ID}>
-        <Provider store={store}>
-          <App />
-        </Provider>
-      </GoogleOAuthProvider>
-    </BrowserRouter>
+    <RowndProvider
+      appKey={REACT_APP_ROWND_APP_KEY}
+      postLoginRedirect="/dashboard"
+    >
+      <BrowserRouter>
+        <GoogleOAuthProvider clientId={REACT_APP_GOOGLE_CLIENT_ID}>
+          <Provider store={store}>
+            <App />
+          </Provider>
+        </GoogleOAuthProvider>
+      </BrowserRouter>
+    </RowndProvider>
   </HelmetProvider>,
   document.getElementById('root')
 );
