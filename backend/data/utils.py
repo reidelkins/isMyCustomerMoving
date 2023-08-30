@@ -1060,11 +1060,10 @@ def do_it_all(company):
             company_id=company.id
         )  # Schedule auto_update task
         sleep(3600)  # TODO Calculate ETA for update_clients_statuses task
-        result = update_clients_statuses(
-            company.id
-        )  # Schedule update_clients_statuses task
+        # Schedule update_clients_statuses task
+        update_clients_statuses(company.id)
         sleep(360)
-        result.then(send_daily_email.apply_async, args=[company.id])
+        send_daily_email.delay(company.id)
     except Exception as e:
         logging.error("doItAll failed")
         logging.error(f"ERROR: {e}")
