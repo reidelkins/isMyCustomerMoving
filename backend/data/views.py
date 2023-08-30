@@ -17,11 +17,20 @@ from accounts.models import Company, CustomUser
 from accounts.serializers import UserSerializerWithToken
 from config import settings
 from payments.models import ServiceTitanInvoice
-from .models import Client, ClientUpdate, HomeListing, Task, SavedFilter, ZipCode
+from .models import (
+    Client,
+    ClientUpdate,
+    HomeListing,
+    Realtor,
+    Task,
+    SavedFilter,
+    ZipCode
+)
 from .serializers import (
     ClientSerializer,
     ClientListSerializer,
-    HomeListingSerializer
+    HomeListingSerializer,
+    RealtorSerializer
 )
 from .salesforce import get_salesforce_clients
 from .serviceTitan import complete_service_titan_sync
@@ -620,6 +629,39 @@ class AllForSaleView(generics.ListAPIView):
             return HomeListing.objects.none()
 
 
+class RealtorView(generics.ListAPIView):
+    serializer_class = RealtorSerializer
+    pagination_class = CustomPagination
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if "client" in self.request.query_params:
+            print(self.request.query_params)
+            return Response("", status=status.HTTP_200_OK, headers="")
+        else:
+            service_area_zip_codes = (
+                request.user.company.service_area_zip_codes.all())
+
+            # # Get Realtors with listing counts based on the filtered HomeListings
+            realtors_with_counts =  \
+                Realtor.objects_with_listing_count \
+                .get_realtors_with_filtered_listings(
+                    service_area_zip_codes=service_area_zip_codes).distinct()
+
+            # # Sorting realtors by the annotated listing count in descending order
+            realtors_sorted = sorted(realtors_with_counts,
+                                     key=lambda x: x.listing_count, reverse=True)
+            page = self.paginate_queryset(realtors_sorted)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(
+                    {"data": serializer.data}
+                )
+            # # Serialize and return the Realtors
+            serializer = self.get_serializer(realtors_sorted, many=True)
+            return Response({"data": serializer.data})
+
+
 class UpdateStatusView(APIView):
     """
     An API view to trigger the process to update the status of home listings.
@@ -784,9 +826,9 @@ class UpdateClientView(APIView):
                     if client.serv_titan_id:
                         remove_all_service_titan_tags.delay(client=client.id)
                 if request.data["latitude"] != "":
-                    client.latitude = request.data["latitude"]
+                    client.latitude = str(request.data["latitude"])
                 if request.data["longitude"] != "":
-                    client.longitude = request.data["longitude"]
+                    client.longitude = str(request.data["longitude"])
                 client.save()
                 return Response(
                     {"status": "Client Updated"},
@@ -1056,6 +1098,7 @@ class CompanyDashboardView(APIView):
         Return the customer retention rate for a company
         """
         company = Company.objects.get(id=company_id)
+
         if company.service_area_zip_codes.count() > 0:
             zip_code_objects = company.service_area_zip_codes.values(
                 'zip_code')
@@ -1070,15 +1113,18 @@ class CompanyDashboardView(APIView):
 
         clients_with_moved_to_add = all_clients.filter(
             address__in=clients_with_new_add
+
         )
 
         all_clients_with_new_add_and_rev = all_clients.filter(
             service_titan_lifetime_revenue__gt=0
+
         ).exclude(new_address=None).values_list(
             "new_address", flat=True)
 
         clients_with_new_add_and_rev = all_clients.filter(
             address__in=all_clients_with_new_add_and_rev
+
         )
         clients_with_new_add_and_rev_and_new_rev = \
             clients_with_new_add_and_rev.filter(

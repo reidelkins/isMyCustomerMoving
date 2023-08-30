@@ -76,8 +76,7 @@ export default function ProfileSettings() {
   };
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
-
-  const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
+  const filteredUsers = USERLIST.results ? applySortFilter(USERLIST.results, getComparator(order, orderBy), filterName) : [];
 
   const SettingsSchema = Yup.object().shape({
     firstName: Yup.string().required('Name is required'),

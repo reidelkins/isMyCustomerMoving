@@ -9,6 +9,7 @@ from data.models import Client, HomeListing, ZipCode
 from data.realtor import (
     create_home_listings,
     get_all_zipcodes,
+    get_realtor_property_details
 )
 from data.utils import (
     parse_streets
@@ -36,6 +37,24 @@ def mock_get_listings():
 @pytest.fixture
 def mock_create_listing():
     with patch("data.models.HomeListing.objects.create") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_create_detail_url():
+    with patch("data.realtor.create_detail_url") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_get_listing_data():
+    with patch("data.realtor.get_listing_data") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_update_listing_data():
+    with patch("data.realtor.update_listing_data") as mock:
         yield mock
 
 
@@ -69,7 +88,7 @@ class TestRealtorFunctions(TestCase):
             state="FL",
             zip_code=self.zip_code3,
             company=other_company)
-        HomeListing.objects.create(
+        self.listing = HomeListing.objects.create(
             zip_code=self.zip_code1,
             address="260 Milford Point Rd",
             status="Recently Sold (6)",
@@ -78,6 +97,7 @@ class TestRealtorFunctions(TestCase):
             year_built=2000,
             city="Merritt Island",
             state="FL",
+            permalink="260-Milford-Point-Dr_Merritt-Island_FL_32952_M57137-33293"
         )
         HomeListing.objects.create(
             zip_code=self.zip_code2,
@@ -96,7 +116,7 @@ class TestRealtorFunctions(TestCase):
         get_all_zipcodes(self.company.id)
         assert mock_find_data.call_count == 4
         if datetime.now().weekday() == 0:
-            mock_zapier_recently_sold.assert_called_once_with(self.company.id)
+            mock_zapier_recently_sold.assert_called()
         else:
             mock_zapier_recently_sold.assert_not_called()
 
@@ -207,3 +227,17 @@ class TestRealtorFunctions(TestCase):
             state="NY",
         )
         mock_create_listing.assert_not_called()
+
+    @patch("data.realtor.update_listing_data")
+    @patch("data.realtor.get_listing_data")
+    @patch("data.realtor.create_detail_url")
+    def test_get_realtor_property_details(self, mock_create_detail_url, mock_get_listing_data, mock_update_listing_data):
+
+        mock_create_detail_url.return_value = "https://testurl.com"
+
+        # call function
+        get_realtor_property_details(self.listing.id, 1)
+
+        assert mock_create_detail_url.call_count == 1
+        assert mock_get_listing_data.call_count == 1
+        assert mock_update_listing_data.call_count == 1

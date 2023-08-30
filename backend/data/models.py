@@ -153,6 +153,46 @@ class ScrapeResponse(models.Model):
     url = models.CharField(max_length=100, blank=True, null=True)
 
 
+class RealtorWithListingCountManager(models.Manager):
+    def get_queryset(self, service_area_zip_codes=None):
+        queryset = super().get_queryset()
+
+        if service_area_zip_codes:
+            queryset = queryset.annotate(
+                listing_count=models.Count(
+                    'home_listing_realtor',
+                    filter=models.Q(
+                        home_listing_realtor__zip_code__in=service_area_zip_codes),
+                    distinct=True
+                )
+            )
+        else:
+            queryset = queryset.annotate(
+                listing_count=models.Count('home_listing_realtor')
+            )
+
+        return queryset
+
+    def get_realtors_with_filtered_listings(self, service_area_zip_codes=None):
+        queryset = super().get_queryset()
+
+        if service_area_zip_codes:
+            queryset = queryset.annotate(
+                listing_count=models.Count(
+                    'home_listing_realtor',
+                    filter=models.Q(
+                        home_listing_realtor__zip_code__in=service_area_zip_codes),
+                    distinct=True
+                )
+            )
+        else:
+            queryset = queryset.annotate(
+                listing_count=models.Count('home_listing_realtor')
+            )
+
+        return queryset.filter(listing_count__gt=0)
+
+
 # Realtor model
 class Realtor(models.Model):
     id = models.UUIDField(
@@ -163,6 +203,7 @@ class Realtor(models.Model):
     phone = models.CharField(max_length=100)
     email = models.CharField(max_length=100)
     url = models.CharField(max_length=100)
+    objects_with_listing_count = RealtorWithListingCountManager()
 
 
 # HomeListing model
