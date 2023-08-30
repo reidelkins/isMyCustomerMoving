@@ -31,23 +31,13 @@ class ClientSerializer(serializers.ModelSerializer):
 
 
 class ClientListSerializer(serializers.ModelSerializer):
-    zip_code = serializers.SerializerMethodField()
+    zip_code = serializers.CharField(source='zip_code.zip_code')
     tag = serializers.SerializerMethodField()
-    service_titan_customer_since_year = serializers.SerializerMethodField()
+    service_titan_customer_since_year = serializers.IntegerField(default=1900)
     client_updates_client = ClientUpdateSerializer(many=True, read_only=True)
-
-    def get_zip_code(self, obj):
-        return obj.zip_code.zip_code
 
     def get_tag(self, obj):
         return [tag.tag for tag in obj.tag.all()]
-
-    def get_service_titan_customer_since_year(self, obj):
-        return (
-            obj.service_titan_customer_since.year
-            if obj.service_titan_customer_since
-            else 1900
-        )
 
     class Meta:
         model = Client
@@ -66,10 +56,7 @@ class ClientListSerializer(serializers.ModelSerializer):
 
 
 class ZapierClientSerializer(serializers.ModelSerializer):
-    zip_code = serializers.SerializerMethodField()
-
-    def get_zip_code(self, obj):
-        return obj.zip_code.zip_code
+    zip_code = serializers.CharField(source='zip_code.zip_code')
 
     class Meta:
         model = Client
@@ -91,7 +78,7 @@ class HomeListingTagsSerializer(serializers.ModelSerializer):
 
 
 class HomeListingSerializer(serializers.ModelSerializer):
-    zip_code = serializers.StringRelatedField()
+    zip_code = serializers.CharField(source='zip_code.zip_code')
     tags = HomeListingTagsSerializer(many=True, read_only=True)
 
     class Meta:

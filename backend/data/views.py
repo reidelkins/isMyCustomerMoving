@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Min, Case, When, DateField
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Coalesce, ExtractYear
 from django.http import HttpResponse
 from datetime import date, datetime, timedelta
 import logging
@@ -103,7 +103,10 @@ class ClientListView(generics.ListAPIView):
         query_params = self.request.query_params
         queryset = Client.objects.prefetch_related(
             "client_updates_client"
-        ).filter(company=user.company, active=True)
+        ).filter(company=user.company, active=True).annotate(
+            service_titan_customer_since_year=ExtractYear(
+                'service_titan_customer_since')
+        )
         queryset = filter_clients(query_params, queryset, user.company.id)
         # TODO
         # if "tags" in query_params:
@@ -144,23 +147,29 @@ class ClientListView(generics.ListAPIView):
         else:
             queryset = self.filter_queryset(self.get_queryset())
             user = self.request.user
-            allClients = Client.objects.filter(
-                company=user.company, active=True)
-            forSale = allClients.filter(
-                status="House For Sale", contacted=False
+
+            forSale = Client.objects.filter(
+                status="House For Sale",
+                contacted=False,
+                company=user.company,
+                active=True
             ).count()
-            recentlySold = allClients.filter(
-                status="House Recently Sold (6)", contacted=False
+
+            recentlySold = Client.objects.filter(
+                status="House Recently Sold (6)",
+                contacted=False,
+                company=user.company,
+                active=True
             ).count()
-            allClientUpdates = ClientUpdate.objects.filter(
-                client__company=user.company
-            )
-            forSaleAllTime = allClientUpdates.filter(
-                status="House For Sale"
+
+            forSaleAllTime = ClientUpdate.objects.filter(
+                status="House For Sale", client__company=user.company
             ).count()
-            recentlySoldAllTime = allClientUpdates.filter(
-                status="House Recently Sold (6)"
+
+            recentlySoldAllTime = ClientUpdate.objects.filter(
+                status="House Recently Sold (6)", client__company=user.company
             ).count()
+
             savedFilters = list(
                 SavedFilter.objects.filter(
                     company=user.company, filter_type="Client"
