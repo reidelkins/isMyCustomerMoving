@@ -450,7 +450,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                                                 <>
                                                     <TableCell component="th" scope="row" padding="none">
                                                         <Label variant="ghost" color="info">
-                                                            {serviceTitanCustomerSinceYear !== 1
+                                                            {serviceTitanCustomerSinceYear && serviceTitanCustomerSinceYear !== 1
                                                             ? serviceTitanCustomerSinceYear
                                                             : '1900'}
                                                         </Label>
