@@ -294,7 +294,7 @@ def get_service_titan_invoices(company_id, tenant):
         url = (
             f"https://api.servicetitan.io/accounting"
             f"/v2/tenant/{tenant}/invoices?page={page}"
-            f"&pageSize=2500{rfc_url_param}"
+            f"&pageSize=1000{rfc_url_param}"
         )
         response = requests.get(url=url, headers=headers, timeout=15)
         page += 1
