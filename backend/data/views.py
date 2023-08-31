@@ -129,6 +129,37 @@ class ClientListView(generics.ListAPIView):
             queryset = queryset.order_by("status")
         return queryset
 
+    def get_count_values(self, queryset):
+        user = self.request.user
+        forSale = Client.objects.filter(
+            status="House For Sale",
+            contacted=False,
+            company=user.company,
+            active=True
+        ).count()
+
+        recentlySold = Client.objects.filter(
+            status="House Recently Sold (6)",
+            contacted=False,
+            company=user.company,
+            active=True
+        ).count()
+
+        forSaleAllTime = ClientUpdate.objects.filter(
+            status="House For Sale", client__company=user.company
+        ).count()
+
+        recentlySoldAllTime = ClientUpdate.objects.filter(
+            status="House Recently Sold (6)", client__company=user.company
+        ).count()
+
+        savedFilters = list(
+            SavedFilter.objects.filter(
+                company=user.company, filter_type="Client"
+            ).values_list("name", flat=True)
+        )
+        return forSale, recentlySold, forSaleAllTime, recentlySoldAllTime, savedFilters
+
     def list(self, request, *args, **kwargs):
         user = self.request.user
         if "newAddress" in request.query_params:
@@ -148,38 +179,15 @@ class ClientListView(generics.ListAPIView):
             queryset = self.filter_queryset(self.get_queryset())
             user = self.request.user
 
-            forSale = Client.objects.filter(
-                status="House For Sale",
-                contacted=False,
-                company=user.company,
-                active=True
-            ).count()
-
-            recentlySold = Client.objects.filter(
-                status="House Recently Sold (6)",
-                contacted=False,
-                company=user.company,
-                active=True
-            ).count()
-
-            forSaleAllTime = ClientUpdate.objects.filter(
-                status="House For Sale", client__company=user.company
-            ).count()
-
-            recentlySoldAllTime = ClientUpdate.objects.filter(
-                status="House Recently Sold (6)", client__company=user.company
-            ).count()
-
-            savedFilters = list(
-                SavedFilter.objects.filter(
-                    company=user.company, filter_type="Client"
-                ).values_list("name", flat=True)
-            )
-
             page = self.paginate_queryset(queryset)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
                 clients = serializer.data
+                forSale, recentlySold, forSaleAllTime, recentlySoldAllTime, savedFilters = 0, 0, 0, 0, []
+                if request.query_params.get('page') == "1":
+                    forSale, recentlySold, forSaleAllTime, recentlySoldAllTime, savedFilters = self.get_count_values(
+                        queryset
+                    )
                 return self.get_paginated_response(
                     {
                         "forSale": forSale,
@@ -193,6 +201,9 @@ class ClientListView(generics.ListAPIView):
 
             serializer = self.get_serializer(queryset, many=True)
             clients = serializer.data
+            forSale, recentlySold, forSaleAllTime, recentlySoldAllTime, savedFilters = self.get_count_values(
+                queryset
+            )
             return Response(
                 {
                     "forSale": forSale,

@@ -74,23 +74,23 @@ class ClientSerializer(serializers.ModelSerializer):
 #         read_only_fields = fields
 
 class ClientListSerializer(serpy.Serializer):
-    id = serpy.Field()
-    name = serpy.Field()
-    address = serpy.Field()
-    city = serpy.Field()
-    state = serpy.Field()
-    phone_number = serpy.Field()
-    status = serpy.Field()
-    service_titan_customer_since_year = serpy.Field()
-    service_titan_lifetime_revenue = serpy.Field()
-    latitude = serpy.Field()
-    longitude = serpy.Field()
-    zip_code = serpy.Field(attr='zip_code.zip_code')
-    tag = serpy.MethodField()
+    id = serpy.StrField()
+    name = serpy.StrField()
+    address = serpy.StrField()
+    city = serpy.StrField()
+    state = serpy.StrField()
+    phone_number = serpy.StrField()
+    status = serpy.StrField()
+    service_titan_customer_since_year = serpy.StrField()
+    service_titan_lifetime_revenue = serpy.StrField()
+    latitude = serpy.StrField()
+    longitude = serpy.StrField()
+    zip_code = serpy.StrField(attr='zip_code.zip_code')
+    # tag = serpy.MethodField()
     # client_updates_client = ClientUpdateSerializer(many=True)
 
-    def get_tag(self, obj):
-        return [tag.tag for tag in obj.tag.all()]
+    # def get_tag(self, obj):
+    #     return [tag.tag for tag in obj.tag.all()]
 
 
 class ZapierClientSerializer(serializers.ModelSerializer):
