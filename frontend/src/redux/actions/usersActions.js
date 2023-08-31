@@ -492,7 +492,7 @@ export const clientsAsync =
         }
         if (data.results.clients.length > 0) {
           dispatch(newPage(page));
-          if (data.results.clients.length === 1000 && reduxStore.user.clientsInfo.count !== page * 1000) {
+          if (data.results.clients.length === 100 && reduxStore.user.clientsInfo.count !== page * 100) {
             dispatch(clientsAsync(page + 1));
           }
         }
@@ -968,7 +968,7 @@ export const forSaleAsync = (page, refreshed = false) => async (dispatch, getSta
       const { data } = await axios.get(`${DOMAIN}/api/v1/data/forsale/?page=${page}`, config);
       if (data.results.data.length > 0) {
         dispatch(newForSalePage(page));
-        if (data.results.data.length === 1000) {
+        if (data.results.data.length === 100) {
           dispatch(forSaleAsync(page + 1));
         }
       }
@@ -1124,7 +1124,7 @@ export const recentlySoldAsync = (page, refreshed = false) => async (dispatch, g
       const { data } = await axios.get(`${DOMAIN}/api/v1/data/recentlysold/?page=${page}`, config);
       if (data.results.data.length > 0) {
         dispatch(newRecentlySoldPage(page));
-        if (data.results.data.length === 1000) {
+        if (data.results.data.length === 100) {
           dispatch(recentlySoldAsync(page + 1));
         }
       }
@@ -1163,7 +1163,7 @@ export const realtorAsync = (page, clients = false, refreshed = false) => async 
       const { data } = await axios.get(url, config);
       if (data.results.data.length > 0) {
         dispatch(newRealtorPage(page));
-        if (data.results.data.length === 1000) {
+        if (data.results.data.length === 100) {
           dispatch(realtorAsync(page + 1));
         }
       }
