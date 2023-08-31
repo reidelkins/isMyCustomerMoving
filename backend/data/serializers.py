@@ -40,7 +40,6 @@ class ClientUpdateSerializer(serializers.ModelSerializer):
 
 
 class ClientListSerializer(serpy.Serializer):
-    zip_code = serpy.Field(source='zip_code.zip_code')
     zip_code = serializers.CharField(source='zip_code.zip_code')
     tag = serializers.SerializerMethodField()
     service_titan_customer_since_year = serializers.IntegerField(default=1900)
