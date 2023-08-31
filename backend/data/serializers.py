@@ -20,14 +20,11 @@ from .models import (
 #         read_only_fields = fields
 
 class ClientUpdateSerializer(serpy.Serializer):
-    id = serpy.StrField()
-    client = serpy.StrField(attr='client.id')
     date = serpy.StrField()
     status = serpy.StrField()
     listed = serpy.StrField()
     note = serpy.StrField()
-    contacted = serpy.BoolField
-    error_flag = serpy.BoolField
+    contacted = serpy.BoolField()
 
 
 class ClientSerializer(serializers.ModelSerializer):
@@ -87,7 +84,7 @@ class ClientListSerializer(serpy.Serializer):
     longitude = serpy.StrField()
     zip_code = serpy.StrField(attr='zip_code.zip_code')
     # tag = serpy.MethodField()
-    # client_updates_client = ClientUpdateSerializer(many=True)
+    client_updates_client = ClientUpdateSerializer(many=True)
 
     # def get_tag(self, obj):
     #     return [tag.tag for tag in obj.tag.all()]
