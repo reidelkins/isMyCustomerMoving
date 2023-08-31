@@ -24,13 +24,11 @@ class ClientSerializer(serializers.ModelSerializer):
         ]
 
 
-class ClientUpdateSerializer(serializers.Serializer):
-    id = serializers.IntegerField(read_only=True)
-    date = serializers.DateField()
-    status = serializers.CharField(max_length=255)
-    contacted = serializers.BooleanField(default=False)
-    note = serializers.CharField()
-    listed = serializers.CharField(max_length=255)
+class ClientUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClientUpdate
+        fields = ["id", "date", "status", "listed", "note", "contacted"]
+        read_only_fields = fields
 
 
 # class ClientListSerializer(serializers.Serializer):
