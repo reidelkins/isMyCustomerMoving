@@ -24,11 +24,13 @@ class ClientSerializer(serializers.ModelSerializer):
         ]
 
 
-class ClientUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ClientUpdate
-        fields = ["id", "date", "status", "listed", "note", "contacted"]
-        read_only_fields = fields
+class ClientUpdateSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    date = serializers.DateField()
+    status = serializers.CharField(max_length=255)
+    contacted = serializers.BooleanField(default=False)
+    note = serializers.CharField()
+    listed = serializers.CharField(max_length=255)
 
 
 # class ClientListSerializer(serializers.Serializer):
@@ -65,6 +67,7 @@ class ClientListSerializer(serializers.Serializer):
     state = serializers.CharField(max_length=255)
     phone_number = serializers.CharField(max_length=255)
     contacted = serializers.BooleanField(default=False)
+    status = serializers.CharField(max_length=255)
     note = serializers.CharField()
     price = serializers.IntegerField(default=0)
     housing_type = serializers.CharField(max_length=255)
