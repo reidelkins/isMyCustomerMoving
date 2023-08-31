@@ -1,5 +1,4 @@
 from rest_framework import serializers
-import drf_serpy as serpy
 
 
 from accounts.serializers import EnterpriseSerializer, BasicCompanySerializer
@@ -31,56 +30,57 @@ class ClientUpdateSerializer(serializers.ModelSerializer):
         fields = ["id", "date", "status", "listed", "note", "contacted"]
         read_only_fields = fields
 
-# class ClientUpdateSerializer(serpy.Serializer):
-#     date = serpy.StrField()
-#     status = serpy.StrField()
-#     listed = serpy.StrField()
-#     note = serpy.StrField()
-#     contacted = serpy.BoolField()
 
+# class ClientListSerializer(serializers.Serializer):
+#     zip_code = serializers.CharField(source='zip_code.zip_code')
+#     tag = serializers.SerializerMethodField()
+#     service_titan_customer_since_year = serializers.IntegerField(default=1900)
+#     client_updates_client = ClientUpdateSerializer(many=True, read_only=True)
 
-class ClientListSerializer(serializers.ModelSerializer):
+#     def get_tag(self, obj):
+#         return [tag.tag for tag in obj.tag.all()]
+
+#     class Meta:
+#         model = Client
+#         fields = [
+#             f.name
+#             for f in Client._meta.fields
+#             if f.name != "service_titan_customer_since"
+#             and f.name != "zip_code"
+#         ] + [
+#             "zip_code",
+#             "tag",
+#             "service_titan_customer_since_year",
+#             "client_updates_client",
+#         ]
+#         read_only_fields = fields
+
+# Use normal serializer instead of a ModelSerializer
+class ClientListSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.CharField(max_length=255)
+    address = serializers.CharField(max_length=255)
     zip_code = serializers.CharField(source='zip_code.zip_code')
+    city = serializers.CharField(max_length=255)
+    state = serializers.CharField(max_length=255)
+    phone_number = serializers.CharField(max_length=255)
+    contacted = serializers.BooleanField(default=False)
+    note = serializers.CharField()
+    price = serializers.IntegerField(default=0)
+    housing_type = serializers.CharField(max_length=255)
+    year_built = serializers.IntegerField(default=1900)
     tag = serializers.SerializerMethodField()
+    equipment_installed_date = serializers.DateField(default=1900)
+    latitude = serializers.FloatField(default=0)
+    longitude = serializers.FloatField(default=0)
+    revenue = serializers.IntegerField(default=0)
+    service_titan_customer_since_year = serializers.IntegerField(default=1900)
+    service_titan_lifetime_revenue = serializers.IntegerField(default=0)
     service_titan_customer_since_year = serializers.IntegerField(default=1900)
     client_updates_client = ClientUpdateSerializer(many=True, read_only=True)
 
     def get_tag(self, obj):
         return [tag.tag for tag in obj.tag.all()]
-
-    class Meta:
-        model = Client
-        fields = [
-            f.name
-            for f in Client._meta.fields
-            if f.name != "service_titan_customer_since"
-            and f.name != "zip_code"
-        ] + [
-            "zip_code",
-            "tag",
-            "service_titan_customer_since_year",
-            "client_updates_client",
-        ]
-        read_only_fields = fields
-
-# class ClientListSerializer(serpy.Serializer):
-#     id = serpy.StrField()
-#     name = serpy.StrField()
-#     address = serpy.StrField()
-#     city = serpy.StrField()
-#     state = serpy.StrField()
-#     phone_number = serpy.StrField()
-#     status = serpy.StrField()
-#     service_titan_customer_since_year = serpy.StrField()
-#     service_titan_lifetime_revenue = serpy.StrField()
-#     latitude = serpy.StrField()
-#     longitude = serpy.StrField()
-#     zip_code = serpy.StrField(attr='zip_code.zip_code')
-#     # tag = serpy.MethodField()
-#     client_updates_client = ClientUpdateSerializer(many=True)
-
-#     # def get_tag(self, obj):
-#     #     return [tag.tag for tag in obj.tag.all()]
 
 
 class ZapierClientSerializer(serializers.ModelSerializer):
