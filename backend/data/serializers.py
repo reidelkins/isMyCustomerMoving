@@ -28,7 +28,7 @@ class ClientSerializer(serializers.ModelSerializer):
 class ClientUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientUpdate
-        fields = ["date", "status", "listed", "note", "contacted"]
+        fields = ["id", "date", "status", "listed", "note", "contacted"]
         read_only_fields = fields
 
 # class ClientUpdateSerializer(serpy.Serializer):
@@ -39,7 +39,7 @@ class ClientUpdateSerializer(serializers.ModelSerializer):
 #     contacted = serpy.BoolField()
 
 
-class ClientListSerializer(serpy.Serializer):
+class ClientListSerializer(serializers.ModelSerializer):
     zip_code = serializers.CharField(source='zip_code.zip_code')
     tag = serializers.SerializerMethodField()
     service_titan_customer_since_year = serializers.IntegerField(default=1900)
@@ -51,21 +51,15 @@ class ClientListSerializer(serpy.Serializer):
     class Meta:
         model = Client
         fields = [
-            "id",
-            "name",
-            "address",
-            "city",
-            "state",
-            "phone_number",
-            "status",
-            "service_titan_customer_since_year",
-            "service_titan_lifetime_revenue",
-            "latitude",
-            "longitude",
+            f.name
+            for f in Client._meta.fields
+            if f.name != "service_titan_customer_since"
+            and f.name != "zip_code"
+        ] + [
             "zip_code",
             "tag",
             "service_titan_customer_since_year",
-            "client_updates_client"
+            "client_updates_client",
         ]
         read_only_fields = fields
 
