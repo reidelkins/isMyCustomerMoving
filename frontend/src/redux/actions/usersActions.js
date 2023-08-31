@@ -546,7 +546,7 @@ export const deleteClientAsync = (ids, refreshed = false) => async (dispatch, ge
       },
     };
     dispatch(clientsLoading());
-    const chunkSize = 1000;
+    const chunkSize = 100;
     let i = 0;
     for (i; i < ids.length; i += chunkSize) {
       const chunk = ids.slice(i, i + chunkSize);
@@ -610,7 +610,7 @@ export const uploadClientsUpdateAsync = (id, refreshed = false) => async (dispat
     } else {
       setTimeout(() => {
         dispatch(uploadClientsUpdateAsync(id));
-      }, 1000);
+      }, 100);
     }
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
@@ -836,7 +836,7 @@ export const serviceTitanUpdateAsync = (id, refreshed = false) => async (dispatc
     } else {
       setTimeout(() => {
         dispatch(serviceTitanUpdateAsync(id));
-      }, 1000);
+      }, 100);
     }
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
