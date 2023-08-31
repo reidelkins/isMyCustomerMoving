@@ -13,20 +13,6 @@ from .models import (
 )
 
 
-# class ClientUpdateSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = ClientUpdate
-#         fields = [f.name for f in ClientUpdate._meta.fields]
-#         read_only_fields = fields
-
-class ClientUpdateSerializer(serpy.Serializer):
-    date = serpy.StrField()
-    status = serpy.StrField()
-    listed = serpy.StrField()
-    note = serpy.StrField()
-    contacted = serpy.BoolField()
-
-
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
@@ -39,55 +25,69 @@ class ClientSerializer(serializers.ModelSerializer):
         ]
 
 
-# class ClientListSerializer(serpy.Serializer):
-#     zip_code = serpy.Field(source='zip_code.zip_code')
-#     zip_code = serializers.CharField(source='zip_code.zip_code')
-#     tag = serializers.SerializerMethodField()
-#     service_titan_customer_since_year = serializers.IntegerField(default=1900)
-#     client_updates_client = ClientUpdateSerializer(many=True, read_only=True)
+class ClientUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClientUpdate
+        fields = ["date", "status", "listed", "note", "contacted"]
+        read_only_fields = fields
 
-#     def get_tag(self, obj):
-#         return [tag.tag for tag in obj.tag.all()]
+# class ClientUpdateSerializer(serpy.Serializer):
+#     date = serpy.StrField()
+#     status = serpy.StrField()
+#     listed = serpy.StrField()
+#     note = serpy.StrField()
+#     contacted = serpy.BoolField()
 
-#     class Meta:
-#         model = Client
-#         fields = [
-#             "id",
-#             "name",
-#             "address",
-#             "city",
-#             "state",
-#             "phone_number",
-#             "status",
-#             "service_titan_customer_since_year",
-#             "service_titan_lifetime_revenue",
-#             "latitude",
-#             "longitude",
-#             "zip_code",
-#             "tag",
-#             "service_titan_customer_since_year",
-#             "client_updates_client"
-#         ]
-#         read_only_fields = fields
 
 class ClientListSerializer(serpy.Serializer):
-    id = serpy.StrField()
-    name = serpy.StrField()
-    address = serpy.StrField()
-    city = serpy.StrField()
-    state = serpy.StrField()
-    phone_number = serpy.StrField()
-    status = serpy.StrField()
-    service_titan_customer_since_year = serpy.StrField()
-    service_titan_lifetime_revenue = serpy.StrField()
-    latitude = serpy.StrField()
-    longitude = serpy.StrField()
-    zip_code = serpy.StrField(attr='zip_code.zip_code')
-    # tag = serpy.MethodField()
-    client_updates_client = ClientUpdateSerializer(many=True)
+    zip_code = serpy.Field(source='zip_code.zip_code')
+    zip_code = serializers.CharField(source='zip_code.zip_code')
+    tag = serializers.SerializerMethodField()
+    service_titan_customer_since_year = serializers.IntegerField(default=1900)
+    client_updates_client = ClientUpdateSerializer(many=True, read_only=True)
 
-    # def get_tag(self, obj):
-    #     return [tag.tag for tag in obj.tag.all()]
+    def get_tag(self, obj):
+        return [tag.tag for tag in obj.tag.all()]
+
+    class Meta:
+        model = Client
+        fields = [
+            "id",
+            "name",
+            "address",
+            "city",
+            "state",
+            "phone_number",
+            "status",
+            "service_titan_customer_since_year",
+            "service_titan_lifetime_revenue",
+            "latitude",
+            "longitude",
+            "zip_code",
+            "tag",
+            "service_titan_customer_since_year",
+            "client_updates_client"
+        ]
+        read_only_fields = fields
+
+# class ClientListSerializer(serpy.Serializer):
+#     id = serpy.StrField()
+#     name = serpy.StrField()
+#     address = serpy.StrField()
+#     city = serpy.StrField()
+#     state = serpy.StrField()
+#     phone_number = serpy.StrField()
+#     status = serpy.StrField()
+#     service_titan_customer_since_year = serpy.StrField()
+#     service_titan_lifetime_revenue = serpy.StrField()
+#     latitude = serpy.StrField()
+#     longitude = serpy.StrField()
+#     zip_code = serpy.StrField(attr='zip_code.zip_code')
+#     # tag = serpy.MethodField()
+#     client_updates_client = ClientUpdateSerializer(many=True)
+
+#     # def get_tag(self, obj):
+#     #     return [tag.tag for tag in obj.tag.all()]
 
 
 class ZapierClientSerializer(serializers.ModelSerializer):
