@@ -87,7 +87,7 @@ class ClientListSerializer(serpy.Serializer):
     longitude = serpy.Field()
     zip_code = serpy.Field(attr='zip_code.zip_code')
     tag = serpy.MethodField()
-    client_updates_client = ClientUpdateSerializer(many=True)
+    # client_updates_client = ClientUpdateSerializer(many=True)
 
     def get_tag(self, obj):
         return [tag.tag for tag in obj.tag.all()]
