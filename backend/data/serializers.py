@@ -31,57 +31,29 @@ class ClientUpdateSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-# class ClientListSerializer(serializers.Serializer):
-#     zip_code = serializers.CharField(source='zip_code.zip_code')
-#     tag = serializers.SerializerMethodField()
-#     service_titan_customer_since_year = serializers.IntegerField(default=1900)
-#     client_updates_client = ClientUpdateSerializer(many=True, read_only=True)
-
-#     def get_tag(self, obj):
-#         return [tag.tag for tag in obj.tag.all()]
-
-#     class Meta:
-#         model = Client
-#         fields = [
-#             f.name
-#             for f in Client._meta.fields
-#             if f.name != "service_titan_customer_since"
-#             and f.name != "zip_code"
-#         ] + [
-#             "zip_code",
-#             "tag",
-#             "service_titan_customer_since_year",
-#             "client_updates_client",
-#         ]
-#         read_only_fields = fields
-
-# Use normal serializer instead of a ModelSerializer
-class ClientListSerializer(serializers.Serializer):
-    id = serializers.IntegerField(read_only=True)
-    name = serializers.CharField(max_length=255)
-    address = serializers.CharField(max_length=255)
+class ClientListSerializer(serializers.ModelSerializer):
     zip_code = serializers.CharField(source='zip_code.zip_code')
-    city = serializers.CharField(max_length=255)
-    state = serializers.CharField(max_length=255)
-    phone_number = serializers.CharField(max_length=255)
-    contacted = serializers.BooleanField(default=False)
-    status = serializers.CharField(max_length=255)
-    note = serializers.CharField()
-    price = serializers.IntegerField(default=0)
-    housing_type = serializers.CharField(max_length=255)
-    year_built = serializers.IntegerField(default=1900)
     tag = serializers.SerializerMethodField()
-    equipment_installed_date = serializers.DateField(default=1900)
-    latitude = serializers.FloatField(default=0)
-    longitude = serializers.FloatField(default=0)
-    revenue = serializers.IntegerField(default=0)
-    service_titan_customer_since_year = serializers.IntegerField(default=1900)
-    service_titan_lifetime_revenue = serializers.IntegerField(default=0)
     service_titan_customer_since_year = serializers.IntegerField(default=1900)
     client_updates_client = ClientUpdateSerializer(many=True, read_only=True)
 
     def get_tag(self, obj):
         return [tag.tag for tag in obj.tag.all()]
+
+    class Meta:
+        model = Client
+        fields = [
+            f.name
+            for f in Client._meta.fields
+            if f.name != "service_titan_customer_since"
+            and f.name != "zip_code"
+        ] + [
+            "zip_code",
+            "tag",
+            "service_titan_customer_since_year",
+            "client_updates_client",
+        ]
+        read_only_fields = fields
 
 
 class ZapierClientSerializer(serializers.ModelSerializer):

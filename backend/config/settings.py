@@ -109,6 +109,7 @@ INSTALLED_APPS = [
     "rest_framework_social_oauth2",
     "oauth2_provider",
     "django_extensions",
+    "debug_toolbar",
 ]
 
 MIDDLEWARE = [
@@ -124,7 +125,14 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "csp.middleware.CSPMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
+
+if DEBUG:
+    import socket  # only if you haven't already imported this
+    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+    INTERNAL_IPS = [
+        ip[: ip.rfind(".")] + ".1" for ip in ips] + ["127.0.0.1", "10.0.2.2"]
 
 # Auth user
 AUTH_USER_MODEL = "accounts.CustomUser"
@@ -186,6 +194,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
