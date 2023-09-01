@@ -32,7 +32,7 @@ class ClientUpdateSerializer(serializers.ModelSerializer):
 
 
 class ClientListSerializer(serializers.ModelSerializer):
-    zip_code = serializers.CharField(source='zip_code.zip_code')
+    # zip_code = serializers.CharField(source='zip_code.zip_code')
     tag = serializers.SerializerMethodField()
     service_titan_customer_since_year = serializers.IntegerField(default=1900)
     client_updates_client = ClientUpdateSerializer(many=True, read_only=True)
@@ -46,9 +46,7 @@ class ClientListSerializer(serializers.ModelSerializer):
             f.name
             for f in Client._meta.fields
             if f.name != "service_titan_customer_since"
-            and f.name != "zip_code"
         ] + [
-            "zip_code",
             "tag",
             "service_titan_customer_since_year",
             "client_updates_client",

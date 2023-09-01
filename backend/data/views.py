@@ -103,7 +103,7 @@ class ClientListView(generics.ListAPIView):
         user = self.request.user
         query_params = self.request.query_params
         queryset = Client.objects.prefetch_related(
-            "client_updates_client"
+            "client_updates_client", "tag"
         ).filter(company=user.company, active=True).annotate(
             service_titan_customer_since_year=ExtractYear(
                 'service_titan_customer_since')
@@ -132,6 +132,7 @@ class ClientListView(generics.ListAPIView):
 
     def get_count_values(self, queryset):
         user = self.request.user
+        company = user.company
         forSale = Client.objects.filter(
             status="House For Sale",
             contacted=False,
@@ -187,9 +188,9 @@ class ClientListView(generics.ListAPIView):
             user = self.request.user
 
             page = self.paginate_queryset(queryset)
+
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
-                clients = serializer.data
                 forSale = 0
                 recentlySold = 0
                 forSaleAllTime = 0
@@ -205,7 +206,7 @@ class ClientListView(generics.ListAPIView):
                         "forSaleAllTime": forSaleAllTime,
                         "recentlySoldAllTime": recentlySoldAllTime,
                         "recentlySold": recentlySold,
-                        "clients": clients,
+                        "clients": serializer.data,
                         "savedFilters": savedFilters,
                     }
                 )
