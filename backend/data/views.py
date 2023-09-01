@@ -132,7 +132,6 @@ class ClientListView(generics.ListAPIView):
 
     def get_count_values(self, queryset):
         user = self.request.user
-        company = user.company
         forSale = Client.objects.filter(
             status="House For Sale",
             contacted=False,
