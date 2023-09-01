@@ -614,7 +614,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                         />
                     </>
                 ) : (
-                    <Map mapClass={"map-container"} mapCardStyle={"main-map-card-style"} clients={filteredClients} mapCenter={{ lat: 39.5, lng: -98.35 }} zoomLevel={4.5} />
+                    <Map mapCardStyle={"main"} clients={filteredClients} mapCenter={{ lat: 39.5, lng: -98.35 }} zoomLevel={4} />
                 )}
             </Card>
             {loading ? (

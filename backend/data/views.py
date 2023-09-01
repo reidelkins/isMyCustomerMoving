@@ -286,6 +286,80 @@ class ClientListView(generics.ListAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+    def put(self, request, *args, **kwargs):
+        """
+            An API view to handle client updates or deletions.
+        """
+        try:
+            print(request.data)
+            if request.data["type"] == "delete":
+                if len(request.data["clients"]) == 1:
+                    client = Client.objects.get(id=request.data["clients"][0])
+                    client.delete()
+                else:
+                    for client in request.data["clients"]:
+                        client = Client.objects.get(id=client)
+                        client.delete()
+                return Response(
+                    {"status": "Client Deleted"},
+                    status=status.HTTP_201_CREATED,
+                    headers="",
+                )
+            else:
+                client = Client.objects.get(id=request.data["clients"])
+                if request.data["note"]:
+                    client.note = request.data["note"]
+                    ClientUpdate.objects.create(
+                        client=client, note=request.data["note"]
+                    )
+                if request.data["contacted"] != "":
+                    client.contacted = request.data["contacted"]
+                    ClientUpdate.objects.create(
+                        client=client, contacted=request.data["contacted"]
+                    )
+                    if request.data["contacted"] and client.serv_titan_id:
+                        if (
+                            client.status == "House For Sale"
+                            and client.serv_titan_id  # noqa
+                            and client.company.service_titan_for_sale_contacted_tag_id  # noqa
+                        ):
+                            add_service_titan_contacted_tag.delay(
+                                client.id,
+                                client.company.service_titan_for_sale_contacted_tag_id,  # noqa
+                            )
+                        elif (
+                            client.status == "House Recently Sold (6)"
+                            and client.serv_titan_id  # noqa
+                            and client.company.service_titan_recently_sold_contacted_tag_id  # noqa
+                        ):
+                            add_service_titan_contacted_tag.delay(
+                                client.id,
+                                client.company.service_titan_recently_sold_contacted_tag_id,  # noqa
+                            )
+                if request.data["errorFlag"] != "":
+                    client.status = "No Change"
+                    client.error_flag = request.data["errorFlag"]
+                    ClientUpdate.objects.create(
+                        client=client, error_flag=request.data["errorFlag"]
+                    )
+                    if client.serv_titan_id:
+                        remove_all_service_titan_tags.delay(client=client.id)
+                if request.data["latitude"] != "":
+                    client.latitude = str(request.data["latitude"])
+                if request.data["longitude"] != "":
+                    client.longitude = str(request.data["longitude"])
+                client.save()
+                return Response(
+                    {"status": "Client Updated"},
+                    status=status.HTTP_201_CREATED,
+                    headers="",
+                )
+        except Exception as e:
+            logging.error(e)
+            return Response(
+                {"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
 
 class RecentlySoldView(generics.ListAPIView):
     serializer_class = HomeListingSerializer
@@ -791,85 +865,6 @@ class UploadServiceAreaListView(generics.ListAPIView):
             return Response({"status": e}, status=status.HTTP_400_BAD_REQUEST)
         serializer = UserSerializerWithToken(self.request.user, many=False)
         return Response(serializer.data)
-
-
-# create a class for update client that will be used for the put and delete requests
-class UpdateClientView(APIView):
-    """
-    An API view to handle client updates or deletions.
-    """
-
-    permission_classes = [IsAuthenticated]
-
-    def put(self, request, *args, **kwargs):
-        try:
-            if request.data["type"] == "delete":
-                if len(request.data["clients"]) == 1:
-                    client = Client.objects.get(id=request.data["clients"][0])
-                    client.delete()
-                else:
-                    for client in request.data["clients"]:
-                        client = Client.objects.get(id=client)
-                        client.delete()
-                return Response(
-                    {"status": "Client Deleted"},
-                    status=status.HTTP_201_CREATED,
-                    headers="",
-                )
-            else:
-                client = Client.objects.get(id=request.data["clients"])
-                if request.data["note"]:
-                    client.note = request.data["note"]
-                    ClientUpdate.objects.create(
-                        client=client, note=request.data["note"]
-                    )
-                if request.data["contacted"] != "":
-                    client.contacted = request.data["contacted"]
-                    ClientUpdate.objects.create(
-                        client=client, contacted=request.data["contacted"]
-                    )
-                    if request.data["contacted"] and client.serv_titan_id:
-                        if (
-                            client.status == "House For Sale"
-                            and client.serv_titan_id  # noqa
-                            and client.company.service_titan_for_sale_contacted_tag_id  # noqa
-                        ):
-                            add_service_titan_contacted_tag.delay(
-                                client.id,
-                                client.company.service_titan_for_sale_contacted_tag_id,  # noqa
-                            )
-                        elif (
-                            client.status == "House Recently Sold (6)"
-                            and client.serv_titan_id  # noqa
-                            and client.company.service_titan_recently_sold_contacted_tag_id  # noqa
-                        ):
-                            add_service_titan_contacted_tag.delay(
-                                client.id,
-                                client.company.service_titan_recently_sold_contacted_tag_id,  # noqa
-                            )
-                if request.data["errorFlag"] != "":
-                    client.status = "No Change"
-                    client.error_flag = request.data["errorFlag"]
-                    ClientUpdate.objects.create(
-                        client=client, error_flag=request.data["errorFlag"]
-                    )
-                    if client.serv_titan_id:
-                        remove_all_service_titan_tags.delay(client=client.id)
-                if request.data["latitude"] != "":
-                    client.latitude = str(request.data["latitude"])
-                if request.data["longitude"] != "":
-                    client.longitude = str(request.data["longitude"])
-                client.save()
-                return Response(
-                    {"status": "Client Updated"},
-                    status=status.HTTP_201_CREATED,
-                    headers="",
-                )
-        except Exception as e:
-            logging.error(e)
-            return Response(
-                {"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST
-            )
 
 
 class ServiceTitanView(APIView):

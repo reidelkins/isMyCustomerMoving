@@ -1,36 +1,46 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { GoogleMap, Marker, useLoadScript, InfoWindow } from '@react-google-maps/api';
-import { Card } from '@mui/material';
-import { useDispatch } from 'react-redux';
+/* eslint-disable prefer-arrow-callback */
+import React, { useState, useMemo, useEffect } from 'react'
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
 import PropTypes from 'prop-types';
+import { useDispatch } from 'react-redux';
 
 import { updateClientAsync } from '../redux/actions/usersActions';
 import ZipCodeCircle from './ZipCodeArea';
-import '../theme/map.css';
+
+const mainMapCardStyle = {
+  height: "80vh",
+  width: "100%"
+}
+
+const serviceAreaMapCardStyle = {
+  height: "40vh",
+  width: "50%"
+}
 
 Map.propTypes = {
   clients: PropTypes.array,
   serviceAreas: PropTypes.array,
-  mapClass: PropTypes.string,
   mapCardStyle: PropTypes.string,
   mapCenter: PropTypes.object,
   zoomLevel: PropTypes.number,
 };
 
-export default function Map({ mapClass, mapCardStyle, mapCenter, zoomLevel,  clients = [], serviceAreas = [] }) {
-  const dispatch = useDispatch();
+function Map({ mapCardStyle, mapCenter, zoomLevel,  clients = [], serviceAreas = [] }) {
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_API_KEY,
+  })
+  const center = useMemo(() => (mapCenter), [mapCenter]);  
 
-  // const [mapRef, setMapRef] = useState();
+ 
+
+  const dispatch = useDispatch();
+  
   const [isOpen, setIsOpen] = useState(false);
   const [infoWindowData, setInfoWindowData] = useState();
   const [markers, setMarkers] = useState([]);
   const [circles, setCircles] = useState([]);
-  const [doneGettingCoords, setDoneGettingCoords] = useState(false);
-
-  const { isLoaded } = useLoadScript({
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_API_KEY,
-  });
-  const center = useMemo(() => (mapCenter), [mapCenter]);
+  const [doneGettingCoords, setDoneGettingCoords] = useState(false);  
 
   const handleMarkerClick = (id, lat, lng, address, city, state, zip, name, status) => {
     // mapRef?.panTo({ lat, lng });
@@ -135,13 +145,16 @@ export default function Map({ mapClass, mapCardStyle, mapCenter, zoomLevel,  cli
     return <div />;
   };
 
-  return (
-    <Card className={mapCardStyle}>
-      {!isLoaded ? (
-        <h1>Loading...</h1>
-      ) : (
-        <GoogleMap mapContainerClassName={mapClass} center={circles ? circles[0] : center} zoom={zoomLevel} options={mapCardStyle === "main-map-card-style" ? mapOptions : serviceAreaMapOptions}>
-          { mapCardStyle === "main-map-card-style" ? (
+  return isLoaded ? (
+      <GoogleMap
+        mapContainerStyle={mapCardStyle === 'main' ? mainMapCardStyle : serviceAreaMapCardStyle}
+        center={circles.length !== 0 ? circles[0] : center}
+        zoom={zoomLevel}
+        // onLoad={onLoad}
+        // onUnmount={onUnmount}
+        options={mapCardStyle === "main" ? mapOptions : serviceAreaMapOptions}
+      >
+      { mapCardStyle === "main" ? (
             markers.map(
             ({ address, city, state, zip, name, status, lat, lng }, ind) =>
               lat !== 0 &&
@@ -177,10 +190,10 @@ export default function Map({ mapClass, mapCardStyle, mapCenter, zoomLevel,  cli
               )
           )
           ):(
-            renderZipCodeCircle()            
+            renderZipCodeCircle()
           )}
-        </GoogleMap>
-      )}
-    </Card>
-  );
+      </GoogleMap>
+  ) : <></>
 }
+
+export default React.memo(Map)

@@ -78,10 +78,10 @@ else:
     DEBUG = True
     CELERY_RESULT_BACKEND = "redis://redis:6379/0"
     CELERY_BROKER_URL = CELERY_RESULT_BACKEND
-    BASE_FRONTEND_URL = "http://localhost:3000"
+    BASE_FRONTEND_URL = "http://127.0.0.1:3000"
     BASE_BACKEND_URL = "http://localhost:8000"
-    CLIENT_ORIGIN_URL = "http://localhost:3000"
-    CLIENT_FRONEND_URL = "http://localhost:3000"
+    CLIENT_ORIGIN_URL = "http://127.0.0.1:3000"
+    CLIENT_FRONEND_URL = "http://127.0.0.1:3000"
 
 ALLOWED_HOSTS = ["*"]
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = get_env_var("GOOGLE_CLIENT_ID")

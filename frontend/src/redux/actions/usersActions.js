@@ -551,11 +551,11 @@ export const deleteClientAsync = (ids, refreshed = false) => async (dispatch, ge
     for (i; i < ids.length; i += chunkSize) {
       const chunk = ids.slice(i, i + chunkSize);
 
-      await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, { clients: chunk, type: 'delete' }, config);
+      await axios.put(`${DOMAIN}/api/v1/data/clients/`, { clients: chunk, type: 'delete' }, config);
     }
     const chunk = ids.slice(i, i + chunkSize);
     if (chunk.length > 0) {
-      await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, { clients: chunk, type: 'delete' }, config);
+      await axios.put(`${DOMAIN}/api/v1/data/clients/`, { clients: chunk, type: 'delete' }, config);
     }
     dispatch(clientsAsync(1));
   } catch (error) {
@@ -579,7 +579,7 @@ export const updateClientAsync =
       };
       dispatch(clientsLoading());
       await axios.put(
-        `${DOMAIN}/api/v1/data/updateclient/`,
+        `${DOMAIN}/api/v1/data/clients/`,
         { clients: id, type: 'edit', contacted, note, errorFlag, latitude, longitude },
         config
       );

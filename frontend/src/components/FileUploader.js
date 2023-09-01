@@ -337,7 +337,7 @@ const FileUploader = ({ fileType }) => {
 };
 
 FileUploader.propTypes = {
-  fileType: PropTypes.string.isRequired,
+  fileType: PropTypes.any
 };
 
 export default FileUploader;
