@@ -91,7 +91,7 @@ class DownloadClientView(APIView):
 
 
 class CustomPagination(PageNumberPagination):
-    page_size = 100
+    page_size = 500
 
 
 class ClientListView(generics.ListAPIView):
