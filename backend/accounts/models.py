@@ -149,6 +149,10 @@ class Company(models.Model):
     service_titan_recently_sold_contacted_tag_id = models.IntegerField(
         blank=True, null=True
     )
+    service_titan_sold_date_custom_field_id = models.IntegerField(
+        blank=True, null=True)
+    service_titan_listed_date_custom_field_id = models.IntegerField(
+        blank=True, null=True)
     for_sale_purchased = models.BooleanField(default=False)
     recently_sold_purchased = models.BooleanField(default=False)
     service_titan_customer_sync_option = models.CharField(
