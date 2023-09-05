@@ -6,11 +6,10 @@ import uuid
 # Define status choices
 STATUS = [
     ("House For Sale", "House For Sale"),
-    ("House For Rent", "House For Rent"),
+    ("Pending", "Pending"),
     ("House Recently Sold (6)", "House Recently Sold (6)"),
-    ("Recently Sold (12)", "Recently Sold (12)"),
-    ("Taken Off Market", "Taken Off Market"),
-    ("No Change", "No Change"),
+    ("House Recently Sold (12)", "House Recently Sold (12)"),
+    ("Off Market", "Off Market"),
 ]
 
 SAVED_FILTER_TYPE = [
@@ -199,9 +198,8 @@ class Realtor(models.Model):
     )
     name = models.CharField(max_length=100)
     company = models.CharField(max_length=100)
-    phone = models.CharField(max_length=100)
-    email = models.CharField(max_length=100)
-    url = models.CharField(max_length=100)
+    agent_phone = models.CharField(max_length=100)
+    brokerage_phone = models.CharField(max_length=100)
     objects_with_listing_count = RealtorWithListingCountManager()
 
 
@@ -238,7 +236,6 @@ class HomeListing(models.Model):
     lot_sqft = models.IntegerField(default=0, blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
-    permalink = models.CharField(max_length=100, blank=True, null=True)
     year_renovated = models.IntegerField(default=0, blank=True, null=True)
     roofing = models.CharField(
         max_length=100, default=" ", blank=True, null=True
