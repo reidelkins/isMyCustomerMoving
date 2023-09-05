@@ -140,25 +140,25 @@ jobs:
           bandit -r backend -x backend/accounts/tests,backend/data/tests,backend/payments/tests
         # safety check -r backend/requirements.txt
 
-  # frontend:
-  #   runs-on: ubuntu-latest
-  #   needs: [build-backend]
+  frontend:
+    runs-on: ubuntu-latest
+    needs: [build-backend]
 
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-  #     - name: Set up Node.js
-  #       uses: actions/setup-node@v2
-  #       with:
-  #         node-version: 18
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18
 
-  #     - name: Install dependencies
-  #       run: |
-  #         cd frontend
-  #         yarn install --frozen-lockfile
+      - name: Install dependencies
+        run: |
+          cd frontend
+          yarn install --frozen-lockfile
 
-  #     - name: Lint with ESLint
-  #       run: |
-  #         cd frontend
-  #         yarn lint
+      - name: Lint with ESLint
+        run: |
+          cd frontend
+          yarn lint
