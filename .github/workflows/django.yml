@@ -115,11 +115,11 @@ jobs:
           else
             echo "Backend server is running."
           fi
-      # - name: Run Tests and Code Coverage
-      #   run: |
-      #     cd backend          
-      #     coverage run -m pytest
-      #     coverage report -m  
+      - name: Run Tests and Code Coverage
+        run: |
+          cd backend          
+          coverage run -m pytest
+          coverage report -m  
         
   # backend-security-check:
   #   needs: build-backend
