@@ -33,7 +33,8 @@ from .serializers import (
     HomeListingSerializer,
     RealtorSerializer
 )
-from .syncClients import get_salesforce_clients, complete_service_titan_sync
+from .salesforce import get_salesforce_clients
+from .serviceTitan import complete_service_titan_sync
 from .realtor import get_all_zipcodes
 from .utils import (
     save_service_area_list,

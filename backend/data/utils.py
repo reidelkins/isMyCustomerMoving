@@ -498,7 +498,7 @@ def update_status(zip_code, company_id, status):
     ]
 
     if clients_to_update:
-        update_service_titan_client_tags.delay(
+        update_service_titan_clients.delay(
             clients_to_update, company.id, status
         )
 
@@ -712,14 +712,12 @@ def process_client_tags(client_id):
             str(company.service_titan_for_sale_contacted_tag_id),
             str(company.service_titan_recently_sold_contacted_tag_id),
         ]
-        tag_ids = [tag_id for tag_id in tag_ids if tag_id]
 
-        for tag_id in tag_ids:
-            payload = {
-                "customerIds": [str(client.serv_titan_id)],
-                "tagTypeIds": [tag_id],
-            }
-            handle_tag_deletion_request(payload, headers, client.company)
+        payload = {
+            "customerIds": [str(client.serv_titan_id)],
+            "tagTypeIds": tag_ids,
+        }
+        handle_tag_deletion_request(payload, headers, client.company)
 
     except Exception as e:
         logging.error(e)
@@ -848,19 +846,8 @@ def handle_tag_addition_request(payload, headers, company, for_sale):
     return response
 
 
-def cleanup_variables(variable_list):
-    """
-    Clean up variables by deleting them.
-
-    Parameters:
-    variable_list (list): List of variables to delete.
-    """
-    for var in variable_list:
-        del var
-
-
 @shared_task
-def update_service_titan_client_tags(for_sale, company, status):
+def update_service_titan_clients(clients_to_update, company, status):
     """
     Update Service Titan client tags.
 
@@ -871,17 +858,19 @@ def update_service_titan_client_tags(for_sale, company, status):
     """
     try:
         company = Company.objects.get(id=company)
+        headers = get_service_titan_access_token(company.id)
         tag_ids = [
             company.service_titan_for_sale_tag_id,
-            company.service_titan_recently_sold_tag_id,
+            company.service_titan_recently_sold_tag_id
         ]
+
         tag_ids = [str(tag_id) for tag_id in tag_ids if tag_id]
-        headers = get_service_titan_access_token(company.id)
-        if for_sale and tag_ids:
+
+        if clients_to_update and tag_ids:
             tag_type = determine_tag_type(company, status)
 
             if status == "House Recently Sold (6)":
-                for_sale_to_remove = for_sale
+                for_sale_to_remove = clients_to_update
                 payload = {
                     "customerIds": for_sale_to_remove,
                     "tagTypeIds": [
@@ -895,20 +884,38 @@ def update_service_titan_client_tags(for_sale, company, status):
                 if response and response.status_code != 200:
                     logging.error(response.json())
 
-            payload = {"customerIds": for_sale, "tagTypeIds": tag_type}
+            payload = {"customerIds": clients_to_update,
+                       "tagTypeIds": tag_type}
             response = handle_tag_addition_request(
-                payload, headers, company, for_sale
+                payload, headers, company, clients_to_update
             )
 
             if response and response.status_code != 200:
                 logging.error(response.json())
+
+        if clients_to_update:
+            from .serviceTitan import update_sold_listed_date_on_location
+            for client in clients_to_update:
+                client = Client.objects.get(
+                    serv_titan_id=client, company=company)
+                update_date = ClientUpdate.objects.filter(
+                    client=client, status=status).order_by(
+                    '-listed').values_list('listed', flat=True)[0]
+
+                if status == "House Recently Sold (6)" and  \
+                    company.service_titan_sold_date_custom_field_id or \
+                        status == "House For Sale" and \
+                        company.service_titan_listed_date_custom_field_id:
+                    update_sold_listed_date_on_location.delay(
+                        headers, company.id, client.serv_titan_id,
+                        status, update_date)
 
     except Exception as e:
         logging.error("Updating Service Titan clients failed")
         logging.error(f"ERROR: {e}")
         logging.error(traceback.format_exc())
 
-    cleanup_variables(
+    del_variables(
         [
             headers,
             response,
@@ -916,7 +923,7 @@ def update_service_titan_client_tags(for_sale, company, status):
             company,
             status,
             tag_type,
-            for_sale,
+            clients_to_update,
         ]
     )
 
@@ -1090,15 +1097,14 @@ def send_update_email(templateName):
 def do_it_all(company):
     try:
         company = Company.objects.get(id=company)
-        result = auto_update.delay(
+        auto_update.delay(
             company_id=company.id
         )  # Schedule auto_update task
         sleep(3600)  # TODO Calculate ETA for update_clients_statuses task
-        result = update_clients_statuses(
-            company.id
-        )  # Schedule update_clients_statuses task
+        # Schedule update_clients_statuses task
+        update_clients_statuses(company.id)
         sleep(360)
-        result.then(send_daily_email.apply_async, args=[company.id])
+        send_daily_email.delay(company.id)
     except Exception as e:
         logging.error("doItAll failed")
         logging.error(f"ERROR: {e}")
