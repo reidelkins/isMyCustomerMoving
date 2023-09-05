@@ -492,7 +492,7 @@ export const clientsAsync =
         }
         if (data.results.clients.length > 0) {
           dispatch(newPage(page));
-          if (data.results.clients.length === 1000 && reduxStore.user.clientsInfo.count !== page * 1000) {
+          if (data.results.clients.length === 500 && reduxStore.user.clientsInfo.count !== page * 500) {
             dispatch(clientsAsync(page + 1));
           }
         }
@@ -546,16 +546,16 @@ export const deleteClientAsync = (ids, refreshed = false) => async (dispatch, ge
       },
     };
     dispatch(clientsLoading());
-    const chunkSize = 1000;
+    const chunkSize = 100;
     let i = 0;
     for (i; i < ids.length; i += chunkSize) {
       const chunk = ids.slice(i, i + chunkSize);
 
-      await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, { clients: chunk, type: 'delete' }, config);
+      await axios.put(`${DOMAIN}/api/v1/data/clients/`, { clients: chunk, type: 'delete' }, config);
     }
     const chunk = ids.slice(i, i + chunkSize);
     if (chunk.length > 0) {
-      await axios.put(`${DOMAIN}/api/v1/data/updateclient/`, { clients: chunk, type: 'delete' }, config);
+      await axios.put(`${DOMAIN}/api/v1/data/clients/`, { clients: chunk, type: 'delete' }, config);
     }
     dispatch(clientsAsync(1));
   } catch (error) {
@@ -579,7 +579,7 @@ export const updateClientAsync =
       };
       dispatch(clientsLoading());
       await axios.put(
-        `${DOMAIN}/api/v1/data/updateclient/`,
+        `${DOMAIN}/api/v1/data/clients/`,
         { clients: id, type: 'edit', contacted, note, errorFlag, latitude, longitude },
         config
       );
@@ -610,7 +610,7 @@ export const uploadClientsUpdateAsync = (id, refreshed = false) => async (dispat
     } else {
       setTimeout(() => {
         dispatch(uploadClientsUpdateAsync(id));
-      }, 1000);
+      }, 100);
     }
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
@@ -836,7 +836,7 @@ export const serviceTitanUpdateAsync = (id, refreshed = false) => async (dispatc
     } else {
       setTimeout(() => {
         dispatch(serviceTitanUpdateAsync(id));
-      }, 1000);
+      }, 100);
     }
   } catch (error) {
     dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
@@ -968,7 +968,7 @@ export const forSaleAsync = (page, refreshed = false) => async (dispatch, getSta
       const { data } = await axios.get(`${DOMAIN}/api/v1/data/forsale/?page=${page}`, config);
       if (data.results.data.length > 0) {
         dispatch(newForSalePage(page));
-        if (data.results.data.length === 1000) {
+        if (data.results.data.length === 500) {
           dispatch(forSaleAsync(page + 1));
         }
       }
@@ -1124,7 +1124,7 @@ export const recentlySoldAsync = (page, refreshed = false) => async (dispatch, g
       const { data } = await axios.get(`${DOMAIN}/api/v1/data/recentlysold/?page=${page}`, config);
       if (data.results.data.length > 0) {
         dispatch(newRecentlySoldPage(page));
-        if (data.results.data.length === 1000) {
+        if (data.results.data.length === 500) {
           dispatch(recentlySoldAsync(page + 1));
         }
       }
@@ -1163,7 +1163,7 @@ export const realtorAsync = (page, clients = false, refreshed = false) => async 
       const { data } = await axios.get(url, config);
       if (data.results.data.length > 0) {
         dispatch(newRealtorPage(page));
-        if (data.results.data.length === 1000) {
+        if (data.results.data.length === 500) {
           dispatch(realtorAsync(page + 1));
         }
       }
