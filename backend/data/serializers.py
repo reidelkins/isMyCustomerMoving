@@ -125,5 +125,5 @@ class RealtorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Realtor
-        fields = ('id', 'name', 'company', 'phone',
-                  'email', 'url', 'listing_count')
+        fields = ('id', 'name', 'company',
+                  'agent_phone', 'brokerage_phone', 'listing_count')

@@ -1383,10 +1383,8 @@ def send_zapier_recently_sold(company_id):
     except Company.DoesNotExist:
         logging.error(f"Company with id {company_id} does not exist.")
         return
-
     if not company.zapier_recently_sold:
         return
-
     zip_code_objects = Client.objects.filter(company=company).values(
         "zip_code"
     )
@@ -1401,7 +1399,6 @@ def send_zapier_recently_sold(company_id):
     saved_filters = SavedFilter.objects.filter(
         company=company, filter_type="Recently Sold", for_zapier=True
     )
-
     for saved_filter in saved_filters:
         filtered_home_listings = filter_home_listings(
             {"saved_filter": saved_filter.name},
@@ -1409,18 +1406,17 @@ def send_zapier_recently_sold(company_id):
             company_id,
             "Recently Sold"
         )
-
         if filtered_home_listings:
             try:
                 serialized_data = HomeListingSerializer(
                     filtered_home_listings, many=True
                 ).data
+
                 for data in serialized_data:
                     # Add saved_filter.name to each item in the list
                     data["filter_name"] = saved_filter.name
                     del data["id"]
                     del data["status"]
-                    del data["permalink"]
                     del data["realtor"]
                     # TODO: Do something with these values
                     # 'roofing': ' ', 'garage_type': ' ',
