@@ -17,7 +17,8 @@ from .utils import (
     delete_extra_clients,
     del_variables,
     get_service_titan_access_token,
-    verify_address
+    verify_address,
+    parse_streets
 )
 from payments.models import ServiceTitanInvoice
 
@@ -92,7 +93,8 @@ def get_service_titan_locations(company_id, tenant, option):
 
 
 @shared_task
-def update_sold_listed_date_on_location(headers, company_id, customer_id, status_id):
+def update_sold_listed_date_on_location(
+        headers, company_id, customer_id, status, listed_date):
     company = Company.objects.get(id=company_id)
     client = Client.objects.get(company=company, serv_titan_id=customer_id)
     response = requests.get(
@@ -105,81 +107,89 @@ def update_sold_listed_date_on_location(headers, company_id, customer_id, status
     )
     locations = response.json()["data"]
     for location in locations:
-        if location["address"]["street"] == client.address:
+        if parse_streets(location["address"]["street"]) == client.address:
             location_id = location["id"]
             custom_fields = location["customFields"]
             new_custom_fields = []
             existed = False
+            # Add all current custom fields to new_custom_fields,
+            # if field to update exists, update it
             for field in custom_fields:
-                if field["typeId"] == company.service_titan_sold_date_custom_field_id and status == "Sold":
+                if field["typeId"] == \
+                    company.service_titan_sold_date_custom_field_id \
+                        and status == "House Recently Sold (6)":
                     new_custom_fields.append(
-                        {"value": date, "typeId": field["typeId"]}
+                        {"value": listed_date, "typeId": field["typeId"]}
                     )
                     existed = True
-                elif field["typeId"] == company.service_titan_listed_date_custom_field_id and status == "Listed":
+                elif field["typeId"] == \
+                    company.service_titan_listed_date_custom_field_id \
+                        and status == "House For Sale":
                     new_custom_fields.append(
-                        {"value": date, "typeId": field["typeId"]}
+                        {"value": listed_date, "typeId": field["typeId"]}
                     )
                     existed = True
                 else:
                     new_custom_fields.append(
                         {"value": field["value"], "typeId": field["typeId"]}
                     )
+            # If field to update does not exist, add it to new_custom_fields
             if not existed:
-                typeId = company.service_titan_sold_date_custom_field_id if status == "Sold" else company.service_titan_listed_date_custom_field_id
+                if status == "House Recently Sold (6)":
+                    typeId = company.service_titan_sold_date_custom_field_id
+                else:
+                    typeId = company.service_titan_listed_date_custom_field_id
                 new_custom_fields.append(
-                    {"value": date, "typeId": typeId}
+                    {"value": listed_date, "typeId": typeId}
                 )
-            print(new_custom_fields)
-            # response = requests.patch(
-            #     url=(
-            #         f"https://api.servicetitan.io/crm/v2/tenant/"
-            #         f"{tenant}/locations/{location_id}"
-            #     ),
-            #     headers=headers,
-            #     json=new_custom_fields,
-            #     timeout=10,
-            # )
-            return
+            response = requests.patch(
+                url=(
+                    f"https://api.servicetitan.io/crm/v2/tenant/"
+                    f"{company.tenant_id}/locations/{location_id}"
+                ),
+                headers=headers,
+                json={"customFields": new_custom_fields},
+                timeout=10,
+            )
 
 
-def get_service_titan_jobs(company_id, tenant, option):
-    # Retrieve the access token for ServiceTitan API
-    headers = get_service_titan_access_token(company_id)
-    clients = []
-    moreClients = True
-    page = 1
+# def get_service_titan_jobs(company_id, tenant, option):
+#     # Retrieve the access token for ServiceTitan API
+#     headers = get_service_titan_access_token(company_id)
+#     clients = []
+#     moreClients = True
+#     page = 1
 
-    # Fetch client data in paginated requests
-    results = []
-    while moreClients:
-        response = requests.get(
-            url=(
-                f"https://api.servicetitan.io/crm/v2/tenant/"
-                f"{tenant}/locations?page={page}&pageSize=2500"
-            ),
-            headers=headers,
-            timeout=10,
-        )
-        page += 1
-        clients = response.json()["data"]
-        if not response.json()["hasMore"]:
-            moreClients = False
+#     # Fetch client data in paginated requests
+#     results = []
+#     while moreClients:
+#         response = requests.get(
+#             url=(
+#                 f"https://api.servicetitan.io/crm/v2/tenant/"
+#                 f"{tenant}/locations?page={page}&pageSize=2500"
+#             ),
+#             headers=headers,
+#             timeout=10,
+#         )
+#         page += 1
+#         clients = response.json()["data"]
+#         if not response.json()["hasMore"]:
+#             moreClients = False
 
-        if option == "option3":
-            # Modify client names if option3 is selected
-            for client in clients:
-                client["name"] = " "
+#         if option == "option3":
+#             # Modify client names if option3 is selected
+#             for client in clients:
+#                 client["name"] = " "
 
-        results.append(save_client_list.delay(clients, company_id))
+#         results.append(save_client_list.delay(clients, company_id))
 
-    count = 0
-    while any(not result.ready() for result in results) and count < 30:
-        sleep(1)
-        count += 1
+#     count = 0
+#     while any(not result.ready() for result in results) and count < 30:
+#         sleep(1)
+#         count += 1
 
-    # Clean up variables to free up memory
-    del_variables([clients, response, headers])
+#     # Clean up variables to free up memory
+#     del_variables([clients, response, headers])
 
 
 @shared_task
@@ -261,6 +271,7 @@ def get_service_titan_customers(company_id, tenant):
     for client in clients:
         if count % 1500 == 0:
             headers = get_service_titan_access_token(company_id)
+        count += 1
         try:
             response = requests.get(
                 url=(
@@ -468,7 +479,7 @@ def get_service_titan_jobs(company_id, tenant):
         response = requests.get(url=url, headers=headers, timeout=10)
         page += 1
         jobs = response.json()["data"]
-        if response.json()["hasMore"] == False:
+        if not response.json()["hasMore"]:
             more_jobs = False
         jobs_to_create = []
         jobs_to_update = []

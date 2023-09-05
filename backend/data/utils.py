@@ -893,17 +893,22 @@ def update_service_titan_clients(clients_to_update, company, status):
             if response and response.status_code != 200:
                 logging.error(response.json())
 
-        elif clients_to_update:
+        if clients_to_update:
             from .serviceTitan import update_sold_listed_date_on_location
             for client in clients_to_update:
+                client = Client.objects.get(
+                    serv_titan_id=client, company=company)
                 update_date = ClientUpdate.objects.filter(
-                    client=client, status=status).order_by(-'listed')[0].values_list('listed', flat=True)[0]
-                if status == "House Recently Sold (6)" and company.service_titan_sold_date_custom_field_id:
+                    client=client, status=status).order_by(
+                    '-listed').values_list('listed', flat=True)[0]
+
+                if status == "House Recently Sold (6)" and  \
+                    company.service_titan_sold_date_custom_field_id or \
+                        status == "House For Sale" and \
+                        company.service_titan_listed_date_custom_field_id:
                     update_sold_listed_date_on_location.delay(
-                        headers, company.id, client.serv_titan_id, company.service_titan_sold_date_custom_field_id, update_date)
-                elif status == "House For Sale" and company.service_titan_listed_date_custom_field_id:
-                    update_sold_listed_date_on_location.delay(
-                        headers, company.id, client.serv_titan_id, company.service_titan_listed_date_custom_field_id, update_date)
+                        headers, company.id, client.serv_titan_id,
+                        status, update_date)
 
     except Exception as e:
         logging.error("Updating Service Titan clients failed")
@@ -1092,7 +1097,7 @@ def send_update_email(templateName):
 def do_it_all(company):
     try:
         company = Company.objects.get(id=company)
-        result = auto_update.delay(
+        auto_update.delay(
             company_id=company.id
         )  # Schedule auto_update task
         sleep(3600)  # TODO Calculate ETA for update_clients_statuses task
