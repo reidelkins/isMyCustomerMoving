@@ -18,7 +18,7 @@ import {
   TablePagination,  
 } from '@mui/material';
 
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 // components
 import Page from '../../components/Page';
@@ -30,7 +30,6 @@ import RealtorListCall from '../../redux/calls/RealtorListCall';
 import { showLoginInfo } from '../../redux/actions/authActions';
 import { selectRealtorInfo } from '../../redux/actions/usersActions';
 
-import { makeDate } from '../../utils/makeDate';
 import { handleChangePage, handleChangeRowsPerPage, handleRequestSort } from '../../utils/dataTableFunctions';
 import { getComparator, applySortFilter } from '../../utils/filterFunctions';
 
@@ -47,9 +46,7 @@ const TABLE_HEAD = [
 ];
 
 
-export default function RealtorData() {
-  const dispatch = useDispatch();
-
+export default function RealtorData() {  
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
 
@@ -64,9 +61,7 @@ export default function RealtorData() {
 
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const [shownRealtors, setShownRealtors] = useState(0);
-
-  const [csvLoading] = useState(false);
+  const [shownRealtors, setShownRealtors] = useState(0);  
 
   const [realtorLength, setRealtorLength] = useState(0);
 

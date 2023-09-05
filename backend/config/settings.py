@@ -78,10 +78,10 @@ else:
     DEBUG = True
     CELERY_RESULT_BACKEND = "redis://redis:6379/0"
     CELERY_BROKER_URL = CELERY_RESULT_BACKEND
-    BASE_FRONTEND_URL = "http://localhost:3000"
+    BASE_FRONTEND_URL = "http://127.0.0.1:3000"
     BASE_BACKEND_URL = "http://localhost:8000"
-    CLIENT_ORIGIN_URL = "http://localhost:3000"
-    CLIENT_FRONEND_URL = "http://localhost:3000"
+    CLIENT_ORIGIN_URL = "http://127.0.0.1:3000"
+    CLIENT_FRONEND_URL = "http://127.0.0.1:3000"
 
 ALLOWED_HOSTS = ["*"]
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = get_env_var("GOOGLE_CLIENT_ID")
@@ -109,6 +109,7 @@ INSTALLED_APPS = [
     "rest_framework_social_oauth2",
     "oauth2_provider",
     "django_extensions",
+    "debug_toolbar",
 ]
 
 MIDDLEWARE = [
@@ -124,7 +125,14 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "csp.middleware.CSPMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
+
+if DEBUG:
+    import socket  # only if you haven't already imported this
+    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+    INTERNAL_IPS = [
+        ip[: ip.rfind(".")] + ".1" for ip in ips] + ["127.0.0.1", "10.0.2.2"]
 
 # Auth user
 AUTH_USER_MODEL = "accounts.CustomUser"
@@ -186,6 +194,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -263,7 +272,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["accounts.utils.CustomAuthentication"],
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 1000,  # or any other default page size you prefer
+    'PAGE_SIZE': 500,  # or any other default page size you prefer
 }
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
