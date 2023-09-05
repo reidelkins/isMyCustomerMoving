@@ -7,7 +7,7 @@ from accounts.models import Company
 from config.settings import APIFY_TOKEN
 from data.models import Client, HomeListing, Realtor, ZipCode
 
-from .utils import del_variables, send_zapier_recently_sold
+from .utils import del_variables, parse_streets, send_zapier_recently_sold
 
 # Initialize the ApifyClient with your API token
 client = ApifyClient(APIFY_TOKEN)
@@ -35,7 +35,8 @@ def get_listings(zip_code, status):
 
     # Run the Actor and wait for it to finish
     run = client.actor(
-        "jupri/zillow-scraper").call(run_input=run_input, memory_mbytes=1024, wait_secs=120)
+        "jupri/zillow-scraper").call(
+        run_input=run_input, memory_mbytes=1024, wait_secs=120)
 
     # Fetch and print Actor results from the run's dataset (if there are any)
     for item in client.dataset(run["defaultDatasetId"]).iterate_items():
@@ -95,7 +96,7 @@ def create_home_listings(listing, zip_code):
     realtor, home_listing = "", ""
     # try:
     home_listing, _ = HomeListing.objects.get_or_create(
-        address=listing["address"]["streetAddress"],
+        address=parse_streets(listing["address"]["streetAddress"]),
         city=listing["address"]["city"],
         state=listing["address"]["state"],
         zip_code=ZipCode.objects.get(
@@ -118,7 +119,8 @@ def create_home_listings(listing, zip_code):
 
     home_listing.status = status
 
-    timestamp_ms = listing["listingDateTimeOnZillow"] if status == "House For Sale" else listing["lastSoldDate"]
+    timestamp_ms = listing["listingDateTimeOnZillow"] \
+        if status == "House For Sale" else listing["lastSoldDate"]
     timestamp_seconds = timestamp_ms / 1000  # Convert milliseconds to seconds
     # Create a datetime object from the Unix timestamp
     datetime_obj = datetime.utcfromtimestamp(timestamp_seconds)
