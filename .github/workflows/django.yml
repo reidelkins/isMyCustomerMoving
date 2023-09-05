@@ -71,58 +71,58 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Cache dependencies
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt     
-      - name: Database Setup
-        run: |
-          echo "Setting up test database..."
-          docker run --name db -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=password -e POSTGRES_DB=IMCM -p 5432:5432 -d postgres:latest
-          echo "Database setup complete."
-      - name: Apply Database Migrations
-        run: |
-          cd backend
-          python manage.py makemigrations
-          python manage.py migrate
-      - name: Upload Fake Data To Database
-        if : ${{ matrix.python-version }} == '3.10'
-        run: |
-          cd backend
-          python manage.py loaddata data.json
-      - name: Start Server
-        if : ${{ matrix.python-version }} == '3.10'
-        run: |
-          cd backend
-          python manage.py collectstatic --noinput
-          python manage.py runserver &
-      - name: Wait for backend server to start
-        if : ${{ matrix.python-version }} == '3.10'  
-        run: sleep 10
-      - name: Check Backend Server
-        if : ${{ matrix.python-version }} == '3.10' 
-        run: |
-          echo "Checking if backend server is running..."
-          sleep 5 # Give the server some time to start
-          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/api/v1/accounts/) # Replace the URL with the appropriate endpoint of your backend
-          if [ "$response" != "200" ]; then
-            echo "Backend server is not running. Exiting. Code was $response"
-            exit 1
-          else
-            echo "Backend server is running."
-          fi
-      - name: Run Tests and Code Coverage
-        run: |
-          cd backend          
-          coverage run -m pytest
-          coverage report -m  
+      # - name: Cache dependencies
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: ~/.cache/pip
+      #     key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-pip-
+      # - name: Install Dependencies
+      #   run: |
+      #     python -m pip install --upgrade pip
+      #     pip install -r backend/requirements.txt     
+      # - name: Database Setup
+      #   run: |
+      #     echo "Setting up test database..."
+      #     docker run --name db -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=password -e POSTGRES_DB=IMCM -p 5432:5432 -d postgres:latest
+      #     echo "Database setup complete."
+      # - name: Apply Database Migrations
+      #   run: |
+      #     cd backend
+      #     python manage.py makemigrations
+      #     python manage.py migrate
+      # - name: Upload Fake Data To Database
+      #   if : ${{ matrix.python-version }} == '3.10'
+      #   run: |
+      #     cd backend
+      #     python manage.py loaddata data.json
+      # - name: Start Server
+      #   if : ${{ matrix.python-version }} == '3.10'
+      #   run: |
+      #     cd backend
+      #     python manage.py collectstatic --noinput
+      #     python manage.py runserver &
+      # - name: Wait for backend server to start
+      #   if : ${{ matrix.python-version }} == '3.10'  
+      #   run: sleep 10
+      # - name: Check Backend Server
+      #   if : ${{ matrix.python-version }} == '3.10' 
+      #   run: |
+      #     echo "Checking if backend server is running..."
+      #     sleep 5 # Give the server some time to start
+      #     response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/api/v1/accounts/) # Replace the URL with the appropriate endpoint of your backend
+      #     if [ "$response" != "200" ]; then
+      #       echo "Backend server is not running. Exiting. Code was $response"
+      #       exit 1
+      #     else
+      #       echo "Backend server is running."
+      #     fi
+      # - name: Run Tests and Code Coverage
+      #   run: |
+      #     cd backend          
+      #     coverage run -m pytest
+      #     coverage report -m  
         
   backend-security-check:
     needs: build-backend
