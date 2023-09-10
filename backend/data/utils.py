@@ -426,7 +426,6 @@ def check_if_needs_update(client_id, status):
 
 @shared_task
 def update_status(zip_code, company_id, status):
-    from .realtor import get_realtor_property_details
     """
     Update the status of listings based on the provided zip code and status.
 
@@ -454,7 +453,6 @@ def update_status(zip_code, company_id, status):
             home_listing = HomeListing.objects.get(
                 address=to_list.address, status=status
             )
-            get_realtor_property_details.delay(home_listing.id, scrapfly_count)
             scrapfly_count += 1
             to_list.status = status
             to_list.price = home_listing.price
@@ -1089,16 +1087,15 @@ def send_update_email(templateName):
 @shared_task(rate_limit="1/s")
 def do_it_all(company):
     try:
-        company = Company.objects.get(id=company)
         result = auto_update.delay(
-            company_id=company.id
+            company_id=company
         )  # Schedule auto_update task
         sleep(3600)  # TODO Calculate ETA for update_clients_statuses task
         result = update_clients_statuses(
-            company.id
+            company
         )  # Schedule update_clients_statuses task
         sleep(360)
-        result.then(send_daily_email.apply_async, args=[company.id])
+        result.then(send_daily_email.apply_async, args=[company])
     except Exception as e:
         logging.error("doItAll failed")
         logging.error(f"ERROR: {e}")

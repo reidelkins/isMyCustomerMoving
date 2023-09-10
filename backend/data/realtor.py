@@ -36,20 +36,14 @@ def get_listings(zip_code, status):
     # Run the Actor and wait for it to finish
     run = client.actor(
         "jupri/zillow-scraper").call(
-        run_input=run_input, memory_mbytes=2048, wait_secs=120)
+        run_input=run_input, memory_mbytes=4096, wait_secs=120)
 
     # Fetch and print Actor results from the run's dataset (if there are any)
-    count = 0
     items = []
     for item in client.dataset(run["defaultDatasetId"]).iterate_items():
-        count += 1
         items.append(item)
-        if count == 1000:
-            create_home_listings.delay(items, zip_code)
-            count = 0
-            items = []
-    if count > 0:
-        create_home_listings.delay(items, zip_code)
+    del_variables([run_input, run])
+    create_home_listings(items, zip_code)
 
 
 @shared_task
@@ -170,5 +164,5 @@ def create_home_listings(listings, zip_code):
     ])
 
     del_variables(
-        [realtor, listing, home_listing]
+        [realtor, listing, home_listing, listings]
     )
