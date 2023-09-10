@@ -1094,7 +1094,7 @@ def send_update_email(templateName):
 @shared_task(rate_limit="1/s")
 def do_it_all(company):
     try:
-        result = auto_update.delay(
+        auto_update.delay(
             company_id=company
         )  # Schedule auto_update task
         sleep(3600)  # TODO Calculate ETA for update_clients_statuses task
