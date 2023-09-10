@@ -578,9 +578,10 @@ export const updateClientAsync =
         },
       };
       dispatch(clientsLoading());
+      const data = { clients: id, type: 'edit', contacted, note, errorFlag, latitude, longitude };      
       await axios.put(
         `${DOMAIN}/api/v1/data/clients/`,
-        { clients: id, type: 'edit', contacted, note, errorFlag, latitude, longitude },
+        data,
         config
       );
       dispatch(clientsAsync(1));
