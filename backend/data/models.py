@@ -151,44 +151,77 @@ class ScrapeResponse(models.Model):
     url = models.CharField(max_length=100, blank=True, null=True)
 
 
+# class RealtorWithListingCountManager(models.Manager):
+#     def get_queryset(self, service_area_zip_codes=None):
+#         queryset = super().get_queryset()
+
+#         base_filter = models.Q(home_listing_realtor__status="House For Sale")
+
+#         if service_area_zip_codes:
+#             queryset = queryset.annotate(
+#                 listing_count=models.Count(
+#                     'home_listing_realtor',
+#                     filter=models.Q(
+#                         home_listing_realtor__zip_code__in=service_area_zip_codes,
+#                     ),
+#                     distinct=True
+#                 )
+#             )
+#         else:
+#             queryset = queryset.annotate(
+#                 listing_count=models.Count('home_listing_realtor')
+#             )
+
+#         return queryset
+
+#     def get_realtors_with_filtered_listings(self, service_area_zip_codes=None):
+#         queryset = super().get_queryset()
+
+#         if service_area_zip_codes:
+#             queryset = queryset.annotate(
+#                 listing_count=models.Count(
+#                     'home_listing_realtor',
+#                     filter=models.Q(
+#                         home_listing_realtor__zip_code__in=service_area_zip_codes),
+#                     distinct=True
+#                 )
+#             )
+#         else:
+#             queryset = queryset.annotate(
+#                 listing_count=models.Count('home_listing_realtor')
+#             )
+
+#         return queryset.filter(listing_count__gt=0)
+
 class RealtorWithListingCountManager(models.Manager):
     def get_queryset(self, service_area_zip_codes=None):
         queryset = super().get_queryset()
 
+        base_filter = models.Q(home_listing_realtor__status="House For Sale")
+
         if service_area_zip_codes:
+            zip_filter = models.Q(
+                home_listing_realtor__zip_code__in=service_area_zip_codes)
+            combined_filter = base_filter & zip_filter
             queryset = queryset.annotate(
                 listing_count=models.Count(
                     'home_listing_realtor',
-                    filter=models.Q(
-                        home_listing_realtor__zip_code__in=service_area_zip_codes),
+                    filter=combined_filter,
                     distinct=True
                 )
             )
         else:
             queryset = queryset.annotate(
-                listing_count=models.Count('home_listing_realtor')
+                listing_count=models.Count(
+                    'home_listing_realtor',
+                    filter=base_filter
+                )
             )
 
         return queryset
 
     def get_realtors_with_filtered_listings(self, service_area_zip_codes=None):
-        queryset = super().get_queryset()
-
-        if service_area_zip_codes:
-            queryset = queryset.annotate(
-                listing_count=models.Count(
-                    'home_listing_realtor',
-                    filter=models.Q(
-                        home_listing_realtor__zip_code__in=service_area_zip_codes),
-                    distinct=True
-                )
-            )
-        else:
-            queryset = queryset.annotate(
-                listing_count=models.Count('home_listing_realtor')
-            )
-
-        return queryset.filter(listing_count__gt=0)
+        return self.get_queryset(service_area_zip_codes).filter(listing_count__gt=0)
 
 
 # Realtor model
@@ -273,7 +306,7 @@ class HomeListing(models.Model):
     )
 
     class Meta:
-        unique_together = ("address", "status", "city", "state")
+        unique_together = ("address", "city", "state")
 
     def __str__(self):
         return f"{self.address}_{self.status}"

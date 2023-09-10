@@ -37,7 +37,7 @@ class Command(BaseCommand):
                 1,
                 2,
                 3,
-                4,
+                6,
             ]  # Defines on which weekdays the command should run
             current_datetime = datetime.now()
             current_weekday = current_datetime.weekday()
