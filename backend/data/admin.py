@@ -61,6 +61,7 @@ class ClientUpdateAdmin(admin.ModelAdmin):
         "display_company_name",
         "status",
         "listed",
+        "date"
     )
     search_fields = (
         "id",
@@ -126,8 +127,8 @@ class HomeListingTagsAdmin(admin.ModelAdmin):
 
 
 class RealtorAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "phone", "email", "company")
-    search_fields = ["id", "name", "phone", "email", "company"]
+    list_display = ("id", "name", "company")
+    search_fields = ["id", "name", "company"]
 
 
 class SavedFilterAdmin(admin.ModelAdmin):

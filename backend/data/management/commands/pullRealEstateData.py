@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from datetime import datetime
+from accounts.models import Company
 from data.utils import auto_update
 
 
@@ -26,6 +27,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         company = options["company"]
         zip_code = options["zip"]
+        company = Company.objects.get(name=company).id
         # Prioritizes company over zip code
         if company:
             auto_update.delay(company_id=company)
@@ -37,7 +39,7 @@ class Command(BaseCommand):
                 1,
                 2,
                 3,
-                4,
+                6,
             ]  # Defines on which weekdays the command should run
             current_datetime = datetime.now()
             current_weekday = current_datetime.weekday()

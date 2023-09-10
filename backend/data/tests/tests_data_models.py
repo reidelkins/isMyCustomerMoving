@@ -191,9 +191,8 @@ class HomeListingModelTests(TestCase):
         self.realtor = Realtor.objects_with_listing_count.create(
             name="John Doe",
             company="Doe Estate",
-            phone="1234567890",
-            email="john@example.com",
-            url="http://example.com",
+            agent_phone="1234567890",
+            brokerage_phone="1234567890",
         )
 
     def test_create_home_listing(self):
@@ -213,7 +212,6 @@ class HomeListingModelTests(TestCase):
             lot_sqft=3000,
             latitude=40.712776,
             longitude=-74.005974,
-            permalink=" ",
             year_renovated=2010,
             roofing=" ",
             garage_type=" ",
@@ -240,7 +238,6 @@ class HomeListingModelTests(TestCase):
         self.assertEqual(home_listing.lot_sqft, 3000)
         self.assertEqual(home_listing.latitude, 40.712776)
         self.assertEqual(home_listing.longitude, -74.005974)
-        self.assertEqual(home_listing.permalink, " ")
         self.assertEqual(home_listing.year_renovated, 2010)
         self.assertEqual(home_listing.roofing, " ")
         self.assertEqual(home_listing.garage_type, " ")
@@ -272,7 +269,7 @@ class HomeListingModelTests(TestCase):
             lot_sqft=3000,
             latitude=40.712776,
             longitude=-74.005974,
-            permalink=" ",
+
             year_renovated=2010,
             roofing=" ",
             garage_type=" ",
@@ -306,7 +303,7 @@ class HomeListingModelTests(TestCase):
             lot_sqft=3000,
             latitude=40.712776,
             longitude=-74.005974,
-            permalink=" ",
+
             year_renovated=2010,
             roofing=" ",
             garage_type=" ",
@@ -337,7 +334,7 @@ class HomeListingModelTests(TestCase):
                 lot_sqft=3000,
                 latitude=40.712776,
                 longitude=-74.005974,
-                permalink=" ",
+
                 year_renovated=2010,
                 roofing=" ",
                 garage_type=" ",
@@ -372,7 +369,7 @@ class HomeListingModelTests(TestCase):
                 lot_sqft=3000,
                 latitude=40.712776,
                 longitude=-74.005974,
-                permalink=" ",
+
                 year_renovated=2010,
                 roofing=" ",
                 garage_type=" ",
@@ -406,7 +403,7 @@ class HomeListingModelTests(TestCase):
                 lot_sqft=3000,
                 latitude=40.712776,
                 longitude=-74.005974,
-                permalink=" ",
+
                 year_renovated=2010,
                 roofing=" ",
                 garage_type=" ",
@@ -440,7 +437,7 @@ class HomeListingModelTests(TestCase):
                 lot_sqft=3000,
                 latitude=40.712776,
                 longitude=-74.005974,
-                permalink=" ",
+
                 year_renovated=2010,
                 roofing=" ",
                 garage_type=" ",
@@ -474,7 +471,7 @@ class HomeListingModelTests(TestCase):
                 lot_sqft=3000,
                 latitude=40.712776,
                 longitude=-74.005974,
-                permalink=" ",
+
                 year_renovated=2010,
                 roofing=" ",
                 garage_type=" ",
