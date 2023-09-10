@@ -129,7 +129,7 @@ class CompanyDashboardView(TestCase):
         assert "clientsAcquiredByMonth" in data
 
         # Validate the format of the response data.
-        assert isinstance(data["totalRevenue"], int)
+        assert isinstance(data["totalRevenue"], float)
         assert isinstance(data["monthsActive"], int)
         assert isinstance(data["revenueByMonth"], dict)
         assert isinstance(data["forSaleByMonth"], dict)

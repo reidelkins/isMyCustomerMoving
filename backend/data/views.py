@@ -4,16 +4,17 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Count, Min, Case, When, DateField
-from django.db.models.functions import Coalesce
+from django.db.models import Count, Sum
+from django.db.models.functions import ExtractYear, ExtractMonth
 from django.http import HttpResponse
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
+import calendar
 import logging
 import json
 import csv
 from re import sub
 
-from accounts.models import Company, CustomUser
+from accounts.models import CustomUser
 from accounts.serializers import UserSerializerWithToken
 from config import settings
 from payments.models import ServiceTitanInvoice
@@ -32,7 +33,8 @@ from .serializers import (
     HomeListingSerializer,
     RealtorSerializer
 )
-from .syncClients import get_salesforce_clients, complete_service_titan_sync
+from .salesforce import get_salesforce_clients
+from .serviceTitan import complete_service_titan_sync
 from .realtor import get_all_zipcodes
 from .utils import (
     save_service_area_list,
@@ -90,7 +92,7 @@ class DownloadClientView(APIView):
 
 
 class CustomPagination(PageNumberPagination):
-    page_size = 1000
+    page_size = 500
 
 
 class ClientListView(generics.ListAPIView):
@@ -102,8 +104,11 @@ class ClientListView(generics.ListAPIView):
         user = self.request.user
         query_params = self.request.query_params
         queryset = Client.objects.prefetch_related(
-            "client_updates_client"
-        ).filter(company=user.company, active=True)
+            "client_updates_client", "tag"
+        ).filter(company=user.company, active=True).annotate(
+            service_titan_customer_since_year=ExtractYear(
+                'service_titan_customer_since')
+        )
         queryset = filter_clients(query_params, queryset, user.company.id)
         # TODO
         # if "tags" in query_params:
@@ -126,6 +131,43 @@ class ClientListView(generics.ListAPIView):
             queryset = queryset.order_by("status")
         return queryset
 
+    def get_count_values(self, queryset):
+        user = self.request.user
+        forSale = Client.objects.filter(
+            status="House For Sale",
+            contacted=False,
+            company=user.company,
+            active=True
+        ).count()
+
+        recentlySold = Client.objects.filter(
+            status="House Recently Sold (6)",
+            contacted=False,
+            company=user.company,
+            active=True
+        ).count()
+
+        forSaleAllTime = ClientUpdate.objects.filter(
+            status="House For Sale", client__company=user.company
+        ).count()
+
+        recentlySoldAllTime = ClientUpdate.objects.filter(
+            status="House Recently Sold (6)", client__company=user.company
+        ).count()
+
+        savedFilters = list(
+            SavedFilter.objects.filter(
+                company=user.company, filter_type="Client"
+            ).values_list("name", flat=True)
+        )
+        return (
+            forSale,
+            recentlySold,
+            forSaleAllTime,
+            recentlySoldAllTime,
+            savedFilters
+        )
+
     def list(self, request, *args, **kwargs):
         user = self.request.user
         if "newAddress" in request.query_params:
@@ -144,46 +186,36 @@ class ClientListView(generics.ListAPIView):
         else:
             queryset = self.filter_queryset(self.get_queryset())
             user = self.request.user
-            allClients = Client.objects.filter(
-                company=user.company, active=True)
-            forSale = allClients.filter(
-                status="House For Sale", contacted=False
-            ).count()
-            recentlySold = allClients.filter(
-                status="House Recently Sold (6)", contacted=False
-            ).count()
-            allClientUpdates = ClientUpdate.objects.filter(
-                client__company=user.company
-            )
-            forSaleAllTime = allClientUpdates.filter(
-                status="House For Sale"
-            ).count()
-            recentlySoldAllTime = allClientUpdates.filter(
-                status="House Recently Sold (6)"
-            ).count()
-            savedFilters = list(
-                SavedFilter.objects.filter(
-                    company=user.company, filter_type="Client"
-                ).values_list("name", flat=True)
-            )
 
             page = self.paginate_queryset(queryset)
+
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
-                clients = serializer.data
+                forSale = 0
+                recentlySold = 0
+                forSaleAllTime = 0
+                recentlySoldAllTime = 0
+                savedFilters = []
+                if request.query_params.get('page') == "1":
+                    forSale, recentlySold, forSaleAllTime, \
+                        recentlySoldAllTime, savedFilters = self.get_count_values(
+                            queryset)
                 return self.get_paginated_response(
                     {
                         "forSale": forSale,
                         "forSaleAllTime": forSaleAllTime,
                         "recentlySoldAllTime": recentlySoldAllTime,
                         "recentlySold": recentlySold,
-                        "clients": clients,
+                        "clients": serializer.data,
                         "savedFilters": savedFilters,
                     }
                 )
 
             serializer = self.get_serializer(queryset, many=True)
             clients = serializer.data
+            forSale, recentlySold, forSaleAllTime, \
+                recentlySoldAllTime, savedFilters = self.get_count_values(
+                    queryset)
             return Response(
                 {
                     "forSale": forSale,
@@ -253,6 +285,80 @@ class ClientListView(generics.ListAPIView):
             return Response(
                 {"error": "Something went wrong"},
                 status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    def put(self, request, *args, **kwargs):
+        """
+            An API view to handle client updates or deletions.
+        """
+        try:
+            print(request.data)
+            if request.data["type"] == "delete":
+                if len(request.data["clients"]) == 1:
+                    client = Client.objects.get(id=request.data["clients"][0])
+                    client.delete()
+                else:
+                    for client in request.data["clients"]:
+                        client = Client.objects.get(id=client)
+                        client.delete()
+                return Response(
+                    {"status": "Client Deleted"},
+                    status=status.HTTP_201_CREATED,
+                    headers="",
+                )
+            else:
+                client = Client.objects.get(id=request.data["clients"])
+                if request.data["note"]:
+                    client.note = request.data["note"]
+                    ClientUpdate.objects.create(
+                        client=client, note=request.data["note"]
+                    )
+                if request.data["contacted"] != "":
+                    client.contacted = request.data["contacted"]
+                    ClientUpdate.objects.create(
+                        client=client, contacted=request.data["contacted"]
+                    )
+                    if request.data["contacted"] and client.serv_titan_id:
+                        if (
+                            client.status == "House For Sale"
+                            and client.serv_titan_id  # noqa
+                            and client.company.service_titan_for_sale_contacted_tag_id  # noqa
+                        ):
+                            add_service_titan_contacted_tag.delay(
+                                client.id,
+                                client.company.service_titan_for_sale_contacted_tag_id,  # noqa
+                            )
+                        elif (
+                            client.status == "House Recently Sold (6)"
+                            and client.serv_titan_id  # noqa
+                            and client.company.service_titan_recently_sold_contacted_tag_id  # noqa
+                        ):
+                            add_service_titan_contacted_tag.delay(
+                                client.id,
+                                client.company.service_titan_recently_sold_contacted_tag_id,  # noqa
+                            )
+                if request.data["errorFlag"] != "":
+                    client.status = "No Change"
+                    client.error_flag = request.data["errorFlag"]
+                    ClientUpdate.objects.create(
+                        client=client, error_flag=request.data["errorFlag"]
+                    )
+                    if client.serv_titan_id:
+                        remove_all_service_titan_tags.delay(client=client.id)
+                if request.data["latitude"] != "":
+                    client.latitude = str(request.data["latitude"])
+                if request.data["longitude"] != "":
+                    client.longitude = str(request.data["longitude"])
+                client.save()
+                return Response(
+                    {"status": "Client Updated"},
+                    status=status.HTTP_201_CREATED,
+                    headers="",
+                )
+        except Exception as e:
+            logging.error(e)
+            return Response(
+                {"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST
             )
 
 
@@ -760,85 +866,6 @@ class UploadServiceAreaListView(generics.ListAPIView):
         return Response(serializer.data)
 
 
-# create a class for update client that will be used for the put and delete requests
-class UpdateClientView(APIView):
-    """
-    An API view to handle client updates or deletions.
-    """
-
-    permission_classes = [IsAuthenticated]
-
-    def put(self, request, *args, **kwargs):
-        try:
-            if request.data["type"] == "delete":
-                if len(request.data["clients"]) == 1:
-                    client = Client.objects.get(id=request.data["clients"][0])
-                    client.delete()
-                else:
-                    for client in request.data["clients"]:
-                        client = Client.objects.get(id=client)
-                        client.delete()
-                return Response(
-                    {"status": "Client Deleted"},
-                    status=status.HTTP_201_CREATED,
-                    headers="",
-                )
-            else:
-                client = Client.objects.get(id=request.data["clients"])
-                if request.data["note"]:
-                    client.note = request.data["note"]
-                    ClientUpdate.objects.create(
-                        client=client, note=request.data["note"]
-                    )
-                if request.data["contacted"] != "":
-                    client.contacted = request.data["contacted"]
-                    ClientUpdate.objects.create(
-                        client=client, contacted=request.data["contacted"]
-                    )
-                    if request.data["contacted"] and client.serv_titan_id:
-                        if (
-                            client.status == "House For Sale"
-                            and client.serv_titan_id  # noqa
-                            and client.company.service_titan_for_sale_contacted_tag_id  # noqa
-                        ):
-                            add_service_titan_contacted_tag.delay(
-                                client.id,
-                                client.company.service_titan_for_sale_contacted_tag_id,  # noqa
-                            )
-                        elif (
-                            client.status == "House Recently Sold (6)"
-                            and client.serv_titan_id  # noqa
-                            and client.company.service_titan_recently_sold_contacted_tag_id  # noqa
-                        ):
-                            add_service_titan_contacted_tag.delay(
-                                client.id,
-                                client.company.service_titan_recently_sold_contacted_tag_id,  # noqa
-                            )
-                if request.data["errorFlag"] != "":
-                    client.status = "No Change"
-                    client.error_flag = request.data["errorFlag"]
-                    ClientUpdate.objects.create(
-                        client=client, error_flag=request.data["errorFlag"]
-                    )
-                    if client.serv_titan_id:
-                        remove_all_service_titan_tags.delay(client=client.id)
-                if request.data["latitude"] != "":
-                    client.latitude = str(request.data["latitude"])
-                if request.data["longitude"] != "":
-                    client.longitude = str(request.data["longitude"])
-                client.save()
-                return Response(
-                    {"status": "Client Updated"},
-                    status=status.HTTP_201_CREATED,
-                    headers="",
-                )
-        except Exception as e:
-            logging.error(e)
-            return Response(
-                {"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-
 class ServiceTitanView(APIView):
     """
     An API view to handle the process related to ServiceTitan clients.
@@ -976,21 +1003,17 @@ class CompanyDashboardView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
-    def _get_months_active(self, company_id):
+    def _get_months_active(self):
         """
         Return the number of months a company has been active.
         """
-        company = Company.objects.get(id=company_id)
+
         self.first_client = CustomUser.objects.filter(
-            company=company).order_by("date_joined")[0]
-        first_month = self.first_client.date_joined.month
-        first_year = self.first_client.date_joined.year
+            company=self.request.user.company).order_by("date_joined")[0]
 
-        current_month = datetime.now().month
-        current_year = datetime.now().year
-
-        self.months_active = (current_year - first_year) * 12 + \
-            (current_month - first_month) + 1
+        self.months_active = (datetime.now().year -
+                              self.first_client.date_joined.year) * 12 + \
+            (datetime.now().month - self.first_client.date_joined.month) + 1
 
     def _get_month_dictionary(self):
         current_datetime = datetime.now()
@@ -1021,108 +1044,129 @@ class CompanyDashboardView(APIView):
 
         return last_six_months_dict
 
-    def _get_leads(self, company_id):
+    def _get_leads(self, blank_dictionary):
         """
         Return a list of all the for sale
         leads for a company separated by each month.
         """
-        self.recently_sold_by_month = self._get_month_dictionary()
-        self.for_sale_by_month = self._get_month_dictionary()
-        company = Company.objects.get(id=company_id)
-        clients = Client.objects.filter(company=company)
+        self.recently_sold_by_month = blank_dictionary.copy()
+        self.for_sale_by_month = blank_dictionary.copy()
+
+        clients = Client.objects.filter(company=self.request.user.company)
         statuses = [
             "House For Sale",
             "House Recently Sold (6)",
         ]
-        for listed_status in statuses:
-            client_updates = ClientUpdate.objects.filter(
-                client__in=clients, status=listed_status)
-            today = datetime.today()
-            first_day_of_month = today.replace(day=1)
-            first_day_next_month = (first_day_of_month +
-                                    timedelta(days=32)).replace(day=1)
-            last_day_of_month = first_day_next_month - timedelta(days=1)
-
-            for i in range(6):
-                # Query to get invoices that happened last month
-                status_updates_last_month = client_updates.filter(
-                    date__gte=first_day_of_month,
-                    date__lte=last_day_of_month
-                ).count()
-                if listed_status == "House For Sale":
-                    self.for_sale_by_month[last_day_of_month.strftime(
-                        "%B")] = status_updates_last_month
-                else:
-                    self.recently_sold_by_month[last_day_of_month.strftime(
-                        "%B")] = status_updates_last_month
-
-                last_day_of_month = first_day_of_month - timedelta(days=1)
-                first_day_of_month = last_day_of_month.replace(day=1)
-
-    def _get_revenue(self, company_id):
-        """
-        Return a list of all the attributed revenue
-        for a company separated by each month.
-        """
-        self.revenue_by_month = self._get_month_dictionary()
-        company = Company.objects.get(id=company_id)
-        clients = Client.objects.filter(company=company)
-        invoices = ServiceTitanInvoice.objects.filter(
-            client__in=clients, attributed=True)
-        invoice_amounts = invoices.values_list("amount", flat=True)
-        self.total_revenue = int(sum(invoice_amounts))
 
         today = datetime.today()
         first_day_of_month = today.replace(day=1)
         first_day_next_month = (first_day_of_month +
                                 timedelta(days=32)).replace(day=1)
         last_day_of_month = first_day_next_month - timedelta(days=1)
+        first_day_of_period = (last_day_of_month -
+                               timedelta(days=6*30)).replace(day=1)
 
-        for i in range(6):
-            # Query to get invoices that happened last month
-            invoices_last_month = invoices.filter(
-                created_on__gte=first_day_of_month,
-                created_on__lte=last_day_of_month,
-            ).values_list("amount", flat=True)
-            self.revenue_by_month[last_day_of_month.strftime("%B")] = sum(
-                invoices_last_month)
+        # Fetch all ClientUpdate objects in the 6 month period,
+        # annotate with month and year,
+        # group by month, year, and status, and
+        # count the number of objects in each group
+        client_updates = ClientUpdate.objects.filter(
+            client__in=clients,
+            status__in=statuses,
+            date__gte=first_day_of_period,
+            date__lte=last_day_of_month,
+        ).annotate(
+            month=ExtractMonth('date'),
+            year=ExtractYear('date'),
+        ).values('month', 'year', 'status').annotate(
+            count=Count('id')
+        )
 
-            last_day_of_month = first_day_of_month - timedelta(days=1)
-            first_day_of_month = last_day_of_month.replace(day=1)
+        # Initialize for_sale_by_month and recently_sold_by_month with 0 values
+        for month in self.for_sale_by_month:
+            self.for_sale_by_month[month] = 0
+            self.recently_sold_by_month[month] = 0
 
-    def _get_customer_retention(self, company_id):
+        # Fill the for_sale_by_month and recently_sold_by_month dictionaries
+        for update in client_updates:
+            month = calendar.month_name[update['month']]
+            if update['status'] == "House For Sale":
+                self.for_sale_by_month[month] = update['count']
+            else:
+                self.recently_sold_by_month[month] = update['count']
+
+    def _get_revenue(self, blank_dictionary):
+        """
+        Return a list of all the attributed revenue
+        for a company separated by each month.
+        """
+        self.revenue_by_month = blank_dictionary.copy()
+        clients = Client.objects.filter(company=self.request.user.company)
+        invoices = ServiceTitanInvoice.objects.filter(
+            client__in=clients, attributed=True
+        )
+
+        # Get the first and last day of the 6 month period
+        first_day_of_month = datetime.today().replace(day=1)
+        last_day_of_period = (first_day_of_month +
+                              timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        first_day_of_period = (last_day_of_period -
+                               timedelta(days=6*30)).replace(day=1)
+
+        # Fetch all invoices in the 6 month period and annotate with month and year
+        invoices = invoices.filter(
+            created_on__gte=first_day_of_period,
+            created_on__lte=last_day_of_period,
+        ).annotate(
+            month=ExtractMonth('created_on'),
+            year=ExtractYear('created_on'),
+        ).values('month', 'year').annotate(
+            total_amount=Sum('amount')
+        )
+
+        self.total_revenue = sum(invoice['total_amount']
+                                 for invoice in invoices)
+
+        # Initialize revenue_by_month with 0 values
+        for month in self.revenue_by_month:
+            self.revenue_by_month[month] = 0
+
+        # Fill the revenue_by_month dictionary
+        for invoice in invoices:
+            month = calendar.month_name[invoice['month']]
+            self.revenue_by_month[month] += invoice['total_amount']
+
+    def _get_customer_retention(self):
         """
         Return the customer retention rate for a company
         """
-        company = Company.objects.get(id=company_id)
+        company = self.request.user.company
+        all_clients = Client.objects.filter(company=company)
 
         if company.service_area_zip_codes.count() > 0:
             zip_code_objects = company.service_area_zip_codes.values(
                 'zip_code')
+            clients_with_new_add = all_clients.filter(
+                new_zip_code__in=zip_code_objects
+            ).values_list(
+                "new_address", flat=True)
         else:
-            zip_code_objects = ZipCode.objects.all().values('zip_code')
-        all_clients = Client.objects.filter(company=company)
-
-        clients_with_new_add = all_clients.filter(
-            new_zip_code__in=zip_code_objects
-        ).values_list(
-            "new_address", flat=True)
+            clients_with_new_add = all_clients.values_list(
+                "new_address", flat=True)
 
         clients_with_moved_to_add = all_clients.filter(
             address__in=clients_with_new_add
-
         )
 
         all_clients_with_new_add_and_rev = all_clients.filter(
             service_titan_lifetime_revenue__gt=0
-
         ).exclude(new_address=None).values_list(
             "new_address", flat=True)
 
         clients_with_new_add_and_rev = all_clients.filter(
             address__in=all_clients_with_new_add_and_rev
-
         )
+
         clients_with_new_add_and_rev_and_new_rev = \
             clients_with_new_add_and_rev.filter(
                 service_titan_lifetime_revenue__gt=0
@@ -1138,87 +1182,68 @@ class CompanyDashboardView(APIView):
                 clients_with_new_add_and_rev_and_new_rev.count(),
         }
 
-    def _get_customers_acquired(self, company_id):
-        company = Company.objects.get(id=company_id)
-        clients = Client.objects.filter(company=company)
-        self.clients_acquired_by_month = self._get_month_dictionary()
+    def _get_customers_acquired(self, blank_dictionary):
+        self.clients_acquired_by_month = blank_dictionary
 
-        # Replace None values with Jan 1, 1900
-        earliest_date_coalesced = Coalesce(
-            Min('service_titan_customer_since'), date(1900, 1, 1))
+        clients = Client.objects.filter(
+            company=self.request.user.company,
+            service_titan_customer_since__isnull=False,
+            service_titan_customer_since__gte=self.first_client.date_joined.date()
+        ).values('address', 'service_titan_customer_since')
 
-        # First, annotate the queryset with the count of clients for
-        # each address and the minimum service_titan_customer_since date
-        # for each address
-        address_info = clients.values('address').annotate(
-            count=Count('address'),
-            earliest_date=Case(
-                When(count=0, then=None),
-                default=earliest_date_coalesced,
-                output_field=DateField()
-            )
-        )
+        # Create a dictionary that maps each address to the earliest
+        # service_titan_customer_since date for that address
+        earliest_dates = {}
+        for client in clients:
+            address = client['address']
+            date = client['service_titan_customer_since']
+            if address not in earliest_dates or date < earliest_dates[address]:
+                earliest_dates[address] = date
 
-        # Next, get the addresses that have more than one client associated with them
-        duplicate_addresses = [item['address']
-                               for item in address_info if item['count'] > 1]
+        # Filter the clients list to only include clients without a
+        # service_titan_customer_since date that
+        # matches the earliest date for their address
+        filtered_clients = [
+            client for client in clients
+            if client['service_titan_customer_since'] !=
+            earliest_dates[client['address']]
+        ]
 
-        # Now, get the minimum service_titan_customer_since date for each
-        # address with more than one client
-        duplicate_address_earliest_dates = {
-            item['address']: item['earliest_date']
-            for item in address_info
-            if item['count'] > 1 and item['earliest_date']
-        }
-
-        filtered_clients = []
-        for address in duplicate_addresses:
-            tmp_clients = clients.filter(
-                address=address, company=company)
-
-            for client in tmp_clients:
-                if client.service_titan_customer_since != \
-                    duplicate_address_earliest_dates[address] and \
-                        client.service_titan_customer_since is not None and \
-                        client.service_titan_customer_since > \
-                        self.first_client.date_joined.date():
-                    filtered_clients.append(client)
-
-        # Now, filtered_clients contains the queryset with clients having
-        # duplicate addresses, but the ones with the earliest
-        # service_titan_customer_since dates are removed.
         self.clients_acquired = len(filtered_clients)
-        # Now, duplicate_clients contains the queryset with clients
-        # having duplicate addresses
 
-        today = date.today()
+        # Initialize clients_acquired_by_month with 0 values
+        for month in self.clients_acquired_by_month:
+            self.clients_acquired_by_month[month] = 0
+
+        # Fill the clients_acquired_by_month dictionary
+        today = datetime.today().date()
         first_day_of_month = today.replace(day=1)
-        first_day_next_month = (first_day_of_month +
-                                timedelta(days=32)).replace(day=1)
-        last_day_of_month = first_day_next_month - timedelta(days=1)
-
         for i in range(6):
+            first_day_next_month = (
+                first_day_of_month + timedelta(days=32)).replace(day=1)
+            last_day_of_month = first_day_next_month - timedelta(days=1)
 
-            acquired_count = 0
-            for client in filtered_clients:
-                if client.service_titan_customer_since >= first_day_of_month and \
-                        client.service_titan_customer_since <= last_day_of_month:
-                    acquired_count += 1
-            self.clients_acquired_by_month[last_day_of_month.strftime("%B")] = \
-                acquired_count
+            acquired_count = sum(
+                1 for client in filtered_clients
+                if first_day_of_month <=
+                client['service_titan_customer_since']
+                <= last_day_of_month
+            )
+            self.clients_acquired_by_month[last_day_of_month.strftime(
+                "%B")] = acquired_count
 
-            last_day_of_month = first_day_of_month - timedelta(days=1)
-            first_day_of_month = last_day_of_month.replace(day=1)
+            # This is the first day of the previous month
+            first_day_of_month = (first_day_of_month - timedelta(days=1)) \
+                .replace(day=1)
 
     def get(self, *args, **kwargs):
-        company_id = self.request.user.company.id
         try:
-            self._get_month_dictionary()
-            self._get_revenue(company_id)
-            self._get_months_active(company_id)
-            self._get_leads(company_id)
-            self._get_customer_retention(company_id)
-            self._get_customers_acquired(company_id)
+            blank_month_dict = self._get_month_dictionary()
+            self._get_revenue(blank_month_dict)
+            self._get_months_active()
+            self._get_leads(blank_month_dict)
+            self._get_customer_retention()
+            self._get_customers_acquired(blank_month_dict)
             return Response(
                 {
                     "totalRevenue": self.total_revenue,

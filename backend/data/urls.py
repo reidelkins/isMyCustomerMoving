@@ -10,7 +10,7 @@ client_patterns = [
         "",
         views.ClientListView.as_view(),
         name="client-list",
-    ),
+    )
     # path(
     #     "",
     #     views.ClientListView.as_view(),
@@ -89,11 +89,6 @@ urlpatterns = [
         "update/",
         views.UpdateStatusView.as_view(),
         name="update-status",
-    ),
-    path(
-        "updateclient/",
-        views.UpdateClientView.as_view(),
-        name="update-client",
     ),
     path("upload/", include(upload_file_patterns)),
     path(

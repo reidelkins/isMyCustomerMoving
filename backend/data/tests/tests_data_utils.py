@@ -10,7 +10,7 @@ import pytest
 from accounts.models import Company
 from data.models import Client, HomeListing, SavedFilter, ZipCode
 from payments.models import Product
-from data.syncClients import (
+from data.serviceTitan import (
     complete_service_titan_sync,
     get_service_titan_locations,
     get_service_titan_equipment,
@@ -40,13 +40,13 @@ from payments.models import ServiceTitanInvoice
 
 @pytest.fixture
 def mock_access_token():
-    with patch("data.syncClients.get_service_titan_access_token") as mock:
+    with patch("data.serviceTitan.get_service_titan_access_token") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_delay():
-    with patch("data.syncClients.save_client_list.delay") as mock:
+    with patch("data.serviceTitan.save_client_list.delay") as mock:
         yield mock
 
 
@@ -64,43 +64,43 @@ def mock_post():
 
 @pytest.fixture
 def mock_update_clients_with_last_day_of_equipment_installation():
-    with patch("data.syncClients.update_clients_with_last_day_of_equipment_installation.delay") as mock:
+    with patch("data.serviceTitan.update_clients_with_last_day_of_equipment_installation.delay") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_get_service_titan_locations():
-    with patch("data.syncClients.get_service_titan_locations") as mock:
+    with patch("data.serviceTitan.get_service_titan_locations") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_delete_extra_clients():
-    with patch("data.syncClients.delete_extra_clients.delay") as mock:
+    with patch("data.serviceTitan.delete_extra_clients.delay") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_get_service_titan_equipment():
-    with patch("data.syncClients.get_service_titan_equipment.delay") as mock:
+    with patch("data.serviceTitan.get_service_titan_equipment.delay") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_do_it_all():
-    with patch("data.syncClients.do_it_all.delay") as mock:
+    with patch("data.serviceTitan.do_it_all.delay") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_get_service_titan_customers():
-    with patch("data.syncClients.get_service_titan_customers.delay") as mock:
+    with patch("data.serviceTitan.get_service_titan_customers.delay") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_get_service_titan_invoices():
-    with patch("data.syncClients.get_service_titan_invoices.delay") as mock:
+    with patch("data.serviceTitan.get_service_titan_invoices.delay") as mock:
         yield mock
 
 
@@ -175,19 +175,19 @@ def mock_update_status():
 
 @pytest.fixture
 def mock_update_client_list():
-    with patch("data.syncClients.update_client_list.delay") as mock:
+    with patch("data.serviceTitan.update_client_list.delay") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_save_invoices():
-    with patch("data.syncClients.save_invoices.delay") as mock:
+    with patch("data.serviceTitan.save_invoices.delay") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_get_customer_since_data_from_invoices():
-    with patch("data.syncClients.get_customer_since_data_from_invoices.delay") as mock:
+    with patch("data.serviceTitan.get_customer_since_data_from_invoices.delay") as mock:
         yield mock
 
 
@@ -763,8 +763,8 @@ class TestSyncClientFunctions(TestCase):
             amount=1000.12,
         )
 
-    @patch("data.syncClients.get_service_titan_access_token")
-    @patch("data.syncClients.save_client_list.delay")
+    @patch("data.serviceTitan.get_service_titan_access_token")
+    @patch("data.serviceTitan.save_client_list.delay")
     @patch("requests.get")
     def test_get_service_titan_locations(self, mock_get, mock_delay, mock_access_token):
         mock_access_token.return_value = "dummy_access_token"
@@ -887,8 +887,8 @@ class TestSyncClientFunctions(TestCase):
             fake_json["data"], "company_id"
         )
 
-    @patch("data.syncClients.get_service_titan_access_token")
-    @patch("data.syncClients.update_clients_with_last_day_of_equipment_installation.delay")
+    @patch("data.serviceTitan.get_service_titan_access_token")
+    @patch("data.serviceTitan.update_clients_with_last_day_of_equipment_installation.delay")
     @patch("requests.get")
     def test_get_service_titan_equipment(self, mock_get, mock_update_clients_with_last_day_of_equipment_installation, mock_access_token):
         mock_access_token.return_value = "dummy_access_token"
@@ -954,12 +954,12 @@ class TestSyncClientFunctions(TestCase):
             "company_id", fake_json["data"]
         )
 
-    @patch("data.syncClients.get_service_titan_locations")
-    @patch("data.syncClients.delete_extra_clients.delay")
-    @patch("data.syncClients.get_service_titan_equipment.delay")
-    @patch("data.syncClients.do_it_all.delay")
-    @patch("data.syncClients.get_service_titan_customers.delay")
-    @patch("data.syncClients.get_service_titan_invoices.delay")
+    @patch("data.serviceTitan.get_service_titan_locations")
+    @patch("data.serviceTitan.delete_extra_clients.delay")
+    @patch("data.serviceTitan.get_service_titan_equipment.delay")
+    @patch("data.serviceTitan.do_it_all.delay")
+    @patch("data.serviceTitan.get_service_titan_customers.delay")
+    @patch("data.serviceTitan.get_service_titan_invoices.delay")
     @patch("data.utils.verify_address.delay")
     def test_complete_service_titan_sync(self, mock_verify_address, mock_get_service_titan_invoices, mock_get_service_titan_customers, mock_do_it_all, mock_get_service_titan_equipment, mock_delete_extra_clients, mock_get_service_titan_locations):
         # Call the function
@@ -1045,11 +1045,10 @@ class TestSyncClientFunctions(TestCase):
         mock_company.assert_called_once_with(id="company_id")
 
         # TODO: Assert that the fields are updated correctly
-
-    @patch("data.syncClients.get_service_titan_access_token")
-    @patch("data.syncClients.update_client_list.delay")
+    @patch("accounts.models.Company.objects.get")
+    @patch("data.serviceTitan.get_service_titan_access_token")
     @patch("requests.get")
-    def test_get_service_titan_customers(self, mock_get, mock_update_client_list, mock_access_token):
+    def test_get_service_titan_customers(self, mock_get, mock_access_token, mock_company):
         mock_access_token.return_value = "dummy_access_token"
 
         # Mock the API response and its JSON data
@@ -1088,26 +1087,21 @@ class TestSyncClientFunctions(TestCase):
         }
         mock_response.json.return_value = fake_json
         mock_get.return_value = mock_response
+        mock_company.return_value = self.company
 
         # Call the function
         get_service_titan_customers("company_id", "tenant")
 
         # Assertions
         mock_access_token.assert_called_once_with("company_id")
-        mock_get.assert_called_once_with(
-            url="https://api.servicetitan.io/crm/v2/tenant/tenant/export/customers/contacts?from=",
-            headers="dummy_access_token",
-            timeout=10
-        )
-        mock_update_client_list.assert_called_once_with(
-            fake_json["data"])
+        assert mock_get.call_count == 2
 
     @patch("accounts.models.Company.objects.get")
     @patch("data.models.Client.objects.filter")
     @patch("payments.models.ServiceTitanInvoice.objects.filter")
-    @patch("data.syncClients.get_service_titan_access_token")
-    @patch("data.syncClients.get_customer_since_data_from_invoices.delay")
-    @patch("data.syncClients.save_invoices.delay")
+    @patch("data.serviceTitan.get_service_titan_access_token")
+    @patch("data.serviceTitan.get_customer_since_data_from_invoices.delay")
+    @patch("data.serviceTitan.save_invoices.delay")
     @patch("requests.get")
     def test_get_service_titan_invoices(self, mock_get, mock_save_invoices, mock_get_customer_since_data_from_invoices, mock_access_token, mock_invoice_filter, mock_client, mock_company):
         mock_access_token.return_value = "dummy_access_token"
@@ -1598,7 +1592,7 @@ class TestSyncClientFunctions(TestCase):
         # Assertions
         mock_access_token.assert_called_once_with("company_id")
         mock_get.assert_called_once_with(
-            url="https://api.servicetitan.io/accounting/v2/tenant/tenant/invoices?page=1&pageSize=2500",
+            url="https://api.servicetitan.io/accounting/v2/tenant/tenant/invoices?page=1&pageSize=1000",
             headers="dummy_access_token",
             timeout=15
         )
@@ -1721,3 +1715,15 @@ class TestSyncClientFunctions(TestCase):
         # assert updated_client.service_titan_lifetime_revenue == (
         #     self.invoice1.amount + self.invoice2.amount
         # )
+
+
+# from data.utils import *
+# company = Company.objects.get(name="Test Company")
+# clients_to_update = Client.objects.filter(serv_titan_id=271634585, company=company).values_list(
+#     "serv_titan_id", flat=True)
+# clients_to_update = [
+#         client
+#         for client in clients_to_update
+#         if client
+#     ]
+# update_service_titan_clients(clients_to_update, company.id, "House Recently Sold (6)")
