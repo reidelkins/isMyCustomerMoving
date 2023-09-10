@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0021_alter_realtor_managers'),
+        ('data', '0015_auto_20230711_1811_squashed_0023_alter_realtor_managers'),
     ]
 
     operations = [
