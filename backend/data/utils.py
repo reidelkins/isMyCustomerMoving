@@ -426,7 +426,6 @@ def check_if_needs_update(client_id, status):
 
 @shared_task
 def update_status(zip_code, company_id, status):
-    from .realtor import get_realtor_property_details
     """
     Update the status of listings based on the provided zip code and status.
 
@@ -454,7 +453,6 @@ def update_status(zip_code, company_id, status):
             home_listing = HomeListing.objects.get(
                 address=to_list.address, status=status
             )
-            get_realtor_property_details.delay(home_listing.id, scrapfly_count)
             scrapfly_count += 1
             to_list.status = status
             to_list.price = home_listing.price
@@ -1096,15 +1094,16 @@ def send_update_email(templateName):
 @shared_task(rate_limit="1/s")
 def do_it_all(company):
     try:
-        company = Company.objects.get(id=company)
         auto_update.delay(
-            company_id=company.id
+            company_id=company
         )  # Schedule auto_update task
         sleep(3600)  # TODO Calculate ETA for update_clients_statuses task
-        # Schedule update_clients_statuses task
-        update_clients_statuses(company.id)
+        update_clients_statuses(
+            company
+        )  # Schedule update_clients_statuses task
         sleep(360)
         send_daily_email.delay(company.id)
+
     except Exception as e:
         logging.error("doItAll failed")
         logging.error(f"ERROR: {e}")
@@ -1389,10 +1388,8 @@ def send_zapier_recently_sold(company_id):
     except Company.DoesNotExist:
         logging.error(f"Company with id {company_id} does not exist.")
         return
-
     if not company.zapier_recently_sold:
         return
-
     zip_code_objects = Client.objects.filter(company=company).values(
         "zip_code"
     )
@@ -1407,7 +1404,6 @@ def send_zapier_recently_sold(company_id):
     saved_filters = SavedFilter.objects.filter(
         company=company, filter_type="Recently Sold", for_zapier=True
     )
-
     for saved_filter in saved_filters:
         filtered_home_listings = filter_home_listings(
             {"saved_filter": saved_filter.name},
@@ -1415,18 +1411,17 @@ def send_zapier_recently_sold(company_id):
             company_id,
             "Recently Sold"
         )
-
         if filtered_home_listings:
             try:
                 serialized_data = HomeListingSerializer(
                     filtered_home_listings, many=True
                 ).data
+
                 for data in serialized_data:
                     # Add saved_filter.name to each item in the list
                     data["filter_name"] = saved_filter.name
                     del data["id"]
                     del data["status"]
-                    del data["permalink"]
                     del data["realtor"]
                     # TODO: Do something with these values
                     # 'roofing': ' ', 'garage_type': ' ',

@@ -36,11 +36,11 @@ import { getComparator, applySortFilter } from '../../utils/filterFunctions';
 
 // ----------------------------------------------------------------------
 
-const TABLE_HEAD = [
-  { id: 'company', label: 'Company Name', alignRight: false },
+const TABLE_HEAD = [  
   { id: 'name', label: 'Realtor', alignRight: false },
-  { id: 'phone', label: 'Phone', alignRight: false },
-  { id: 'email', label: 'Email', alignRight: false },
+  { id: 'agentPhone', label: 'Agent Phone', alignRight: false },
+  { id: 'company', label: 'Company Name', alignRight: false },
+  { id: 'brokeragePhone', label: 'Brokerage Phone', alignRight: false },
   { id: 'count', label: 'Listing Count', alignRight: false },
   
 ];
@@ -119,7 +119,8 @@ export default function RealtorData() {
                             id,
                             name,
                             company,
-                            phone,
+                            agent_phone: agentPhone,
+                            brokerage_phone: brokeragePhone,
                             email,
                             listing_count: count,
                             
@@ -128,10 +129,10 @@ export default function RealtorData() {
                           return (
                             <React.Fragment key={row.id}>
                               <TableRow hover key={id} tabIndex={-1} role="checkbox">
-                                <TableCell align="left">{name}</TableCell>
+                                <TableCell align="left">{name}</TableCell>                                
+                                <TableCell align="left">{agentPhone}</TableCell>
                                 <TableCell align="left">{company}</TableCell>
-                                <TableCell align="left">{phone}</TableCell>
-                                <TableCell align="left">{email}</TableCell>
+                                <TableCell align="left">{brokeragePhone}</TableCell>
                                 <TableCell align="left">{count}</TableCell>
                               </TableRow>
                             </React.Fragment>

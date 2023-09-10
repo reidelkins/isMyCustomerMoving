@@ -6,11 +6,10 @@ import uuid
 # Define status choices
 STATUS = [
     ("House For Sale", "House For Sale"),
-    ("House For Rent", "House For Rent"),
+    ("Pending", "Pending"),
     ("House Recently Sold (6)", "House Recently Sold (6)"),
-    ("Recently Sold (12)", "Recently Sold (12)"),
-    ("Taken Off Market", "Taken Off Market"),
-    ("No Change", "No Change"),
+    ("House Recently Sold (12)", "House Recently Sold (12)"),
+    ("Off Market", "Off Market"),
 ]
 
 SAVED_FILTER_TYPE = [
@@ -153,44 +152,75 @@ class ScrapeResponse(models.Model):
     url = models.CharField(max_length=100, blank=True, null=True)
 
 
+# class RealtorWithListingCountManager(models.Manager):
+#     def get_queryset(self, service_area_zip_codes=None):
+#         queryset = super().get_queryset()
+
+#         base_filter = models.Q(home_listing_realtor__status="House For Sale")
+
+#         if service_area_zip_codes:
+#             queryset = queryset.annotate(
+#                 listing_count=models.Count(
+#                     'home_listing_realtor',
+#                     filter=models.Q(
+#                         home_listing_realtor__zip_code__in=service_area_zip_codes,
+#                     ),
+#                     distinct=True
+#                 )
+#             )
+#         else:
+#             queryset = queryset.annotate(
+#                 listing_count=models.Count('home_listing_realtor')
+#             )
+
+#         return queryset
+
+#     def get_realtors_with_filtered_listings(self, service_area_zip_codes=None):
+#         queryset = super().get_queryset()
+
+#         if service_area_zip_codes:
+#             queryset = queryset.annotate(
+#                 listing_count=models.Count(
+#                     'home_listing_realtor',
+#                     filter=models.Q(
+#                         home_listing_realtor__zip_code__in=service_area_zip_codes),
+#                     distinct=True
+#                 )
+#             )
+#         else:
+#             queryset = queryset.annotate(
+#                 listing_count=models.Count('home_listing_realtor')
+#             )
+
+#         return queryset.filter(listing_count__gt=0)
+
 class RealtorWithListingCountManager(models.Manager):
     def get_queryset(self, service_area_zip_codes=None):
         queryset = super().get_queryset()
-
+        base_filter = models.Q(home_listing_realtor__status="House For Sale")
         if service_area_zip_codes:
+            zip_filter = models.Q(
+                home_listing_realtor__zip_code__in=service_area_zip_codes)
+            combined_filter = base_filter & zip_filter
             queryset = queryset.annotate(
                 listing_count=models.Count(
                     'home_listing_realtor',
-                    filter=models.Q(
-                        home_listing_realtor__zip_code__in=service_area_zip_codes),
+                    filter=combined_filter,
                     distinct=True
                 )
             )
         else:
             queryset = queryset.annotate(
-                listing_count=models.Count('home_listing_realtor')
+                listing_count=models.Count(
+                    'home_listing_realtor',
+                    filter=base_filter
+                )
             )
 
         return queryset
 
     def get_realtors_with_filtered_listings(self, service_area_zip_codes=None):
-        queryset = super().get_queryset()
-
-        if service_area_zip_codes:
-            queryset = queryset.annotate(
-                listing_count=models.Count(
-                    'home_listing_realtor',
-                    filter=models.Q(
-                        home_listing_realtor__zip_code__in=service_area_zip_codes),
-                    distinct=True
-                )
-            )
-        else:
-            queryset = queryset.annotate(
-                listing_count=models.Count('home_listing_realtor')
-            )
-
-        return queryset.filter(listing_count__gt=0)
+        return self.get_queryset(service_area_zip_codes).filter(listing_count__gt=0)
 
 
 # Realtor model
@@ -200,9 +230,8 @@ class Realtor(models.Model):
     )
     name = models.CharField(max_length=100)
     company = models.CharField(max_length=100)
-    phone = models.CharField(max_length=100)
-    email = models.CharField(max_length=100)
-    url = models.CharField(max_length=100)
+    agent_phone = models.CharField(max_length=100)
+    brokerage_phone = models.CharField(max_length=100)
     objects_with_listing_count = RealtorWithListingCountManager()
 
 
@@ -239,7 +268,6 @@ class HomeListing(models.Model):
     lot_sqft = models.IntegerField(default=0, blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
-    permalink = models.CharField(max_length=100, blank=True, null=True)
     year_renovated = models.IntegerField(default=0, blank=True, null=True)
     roofing = models.CharField(
         max_length=100, default=" ", blank=True, null=True
@@ -277,7 +305,7 @@ class HomeListing(models.Model):
     )
 
     class Meta:
-        unique_together = ("address", "status", "city", "state")
+        unique_together = ("address", "city", "state")
 
     def __str__(self):
         return f"{self.address}_{self.status}"

@@ -220,13 +220,13 @@ class RealtorView(TestCase):
             name="Realtor 2", company="Test Realty 2")
 
         HomeListing.objects.create(
-            zip_code=self.zip_code_1, address="123 Lane", status="For Sale", realtor=self.realtor_1)
+            zip_code=self.zip_code_1, address="123 Lane", status="House For Sale", realtor=self.realtor_1)
         HomeListing.objects.create(
-            zip_code=self.zip_code_1, address="456 Lane", status="For Sale", realtor=self.realtor_1)
+            zip_code=self.zip_code_1, address="456 Lane", status="House For Sale", realtor=self.realtor_1)
         HomeListing.objects.create(
-            zip_code=self.zip_code_2, address="654 Lane", status="For Sale", realtor=self.realtor_1)
+            zip_code=self.zip_code_2, address="654 Lane", status="House For Sale", realtor=self.realtor_1)
         HomeListing.objects.create(
-            zip_code=self.zip_code_2, address="789 Street", status="For Sale", realtor=self.realtor_2)
+            zip_code=self.zip_code_2, address="789 Street", status="House For Sale", realtor=self.realtor_2)
 
     def test_get_realtors_by_service_area(self):
         headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
@@ -237,6 +237,7 @@ class RealtorView(TestCase):
         # Check if the response status is 200 OK
         assert response.status_code == 200
         data = response.data['results']['data']
+
         # Check if the realtor with the most listings comes first, and that only listings in the service area are counted
         self.assertEqual(data[0]['name'], "Realtor 1")
         self.assertEqual(data[0]['listing_count'], 2)

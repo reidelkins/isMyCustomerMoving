@@ -41,6 +41,7 @@ DATABASES = {
     }
 }
 MAX_CONN_AGE = 600
+APIFY_TOKEN = get_env_var("APIFY_TOKEN")
 DJANGO_SECRET_KEY = get_env_var("DJANGO_SECRET_KEY")
 DROPBOX_APP_KEY = get_env_var("DROPBOX_APP_KEY")
 SECRET_KEY = get_env_var("SECRET_KEY")

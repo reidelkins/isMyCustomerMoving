@@ -10,6 +10,7 @@ on:
     - '*'
 
 env:
+  APIFY_TOKEN: ${{secrets.APIFY_TOKEN}}
   DJANGO_SECRET_KEY: ${{secrets.DJANGO_SECRET_KEY}}
   EMAIL: ${{secrets.EMAIL}}
   EMAIL_PASSWD: ${{secrets.EMAIL_PASSWD}}
