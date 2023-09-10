@@ -113,7 +113,8 @@ def create_home_listings(listings, zip_code):
                 home_listing.status = "House For Sale"
             elif listing["homeStatus"] == "RECENTLY_SOLD":
                 home_listing.status = "House Recently Sold (6)"
-            # NOTE: I really don't care about anything over 6 months. Our new source has data going back years
+            # NOTE: I really don't care about anything over 6 months.
+            # Our new source has data going back years
             # elif listing["homeStatus"] == "SOLD":
             #     home_listing.status = "House Recently Sold (12)"
             elif listing["homeStatus"] == "PENDING":
@@ -123,8 +124,10 @@ def create_home_listings(listings, zip_code):
                 continue
 
             timestamp_ms = listing["listingDateTimeOnZillow"] \
-                if home_listing.status == "House For Sale" else listing["lastSoldDate"]
-            timestamp_seconds = timestamp_ms / 1000  # Convert milliseconds to seconds
+                if home_listing.status == "House For Sale" \
+                else listing["lastSoldDate"]
+            # Convert milliseconds to seconds
+            timestamp_seconds = timestamp_ms / 1000
             # Create a datetime object from the Unix timestamp
             datetime_obj = datetime.utcfromtimestamp(timestamp_seconds)
             # Format the datetime object as a string

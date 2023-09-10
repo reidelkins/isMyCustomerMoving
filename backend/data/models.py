@@ -196,9 +196,7 @@ class ScrapeResponse(models.Model):
 class RealtorWithListingCountManager(models.Manager):
     def get_queryset(self, service_area_zip_codes=None):
         queryset = super().get_queryset()
-
         base_filter = models.Q(home_listing_realtor__status="House For Sale")
-
         if service_area_zip_codes:
             zip_filter = models.Q(
                 home_listing_realtor__zip_code__in=service_area_zip_codes)

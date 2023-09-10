@@ -635,12 +635,10 @@ class RealtorView(generics.ListAPIView):
 
     def get(self, request):
         if "client" in self.request.query_params:
-            print(self.request.query_params)
             return Response("", status=status.HTTP_200_OK, headers="")
         else:
             service_area_zip_codes = (
                 request.user.company.service_area_zip_codes.all())
-
             # # Get Realtors with listing counts based on the filtered HomeListings
             realtors_with_counts =  \
                 Realtor.objects_with_listing_count \
