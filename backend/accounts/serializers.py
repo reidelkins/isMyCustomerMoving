@@ -11,84 +11,21 @@ import logging
 
 # Basic Company Serializer
 class BasicCompanySerializer(serializers.ModelSerializer):
-    id = serializers.UUIDField(read_only=True)
-    name = serializers.CharField(max_length=100)
-
-    class Meta:
-        model = Company
-        fields = ["id", "name"]
-
-
-# Company Serializer with more detailed information
-class CompanySerializer(serializers.ModelSerializer):
-    id = serializers.UUIDField(read_only=True)
-    name = serializers.CharField(max_length=100)
-    phone = serializers.CharField(max_length=20)
-    email = serializers.EmailField(max_length=100)
-    stripe_id = serializers.CharField(max_length=100, required=False)
-    for_sale_purchased = serializers.BooleanField(default=False)
-    recently_sold_purchased = serializers.BooleanField(default=False)
-    crm = serializers.CharField(max_length=100, required=False)
-    product = ProductSerializer(read_only=True)
-    tenant_id = serializers.CharField(max_length=100, required=False)
-    client_id = serializers.CharField(max_length=100, required=False)
-    service_titan_app_version = serializers.IntegerField(required=False)
-    service_titan_for_rent_tag_id = serializers.CharField(
-        max_length=100, required=False
-    )
-    service_titan_for_sale_tag_id = serializers.CharField(
-        max_length=100, required=False
-    )
-    service_titan_recently_sold_tag_id = serializers.CharField(
-        max_length=100, required=False
-    )
-    service_titan_for_sale_contacted_tag_id = serializers.CharField(
-        max_length=100, required=False
-    )
-    service_titan_recently_sold_contacted_tag_id = serializers.CharField(
-        max_length=100, required=False
-    )
-    service_titan_customer_sync_option = serializers.CharField(
-        max_length=100, required=False
-    )
     users_count = serializers.SerializerMethodField()
     leads_count = serializers.SerializerMethodField()
     clients_count = serializers.SerializerMethodField()
-    service_area_zip_codes = serializers.SerializerMethodField()
 
     class Meta:
         model = Company
         fields = [
             "id",
             "name",
-            "crm",
-            "phone",
             "email",
-            "tenant_id",
-            "client_id",
-            "stripe_id",
-            "service_titan_for_rent_tag_id",
-            "service_titan_for_sale_tag_id",
-            "service_titan_recently_sold_tag_id",
-            "for_sale_purchased",
-            "recently_sold_purchased",
-            "service_titan_for_sale_contacted_tag_id",
-            "service_titan_recently_sold_contacted_tag_id",
+            "phone",
             "users_count",
             "leads_count",
             "clients_count",
-            "service_titan_customer_sync_option",
-            "product",
-            "service_titan_app_version",
-            "service_area_zip_codes"
         ]
-
-    def create(self, validated_data):
-        if Company.objects.filter(name=validated_data["name"]).exists():
-            return False
-        return Company.objects.create(
-            **validated_data, access_token=get_random_string(length=32)
-        )
 
     def get_users_count(self, obj):
         return CustomUser.objects.filter(company=obj).count()
@@ -103,13 +40,51 @@ class CompanySerializer(serializers.ModelSerializer):
     def get_clients_count(self, obj):
         return Client.objects.filter(company=obj).count()
 
+
+# Company Serializer with more detailed information
+class CompanySerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+    service_area_zip_codes = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Company
+        fields = [
+            "id",
+            "name",
+            "crm",
+            "phone",
+            "email",
+            "tenant_id",
+            "client_id",
+            "stripe_id",
+            "service_titan_for_sale_tag_id",
+            "service_titan_recently_sold_tag_id",
+            "service_titan_for_sale_contacted_tag_id",
+            "service_titan_recently_sold_contacted_tag_id",
+            "service_titan_sold_date_custom_field_id",
+            "service_titan_listed_date_custom_field_id",
+            "for_sale_purchased",
+            "recently_sold_purchased",
+            "service_titan_customer_sync_option",
+            "product",
+            "service_titan_app_version",
+            "service_area_zip_codes"
+        ]
+
+    def create(self, validated_data):
+        if Company.objects.filter(name=validated_data["name"]).exists():
+            return False
+        return Company.objects.create(
+            **validated_data, access_token=get_random_string(length=32)
+        )
+
     def get_service_area_zip_codes(self, obj):
         return list(obj.service_area_zip_codes.values_list('zip_code', flat=True))
 
 
 # Serializer for Enterprise model
 class EnterpriseSerializer(serializers.ModelSerializer):
-    companies = CompanySerializer(many=True, read_only=True)
+    companies = BasicCompanySerializer(many=True, read_only=True)
 
     class Meta:
         model = Enterprise

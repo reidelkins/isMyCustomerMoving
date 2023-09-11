@@ -235,6 +235,8 @@ export const companyAsync =
     soldTag,
     forSaleContactedTag,
     soldContactedTag,
+    forSaleDateCustomFieldID,
+    soldDateCustomFieldID,
     crm
   ) =>
   async (dispatch, getState) => {
@@ -260,6 +262,8 @@ export const companyAsync =
         soldTag,
         forSaleContactedTag,
         soldContactedTag,
+        forSaleDateCustomFieldID,
+        soldDateCustomFieldID,
         crm,
         user: userInfo.id,
       };

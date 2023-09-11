@@ -967,6 +967,14 @@ class CompanyView(APIView):
                 company.service_titan_for_sale_contacted_tag_id = (
                     request.data["forSaleContactedTag"]
                 )
+            if request.data["forSaleDateCustomFieldID"] != "":
+                company.service_titan_listed_date_custom_field_id = (
+                    request.data["forSaleDateCustomFieldID"]
+                )
+            if request.data["soldDateCustomFieldID"] != "":
+                company.service_titan_sold_date_custom_field_id = (
+                    request.data["soldDateCustomFieldID"]
+                )
             if request.data["crm"] != "":
                 company.crm = request.data["crm"]
             company.save()
