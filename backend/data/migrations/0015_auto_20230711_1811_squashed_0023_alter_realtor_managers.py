@@ -86,11 +86,7 @@ class Migration(migrations.Migration):
         #     name='address',
         #     field=models.CharField(max_length=150),
         # ),
-        # migrations.AddField(
-        #     model_name='client',
-        #     name='email',
-        #     field=models.CharField(blank=True, max_length=100, null=True),
-        # ),
+
         migrations.CreateModel(
             name='ServiceTitanJob',
             fields=[
