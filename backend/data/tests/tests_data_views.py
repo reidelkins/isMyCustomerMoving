@@ -237,7 +237,6 @@ class RealtorView(TestCase):
         # Check if the response status is 200 OK
         assert response.status_code == 200
         data = response.data['results']['data']
-
         # Check if the realtor with the most listings comes first, and that only listings in the service area are counted
         self.assertEqual(data[0]['name'], "Realtor 1")
         self.assertEqual(data[0]['listing_count'], 2)

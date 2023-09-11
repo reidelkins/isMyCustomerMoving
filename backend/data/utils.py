@@ -426,6 +426,7 @@ def check_if_needs_update(client_id, status):
 
 @shared_task
 def update_status(zip_code, company_id, status):
+    from .realtor import get_realtor_property_details
     """
     Update the status of listings based on the provided zip code and status.
 

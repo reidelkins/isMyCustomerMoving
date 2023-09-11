@@ -1,8 +1,7 @@
 from django.db.models import QuerySet
-from django.db.models.expressions import F
 from django.test import TestCase
 from unittest.mock import patch, MagicMock, Mock, call
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 import requests
 import pytest
@@ -101,6 +100,24 @@ def mock_get_service_titan_customers():
 @pytest.fixture
 def mock_get_service_titan_invoices():
     with patch("data.serviceTitan.get_service_titan_invoices.delay") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_zip():
+    with patch("data.models.ZipCode.objects.get") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_home_listing_get():
+    with patch("data.models.HomeListing.objects.get") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_home_listing_filter():
+    with patch("data.models.HomeListing.objects.filter") as mock:
         yield mock
 
 

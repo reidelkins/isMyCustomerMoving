@@ -14,6 +14,7 @@ class BasicCompanySerializer(serializers.ModelSerializer):
     users_count = serializers.SerializerMethodField()
     leads_count = serializers.SerializerMethodField()
     clients_count = serializers.SerializerMethodField()
+    service_area_zip_codes = serializers.SerializerMethodField()
 
     class Meta:
         model = Company
@@ -39,6 +40,9 @@ class BasicCompanySerializer(serializers.ModelSerializer):
 
     def get_clients_count(self, obj):
         return Client.objects.filter(company=obj).count()
+
+    def get_service_area_zip_codes(self, obj):
+        return list(obj.service_area_zip_codes.values_list('zip_code', flat=True))
 
 
 # Company Serializer with more detailed information
