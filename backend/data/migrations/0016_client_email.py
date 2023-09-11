@@ -8,7 +8,7 @@ import django.db.models.manager
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0014_client_revenue_squashed_0026_auto_20230706_1457'),
+        ('data', '0015_auto_20230711_1811_squashed_0023_alter_realtor_managers'),
     ]
 
     operations = [
