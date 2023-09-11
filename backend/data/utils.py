@@ -854,6 +854,7 @@ def update_service_titan_clients(clients_to_update, company, status):
     company (str): ID of the company.
     status (str): Status of the property.
     """
+    response, payload, tag_type = "", "", ""
     try:
         company = Company.objects.get(id=company)
         headers = get_service_titan_access_token(company.id)
@@ -894,8 +895,8 @@ def update_service_titan_clients(clients_to_update, company, status):
         if clients_to_update:
             from .serviceTitan import update_sold_listed_date_on_location
             for client in clients_to_update:
-                client = Client.objects.get(
-                    serv_titan_id=client, company=company)
+                client = Client.objects.filter(
+                    serv_titan_id=client, company=company).first()
                 update_date = ClientUpdate.objects.filter(
                     client=client, status=status).order_by(
                     '-listed').values_list('listed', flat=True)[0]
