@@ -14,7 +14,6 @@ class BasicCompanySerializer(serializers.ModelSerializer):
     users_count = serializers.SerializerMethodField()
     leads_count = serializers.SerializerMethodField()
     clients_count = serializers.SerializerMethodField()
-    service_area_zip_codes = serializers.SerializerMethodField()
 
     class Meta:
         model = Company
