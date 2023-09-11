@@ -123,7 +123,7 @@ urllib3==2.0.3
 vine==5.0.0
 w3lib==2.1.2
 wcwidth==0.2.6
-whitenoise==6.4.0
+whitenoise==6.5.0
 wrapt==1.15.0
 zeep==4.2.1
 zope.interface==6.0
