@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0015_auto_20230711_1811_squashed_0023_alter_realtor_managers'),
+        ('data', '0014_client_revenue_squashed_0026_auto_20230706_1457'),
         ('accounts', '0007_alter_company_product'),
     ]
 
