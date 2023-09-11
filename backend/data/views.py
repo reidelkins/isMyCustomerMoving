@@ -174,7 +174,7 @@ class ClientListView(generics.ListAPIView):
             clients = Client.objects.filter(
                 company=user.company, active=True
             ).exclude(new_address=None)
-            if user.company.service_area_zip_codes:
+            if user.company.service_area_zip_codes.all().exists():
                 zip_code_objects = user.company.service_area_zip_codes.values(
                     'zip_code')
                 clients = clients.filter(
