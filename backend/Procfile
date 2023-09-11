@@ -1,3 +1,8 @@
 web: gunicorn config.wsgi
-release: python manage.py migrate
+@REM release: python manage.py migrate
 mainworker: REMAP_SIGTERM=SIGQUIT celery -A config worker -l INFO --concurrency 8
+
+@REM beat: celery -A djangito.celeryapp:app beat -S redbeat.RedBeatScheduler  --loglevel=DEBUG --pidfile /tmp/celerybeat.pid
+@REM worker: celery -A djangito.celeryapp:app  worker -Q default -n djangito.%%h --without-gossip --without-mingle --without-heartbeat --loglevel=INFO --max-memory-per-child=512000 --concurrency=1
+@REM workerlong: celery -A djangito.celeryapp:app  long -Q default -n djangito.%%h --without-gossip --without-mingle --without-heartbeat --loglevel=INFO --max-memory-per-child=512000 --concurrency=1
+@REM workernumerous: celery -A djangito.celeryapp:app  numerous -Q default -n djangito.%%h --without-gossip --without-mingle --without-heartbeat --loglevel=INFO --max-memory-per-child=512000 --concurrency=1

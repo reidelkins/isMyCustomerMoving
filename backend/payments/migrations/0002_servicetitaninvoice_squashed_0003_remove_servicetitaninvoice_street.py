@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
                 ('payments', '0003_remove_servicetitaninvoice_street')]
 
     dependencies = [
-        ('data', '0015_auto_20230711_1811_squashed_0023_alter_realtor_managers'),
+        ('data', '0014_client_revenue_squashed_0026_auto_20230706_1457'),
         ('payments', '0001_squashed_0006_product'),
     ]
 
