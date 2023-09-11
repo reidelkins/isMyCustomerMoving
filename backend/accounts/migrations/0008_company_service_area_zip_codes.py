@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0020_auto_20230722_0048'),
+        ('data', '0015_auto_20230711_1811_squashed_0023_alter_realtor_managers'),
         ('accounts', '0007_alter_company_product'),
     ]
 
@@ -14,6 +14,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='company',
             name='service_area_zip_codes',
-            field=models.ManyToManyField(blank=True, related_name='service_area_zip_codes', to='data.ZipCode'),
+            field=models.ManyToManyField(
+                blank=True, related_name='service_area_zip_codes', to='data.ZipCode'),
         ),
     ]
