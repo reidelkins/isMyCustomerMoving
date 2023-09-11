@@ -22,75 +22,75 @@ class Migration(migrations.Migration):
             old_name='phone',
             new_name='brokerage_phone',
         ),
-        migrations.RemoveField(
-            model_name='homelisting',
-            name='permalink',
-        ),
+        # migrations.RemoveField(
+        #     model_name='homelisting',
+        #     name='permalink',
+        # ),
         migrations.RemoveField(
             model_name='realtor',
             name='url',
         ),
-        migrations.AddField(
-            model_name='client',
-            name='new_city',
-            field=models.CharField(blank=True, max_length=40, null=True),
-        ),
-        migrations.AddField(
-            model_name='client',
-            name='new_state',
-            field=models.CharField(blank=True, max_length=31, null=True),
-        ),
-        migrations.AddField(
-            model_name='client',
-            name='new_zip_code',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
-                                    related_name='client_new_zip_code', to='data.zipcode'),
-        ),
-        migrations.AddField(
-            model_name='client',
-            name='service_titan_lifetime_revenue',
-            field=models.FloatField(blank=True, default=0, null=True),
-        ),
-        migrations.RenameField(
-            model_name='client',
-            old_name='usps_address',
-            new_name='old_address',
-        ),
-        migrations.AddField(
-            model_name='homelisting',
-            name='heating_cooling_description',
-            field=models.TextField(blank=True, default=' ', null=True),
-        ),
-        migrations.AddField(
-            model_name='homelisting',
-            name='interior_features_description',
-            field=models.TextField(blank=True, default=' ', null=True),
-        ),
-        migrations.AlterField(
-            model_name='client',
-            name='address',
-            field=models.CharField(max_length=150),
-        ),
-        migrations.AddField(
-            model_name='client',
-            name='new_address',
-            field=models.CharField(blank=True, max_length=150, null=True),
-        ),
-        migrations.AlterField(
-            model_name='client',
-            name='old_address',
-            field=models.CharField(blank=True, max_length=200, null=True),
-        ),
-        migrations.AlterField(
-            model_name='homelisting',
-            name='address',
-            field=models.CharField(max_length=150),
-        ),
-        migrations.AddField(
-            model_name='client',
-            name='email',
-            field=models.CharField(blank=True, max_length=100, null=True),
-        ),
+        # migrations.AddField(
+        #     model_name='client',
+        #     name='new_city',
+        #     field=models.CharField(blank=True, max_length=40, null=True),
+        # ),
+        # migrations.AddField(
+        #     model_name='client',
+        #     name='new_state',
+        #     field=models.CharField(blank=True, max_length=31, null=True),
+        # ),
+        # migrations.AddField(
+        #     model_name='client',
+        #     name='new_zip_code',
+        #     field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+        #                             related_name='client_new_zip_code', to='data.zipcode'),
+        # ),
+        # migrations.AddField(
+        #     model_name='client',
+        #     name='service_titan_lifetime_revenue',
+        #     field=models.FloatField(blank=True, default=0, null=True),
+        # ),
+        # migrations.RenameField(
+        #     model_name='client',
+        #     old_name='usps_address',
+        #     new_name='old_address',
+        # ),
+        # migrations.AddField(
+        #     model_name='homelisting',
+        #     name='heating_cooling_description',
+        #     field=models.TextField(blank=True, default=' ', null=True),
+        # ),
+        # migrations.AddField(
+        #     model_name='homelisting',
+        #     name='interior_features_description',
+        #     field=models.TextField(blank=True, default=' ', null=True),
+        # ),
+        # migrations.AlterField(
+        #     model_name='client',
+        #     name='address',
+        #     field=models.CharField(max_length=150),
+        # ),
+        # migrations.AddField(
+        #     model_name='client',
+        #     name='new_address',
+        #     field=models.CharField(blank=True, max_length=150, null=True),
+        # ),
+        # migrations.AlterField(
+        #     model_name='client',
+        #     name='old_address',
+        #     field=models.CharField(blank=True, max_length=200, null=True),
+        # ),
+        # migrations.AlterField(
+        #     model_name='homelisting',
+        #     name='address',
+        #     field=models.CharField(max_length=150),
+        # ),
+        # migrations.AddField(
+        #     model_name='client',
+        #     name='email',
+        #     field=models.CharField(blank=True, max_length=100, null=True),
+        # ),
         migrations.CreateModel(
             name='ServiceTitanJob',
             fields=[
