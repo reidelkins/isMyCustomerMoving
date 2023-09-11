@@ -27,9 +27,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         company = options["company"]
         zip_code = options["zip"]
-        company = Company.objects.get(name=company).id
         # Prioritizes company over zip code
         if company:
+            company = Company.objects.get(name=company).id
             auto_update.delay(company_id=company)
         elif zip_code:
             auto_update.delay(zip=zip_code)
