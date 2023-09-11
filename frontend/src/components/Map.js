@@ -113,13 +113,13 @@ function Map({ mapCardStyle, mapCenter, zoomLevel,  clients = [], serviceAreas =
         clientsWithStatus.map(async (client) => {
           let lat = 0; // initializing with default values
           let lng = 0; // initializing with default values
-          if (!client.latitude || !client.longitude) {
-            const { latitude, longitude } = await getLatLngFromAddress(
+          if (!client.latitude || !client.longitude || client.latitude === 0 || client.longitude === 0) {
+            const {latitude, longitude} = await getLatLngFromAddress(
               client.id,
               client.address,
               client.city,
               client.state,
-              client.zipCode
+              client.zip_code
             );
             lat = latitude;
             lng = longitude;

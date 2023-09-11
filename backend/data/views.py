@@ -292,7 +292,6 @@ class ClientListView(generics.ListAPIView):
             An API view to handle client updates or deletions.
         """
         try:
-            print(request.data)
             if request.data["type"] == "delete":
                 if len(request.data["clients"]) == 1:
                     client = Client.objects.get(id=request.data["clients"][0])

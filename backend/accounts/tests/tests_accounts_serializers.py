@@ -16,7 +16,14 @@ class TestCompanySerializer(TestCase):
         serializer = BasicCompanySerializer(company)
         # Then
         self.assertEqual(serializer.data, {
-            "id": str(company.id), "name": "Test Company"})
+            "id": str(company.id),
+            "name": "Test Company",
+            "email": "test@test.com",
+            "phone": "1234567890",
+            "users_count": 0,
+            "leads_count": 0,
+            "clients_count": 0,
+        })
 
     def test_company_serializer_initialization(self):
         # Given
@@ -30,14 +37,12 @@ class TestCompanySerializer(TestCase):
         self.assertEqual(serializer.data["email"], "test@test.com")
 
     def test_company_serializer_validation(self):
-        # Given
-        Company.objects.create(name="Test Company",
-                               phone="1234567890", email="test@test.com")
-
         # When
         serializer = CompanySerializer(
             data={"name": "Test Company", "phone": "1234567890", "email": "test2@test.com"})
         serializer.is_valid()
+        print(serializer.errors)
+
         serializer.save()
         # Then
         self.assertEqual(Company.objects.all().count(), 1)
@@ -59,7 +64,7 @@ class TestCompanySerializer(TestCase):
         company = Company.objects.create(
             name="Test Company", phone="1234567890", email="test@test.com")
         CustomUser.objects.create(company=company)
-        serializer = CompanySerializer(company)
+        serializer = BasicCompanySerializer(company)
         # When
         users_count = serializer.get_users_count(company)
         # Then
