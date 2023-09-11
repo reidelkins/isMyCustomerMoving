@@ -129,7 +129,7 @@ class CompanyDashboardView(TestCase):
         assert "clientsAcquiredByMonth" in data
 
         # Validate the format of the response data.
-        assert isinstance(data["totalRevenue"], int)
+        assert isinstance(data["totalRevenue"], float)
         assert isinstance(data["monthsActive"], int)
         assert isinstance(data["revenueByMonth"], dict)
         assert isinstance(data["forSaleByMonth"], dict)
@@ -220,13 +220,13 @@ class RealtorView(TestCase):
             name="Realtor 2", company="Test Realty 2")
 
         HomeListing.objects.create(
-            zip_code=self.zip_code_1, address="123 Lane", status="For Sale", realtor=self.realtor_1)
+            zip_code=self.zip_code_1, address="123 Lane", status="House For Sale", realtor=self.realtor_1)
         HomeListing.objects.create(
-            zip_code=self.zip_code_1, address="456 Lane", status="For Sale", realtor=self.realtor_1)
+            zip_code=self.zip_code_1, address="456 Lane", status="House For Sale", realtor=self.realtor_1)
         HomeListing.objects.create(
-            zip_code=self.zip_code_2, address="654 Lane", status="For Sale", realtor=self.realtor_1)
+            zip_code=self.zip_code_2, address="654 Lane", status="House For Sale", realtor=self.realtor_1)
         HomeListing.objects.create(
-            zip_code=self.zip_code_2, address="789 Street", status="For Sale", realtor=self.realtor_2)
+            zip_code=self.zip_code_2, address="789 Street", status="House For Sale", realtor=self.realtor_2)
 
     def test_get_realtors_by_service_area(self):
         headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}

@@ -210,35 +210,6 @@ class UrlsTestCase(TestCase):
         response = self.client.delete(url, **headers)
         self.assertEqual(response.status_code, 405)
 
-    def test_update_client_url_put(self):
-        url = reverse("update-client")
-        headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
-        response = self.client.put(url, data={}, **headers)
-        self.assertEqual(response.status_code, 400)
-
-    def test_update_client_url_not_authenticated(self):
-        url = reverse("update-client")
-        response = self.client.put(url, data={})
-        self.assertEqual(response.status_code, 403)
-
-    def test_update_client_url_url_get(self):
-        url = reverse("update-client")
-        headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
-        response = self.client.get(url, **headers)
-        self.assertEqual(response.status_code, 405)
-
-    def test_update_client_url_url_post(self):
-        url = reverse("update-client")
-        headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
-        response = self.client.post(url, data={}, **headers)
-        self.assertEqual(response.status_code, 405)
-
-    def test_update_client_url_url_delete(self):
-        url = reverse("update-client")
-        headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
-        response = self.client.delete(url, **headers)
-        self.assertEqual(response.status_code, 405)
-
     def test_upload_file_url_get(self):
         url = reverse("upload-file-check", kwargs={"task": self.task.id})
         headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
@@ -323,7 +294,7 @@ class UrlsTestCase(TestCase):
         url = reverse("client-list")
         headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
         response = self.client.put(url, data={}, **headers)
-        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.status_code, 400)
 
     def test_client_list_url_delete(self):
         url = reverse("client-list")

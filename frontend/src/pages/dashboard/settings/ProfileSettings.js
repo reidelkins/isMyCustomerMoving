@@ -57,7 +57,7 @@ export default function ProfileSettings() {
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
 
-  const [editting, setEditting] = useState(false);
+  const [editting, setEditing] = useState(false);
 
   const listUser = useSelector(selectUsers);
   const { loading, USERLIST } = listUser;
@@ -94,7 +94,7 @@ export default function ProfileSettings() {
     },
     validationSchema: SettingsSchema,
     onSubmit: () => {
-      setEditting(false);
+      setEditing(false);
       dispatch(editUserAsync(values.email, values.firstName, values.lastName, values.servTitan, values.phone));
     },
   });
@@ -149,23 +149,24 @@ export default function ProfileSettings() {
               <FormikProvider value={formik}>
                 <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
                   <Stack direction="column">
-                    <TextField
-                      fullWidth
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <TextField                      
                       type="text"
                       label="First Name"
+                      style={{ flex: '0 0 45%' }} // This ensures each button takes up exactly 45%
                       {...getFieldProps('firstName')}
                       error={Boolean(touched.firstName && errors.firstName)}
                       helperText={touched.firstName && errors.firstName}
-                    />
-                    <br />
+                    />                    
                     <TextField
-                      fullWidth
                       type="text"
                       label="Last Name"
+                      style={{ flex: '0 0 45%' }} // This ensures each button takes up exactly 45%
                       {...getFieldProps('lastName')}
                       error={Boolean(touched.lastName && errors.lastName)}
                       helperText={touched.lastName && errors.lastName}
                     />
+                    </div>
                     <br />
                     <TextField
                       fullWidth
@@ -186,16 +187,36 @@ export default function ProfileSettings() {
                     />
                     <br />
                     <br />
-                    <Button
-                      fullWidth
-                      size="large"
-                      type="submit"
-                      variant="contained"
-                      data-testid="update-profile-button"
-                      // loading={registerLoading ? isSubmitting : null}
-                    >
-                      Save Changes
-                    </Button>
+                    <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between',
+                        margin: '0 10%'  // This margin creates space on the left and right edges. Adjust the value as needed.
+                    }}>
+                      {/* Cancel Button */}
+                      <Button
+                        fullWidth
+                        size="large"
+                        variant="contained"
+                        color="error"
+                        style={{ flex: '0 0 40%' }} // Each button takes up 30% of the parent's width
+                        onClick={() => setEditing(false)} // Assuming you have a method to cancel the editing
+                        data-testid="cancel-profile-button"
+                      >
+                        Cancel
+                      </Button>
+
+                      {/* Save Changes Button */}
+                      <Button
+                        fullWidth
+                        size="large"
+                        type="submit"
+                        variant="contained"
+                        style={{ flex: '0 0 40%' }} // Each button takes up 30% of the parent's width
+                        data-testid="update-profile-button"
+                      >
+                        Save Changes
+                      </Button>
+                    </div>
                   </Stack>
                 </Form>
               </FormikProvider>
@@ -214,7 +235,7 @@ export default function ProfileSettings() {
                 <h3>Phone Number:</h3>
                 <p>{userInfo && userInfo.phone ? userInfo.phone : 'None'}</p>
                 <br />
-                <Button fullWidth size="large" variant="contained" onClick={() => setEditting(true)} data-testid="edit-profile">
+                <Button fullWidth size="large" variant="contained" onClick={() => setEditing(true)} data-testid="edit-profile">
                   Edit
                 </Button>
               </Stack>

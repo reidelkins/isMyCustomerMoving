@@ -5,37 +5,28 @@ import {
   Button,
   IconButton,
   TextField,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  Stack,
+  Grid,
   Modal,
   Fade,
   Box,
   Typography,
 } from '@mui/material';
-import { useFormik, Form, FormikProvider } from 'formik';
+import { useFormik } from 'formik';
 import { useDispatch } from 'react-redux';
 
 import { companyAsync } from '../redux/actions/authActions';
+import GridSetting from './GridSetting';
 import Iconify from './Iconify';
 
 ServiceTitanTagsModal.propTypes = {
   userInfo: PropTypes.objectOf(PropTypes.any),
 };
 
-export default function ServiceTitanTagsModal({ userInfo }) {
-  const [open, setOpen] = useState(false);
+export default function ServiceTitanTagsModal({ userInfo }) {  
   const [integrateInfo, setIntegrateInfo] = useState(false);
+  const [editing, setEditing] = useState(false);
 
-  const dispatch = useDispatch();
-  const handleOpen = () => {
-    setOpen(true);
-  };
-  const handleClose = () => {
-    setOpen(false);
-  };
+  const dispatch = useDispatch();  
 
   const IntegrateSTSchema = Yup.object().shape({
     forSale: Yup.string("'"),
@@ -57,10 +48,16 @@ export default function ServiceTitanTagsModal({ userInfo }) {
       recentlySold_contacted: userInfo.company.service_titan_recently_sold_contacted_tag_id
         ? userInfo.company.service_titan_recently_sold_contacted_tag_id
         : '',
+      forSaleDate: userInfo.company.service_titan_listed_date_custom_field_id
+        ? userInfo.company.service_titan_listed_date_custom_field_id
+        : '',
+      soldDate: userInfo.company.service_titan_sold_date_custom_field_id
+        ? userInfo.company.service_titan_sold_date_custom_field_id
+        : '',
     },
     validationSchema: IntegrateSTSchema,
     onSubmit: () => {
-      setOpen(false);
+      setEditing(false);
       dispatch(
         companyAsync(
           '',
@@ -73,88 +70,144 @@ export default function ServiceTitanTagsModal({ userInfo }) {
           values.recentlySold,
           values.forSale_contacted,
           values.recentlySold_contacted,
+          values.forSaleDate,
+          values.soldDate,
           ''
         )
       );
     },
   });
 
-  const { errors, touched, values, handleSubmit, getFieldProps } = formik;
+  const { values, handleSubmit, getFieldProps } = formik;
+  const gridSettings = [
+    {
+      label: 'For Sale ID',
+      value: userInfo.company.service_titan_for_sale_tag_id,
+      tooltip: 'This is the ID for the tag you created for your customers that are for sale or have their home listed.',
+    },
+    {
+      label: 'For Sale Date',
+      value: userInfo.company.service_titan_listed_date_custom_field_id,
+      tooltip: 'This is the ID for the tag you created for your customers that are for sale or have their home listed.',
+    },
+    {
+      label: 'For Sale and Contacted ID',
+      value: userInfo.company.service_titan_for_sale_contacted_tag_id,
+      tooltip: 'This is the ID for the tag you created for your customers that are for sale or have their home listed and have been contacted.',
+    },
+    {
+      label: 'Recently Sold ID',
+      value: userInfo.company.service_titan_recently_sold_tag_id,
+      tooltip: 'This is the ID for the tag you created for your customers that have recently sold their home.',
+    },
+    {
+      label: 'Sold Date',
+      value: userInfo.company.service_titan_sold_date_custom_field_id,
+      tooltip: 'This is the ID for the tag you created for your customers that have recently sold their home.',
+    },
+    {
+      label: 'Recently Sold and Contacted ID',
+      value: userInfo.company.service_titan_recently_sold_contacted_tag_id,
+      tooltip: 'This is the ID for the tag you created for your customers that have recently sold their home and have been contacted.',
+    },
+  ];
   return (
-    <div>
-      <Button variant="contained" color="primary" aria-label="Create Company" component="label" onClick={handleOpen}>
-        {userInfo.company.service_titan_for_sale_tag_id ||
-        userInfo.company.service_titan_for_rent_tag_id ||
-        userInfo.company.service_titan_recently_sold_tag_id
-          ? 'Edit'
-          : 'Add'}{' '}
-        Service Titan Tag IDs
-      </Button>
+    <div>      
+      {editing ? (
+        <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                type="text"
+                label="For Sale Tag"
+                {...getFieldProps('forSale')}                                
+              />
+            </Grid>            
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                type="text"
+                label="Listed For Sale Date"
+                {...getFieldProps('forSaleDate')}                                
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                type="text"
+                label="For Sale and Contacted Tag "
+                {...getFieldProps('forSale_contacted')}                                
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                type="text"
+                label="Recently sold Tag"
+                {...getFieldProps('recentlySold')}                                
+              />
+            </Grid>            
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                type="text"
+                label="Sold Date"
+                {...getFieldProps('soldDate')}                                
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                type="text"
+                label="Recently Sold and Contacted Tag "
+                {...getFieldProps('recentlySold_contacted')}                                
+              />
+            </Grid>
+            <Grid item xs={6} md={4}>
+              <Button
+                fullWidth
+                size="large"
+                variant="contained"
+                color="error"
+                onClick={() => setEditing(false)}
+                data-testid="cancel-profile-button"
+              >
+                Cancel
+              </Button>
+            </Grid>
+
+            <Grid item xs={6} md={4}>
+              <Button
+                fullWidth
+                size="large"
+                type="submit"
+                variant="contained"
+                data-testid="update-profile-button"
+                onClick={handleSubmit}
+              >
+                Save Changes
+              </Button>
+            </Grid>
+          </Grid>
+        ):(                  
+          <Grid container spacing={3} onClick={() => setEditing(true)} style={{ cursor: 'pointer' }} >
+            {gridSettings.map((setting) => (
+              <GridSetting 
+                key={setting.id}
+                label={setting.label} 
+                value={setting.value}
+                tooltip={setting.tooltip}
+              />
+            ))
+            }
+            
+
+                  
+          </Grid>
+        )}
       <IconButton onClick={() => setIntegrateInfo(true)}>
         <Iconify icon="bi:question-circle-fill" />
-      </IconButton>
-      <Dialog open={open} onClose={handleClose} sx={{ padding: '2px' }}>
-        <DialogTitle>Service Titan Tag IDs</DialogTitle>
-        <Divider />
-        <DialogContent>
-          <FormikProvider value={formik}>
-            <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
-              <Stack spacing={3}>
-                <TextField
-                  fullWidth
-                  label="For Sale ID"
-                  placeholder="1234567890"
-                  {...getFieldProps('forSale')}
-                  error={Boolean(touched.forSale && errors.forSale)}
-                  helperText={touched.forSale && errors.forSale}
-                  sx={{ width: 400 }}
-                />
-                {/* <TextField
-                                fullWidth
-                                label="For Rent ID"
-                                placeholder="1234567890"
-                                {...getFieldProps('forRent')}
-                                error={Boolean(touched.forRent && errors.forRent)}
-                                helperText={touched.forRent && errors.forRent}
-                            /> */}
-                <TextField
-                  fullWidth
-                  label="Recently Sold ID"
-                  placeholder="1234567890"
-                  {...getFieldProps('recentlySold')}
-                  error={Boolean(touched.recentlySold && errors.recentlySold)}
-                  helperText={touched.recentlySold && errors.recentlySold}
-                  sx={{ width: 400 }}
-                />
-                <TextField
-                  fullWidth
-                  label="For Sale and Contacted"
-                  placeholder="1234567890"
-                  {...getFieldProps('forSale_contacted')}
-                  error={Boolean(touched.forSale_contacted && errors.forSale_contacted)}
-                  helperText={touched.forSale_contacted && errors.forSale_contacted}
-                  sx={{ width: 400 }}
-                />
-                <TextField
-                  fullWidth
-                  label="Recently Sold and Contacted"
-                  placeholder="1234567890"
-                  {...getFieldProps('recentlySold_contacted')}
-                  error={Boolean(touched.recentlySold_contacted && errors.recentlySold_contacted)}
-                  helperText={touched.recentlySold_contacted && errors.recentlySold_contacted}
-                  sx={{ width: 400 }}
-                />
-              </Stack>
-            </Form>
-          </FormikProvider>
-          <Stack direction="row" justifyContent="right">
-            <Button color="error" onClick={handleClose}>
-              Cancel
-            </Button>
-            <Button onClick={handleSubmit}>Submit</Button>
-          </Stack>
-        </DialogContent>
-      </Dialog>
+      </IconButton>      
       <Modal
         open={integrateInfo}
         onClose={() => setIntegrateInfo(false)}

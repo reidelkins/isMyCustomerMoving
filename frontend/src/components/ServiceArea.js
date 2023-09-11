@@ -16,7 +16,7 @@ function ServiceArea({serviceAreas}) {
             <Typography variant="h3" sx={{ mt: 5 }}>
             Service Area
             </Typography>
-            <Map mapClass={"map-container"} mapCardStyle={"service-area-map-card-style"} mapCenter={{ lat: 39.5, lng: -98.35 }} zoomLevel={6.5} serviceAreas={serviceAreas}/>
+            <Map mapCardStyle={"service-area"} mapCenter={{ lat: 39.5, lng: -98.35 }} zoomLevel={6} serviceAreas={serviceAreas}/>
             <Box sx={{ mt: 5, width: "30%" }}>
                 <FileUploader fileType={"ServiceArea"}/>
             </Box>

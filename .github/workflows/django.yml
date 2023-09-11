@@ -10,6 +10,7 @@ on:
     - '*'
 
 env:
+  APIFY_TOKEN: ${{secrets.APIFY_TOKEN}}
   DJANGO_SECRET_KEY: ${{secrets.DJANGO_SECRET_KEY}}
   EMAIL: ${{secrets.EMAIL}}
   EMAIL_PASSWD: ${{secrets.EMAIL_PASSWD}}
@@ -102,10 +103,7 @@ jobs:
         run: |
           cd backend
           python manage.py collectstatic --noinput
-          python manage.py runserver &
-      - name: Wait for backend server to start
-        if : ${{ matrix.python-version }} == '3.10'  
-        run: sleep 10
+          python manage.py runserver &      
       - name: Check Backend Server
         if : ${{ matrix.python-version }} == '3.10' 
         run: |

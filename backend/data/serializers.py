@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+
 from accounts.serializers import EnterpriseSerializer, BasicCompanySerializer
 from .models import (
     Client,
@@ -9,13 +10,6 @@ from .models import (
     Realtor,
     Referral
 )
-
-
-class ClientUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ClientUpdate
-        fields = [f.name for f in ClientUpdate._meta.fields]
-        read_only_fields = fields
 
 
 class ClientSerializer(serializers.ModelSerializer):
@@ -30,24 +24,21 @@ class ClientSerializer(serializers.ModelSerializer):
         ]
 
 
-class ClientListSerializer(serializers.ModelSerializer):
-    zip_code = serializers.SerializerMethodField()
-    tag = serializers.SerializerMethodField()
-    service_titan_customer_since_year = serializers.SerializerMethodField()
-    client_updates_client = ClientUpdateSerializer(many=True, read_only=True)
+class ClientUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClientUpdate
+        fields = ["id", "date", "status", "listed", "note", "contacted"]
+        read_only_fields = fields
 
-    def get_zip_code(self, obj):
-        return obj.zip_code.zip_code
+
+class ClientListSerializer(serializers.ModelSerializer):
+    # zip_code = serializers.CharField(source='zip_code.zip_code')
+    tag = serializers.SerializerMethodField()
+    service_titan_customer_since_year = serializers.IntegerField(default=1900)
+    client_updates_client = ClientUpdateSerializer(many=True, read_only=True)
 
     def get_tag(self, obj):
         return [tag.tag for tag in obj.tag.all()]
-
-    def get_service_titan_customer_since_year(self, obj):
-        return (
-            obj.service_titan_customer_since.year
-            if obj.service_titan_customer_since
-            else 1900
-        )
 
     class Meta:
         model = Client
@@ -55,9 +46,7 @@ class ClientListSerializer(serializers.ModelSerializer):
             f.name
             for f in Client._meta.fields
             if f.name != "service_titan_customer_since"
-            and f.name != "zip_code"
         ] + [
-            "zip_code",
             "tag",
             "service_titan_customer_since_year",
             "client_updates_client",
@@ -66,10 +55,7 @@ class ClientListSerializer(serializers.ModelSerializer):
 
 
 class ZapierClientSerializer(serializers.ModelSerializer):
-    zip_code = serializers.SerializerMethodField()
-
-    def get_zip_code(self, obj):
-        return obj.zip_code.zip_code
+    zip_code = serializers.CharField(source='zip_code.zip_code')
 
     class Meta:
         model = Client
@@ -91,7 +77,7 @@ class HomeListingTagsSerializer(serializers.ModelSerializer):
 
 
 class HomeListingSerializer(serializers.ModelSerializer):
-    zip_code = serializers.StringRelatedField()
+    zip_code = serializers.CharField(source='zip_code.zip_code')
     tags = HomeListingTagsSerializer(many=True, read_only=True)
 
     class Meta:
@@ -105,7 +91,7 @@ class ReferralSerializer(serializers.ModelSerializer):
     enterprise = EnterpriseSerializer(required=False)
     referred_from = BasicCompanySerializer(required=True)
     referred_to = BasicCompanySerializer(required=True)
-    client = ClientListSerializer(read_only=True)
+    client = ClientListSerializer()
 
     class Meta:
         model = Referral
@@ -125,5 +111,5 @@ class RealtorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Realtor
-        fields = ('id', 'name', 'company', 'phone',
-                  'email', 'url', 'listing_count')
+        fields = ('id', 'name', 'company',
+                  'agent_phone', 'brokerage_phone', 'listing_count')

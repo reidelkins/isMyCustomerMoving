@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from datetime import datetime
 from accounts.models import Company
 from payments.models import Product
-from data.syncClients import complete_service_titan_sync
+from data.serviceTitan import complete_service_titan_sync
 
 
 class Command(BaseCommand):
@@ -14,7 +14,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         company = options["company"]
         if company:
-            complete_service_titan_sync.delay(company_id=company, task_id=None)
+            company = Company.objects.get(name=company).id
+            complete_service_titan_sync.delay(
+                company_id=company, task_id=None, automated=True)
         else:
             days_to_run = [0, 1, 2, 3, 4]
             current_datetime = datetime.now()

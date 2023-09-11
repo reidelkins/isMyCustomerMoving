@@ -18,7 +18,7 @@ import {
   TablePagination,  
 } from '@mui/material';
 
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 // components
 import Page from '../../components/Page';
@@ -30,26 +30,23 @@ import RealtorListCall from '../../redux/calls/RealtorListCall';
 import { showLoginInfo } from '../../redux/actions/authActions';
 import { selectRealtorInfo } from '../../redux/actions/usersActions';
 
-import { makeDate } from '../../utils/makeDate';
 import { handleChangePage, handleChangeRowsPerPage, handleRequestSort } from '../../utils/dataTableFunctions';
 import { getComparator, applySortFilter } from '../../utils/filterFunctions';
 
 
 // ----------------------------------------------------------------------
 
-const TABLE_HEAD = [
-  { id: 'company', label: 'Company Name', alignRight: false },
+const TABLE_HEAD = [  
   { id: 'name', label: 'Realtor', alignRight: false },
-  { id: 'phone', label: 'Phone', alignRight: false },
-  { id: 'email', label: 'Email', alignRight: false },
+  { id: 'agentPhone', label: 'Agent Phone', alignRight: false },
+  { id: 'company', label: 'Company Name', alignRight: false },
+  { id: 'brokeragePhone', label: 'Brokerage Phone', alignRight: false },
   { id: 'count', label: 'Listing Count', alignRight: false },
   
 ];
 
 
-export default function RealtorData() {
-  const dispatch = useDispatch();
-
+export default function RealtorData() {  
   const userLogin = useSelector(showLoginInfo);
   const { userInfo } = userLogin;
 
@@ -64,9 +61,7 @@ export default function RealtorData() {
 
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const [shownRealtors, setShownRealtors] = useState(0);
-
-  const [csvLoading] = useState(false);
+  const [shownRealtors, setShownRealtors] = useState(0);  
 
   const [realtorLength, setRealtorLength] = useState(0);
 
@@ -124,7 +119,8 @@ export default function RealtorData() {
                             id,
                             name,
                             company,
-                            phone,
+                            agent_phone: agentPhone,
+                            brokerage_phone: brokeragePhone,
                             email,
                             listing_count: count,
                             
@@ -133,10 +129,10 @@ export default function RealtorData() {
                           return (
                             <React.Fragment key={row.id}>
                               <TableRow hover key={id} tabIndex={-1} role="checkbox">
-                                <TableCell align="left">{name}</TableCell>
+                                <TableCell align="left">{name}</TableCell>                                
+                                <TableCell align="left">{agentPhone}</TableCell>
                                 <TableCell align="left">{company}</TableCell>
-                                <TableCell align="left">{phone}</TableCell>
-                                <TableCell align="left">{email}</TableCell>
+                                <TableCell align="left">{brokeragePhone}</TableCell>
                                 <TableCell align="left">{count}</TableCell>
                               </TableRow>
                             </React.Fragment>
