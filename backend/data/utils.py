@@ -232,13 +232,15 @@ def save_service_area_list(zip_codes, company_id):
     company = Company.objects.get(id=company_id)
     company.service_area_zip_codes.set([])
     for zip in zip_codes:
-        zip_code = format_zip(zip['Zip_Code'])
-        if int(zip_code) < 500 or int(zip_code) > 99951:
-            continue
-        zip_code_obj = ZipCode.objects.get_or_create(
-            zip_code=str(zip_code)
-        )[0]
-        company.service_area_zip_codes.add(zip_code_obj)
+        zip = zip.get("Zip_Code", "")
+        if zip:
+            zip_code = format_zip(zip)
+            if int(zip_code) < 500 or int(zip_code) > 99951:
+                continue
+            zip_code_obj, _ = ZipCode.objects.get_or_create(
+                zip_code=str(zip_code)
+            )
+            company.service_area_zip_codes.add(zip_code_obj)
 
 
 @shared_task
