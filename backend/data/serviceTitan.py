@@ -373,7 +373,7 @@ def save_invoices(company_id, invoices):
             invoices_to_create = []
         # Parse the createdOn date from the invoice data
         created_on = datetime.strptime(invoice["createdOn"], "%Y-%m-%d").date()
-        if invoice["id"] not in existing_invoice_ids:
+        if str(invoice["id"]) not in existing_invoice_ids:
             last_status_update_date = ClientUpdate.objects.filter(
                 client=client,
                 status__in=["House For Sale", "House Recently Sold (6)"]
