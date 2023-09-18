@@ -19,7 +19,7 @@ import { useFormik, Form, FormikProvider } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
-
+import ServiceTitanHelpModal from './ServiceTitanHelpModal';
 import ServiceTitanTags from './ServiceTitanTags';
 import Iconify from './Iconify';
 
@@ -418,6 +418,7 @@ const CRMIntegrationModal = ({ user }) => {
         <div style={{ marginBottom: '5%' }}>
           <Typography variant="h6" color="textSecondary">
             You've Chosen Service Titan
+              <ServiceTitanHelpModal />
           </Typography>
           {user.company.tenant_id && <ServiceTitanTags userInfo={user} />}          
         </div>
