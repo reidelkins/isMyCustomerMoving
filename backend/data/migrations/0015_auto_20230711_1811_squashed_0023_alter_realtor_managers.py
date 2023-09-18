@@ -7,79 +7,94 @@ import django.db.models.manager
 
 class Migration(migrations.Migration):
 
-    replaces = [('data', '0015_auto_20230711_1811'), ('data', '0016_auto_20230713_0021'), ('data', '0017_client_service_titan_lifetime_revenue'), ('data', '0018_rename_usps_address_client_old_address'), ('data', '0019_auto_20230720_0322'), ('data', '0020_auto_20230722_0048'), ('data', '0021_client_email'), ('data', '0022_servicetitanjob'), ('data', '0023_alter_realtor_managers')]
-
     dependencies = [
         ('data', '0014_client_revenue_squashed_0026_auto_20230706_1457'),
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='client',
-            name='new_city',
-            field=models.CharField(blank=True, max_length=40, null=True),
-        ),
-        migrations.AddField(
-            model_name='client',
-            name='new_state',
-            field=models.CharField(blank=True, max_length=31, null=True),
-        ),
-        migrations.AddField(
-            model_name='client',
-            name='new_zip_code',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='client_new_zip_code', to='data.zipcode'),
-        ),
-        migrations.AddField(
-            model_name='client',
-            name='service_titan_lifetime_revenue',
-            field=models.FloatField(blank=True, default=0, null=True),
+        migrations.RenameField(
+            model_name='realtor',
+            old_name='email',
+            new_name='agent_phone',
         ),
         migrations.RenameField(
-            model_name='client',
-            old_name='usps_address',
-            new_name='old_address',
+            model_name='realtor',
+            old_name='phone',
+            new_name='brokerage_phone',
         ),
-        migrations.AddField(
-            model_name='homelisting',
-            name='heating_cooling_description',
-            field=models.TextField(blank=True, default=' ', null=True),
+        # migrations.RemoveField(
+        #     model_name='homelisting',
+        #     name='permalink',
+        # ),
+        migrations.RemoveField(
+            model_name='realtor',
+            name='url',
         ),
-        migrations.AddField(
-            model_name='homelisting',
-            name='interior_features_description',
-            field=models.TextField(blank=True, default=' ', null=True),
-        ),
-        migrations.AlterField(
-            model_name='client',
-            name='address',
-            field=models.CharField(max_length=150),
-        ),
-        migrations.AddField(
-            model_name='client',
-            name='new_address',
-            field=models.CharField(blank=True, max_length=150, null=True),
-        ),
-        migrations.AlterField(
-            model_name='client',
-            name='old_address',
-            field=models.CharField(blank=True, max_length=200, null=True),
-        ),
-        migrations.AlterField(
-            model_name='homelisting',
-            name='address',
-            field=models.CharField(max_length=150),
-        ),
-        migrations.AddField(
-            model_name='client',
-            name='email',
-            field=models.CharField(blank=True, max_length=100, null=True),
-        ),
+        # migrations.AddField(
+        #     model_name='client',
+        #     name='new_city',
+        #     field=models.CharField(blank=True, max_length=40, null=True),
+        # ),
+        # migrations.AddField(
+        #     model_name='client',
+        #     name='new_state',
+        #     field=models.CharField(blank=True, max_length=31, null=True),
+        # ),
+        # migrations.AddField(
+        #     model_name='client',
+        #     name='new_zip_code',
+        #     field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+        #                             related_name='client_new_zip_code', to='data.zipcode'),
+        # ),
+        # migrations.AddField(
+        #     model_name='client',
+        #     name='service_titan_lifetime_revenue',
+        #     field=models.FloatField(blank=True, default=0, null=True),
+        # ),
+        # migrations.RenameField(
+        #     model_name='client',
+        #     old_name='usps_address',
+        #     new_name='old_address',
+        # ),
+        # migrations.AddField(
+        #     model_name='homelisting',
+        #     name='heating_cooling_description',
+        #     field=models.TextField(blank=True, default=' ', null=True),
+        # ),
+        # migrations.AddField(
+        #     model_name='homelisting',
+        #     name='interior_features_description',
+        #     field=models.TextField(blank=True, default=' ', null=True),
+        # ),
+        # migrations.AlterField(
+        #     model_name='client',
+        #     name='address',
+        #     field=models.CharField(max_length=150),
+        # ),
+        # migrations.AddField(
+        #     model_name='client',
+        #     name='new_address',
+        #     field=models.CharField(blank=True, max_length=150, null=True),
+        # ),
+        # migrations.AlterField(
+        #     model_name='client',
+        #     name='old_address',
+        #     field=models.CharField(blank=True, max_length=200, null=True),
+        # ),
+        # migrations.AlterField(
+        #     model_name='homelisting',
+        #     name='address',
+        #     field=models.CharField(max_length=150),
+        # ),
+
         migrations.CreateModel(
             name='ServiceTitanJob',
             fields=[
-                ('id', models.CharField(max_length=100, primary_key=True, serialize=False)),
+                ('id', models.CharField(max_length=100,
+                 primary_key=True, serialize=False)),
                 ('job_type', models.CharField(max_length=100)),
-                ('client', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='data.client')),
+                ('client', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='data.client')),
             ],
         ),
         migrations.AlterModelManagers(

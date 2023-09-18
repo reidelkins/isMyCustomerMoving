@@ -6,10 +6,11 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    replaces = [('payments', '0002_servicetitaninvoice'), ('payments', '0003_remove_servicetitaninvoice_street')]
+    replaces = [('payments', '0002_servicetitaninvoice'),
+                ('payments', '0003_remove_servicetitaninvoice_street')]
 
     dependencies = [
-        ('data', '0017_client_service_titan_lifetime_revenue'),
+        ('data', '0014_client_revenue_squashed_0026_auto_20230706_1457'),
         ('payments', '0001_squashed_0006_product'),
     ]
 
@@ -17,10 +18,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ServiceTitanInvoice',
             fields=[
-                ('id', models.CharField(max_length=100, primary_key=True, serialize=False)),
+                ('id', models.CharField(max_length=100,
+                 primary_key=True, serialize=False)),
                 ('amount', models.FloatField(default=0)),
                 ('created_on', models.DateField(blank=True, null=True)),
-                ('client', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='data.client')),
+                ('client', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='data.client')),
             ],
         ),
     ]
