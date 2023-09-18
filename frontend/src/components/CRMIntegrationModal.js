@@ -19,9 +19,8 @@ import { useFormik, Form, FormikProvider } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
-
-import ServiceTitanTagsModal from './ServiceTitanTagsModal';
-import AddSecretModal from './AddSecretModal';
+import ServiceTitanHelpModal from './ServiceTitanHelpModal';
+import ServiceTitanTags from './ServiceTitanTags';
 import Iconify from './Iconify';
 
 import { companyAsync, showSTInfo } from '../redux/actions/authActions';
@@ -46,7 +45,7 @@ const ServiceTitan = ({ open, setOpen, dispatch }) => {
     validationSchema: IntegrateSTSchema,
     onSubmit: () => {
       setOpen(false);
-      dispatch(companyAsync('', '', values.tenantID, '', '', '', '', '', '', '', 'ServiceTitan'));
+      dispatch(companyAsync('', '', values.tenantID, '', '', '', '', '', '', '', '', '', 'ServiceTitan'));
     },
   });
 
@@ -419,9 +418,9 @@ const CRMIntegrationModal = ({ user }) => {
         <div style={{ marginBottom: '5%' }}>
           <Typography variant="h6" color="textSecondary">
             You've Chosen Service Titan
+              <ServiceTitanHelpModal />
           </Typography>
-          {!user.company.client_id && user.company.tenant_id && <AddSecretModal />}
-          {user.company.client_id && <ServiceTitanTagsModal userInfo={user} />}
+          {user.company.tenant_id && <ServiceTitanTags userInfo={user} />}          
         </div>
       )}
       {user.company.crm === 'Salesforce' && (

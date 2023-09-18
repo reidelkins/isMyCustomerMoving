@@ -59,6 +59,7 @@ class CompanySerializer(serializers.ModelSerializer):
             "email",
             "tenant_id",
             "client_id",
+            "client_secret",
             "stripe_id",
             "service_titan_for_sale_tag_id",
             "service_titan_recently_sold_tag_id",

@@ -378,9 +378,12 @@ export default function ProfileSettings() {
           <Typography variant="h3" sx={{ mt: 5 }}>
             CRM Integration
           </Typography>
-          <p style={{ marginBottom: 20 }}>
-            Connect IMCM With Your CRM! If you don't see your CRM listed, suggest it to us!
-          </p>
+          {!userInfo.company.crm && (
+            <p style={{ marginBottom: 20 }}>
+              Connect IMCM With Your CRM! If you don't see your CRM listed, suggest it to us!
+            </p>
+          )}
+          
           <CRMIntegrationModal user={userInfo} />
         </Box>
       </Container>
