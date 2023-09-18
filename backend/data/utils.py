@@ -1403,7 +1403,7 @@ def send_zapier_recently_sold(company_id):
     home_listings = HomeListing.objects.filter(
         zip_code__in=zip_code_objects, listed__gt=recently_listed_date,
         status="House Recently Sold (6)"
-    ).order_by("listed")
+    ).order_by("listed").select_related('zip_code')
 
     saved_filters = SavedFilter.objects.filter(
         company=company, filter_type="Recently Sold", for_zapier=True
