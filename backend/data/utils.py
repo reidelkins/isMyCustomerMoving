@@ -121,34 +121,34 @@ def delete_extra_clients(company_id, task_id=None):
             clients.count(), company.product
         )
 
-        if deleted_clients > 0:
-            Client.objects.filter(
-                id__in=list(
-                    clients.values_list("id", flat=True)[:deleted_clients]
-                )
-            ).update(active=False)
+        # if deleted_clients > 0:
+        #     Client.objects.filter(
+        #         id__in=list(
+        #             clients.values_list("id", flat=True)[:deleted_clients]
+        #         )
+        #     ).update(active=False)
 
-            admins = CustomUser.objects.filter(
-                company=company, status="admin"
-            )
-            mail_subject = "IMCM Clients Deleted"
-            message_plain = (
-                "Your company has exceeded the number of clients..."
-            )
-            message_html = get_template("clientsDeleted.html").render(
-                {"deleted_clients": deleted_clients}
-            )
+        #     admins = CustomUser.objects.filter(
+        #         company=company, status="admin"
+        #     )
+        #     mail_subject = "IMCM Clients Deleted"
+        #     message_plain = (
+        #         "Your company has exceeded the number of clients..."
+        #     )
+        #     message_html = get_template("clientsDeleted.html").render(
+        #         {"deleted_clients": deleted_clients}
+        #     )
 
-            for admin in admins:
-                if "@test.com" not in admin.email:
-                    send_mail(
-                        subject=mail_subject,
-                        message=message_plain,
-                        from_email=settings.EMAIL_HOST_USER,
-                        recipient_list=[admin.email],
-                        html_message=message_html,
-                        fail_silently=False,
-                    )
+        #     for admin in admins:
+        #         if "@test.com" not in admin.email:
+        #             send_mail(
+        #                 subject=mail_subject,
+        #                 message=message_plain,
+        #                 from_email=settings.EMAIL_HOST_USER,
+        #                 recipient_list=[admin.email],
+        #                 html_message=message_html,
+        #                 fail_silently=False,
+        #             )
     except Exception as e:
         logging.error(e)
         deleted_clients = 0
