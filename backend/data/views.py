@@ -1123,8 +1123,8 @@ class CompanyDashboardView(APIView):
             total_amount=Sum('amount')
         )
 
-        self.total_revenue = sum(invoice['total_amount']
-                                 for invoice in invoices)
+        self.total_revenue = round(sum(invoice['total_amount']
+                                       for invoice in invoices), 2)
 
         # Initialize revenue_by_month with 0 values
         for month in self.revenue_by_month:
@@ -1134,6 +1134,10 @@ class CompanyDashboardView(APIView):
         for invoice in invoices:
             month = calendar.month_name[invoice['month']]
             self.revenue_by_month[month] += invoice['total_amount']
+
+        for month in self.revenue_by_month:
+            self.revenue_by_month[month] = round(
+                self.revenue_by_month[month], 2)
 
     def _get_customer_retention(self):
         """
