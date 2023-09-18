@@ -1296,7 +1296,7 @@ class ZapierCreateClientView(APIView):
             client = serializer.save()
             client.company = company
             client.save()
-            verify_address(client.id)
+            verify_address([client.id])
 
             return Response(
                 {"detail": "Client added successfully"},

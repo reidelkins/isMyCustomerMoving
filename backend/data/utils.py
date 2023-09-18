@@ -121,12 +121,12 @@ def delete_extra_clients(company_id, task_id=None):
             clients.count(), company.product
         )
 
-        # if deleted_clients > 0:
-        #     Client.objects.filter(
-        #         id__in=list(
-        #             clients.values_list("id", flat=True)[:deleted_clients]
-        #         )
-        #     ).update(active=False)
+        if deleted_clients > 0:
+            Client.objects.filter(
+                id__in=list(
+                    clients.values_list("id", flat=True)[:deleted_clients]
+                )
+            ).update(active=False)
 
         #     admins = CustomUser.objects.filter(
         #         company=company, status="admin"
