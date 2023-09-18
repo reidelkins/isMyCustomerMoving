@@ -87,20 +87,20 @@ class CompanyDashboardView(TestCase):
         # but in the previous year and test that the math works out correctly
 
         attributed_invoice1 = ServiceTitanInvoice.objects.create(
-            client=client, amount=250.0, attributed=True, id="1", created_on=last_day_of_previous_month
+            client=client, amount=250.0, attributed=True, invoice_id="1", created_on=last_day_of_previous_month
         )
         attributed_invoice2 = ServiceTitanInvoice.objects.create(
-            client=client, amount=100.0, attributed=True, id="2", created_on=last_day_of_two_months_prior
+            client=client, amount=100.0, attributed=True, invoice_id="2", created_on=last_day_of_two_months_prior
         )
         unattributed_invoice = ServiceTitanInvoice.objects.create(
-            client=client, amount=150.0, attributed=False, id="3", created_on=last_day_of_two_months_prior
+            client=client, amount=150.0, attributed=False, invoice_id="3", created_on=last_day_of_two_months_prior
         )
         # Need these to make sure other company invoices are not being shown to current user
         diff_company_invoice = ServiceTitanInvoice.objects.create(
-            client=client2, amount=100.0, attributed=True, id="4", created_on=last_day_of_previous_month
+            client=client2, amount=100.0, attributed=True, invoice_id="4", created_on=last_day_of_previous_month
         )
         diff_company_invoice_2 = ServiceTitanInvoice.objects.create(
-            client=client2, amount=100.0, attributed=True, id="5", created_on=last_day_of_two_months_prior
+            client=client2, amount=100.0, attributed=True, invoice_id="5", created_on=last_day_of_two_months_prior
         )
 
         for_sale_client_update = ClientUpdate.objects.create(
