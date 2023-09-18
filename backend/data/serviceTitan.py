@@ -16,7 +16,7 @@ from .utils import (
     delete_extra_clients,
     del_variables,
     get_service_titan_access_token,
-    # verify_address,
+    verify_address,
     parse_streets
 )
 from payments.models import ServiceTitanInvoice
@@ -44,12 +44,12 @@ def complete_service_titan_sync(company_id, task_id, option=None, automated=Fals
         get_service_titan_customers.delay(company_id, tenant)
 
     get_service_titan_invoices.delay(company_id, tenant)
-    # clients_to_verify = Client.objects.filter(
-    #     company=company, old_address=None
-    # )
-    # for client in clients_to_verify:
-    #     verify_address.delay(client.id)
-    # del_variables([company, clients_to_verify])
+
+    clients_to_verify = list(Client.objects.filter(
+        company=company, old_address=None
+    ).values_list("id", flat=True))
+    verify_address.delay(clients_to_verify)
+    del_variables([company, clients_to_verify])
 
 
 def get_service_titan_locations(company_id, tenant, option):

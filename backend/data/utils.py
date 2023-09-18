@@ -1301,7 +1301,7 @@ def remove_error_flag():
 
 
 @shared_task
-def verify_address(client_id):
+def verify_address(client_ids):
     """
     Verify the client's address using USPS API.
 
@@ -1311,66 +1311,69 @@ def verify_address(client_id):
     Returns:
     None
     """
-    try:
-        client = Client.objects.get(id=client_id)
-    except Exception as e:
-        logging.error(f"Client with id {client_id} does not exist. {e}")
-        return
-    zip_code = client.zip_code.zip_code
-    base_url = "http://production.shippingapis.com/ShippingAPI.dll"
-    user_id = settings.USPS_USER_ID
-    api = "Verify"
+    for client_id in client_ids:
+        try:
+            client = Client.objects.get(id=client_id)
+        except Exception as e:
+            logging.error(f"Client with id {client_id} does not exist. {e}")
+            return
+        zip_code = client.zip_code.zip_code
+        base_url = "http://production.shippingapis.com/ShippingAPI.dll"
+        user_id = settings.USPS_USER_ID
+        api = "Verify"
 
-    xml_request = f"""
-    <AddressValidateRequest USERID="{user_id}">
-        <Address ID="1">
-            <Address1></Address1>
-            <Address2>{client.address}</Address2>
-            <City>{client.city}</City>
-            <State>{client.state}</State>
-            <Zip5>{zip_code}</Zip5>
-            <Zip4/>
-        </Address>
-    </AddressValidateRequest>
-    """
+        xml_request = f"""
+        <AddressValidateRequest USERID="{user_id}">
+            <Address ID="1">
+                <Address1></Address1>
+                <Address2>{client.address}</Address2>
+                <City>{client.city}</City>
+                <State>{client.state}</State>
+                <Zip5>{zip_code}</Zip5>
+                <Zip4/>
+            </Address>
+        </AddressValidateRequest>
+        """
 
-    params = {"API": api, "XML": xml_request}
-    try:
-        response = requests.get(base_url, params=params, timeout=10)
-    except requests.exceptions.RequestException as e:
-        logging.error(e)
-        return
-    try:
-        response_xml = response.text
-        parsed_response = fromstring(response_xml)
-        address_element = parsed_response.find("Address")
-        error = address_element.find("Error")
+        params = {"API": api, "XML": xml_request}
+        try:
+            response = requests.get(base_url, params=params, timeout=10)
+        except requests.exceptions.RequestException as e:
+            logging.error(e)
+            return
+        try:
+            response_xml = response.text
+            parsed_response = fromstring(response_xml)
+            address_element = parsed_response.find("Address")
+            error = address_element.find("Error")
 
-        if error is None:
-            address2 = address_element.find("Address2").text.title()
-            address2 = parse_streets(address2)
-            city = address_element.find("City").text.title()
-            state = address_element.find("State").text
-            zip5 = address_element.find("Zip5").text
-            if (
-                address2 != client.address
-                or city != client.city
-                or state != client.state
-                or zip5 != zip_code
-            ):
-                client.usps_different = True
-            client.old_address = (
-                f"{client.address}, {client.city}, "
-                f"{client.state} {client.zip_code.zip_code}"
-            )
-            client.address = address2
-            client.city = city
-            client.state = state
-            zip, _ = ZipCode.objects.get_or_create(zip_code=zip5)
-            client.zip_code = zip
-            client.save()
-    except Exception as e:
-        logging.error(e)
+            if error is None:
+                address2 = address_element.find("Address2").text.title()
+                address2 = parse_streets(address2)
+                city = address_element.find("City").text.title()
+                state = address_element.find("State").text
+                zip5 = address_element.find("Zip5").text
+                if (
+                    address2 != client.address
+                    or city != client.city
+                    or state != client.state
+                    or zip5 != zip_code
+                ):
+                    client.usps_different = True
+                client.old_address = (
+                    f"{client.address}, {client.city}, "
+                    f"{client.state} {client.zip_code.zip_code}"
+                )
+                client.address = address2
+                client.city = city
+                client.state = state
+                zip, _ = ZipCode.objects.get_or_create(zip_code=zip5)
+                client.zip_code = zip
+                client.save()
+        except Exception as e:
+            logging.error(e)
+        del_variables([client, zip_code, base_url, user_id, api, xml_request])
+    del_variables([client_ids])
 
 
 @shared_task
