@@ -360,7 +360,7 @@ def save_invoices(company_id, invoices):
     existing_invoice_ids = set(
         ServiceTitanInvoice.objects.values_list('invoice_id', flat=True))
     invoices_to_create = []
-    invoices_to_update = []
+    # invoices_to_update = []
     count = 0
     for invoice in invoices:
         count += 1
@@ -401,18 +401,18 @@ def save_invoices(company_id, invoices):
                     existing_client=False,  # This is always False?
                 )
             )
-        else:
-            invoice_obj = ServiceTitanInvoice.objects.get(
-                invoice_id=invoice["id"])
-            if invoice['amount'] != invoice_obj.amount:
-                invoice_obj.amount = invoice['amount']
-                invoices_to_update.append(invoice_obj)
+        # else:
+        #     invoice_obj = ServiceTitanInvoice.objects.get(
+        #         invoice_id=invoice["id"])
+        #     if invoice['amount'] != invoice_obj.amount:
+        #         invoice_obj.amount = invoice['amount']
+        #         invoices_to_update.append(invoice_obj)
 
     # Bulk operations
     if invoices_to_create:
         ServiceTitanInvoice.objects.bulk_create(invoices_to_create)
-    if invoices_to_update:
-        ServiceTitanInvoice.objects.bulk_update(invoices_to_update, ['amount'])
+    # if invoices_to_update:
+    #     ServiceTitanInvoice.objects.bulk_update(invoices_to_update, ['amount'])
 
     # Clean up variables to free up memory
     del_variables([company, invoices_to_create])
