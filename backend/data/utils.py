@@ -1444,3 +1444,20 @@ def send_zapier_recently_sold(company_id):
                     )
             except Exception as e:
                 logging.error(e)
+
+
+def format_address_for_scraper(client_id):
+    """
+    Format the client's address to get details from scraper.
+
+    Parameters:
+    client_id (str): The ID of the client.
+
+    Returns:
+    str: The formatted address.
+    """
+    client = Client.objects.get(id=client_id)
+    address = f"{client.address}-{client.city}-{client.state}-" \
+              f"{client.zip_code.zip_code}"
+    address = address.replace(" ", "-")
+    return address

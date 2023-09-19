@@ -140,38 +140,37 @@ class StripeWebhook(APIView):
         # # canceled subscription
         elif event_type == "customer.subscription.deleted":
             print("subscription deleted")
-            return Response(status=status.HTTP_200_OK)
-            # try:
-            #     obj = request.data["data"]["object"]
-            #     company = Company.objects.get(id=obj["customer"])
-            #     product = Product.objects.get(
-            #         id="price_1MhxfPAkLES5P4qQbu8O45xy"
-            #     )
-            #     company.product = product
-            #     company.save()
-            #     users = CustomUser.objects.filter(company=company)
-            #     for user in users:
-            #         user.isVerified = False
-            #         user.save()
-            #         mail_subject = "Subscription Ended: Is My Customer Moving"
-            #         # send the endedSubscrition email to each user
-            #         messagePlain = """Your subscription to Is My Customer Moving
-            #             has ended. Please contact us at reid@ismycustomermoving.com
-            #             to reactivate your subscription."""
-            #         message = get_template("endedSubscription.html").render(
-            #             {"email": user.email}
-            #         )
-            #         send_mail(
-            #             subject=mail_subject,
-            #             message=messagePlain,
-            #             from_email=settings.EMAIL_HOST_USER,
-            #             recipient_list=[user.email],
-            #             html_message=message,
-            #             fail_silently=False,
-            #         )
-            # except Exception as e:
-            #     print(e)
-            #     print("error")
+            try:
+                obj = request.data["data"]["object"]
+                company = Company.objects.get(id=obj["customer"])
+                product = Product.objects.get(
+                    id="price_1MhxfPAkLES5P4qQbu8O45xy"
+                )
+                company.product = product
+                company.save()
+                users = CustomUser.objects.filter(company=company)
+                for user in users:
+                    user.isVerified = False
+                    user.save()
+                    # mail_subject = "Subscription Ended: Is My Customer Moving"
+                    # # send the endedSubscrition email to each user
+                    # messagePlain = """Your subscription to Is My Customer Moving
+                    #     has ended. Please contact us at reid@ismycustomermoving.com
+                    #     to reactivate your subscription."""
+                    # message = get_template("endedSubscription.html").render(
+                    #     {"email": user.email}
+                    # )
+                    # send_mail(
+                    #     subject=mail_subject,
+                    #     message=messagePlain,
+                    #     from_email=settings.EMAIL_HOST_USER,
+                    #     recipient_list=[user.email],
+                    #     html_message=message,
+                    #     fail_silently=False,
+                    # )
+            except Exception as e:
+                print(e)
+                print("error")
         elif event_type == "customer.created":
             print("customer created")
             return Response(status=status.HTTP_200_OK)
