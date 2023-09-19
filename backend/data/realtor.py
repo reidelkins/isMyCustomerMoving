@@ -7,24 +7,37 @@ from accounts.models import Company
 from config.settings import APIFY_TOKEN
 from data.models import Client, HomeListing, Realtor, ZipCode
 
-from .utils import del_variables, parse_streets, send_zapier_recently_sold
+from .utils import (
+    del_variables,
+    format_address_for_scraper,
+    parse_streets,
+    send_zapier_recently_sold
+)
 
 # Initialize the ApifyClient with your API token
 client = ApifyClient(APIFY_TOKEN)
 
 
 @shared_task
-def get_listings(zip_code, status):
+def get_listings(zip_code=None, status=None, addresses=None):
 
+    location = [zip_code] if addresses is None else [addresses]
     search_type = "sell" if status == "House For Sale" else "sold"
+    limit = 5 if addresses else 1000
+    if addresses:
+        memory = 256
+    elif status == "House For Sale":
+        memory = 2048
+    else:
+        memory = 4096
+
     # Prepare the Actor input
     run_input = {
-        "location": [zip_code],
-        "limit": 1000,
+        "location": location,
+        "limit": limit,
         "sort": "newest",
         "search_type": search_type,
         "category": "category1",
-        "page": 1,
         "includes:description": True,
         "includes:foreClosure": True,
         "includes:homeInsights": True,
@@ -36,14 +49,18 @@ def get_listings(zip_code, status):
     # Run the Actor and wait for it to finish
     run = client.actor(
         "jupri/zillow-scraper").call(
-        run_input=run_input, memory_mbytes=4096, wait_secs=120)
+        run_input=run_input, memory_mbytes=memory, wait_secs=120)
 
     # Fetch and print Actor results from the run's dataset (if there are any)
     items = []
     for item in client.dataset(run["defaultDatasetId"]).iterate_items():
         items.append(item)
     del_variables([run_input, run])
-    create_home_listings(items, zip_code)
+    if addresses:
+        if items:
+            edit_client_with_housing_data.delay(items)
+    else:
+        create_home_listings(items, zip_code)
 
 
 @shared_task
@@ -59,9 +76,9 @@ def get_all_zipcodes(company, zip=None):
             zip_codes = company.service_area_zip_codes.values_list(
                 'zip_code', flat=True).distinct()
         else:
-            zip_codes = Client.objects.filter(
+            zip_codes = list(Client.objects.filter(
                 company=company, active=True
-            ).values_list('zip_code', flat=True).distinct()
+            ).values_list('zip_code', flat=True).distinct())
             zip_codes = ZipCode.objects.filter(
                 zip_code__in=zip_codes
             ).values_list('zip_code', flat=True).distinct()
@@ -79,9 +96,9 @@ def get_all_zipcodes(company, zip=None):
     # Additional logic and task delays
     for zip in zips:
         get_listings.delay(
-            zip, "House For Sale")
+            zip_code=zip, status="House For Sale")
         get_listings.delay(
-            zip, "House Recently Sold (6)")
+            zip_code=zip, status="House Recently Sold (6)")
 
     # send listings to zapier
     days_to_run = [0]  # Only on Monday
@@ -92,6 +109,53 @@ def get_all_zipcodes(company, zip=None):
     del_variables(
         [company_object, zip_code_objects, zip_codes, zips, company]
     )
+
+
+@shared_task
+def get_all_client_housing_details(company):
+    company = Company.objects.get(id=company)
+    client_ids = list(Client.objects.filter(
+        company=company, active=True, year_built=0
+    ).values_list('id', flat=True).distinct())
+    # addresses = []
+    for client_id in client_ids:
+        address = format_address_for_scraper(client_id)
+        get_listings.delay(addresses=address)
+    #     addresses.append(format_address_for_scraper(client_id))
+    #     if len(addresses) == 5:
+    #         get_listings.delay(addresses=addresses)
+    #         addresses = []
+    # if len(addresses) > 0:
+    #     get_listings.delay(addresses=addresses)
+    del_variables(
+        [company, client_ids]
+    )
+
+
+@shared_task
+def edit_client_with_housing_data(addresses):
+    for address in addresses:
+        try:
+            clients = Client.objects.filter(
+                address=parse_streets(address["address"]["streetAddress"]),
+                city=address["address"]["city"],
+                state=address["address"]["state"],
+                zip_code=ZipCode.objects.get(
+                    zip_code=address["address"]["zipcode"]
+                ),
+            )
+            if clients.exists():
+                for client in clients:
+                    client.housing_type = address.get("propertyType", "")
+                    client.year_built = address.get("yearBuilt", 0)
+                    client.bedrooms = address.get("bedrooms", 0)
+                    client.bathrooms = int(address.get("bathrooms", 0))
+                    client.sqft = address.get("livingArea", 0)
+                    client.lot_sqft = address.get("lotSize", 0)
+                    client.description = address.get("description", "")
+                    client.save()
+        except Exception as e:
+            print(e)
 
 
 @shared_task

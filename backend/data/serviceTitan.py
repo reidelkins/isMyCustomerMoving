@@ -1,5 +1,4 @@
 from celery import shared_task
-from collections import defaultdict
 import requests
 import logging
 from time import sleep
@@ -45,11 +44,11 @@ def complete_service_titan_sync(company_id, task_id, option=None, automated=Fals
         get_service_titan_customers.delay(company_id, tenant)
 
     get_service_titan_invoices.delay(company_id, tenant)
-    clients_to_verify = Client.objects.filter(
+
+    clients_to_verify = list(Client.objects.filter(
         company=company, old_address=None
-    )
-    for client in clients_to_verify:
-        verify_address.delay(client.id)
+    ).values_list("id", flat=True))
+    verify_address.delay(clients_to_verify)
     del_variables([company, clients_to_verify])
 
 
@@ -305,14 +304,14 @@ def get_service_titan_invoices(company_id, tenant):
     results = []
 
     company = Company.objects.get(id=company_id)
-    clients = Client.objects.filter(company=company)
-    if ServiceTitanInvoice.objects.filter(client__in=clients).exists():
+    all_clients = Client.objects.filter(company=company)
+
+    if ServiceTitanInvoice.objects.filter(client__in=all_clients).exists():
         rfc339 = (datetime.now()-timedelta(days=365)
                   ).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         rfc_url_param = f"&createdOnOrAfter={rfc339}"
     else:
         rfc_url_param = ""
-
     while more_invoices:
         invoices = []
         url = (
@@ -335,11 +334,10 @@ def get_service_titan_invoices(company_id, tenant):
                             "amount": invoice["total"],
                         }
                     )
-
             except Exception as e:
                 logging.error(e)
-        results.append(save_invoices.delay(company_id, invoices))
-
+        results.append(save_invoices.delay(
+            company_id, invoices))
         if not response.json()["hasMore"]:
             more_invoices = False
     count = 0
@@ -355,74 +353,69 @@ def save_invoices(company_id, invoices):
     # TODO: This function takes 60-70 seconds to run. Need to optimize it.
     # Retrieve the company based on the company_id
     company = Company.objects.get(id=company_id)
-    clients = defaultdict(dict)
+
+    all_clients = Client.objects.filter(company=company)
+    client_lookup = {client.serv_titan_id: client for client in all_clients}
+
+    existing_invoice_ids = set(
+        ServiceTitanInvoice.objects.values_list('invoice_id', flat=True))
     invoices_to_create = []
-
+    # invoices_to_update = []
+    count = 0
     for invoice in invoices:
+        count += 1
         client_id = invoice["customer"]
-
-        if client_id in clients:
-            client = clients[client_id]
-        else:
-            client = Client.objects.filter(
-                serv_titan_id=client_id, company=company
-            )
-            if client.count() > 0:
-                clients[client_id] = client[0]
-                client = client[0]
-            else:
-                continue
-
+        client = client_lookup.get(client_id)
+        if client is None:
+            continue
         if len(invoices_to_create) > 500:
             ServiceTitanInvoice.objects.bulk_create(invoices_to_create)
             invoices_to_create = []
-
         # Parse the createdOn date from the invoice data
         created_on = datetime.strptime(invoice["createdOn"], "%Y-%m-%d").date()
-        if not ServiceTitanInvoice.objects.filter(id=invoice["id"]).exists():
-            # Create the ServiceTitanInvoice object
-            # and add it to the bulk creation list
+        if str(invoice["id"]) not in existing_invoice_ids:
             last_status_update_date = ClientUpdate.objects.filter(
                 client=client,
                 status__in=["House For Sale", "House Recently Sold (6)"]
             ).values_list("date", flat=True).order_by("-date").first()
-
             attributed = False
-            existing_client = False
             if last_status_update_date:
                 if (
-                        (client.service_titan_customer_since is None
-                         or client.service_titan_customer_since
-                         < date.today() - timedelta(days=180))
-                        and client.status in ["House For Sale",
-                                              "House Recently Sold (6)"]
-                        and created_on <
-                        last_status_update_date + timedelta(days=365)
-                        and created_on >= last_status_update_date
+                    (client.service_titan_customer_since is None or
+                        client.service_titan_customer_since <
+                     date.today() - timedelta(days=180)) and
+                    client.status in [
+                        "House For Sale",
+                        "House Recently Sold (6)"] and
+                    created_on < last_status_update_date + timedelta(days=365) and
+                    created_on >= last_status_update_date
                 ):
                     attributed = True
-
             invoices_to_create.append(
                 ServiceTitanInvoice(
-                    id=invoice["id"],
+                    invoice_id=invoice["id"],
                     amount=invoice["amount"],
                     client=client,
                     created_on=created_on,
                     attributed=attributed,
-                    existing_client=existing_client,
+                    existing_client=False,  # This is always False?
                 )
             )
-        else:
-            invoices = ServiceTitanInvoice.objects.filter(id=invoice["id"])
-            for existing_invoice in invoices:
-                if invoice['amount'] != existing_invoice.amount:
-                    existing_invoice.amount = invoice['amount']
-                    existing_invoice.save(update_fields=["amount"])
-    # Bulk create the invoices
-    ServiceTitanInvoice.objects.bulk_create(invoices_to_create)
+        # else:
+        #     invoice_obj = ServiceTitanInvoice.objects.get(
+        #         invoice_id=invoice["id"])
+        #     if invoice['amount'] != invoice_obj.amount:
+        #         invoice_obj.amount = invoice['amount']
+        #         invoices_to_update.append(invoice_obj)
+
+    # Bulk operations
+    if invoices_to_create:
+        ServiceTitanInvoice.objects.bulk_create(invoices_to_create)
+    # if invoices_to_update:
+    #     ServiceTitanInvoice.objects.bulk_update(invoices_to_update, ['amount'])
 
     # Clean up variables to free up memory
-    del_variables([company, clients, invoices_to_create])
+    del_variables([company, invoices_to_create])
 
 
 @shared_task

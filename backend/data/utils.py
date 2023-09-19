@@ -128,27 +128,27 @@ def delete_extra_clients(company_id, task_id=None):
                 )
             ).update(active=False)
 
-            admins = CustomUser.objects.filter(
-                company=company, status="admin"
-            )
-            mail_subject = "IMCM Clients Deleted"
-            message_plain = (
-                "Your company has exceeded the number of clients..."
-            )
-            message_html = get_template("clientsDeleted.html").render(
-                {"deleted_clients": deleted_clients}
-            )
+        #     admins = CustomUser.objects.filter(
+        #         company=company, status="admin"
+        #     )
+        #     mail_subject = "IMCM Clients Deleted"
+        #     message_plain = (
+        #         "Your company has exceeded the number of clients..."
+        #     )
+        #     message_html = get_template("clientsDeleted.html").render(
+        #         {"deleted_clients": deleted_clients}
+        #     )
 
-            for admin in admins:
-                if "@test.com" not in admin.email:
-                    send_mail(
-                        subject=mail_subject,
-                        message=message_plain,
-                        from_email=settings.EMAIL_HOST_USER,
-                        recipient_list=[admin.email],
-                        html_message=message_html,
-                        fail_silently=False,
-                    )
+        #     for admin in admins:
+        #         if "@test.com" not in admin.email:
+        #             send_mail(
+        #                 subject=mail_subject,
+        #                 message=message_plain,
+        #                 from_email=settings.EMAIL_HOST_USER,
+        #                 recipient_list=[admin.email],
+        #                 html_message=message_html,
+        #                 fail_silently=False,
+        #             )
     except Exception as e:
         logging.error(e)
         deleted_clients = 0
@@ -232,13 +232,15 @@ def save_service_area_list(zip_codes, company_id):
     company = Company.objects.get(id=company_id)
     company.service_area_zip_codes.set([])
     for zip in zip_codes:
-        zip_code = format_zip(zip['Zip_Code'])
-        if int(zip_code) < 500 or int(zip_code) > 99951:
-            continue
-        zip_code_obj = ZipCode.objects.get_or_create(
-            zip_code=str(zip_code)
-        )[0]
-        company.service_area_zip_codes.add(zip_code_obj)
+        zip = zip.get("Zip_Code", "")
+        if zip:
+            zip_code = format_zip(zip)
+            if int(zip_code) < 500 or int(zip_code) > 99951:
+                continue
+            zip_code_obj, _ = ZipCode.objects.get_or_create(
+                zip_code=str(zip_code)
+            )
+            company.service_area_zip_codes.add(zip_code_obj)
 
 
 @shared_task
@@ -1301,7 +1303,7 @@ def remove_error_flag():
 
 
 @shared_task
-def verify_address(client_id):
+def verify_address(client_ids):
     """
     Verify the client's address using USPS API.
 
@@ -1311,66 +1313,69 @@ def verify_address(client_id):
     Returns:
     None
     """
-    try:
-        client = Client.objects.get(id=client_id)
-    except Exception as e:
-        logging.error(f"Client with id {client_id} does not exist. {e}")
-        return
-    zip_code = client.zip_code.zip_code
-    base_url = "http://production.shippingapis.com/ShippingAPI.dll"
-    user_id = settings.USPS_USER_ID
-    api = "Verify"
+    for client_id in client_ids:
+        try:
+            client = Client.objects.get(id=client_id)
+        except Exception as e:
+            logging.error(f"Client with id {client_id} does not exist. {e}")
+            return
+        zip_code = client.zip_code.zip_code
+        base_url = "http://production.shippingapis.com/ShippingAPI.dll"
+        user_id = settings.USPS_USER_ID
+        api = "Verify"
 
-    xml_request = f"""
-    <AddressValidateRequest USERID="{user_id}">
-        <Address ID="1">
-            <Address1></Address1>
-            <Address2>{client.address}</Address2>
-            <City>{client.city}</City>
-            <State>{client.state}</State>
-            <Zip5>{zip_code}</Zip5>
-            <Zip4/>
-        </Address>
-    </AddressValidateRequest>
-    """
+        xml_request = f"""
+        <AddressValidateRequest USERID="{user_id}">
+            <Address ID="1">
+                <Address1></Address1>
+                <Address2>{client.address}</Address2>
+                <City>{client.city}</City>
+                <State>{client.state}</State>
+                <Zip5>{zip_code}</Zip5>
+                <Zip4/>
+            </Address>
+        </AddressValidateRequest>
+        """
 
-    params = {"API": api, "XML": xml_request}
-    try:
-        response = requests.get(base_url, params=params, timeout=10)
-    except requests.exceptions.RequestException as e:
-        logging.error(e)
-        return
-    try:
-        response_xml = response.text
-        parsed_response = fromstring(response_xml)
-        address_element = parsed_response.find("Address")
-        error = address_element.find("Error")
+        params = {"API": api, "XML": xml_request}
+        try:
+            response = requests.get(base_url, params=params, timeout=10)
+        except requests.exceptions.RequestException as e:
+            logging.error(e)
+            return
+        try:
+            response_xml = response.text
+            parsed_response = fromstring(response_xml)
+            address_element = parsed_response.find("Address")
+            error = address_element.find("Error")
 
-        if error is None:
-            address2 = address_element.find("Address2").text.title()
-            address2 = parse_streets(address2)
-            city = address_element.find("City").text.title()
-            state = address_element.find("State").text
-            zip5 = address_element.find("Zip5").text
-            if (
-                address2 != client.address
-                or city != client.city
-                or state != client.state
-                or zip5 != zip_code
-            ):
-                client.usps_different = True
-            client.old_address = (
-                f"{client.address}, {client.city}, "
-                f"{client.state} {client.zip_code.zip_code}"
-            )
-            client.address = address2
-            client.city = city
-            client.state = state
-            zip, _ = ZipCode.objects.get_or_create(zip_code=zip5)
-            client.zip_code = zip
-            client.save()
-    except Exception as e:
-        logging.error(e)
+            if error is None:
+                address2 = address_element.find("Address2").text.title()
+                address2 = parse_streets(address2)
+                city = address_element.find("City").text.title()
+                state = address_element.find("State").text
+                zip5 = address_element.find("Zip5").text
+                if (
+                    address2 != client.address
+                    or city != client.city
+                    or state != client.state
+                    or zip5 != zip_code
+                ):
+                    client.usps_different = True
+                client.old_address = (
+                    f"{client.address}, {client.city}, "
+                    f"{client.state} {client.zip_code.zip_code}"
+                )
+                client.address = address2
+                client.city = city
+                client.state = state
+                zip, _ = ZipCode.objects.get_or_create(zip_code=zip5)
+                client.zip_code = zip
+                client.save()
+        except Exception as e:
+            logging.error(e)
+        del_variables([client, zip_code, base_url, user_id, api, xml_request])
+    del_variables([client_ids])
 
 
 @shared_task
@@ -1400,7 +1405,7 @@ def send_zapier_recently_sold(company_id):
     home_listings = HomeListing.objects.filter(
         zip_code__in=zip_code_objects, listed__gt=recently_listed_date,
         status="House Recently Sold (6)"
-    ).order_by("listed")
+    ).order_by("listed").select_related('zip_code')
 
     saved_filters = SavedFilter.objects.filter(
         company=company, filter_type="Recently Sold", for_zapier=True
@@ -1439,3 +1444,20 @@ def send_zapier_recently_sold(company_id):
                     )
             except Exception as e:
                 logging.error(e)
+
+
+def format_address_for_scraper(client_id):
+    """
+    Format the client's address to get details from scraper.
+
+    Parameters:
+    client_id (str): The ID of the client.
+
+    Returns:
+    str: The formatted address.
+    """
+    client = Client.objects.get(id=client_id)
+    address = f"{client.address}-{client.city}-{client.state}-" \
+              f"{client.zip_code.zip_code}"
+    address = address.replace(" ", "-")
+    return address

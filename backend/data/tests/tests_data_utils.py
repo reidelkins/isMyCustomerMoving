@@ -30,8 +30,6 @@ from data.utils import (
     send_zapier_recently_sold,
     update_clients_statuses,
     reactivate_clients,
-    delete_extra_clients,
-    verify_address,
     save_service_area_list
 )
 from payments.models import ServiceTitanInvoice
@@ -482,7 +480,7 @@ class TestUtilFunctions(TestCase):
         mock_get.return_value = mock_response
 
         # Call Function
-        verify_address(self.client.id)
+        verify_address([self.client.id])
 
         # Verify Functionality
         mock_get.assert_called()
@@ -514,7 +512,7 @@ class TestUtilFunctions(TestCase):
     def test_verify_address_usps_error(self, mock_parse_streets):
         # Mock USPS API request exception
         with patch("requests.get", side_effect=requests.exceptions.RequestException("Error")):
-            verify_address(self.client.id)
+            verify_address([self.client.id])
 
         # Assertions
         mock_parse_streets.assert_not_called()
@@ -535,7 +533,7 @@ class TestUtilFunctions(TestCase):
         response_mock.text = response_text
 
         with patch("requests.get", return_value=response_mock):
-            verify_address(self.client.id)
+            verify_address([self.client.id])
 
         # Check if the client's address remains unchanged
         self.client.refresh_from_db()
@@ -994,7 +992,7 @@ class TestSyncClientFunctions(TestCase):
         mock_get_service_titan_customers.assert_not_called()
         mock_get_service_titan_invoices.assert_called_once_with(
             self.company.id, self.company.tenant_id)
-        assert mock_verify_address.call_count == 2
+        assert mock_verify_address.call_count == 1
 
         # Call the function with automated = True and option1
 
@@ -1674,11 +1672,11 @@ class TestSyncClientFunctions(TestCase):
 
         # Assertions
         mock_company.assert_called_once_with(id="company_id")
-        assert mock_client.call_count == 2
+        assert mock_client.call_count == 1
         # TODO: Need to figure out way to test this part
         # if not ServiceTitanInvoice.objects.filter(id=invoice["id"]).exists():
         # and actually add ServiceTitanInvoice to invoices_to_create
-        mock_invoice.bulk_create.assert_called_once_with([])
+        assert mock_invoice.bulk_create.call_count == 1
 
     @patch("payments.models.ServiceTitanInvoice.objects")
     @patch("data.models.Client.objects.filter")

@@ -45,9 +45,9 @@ class TestServiceTitanInvoiceModel(TestCase):
         Test the creation of a ServiceTitanInvoice object.
         """
         invoice = ServiceTitanInvoice.objects.create(
-            id="123", amount=150.0, created_on="2020-01-01", client=self.client_object
+            invoice_id="123", amount=150.0, created_on="2020-01-01", client=self.client_object
         )
-        self.assertEqual(invoice.id, "123")
+        self.assertEqual(invoice.invoice_id, "123")
         self.assertEqual(invoice.amount, 150.0)
         self.assertEqual(invoice.created_on, "2020-01-01")
         self.assertEqual(invoice.client, self.client_object)
@@ -57,6 +57,6 @@ class TestServiceTitanInvoiceModel(TestCase):
         Test the default values for the street and created_on fields in a ServiceTitanInvoice object.
         """
         invoice = ServiceTitanInvoice.objects.create(
-            id="123", client=self.client_object)
+            invoice_id="123", client=self.client_object)
         self.assertEqual(invoice.created_on, None)
         self.assertEqual(invoice.amount, 0)

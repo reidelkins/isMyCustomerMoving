@@ -370,20 +370,20 @@ class RecentlySoldView(generics.ListAPIView):
         query_params = self.request.query_params
         company = self.request.user.company
         if company.recently_sold_purchased:
-            if company.service_area_zip_codes.count() > 0:
+            if company.service_area_zip_codes.exists():
                 zip_code_objects = company.service_area_zip_codes.values(
                     'zip_code')
             else:
                 zip_code_objects = Client.objects.filter(
                     company=company, active=True
-                ).values('zip_code')
+                ).values('zip_code').distinct()
             queryset = HomeListing.objects.filter(
                 zip_code__in=zip_code_objects,
                 status="House Recently Sold (6)",
                 listed__gt=(
                     datetime.today() - timedelta(days=30)
                 ).strftime("%Y-%m-%d"),
-            ).order_by("-listed")
+            ).order_by("-listed").select_related('zip_code')
             return filter_home_listings(
                 query_params, queryset, company.id, "Recently Sold"
             )
@@ -539,7 +539,7 @@ class AllRecentlySoldView(generics.ListAPIView):
                 listed__gt=(
                     datetime.today() - timedelta(days=30)
                 ).strftime("%Y-%m-%d"),
-            ).order_by("-listed")
+            ).order_by("-listed").select_related('zip_code')
             return filter_home_listings(
                 query_params, queryset, company.id, "Recently Sold"
             )
@@ -556,20 +556,20 @@ class ForSaleView(generics.ListAPIView):
         query_params = self.request.query_params
         company = self.request.user.company
         if company.for_sale_purchased:
-            if company.service_area_zip_codes.count() > 0:
+            if company.service_area_zip_codes.exists():
                 zip_code_objects = company.service_area_zip_codes.values(
                     'zip_code')
             else:
                 zip_code_objects = Client.objects.filter(
                     company=company, active=True
-                ).values('zip_code')
+                ).values('zip_code').distinct()
             queryset = HomeListing.objects.filter(
                 zip_code__in=zip_code_objects,
                 status="House For Sale",
                 listed__gt=(
                     datetime.today() - timedelta(days=30)
                 ).strftime("%Y-%m-%d"),
-            ).order_by("-listed")
+            ).order_by("-listed").select_related('zip_code')
             return filter_home_listings(
                 query_params, queryset, company.id, "For Sale"
             )
@@ -725,7 +725,7 @@ class AllForSaleView(generics.ListAPIView):
                 listed__gt=(
                     datetime.today() - timedelta(days=30)
                 ).strftime("%Y-%m-%d"),
-            ).order_by("-listed")
+            ).order_by("-listed").select_related('zip_code')
             return filter_home_listings(
                 query_params, queryset, company.id, "For Sale"
             )
@@ -1296,7 +1296,7 @@ class ZapierCreateClientView(APIView):
             client = serializer.save()
             client.company = company
             client.save()
-            verify_address(client.id)
+            verify_address([client.id])
 
             return Response(
                 {"detail": "Client added successfully"},
