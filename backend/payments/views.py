@@ -142,7 +142,7 @@ class StripeWebhook(APIView):
             print("subscription deleted")
             try:
                 obj = request.data["data"]["object"]
-                company = Company.objects.get(id=obj["customer"])
+                company = Company.objects.get(stripe_id=obj["customer"])
                 product = Product.objects.get(
                     id="price_1MhxfPAkLES5P4qQbu8O45xy"
                 )
@@ -171,6 +171,7 @@ class StripeWebhook(APIView):
             except Exception as e:
                 print(e)
                 print("error")
+            return Response(status=status.HTTP_200_OK)
         elif event_type == "customer.created":
             print("customer created")
             return Response(status=status.HTTP_200_OK)
