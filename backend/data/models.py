@@ -65,13 +65,7 @@ class Client(models.Model):
     phone_number = models.CharField(max_length=100, blank=True, null=True)
     email = models.CharField(max_length=100, blank=True, null=True)
     price = models.IntegerField(default=0, blank=True, null=True)
-    housing_type = models.CharField(
-        max_length=100, default=" ", blank=True, null=True
-    )
-    year_built = models.IntegerField(default=0, blank=True, null=True)
-    tag = models.ManyToManyField(
-        "HomeListingTags", blank=True, related_name="client_tags"
-    )
+
     equipment_installed_date = models.DateField(blank=True, null=True)
     active = models.BooleanField(default=True)
     error_flag = models.BooleanField(default=False)
@@ -84,10 +78,19 @@ class Client(models.Model):
     )
     old_address = models.CharField(max_length=200, blank=True, null=True)
     usps_different = models.BooleanField(default=False)
+
     bedrooms = models.IntegerField(default=0, blank=True, null=True)
     bathrooms = models.IntegerField(default=0, blank=True, null=True)
     sqft = models.IntegerField(default=0, blank=True, null=True)
     lot_sqft = models.IntegerField(default=0, blank=True, null=True)
+    housing_type = models.CharField(
+        max_length=100, default=" ", blank=True, null=True
+    )
+    year_built = models.IntegerField(default=0, blank=True, null=True)
+    tag = models.ManyToManyField(
+        "HomeListingTags", blank=True, related_name="client_tags"
+    )
+    description = models.TextField(default=" ", blank=True, null=True)
 
     new_address = models.CharField(max_length=150, blank=True, null=True)
     new_city = models.CharField(max_length=40, blank=True, null=True)
