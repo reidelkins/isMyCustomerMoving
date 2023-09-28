@@ -21,6 +21,7 @@ class ClientAdmin(admin.ModelAdmin):
         "revenue",
         "display_company_name",
         "serv_titan_id",
+        "email",
         "phone_number",
         "price",
         "year_built",

@@ -1094,25 +1094,6 @@ def send_update_email(templateName):
         logging.error(traceback.format_exc())
 
 
-@shared_task(rate_limit="1/s")
-def do_it_all(company):
-    try:
-        auto_update.delay(
-            company_id=company
-        )  # Schedule auto_update task
-        sleep(3600)  # TODO Calculate ETA for update_clients_statuses task
-        update_clients_statuses(
-            company
-        )  # Schedule update_clients_statuses task
-        sleep(360)
-        send_daily_email.delay(company.id)
-
-    except Exception as e:
-        logging.error("doItAll failed")
-        logging.error(f"ERROR: {e}")
-        logging.error(traceback.format_exc())
-
-
 def filter_home_listings(query_params, queryset, company_id, filter_type):
     """
     Filter all home listings based on the provided query parameters.

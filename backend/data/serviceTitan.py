@@ -11,8 +11,8 @@ from django.db import transaction
 from accounts.models import Company
 from .models import Client, ClientUpdate, ServiceTitanJob
 from .utils import (
+    auto_update,
     save_client_list,
-    do_it_all,
     delete_extra_clients,
     del_variables,
     get_service_titan_access_token,
@@ -37,8 +37,6 @@ def complete_service_titan_sync(company_id, task_id, option=None, automated=Fals
     delete_extra_clients.delay(company_id, task_id)
 
     get_service_titan_equipment.delay(company_id, tenant)
-    if not automated:
-        do_it_all.delay(company_id)
 
     if option == "option1":
         get_service_titan_customers.delay(company_id, tenant)
@@ -50,6 +48,8 @@ def complete_service_titan_sync(company_id, task_id, option=None, automated=Fals
     ).values_list("id", flat=True))
     verify_address.delay(clients_to_verify)
     del_variables([company, clients_to_verify])
+    if not automated:
+        auto_update.delay(company_id=company_id)
 
 
 def get_service_titan_locations(company_id, tenant, option):

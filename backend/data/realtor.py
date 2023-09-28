@@ -9,7 +9,7 @@ from scrapfly import ScrapeConfig, ScrapflyClient
 from config import settings
 from accounts.models import Company
 from .models import Client, HomeListing, ZipCode, HomeListingTags, Realtor
-from .utils import del_variables, parse_streets, send_zapier_recently_sold
+from .utils import del_variables, parse_streets
 
 zip_scrapflies = [
     ScrapflyClient(key=settings.SCRAPFLY_KEY, max_concurrency=1)
@@ -30,17 +30,20 @@ def get_all_zipcodes(company, zip=None):
     # Initialization of variables
     company_object, zip_code_objects, zip_codes, zips = "", "", "", ""
     try:
-        company_object = Company.objects.get(id=company)
-        zip_code_objects = Client.objects.filter(
-            company=company_object, active=True
-        ).values("zip_code")
-        zip_codes = zip_code_objects.distinct()
-        zip_codes = ZipCode.objects.filter(
-            zip_code__in=zip_code_objects,
-            last_updated__lt=(datetime.today()).strftime("%Y-%m-%d"),
+        # Get distinct zip codes related to the company
+        zip_codes = Client.objects.filter(company_id=company, active=True).values_list(
+            "zip_code", flat=True).distinct()
+
+        # Filter ZipCode objects and update their last_updated field
+        zip_codes_to_update = ZipCode.objects.filter(
+            zip_code__in=zip_codes,
+            last_updated__lt=datetime.today().date()
         )
-        zips = list(zip_codes.order_by("zip_code").values("zip_code"))
-        zip_codes.update(last_updated=datetime.today().strftime("%Y-%m-%d"))
+        zip_codes_to_update.update(last_updated=datetime.today().date())
+
+        # Create a list of zip codes for further processing
+        zips = list(zip_codes_to_update.order_by(
+            "zip_code").values("zip_code"))
 
     except Exception as e:
         if zip:
@@ -120,12 +123,12 @@ def find_data(zip_code, i, status, url, extra):
         soup = BeautifulSoup(content, features="html.parser")
 
         # Add pagination to the url if it doesn't exist
-        if "pg-1" not in first_result.context["url"]:
-            url = first_result.context["url"] + "/pg-1"
-        else:
+        if 'pg-1' in first_result.context["url"]:
             url = first_result.context["url"]
+        else:
+            url = f"{first_result.context['url']}/pg-1"
 
-        first_data = parse_search(first_result, status)
+        first_data = parse_search(first_result)
         if not first_data:
             return
         count = len(first_data)
@@ -162,7 +165,7 @@ def find_data(zip_code, i, status, url, extra):
                         scrapfly, page_url, asp=True)
 
                 content = new_results.scrape_result["content"]
-                parsed = parse_search(new_results, status)
+                parsed = parse_search(new_results)
                 count = len(parsed)
                 if not parsed or count == 0:
                     return
@@ -215,7 +218,7 @@ def get_scrapfly_scrape(scrapfly, page, asp=False):
     )
 
 
-def parse_search(result, search_type: str):
+def parse_search(result):
     data = result.selector.css("script#__NEXT_DATA__::text").get()
     if not data:
         logging.error(f"page {result.context['url']}: Not Data")
@@ -238,17 +241,17 @@ def parse_search(result, search_type: str):
 
 
 def create_home_listings(results, status):
-    zip_object, created, list_type, home_listing, curr_tag = (
-        "",
-        "",
-        "",
-        "",
-        "",
-    )
+    # Use bulk creation of objects to speed up database operations
+    homes_to_create = []
+    homes_to_update = []
     two_years_ago = datetime.now() - timedelta(days=365 * 2)
+
     for listing in results:
-        zip_object, created = ZipCode.objects.get_or_create(
-            zip_code=listing["location"]["address"]["postal_code"]
+        location_address = listing.get("location", {}).get("address", {})
+        description = listing.get("description", {})
+
+        zip_object, _ = ZipCode.objects.get_or_create(
+            zip_code=location_address.get("postal_code")
         )
         try:
             if status == "House Recently Sold (6)":
@@ -303,21 +306,35 @@ def create_home_listings(results, status):
                 longitude = 0
 
             # Check if the HomeListing already exists
-            try:
-                if listing["location"]["address"]["line"] is None:
-                    continue
+            if listing["location"]["address"]["line"] is None:
+                continue
+            if not HomeListing.objects.filter(description=listing["property_id"]).exists():
+                home_data = {
+                    'zip_code': zip_object,
+                    'address': parse_streets(location_address["line"].title()),
+                    'status': status,
+                    'listed': list_type[:10],
+                    'price': price,
+                    'housing_type': description["type"],
+                    'year_built': year_built,
+                    'state': location_address["state_code"],
+                    'city': location_address["city"],
+                    'latitude': latitude,
+                    'longitude': longitude,
+                    # Using .get() for optional fields
+                    'lot_sqft': description.get("lot_sqft", 0),
+                    'bedrooms': beds,
+                    'bathrooms': baths,
+                    'cooling': cooling,
+                    'heating': heating,
+                    'sqft': sqft,
+                    'description': listing["property_id"],
+                }
+                homes_to_create.append(HomeListing(**home_data))
 
-                home_listing = HomeListing.objects.get(
-                    # zip_code=zip_object,
-                    # address=parse_streets(
-                    #     (listing["location"]["address"]["line"]).title()
-                    # ),
-                    # city=listing["location"]["address"]["city"],
-                    # state=listing["location"]["address"]["state_code"],
-                    description=listing["property_id"]
-                )
-
-                # Have found a listing that we have already scraped
+            else:
+                home_listing = HomeListing.objects.only(
+                    'status').get(description=listing["property_id"])
                 if home_listing.status == status:
                     return False
 
@@ -339,34 +356,7 @@ def create_home_listings(results, status):
                 home_listing.cooling = cooling
                 home_listing.heating = heating
                 home_listing.sqft = sqft
-                home_listing.save()
-            except HomeListing.DoesNotExist:
-                # Create a new HomeListing if it doesn't exist
-                if listing["location"]["address"]["line"] is None:
-                    continue
-
-                home_listing = HomeListing.objects.create(
-                    zip_code=zip_object,
-                    address=parse_streets(
-                        (listing["location"]["address"]["line"]).title()
-                    ),
-                    status=status,
-                    listed=list_type[:10],
-                    price=price,
-                    housing_type=listing["description"]["type"],
-                    year_built=year_built,
-                    state=listing["location"]["address"]["state_code"],
-                    city=listing["location"]["address"]["city"],
-                    latitude=latitude,
-                    longitude=longitude,
-                    lot_sqft=listing["description"].get("lot_sqft", 0),
-                    bedrooms=beds,
-                    bathrooms=baths,
-                    cooling=cooling,
-                    heating=heating,
-                    sqft=sqft,
-                    description=listing["property_id"],
-                )
+                homes_to_update.append(home_listing)
 
             if "tags" in listing:
                 if listing["tags"] is not None:
@@ -392,9 +382,19 @@ def create_home_listings(results, status):
         except Exception as e:
             logging.error(f"Listing: {listing['location']['address']}")
             logging.error(e)
-    del_variables(
-        [zip_object, created, list_type, home_listing, curr_tag, results]
-    )
+
+    HomeListing.objects.bulk_create(homes_to_create)
+    if homes_to_update:
+        HomeListing.objects.bulk_update(
+            homes_to_update,
+            fields=[
+                'status', 'listed', 'price', 'housing_type', 'year_built',
+                'latitude', 'longitude', 'lot_sqft', 'bedrooms', 'bathrooms',
+                'cooling', 'heating', 'sqft'
+            ]
+        )
+
+    del results
     return True
 
 
