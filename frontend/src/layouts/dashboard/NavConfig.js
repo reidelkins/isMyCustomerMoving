@@ -31,11 +31,11 @@ export const enterpriseNavConfig = [
     path: '/dashboard/forsale',
     icon: getIcon('material-symbols:house'),
   },  
-  {
-    title: 'Realtor Data',
-    path: '/dashboard/realtors',
-    icon: getIcon('material-symbols:face'),
-  },
+  // {
+  //   title: 'Realtor Data',
+  //   path: '/dashboard/realtors',
+  //   icon: getIcon('material-symbols:face'),
+  // },
   {
     title: 'Settings',
     icon: getIcon('ri:user-settings-fill'),
@@ -73,11 +73,11 @@ export const navConfig = [
     path: '/dashboard/forsale',
     icon: getIcon('material-symbols:house'),
   },
-  {
-    title: 'Realtor Data',
-    path: '/dashboard/realtors',
-    icon: getIcon('material-symbols:face'),
-  },
+  // {
+  //   title: 'Realtor Data',
+  //   path: '/dashboard/realtors',
+  //   icon: getIcon('material-symbols:face'),
+  // },
   {
     title: 'Settings',
     path: '/dashboard/settings/user',
