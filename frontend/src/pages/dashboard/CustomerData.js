@@ -128,7 +128,7 @@ export default function HomePage() {
                   </Alert>
                 </Collapse>                
 
-                {userInfo.status === 'admin' && <FileUploader />}
+                {userInfo.status === 'admin' && <FileUploader fileType="ClientFile"/>}
 
                 <Collapse in={alertOpen}>
                   <Alert

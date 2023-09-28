@@ -897,14 +897,13 @@ export const addUser = (email, refreshed = false) => async (dispatch, getState) 
         Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
-
     dispatch(usersLoading());
     const { data } = await axios.post(
       `${DOMAIN}/api/v1/accounts/manageuser/${userInfo.company.id}/`,
       { email },
       config
     );
-    dispatch(users(data));
+    dispatch(users({"results": data}));
   } catch (error) {
     dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
     if (error.response.status === 403 && !refreshed) {

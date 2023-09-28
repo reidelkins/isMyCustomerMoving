@@ -43,6 +43,7 @@
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.1.1",
+    "@babel/preset-react": "^7.22.15",
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
     "@iconify/react": "^4.1.1",
@@ -79,6 +80,7 @@
     "simplebar-react": "^3.2.4",
     "styled-components": "^6.0.7",
     "web-vitals": "^3.4.0",
+    "xlsx": "^0.18.5",
     "yup": "^1.2.0"
   },
   "devDependencies": {
