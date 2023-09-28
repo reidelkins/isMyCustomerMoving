@@ -66,8 +66,8 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
         const updatedFields = [...commonFields];
 
         if (userInfo && userInfo.company.crm === 'ServiceTitan') {
-        updatedFields.unshift({ id: 'serviceTitanLifetimeRevenue', label: 'Lifetime Revenue', alignRight: false });
-        updatedFields.unshift({ id: 'serviceTitanCustomerSinceYear', label: 'Customer Since', alignRight: false });        
+        updatedFields.unshift({ id: 'service_titan_lifetime_revenue', label: 'Lifetime Revenue', alignRight: false });
+        updatedFields.unshift({ id: 'service_titan_customer_since_year', label: 'Customer Since', alignRight: false });        
         }
         if (userInfo && (userInfo.company.enterprise || userInfo.email === 'reid@gmail.com' ||
         userInfo.email === 'reid@ismycustomermoving.com' ||
