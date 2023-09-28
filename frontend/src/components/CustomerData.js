@@ -50,6 +50,8 @@ const commonFields = [
   { id: 'contacted', label: 'Contacted', alignRight: false },
   { id: 'note', label: 'Note', alignRight: false },
   { id: 'phone', label: 'Phone Number', alignRight: false },
+  { id: 'email', label: 'Email', alignRight: false },
+
 ];
 
 CustomerData.propTypes = {
@@ -444,6 +446,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                                         error_flag: errorFlag,
                                         service_titan_customer_since_year: serviceTitanCustomerSinceYear,
                                         service_titan_lifetime_revenue: serviceTitanLifetimeRevenue,
+                                        email
                                     } = row;
                                     const isItemSelected = selected.indexOf(address) !== -1;
 
@@ -553,6 +556,9 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                                                     6
                                                     )}-${phoneNumber.slice(6, 10)}`
                                                 : 'N/A'}
+                                            </TableCell>
+                                            <TableCell>
+                                                {email}
                                             </TableCell>
                                             {(userInfo.company.enterprise ||
                                                 userInfo.email === 'reid@gmail.com' ||
