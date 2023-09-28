@@ -1268,6 +1268,12 @@ def filter_clients(query_params, queryset, company_id):
         elif param == 'usps_changed':
             queryset = queryset.filter(
                 Q(usps_different=True) | Q(usps_address="Error"))
+        elif param == "min_revenue":
+            queryset = queryset.filter(
+                service_titan_lifetime_revenue__gte=query_params[param])
+        elif param == "max_revenue":
+            queryset = queryset.filter(
+                service_titan_lifetime_revenue__lte=query_params[param])
 
     return queryset
 

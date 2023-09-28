@@ -696,6 +696,8 @@ export const filterClientsAsync =
     maxLotSqft,
     savedFilter,
     uspsChanged,
+    minRevenue,
+    maxRevenue,
     refreshed = false
   ) =>
   async (dispatch, getState) => {
@@ -778,6 +780,12 @@ export const filterClientsAsync =
       if (uspsChanged) {
         filters += `&usps_changed=${uspsChanged}`;
       }
+      if (minRevenue) {
+        filters += `&min_revenue=${minRevenue}`;
+      }
+      if (maxRevenue) {
+        filters += `&max_revenue=${maxRevenue}`;
+      }
       const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/?page=1${filters}`, config);
       dispatch(clients(data));
     } catch (error) {
@@ -810,6 +818,8 @@ export const filterClientsAsync =
               maxLotSqft,
               savedFilter,
               uspsChanged,
+              minRevenue,
+              maxRevenue,
               true
             )
           )
@@ -1374,7 +1384,9 @@ export const getClientsCSV = (
   minLotSqft,
   maxLotSqft,
   savedFilter,
-  uspsChanged
+  uspsChanged,
+  minRevenue,
+  maxRevenue
   // eslint-disable-next-line arrow-body-style
 ) => {
   return async (dispatch, getState) => {
@@ -1457,6 +1469,12 @@ export const getClientsCSV = (
       }
       if (uspsChanged) {
         filters += `&usps_changed=${uspsChanged}`;
+      }
+      if (minRevenue) {
+        filters += `&min_revenue=${minRevenue}`;
+      }
+      if (maxRevenue) {
+        filters += `&max_revenue=${maxRevenue}`;
       }
       const response = await axios.get(`${DOMAIN}/api/v1/data/downloadclients/?${filters}`, config);
       const csvBlob = new Blob([response.data], { type: 'text/csv' }); // Convert binary response to a blob
@@ -1648,7 +1666,9 @@ export const saveCustomerDataFilterAsync =
     customerSinceMin,
     customerSinceMax,
     statusFilters,
-    uspsChanged
+    uspsChanged,
+    minRevenue,
+    maxRevenue
 
   ) =>
   async (dispatch, getState) => {
@@ -1685,7 +1705,9 @@ export const saveCustomerDataFilterAsync =
         customer_since_min: customerSinceMin,
         customer_since_max: customerSinceMax,
         status_filters: statusFilters,
-        usps_changed: uspsChanged
+        usps_changed: uspsChanged,
+        min_revenue: minRevenue,
+        max_revenue: maxRevenue
       };
       dispatch(saveFilterLoading());
       await axios.post(`${DOMAIN}/api/v1/data/clients/`, body, config);

@@ -179,6 +179,8 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
     const [customerSinceMax, setCustomerSinceMax] = useState('');
     const [savedFilter, setSavedFilter] = useState('');
     const [uspsChanged, setUspsChanged] = useState(false);
+    const [minRevenue, setMinRevenue] = useState('');
+    const [maxRevenue, setMaxRevenue] = useState('');
     const handleUspsChange = () => {
         setUspsChanged(!uspsChanged);
         setSavedFilter('');
@@ -270,6 +272,17 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
     const handleSavedFilterChange = (newSavedFilter) => {
         setSavedFilter(newSavedFilter);
     };
+
+    const handleMinRevenueChange = (newMinRevenue) => {
+        setMinRevenue(newMinRevenue);
+        setSavedFilter('');
+    };
+
+    const handleMaxRevenueChange = (newMaxRevenue) => {
+        setMaxRevenue(newMaxRevenue);
+        setSavedFilter('');
+    };
+
     const [selected, setSelected] = useState([]);
     const [selectedClients, setSelectedClients] = useState([]);
     const [page, setPage] = useState(0);
@@ -310,7 +323,9 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
             minLotSqft,
             maxLotSqft,
             savedFilter,
-            uspsChanged
+            uspsChanged,
+            minRevenue,
+            maxRevenue
         )
         );
     };
@@ -381,6 +396,10 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                     setSavedFilter={handleSavedFilterChange}
                     uspsChanged={uspsChanged}
                     setUspsChanged={handleUspsChange}
+                    minRevenue={minRevenue}
+                    setMinRevenue={handleMinRevenueChange}
+                    maxRevenue={maxRevenue}
+                    setMaxRevenue={handleMaxRevenueChange}
                 />
                 {loading ? (
                     <Box sx={{ width: '100%' }}>
