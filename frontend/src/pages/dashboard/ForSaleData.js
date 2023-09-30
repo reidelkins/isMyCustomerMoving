@@ -48,7 +48,7 @@ const TABLE_HEAD = [
   { id: 'state', label: 'State', alignRight: false },
   { id: 'zipCode', label: 'Zip Code', alignRight: false },
   { id: 'price', label: 'Price', alignRight: false },
-  { id: 'year_built', label: 'Year Built', alignRight: false },
+  // { id: 'year_built', label: 'Year Built', alignRight: false },
 ];
 
 export default function ForSaleData() {
@@ -301,7 +301,7 @@ export default function ForSaleData() {
                             zip_code: zipCode,
                             listed,
                             price,
-                            year_built: yearBuilt,
+                            // year_built: yearBuilt,
                           } = row;
 
                           return (
@@ -319,7 +319,7 @@ export default function ForSaleData() {
                                 <TableCell align="left">{state}</TableCell>
                                 <TableCell align="left">{zipCode}</TableCell>
                                 <TableCell align="left">{price.toLocaleString()}</TableCell>
-                                <TableCell align="left">{yearBuilt}</TableCell>
+                                {/* <TableCell align="left">{yearBuilt}</TableCell> */}
                               </TableRow>
                             </React.Fragment>
                           );
