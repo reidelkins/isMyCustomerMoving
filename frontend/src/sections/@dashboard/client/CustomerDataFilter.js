@@ -785,7 +785,7 @@ export default function CustomerDataFilter({
                     </Box>
                   </Tooltip>
                 </Grid>
-                <Grid item xs={12}>
+                {/* <Grid item xs={12}>
                   <FormControl component="fieldset">
                     <FormLabel component="legend">Tags</FormLabel>
                     <Grid container spacing={1}>
@@ -804,7 +804,7 @@ export default function CustomerDataFilter({
                       ))}
                     </Grid>
                   </FormControl>
-                </Grid>
+                </Grid> */}
               </Grid>
               <Box mt={2} alignItems="center" display="flex" justifyContent="space-between">
                 <Button onClick={handleOpenSaveFilter} variant="contained" color="primary">

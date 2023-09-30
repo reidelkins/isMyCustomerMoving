@@ -650,7 +650,7 @@ export default function ForSaleDataFilter({
                     </Box>
                   </Tooltip>
                 </Grid>
-                <Grid item xs={12}>
+                {/* <Grid item xs={12}>
                   <FormControl component="fieldset">
                     <Typography variant="h6" mb={2}>
                       Tags
@@ -671,7 +671,7 @@ export default function ForSaleDataFilter({
                       ))}
                     </Grid>
                   </FormControl>
-                </Grid>
+                </Grid> */}
               </Grid>
               <Box mt={2} alignItems="center" display="flex" justifyContent="space-between">
                 <Button onClick={handleOpenSaveFilter} variant="contained" color="primary">
