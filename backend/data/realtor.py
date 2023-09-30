@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 from celery import shared_task
 from scrapfly import ScrapeConfig, ScrapflyClient
+from uszipcode import SearchEngine
 
 from config import settings
 from accounts.models import Company
@@ -52,17 +53,33 @@ def get_all_zipcodes(company, zip=None):
             logging.error(e)
 
     # Additional logic and task delays
+    # for i in range(len(zips) * 2):
+    #     if i % 2 == 0:
+    #         status = "House For Sale"
+    #         url = "https://www.realtor.com/realestateandhomes-search"
+    #         extra = "sby-6"
+    #     elif i % 2 == 1:
+    #         status = "House Recently Sold (6)"
+    #         url = "https://www.realtor.com/realestateandhomes-search"
+    #         extra = "show-recently-sold/"
+    #     find_data.delay(
+    #         str(zips[i // 2]["zip_code"]), i, status, url, extra)
+    # Set `simple_zipcode=False` for more detailed information
+    search = SearchEngine()
+
     for i in range(len(zips) * 2):
+        extra = ""
         if i % 2 == 0:
             status = "House For Sale"
-            url = "https://www.realtor.com/realestateandhomes-search"
-            extra = "sby-6"
+
         elif i % 2 == 1:
             status = "House Recently Sold (6)"
-            url = "https://www.realtor.com/realestateandhomes-search"
-            extra = "show-recently-sold/"
-        find_data.delay(
-            str(zips[i // 2]["zip_code"]), i, status, url, extra)
+            extra = "sold"
+
+        result = search.by_zipcode(zips[i//2]['zip_code'])
+        url = f"https://www.zillow.com/{result.city}-{result.state}-{zips[i//2]['zip_code']}"
+
+        find_data.delay(zips[i//2]['zip_code'], i, status, url, extra)
 
     # send listings to zapier
     # days_to_run = [0]  # Only on Monday
@@ -110,7 +127,7 @@ def find_data(zip_code, i, status, url, extra):
 
     try:
         # Fetch the first page and results
-        first_page = f"{url}/{zip_code}/{extra}"
+        first_page = f"{url}/{extra}"
 
         first_result = get_scrapfly_scrape(scrapfly, first_page)
 
@@ -128,20 +145,11 @@ def find_data(zip_code, i, status, url, extra):
         else:
             url = f"{first_result.context['url']}/pg-1"
 
-        first_data = parse_search(first_result)
+        first_data, total = parse_search(first_result)
+
         if not first_data:
             return
         count = len(first_data)
-
-        total = 0
-        val = soup.find("div", attrs={"data-testid": "total-results"})
-        if val:
-            total = int(val.text)
-        else:
-            val = soup.find("span", {"class": "result-count"})
-            if val:
-                total = int(val.text.split(" ")[0])
-
         continue_scraping = create_home_listings(first_data, status)
         # print(f"Result: {continue_scraping}, url: {url}")
         if count == 0 or total == 0:
@@ -165,7 +173,7 @@ def find_data(zip_code, i, status, url, extra):
                         scrapfly, page_url, asp=True)
 
                 content = new_results.scrape_result["content"]
-                parsed = parse_search(new_results)
+                parsed, total = parse_search(new_results)
                 count = len(parsed)
                 if not parsed or count == 0:
                     return
@@ -226,18 +234,12 @@ def parse_search(result):
 
     data = dict(json.loads(data))
     try:
-        data = data["props"]["pageProps"]["searchResults"]["home_search"][
-            "results"
-        ]
-        return data
-    except KeyError:
-        try:
-            data = data["props"]["pageProps"]["properties"]
-            return data
-        except KeyError as e:
-            logging.error(f"page {result.context['url']}: KeyError")
-            logging.error(f"KeyError: {e}")
-            return False
+        list_data = data["props"]["pageProps"]["searchPageState"]["cat1"]["searchResults"]["listResults"]
+        total = data["props"]["pageProps"]["searchPageState"]["categoryTotals"]["cat1"]["totalResultCount"]
+        return list_data, total
+    except Exception as e:
+        print(e)
+        return [], 0
 
 
 def create_home_listings(results, status):
@@ -247,11 +249,10 @@ def create_home_listings(results, status):
     two_years_ago = datetime.now() - timedelta(days=365 * 2)
 
     for listing in results:
-        location_address = listing.get("location", {}).get("address", {})
-        description = listing.get("description", {})
+        home_data = listing["hdpData"].get("homeInfo", {})
 
         zip_object, _ = ZipCode.objects.get_or_create(
-            zip_code=location_address.get("postal_code")
+            zip_code=listing.get("addressZipcode")
         )
         try:
             if status == "House Recently Sold (6)":
@@ -293,6 +294,7 @@ def create_home_listings(results, status):
             cooling = listing["description"].get("cooling", "")
             heating = listing["description"].get("heating", "")
             sqft = listing["description"].get("sqft", 0)
+            url = listing["description"].get("detailUrl", "")
 
             if listing.get("location", {}).get("address", {}).get("coordinate"):
                 latitude = listing["location"]["address"]["coordinate"].get(
@@ -308,6 +310,18 @@ def create_home_listings(results, status):
             # Check if the HomeListing already exists
             if listing["location"]["address"]["line"] is None:
                 continue
+            location_address = listing.get("location", {}).get("address", {})
+            description = listing.get("description", {})
+
+            # listing_tags = []
+            # if "tags" in listing:
+            #     if listing["tags"] is not None:
+            #         for tag in listing["tags"]:
+            #             curr_tag, _ = HomeListingTags.objects.get_or_create(
+            #                 tag=tag
+            #             )
+            #             listing_tags.append(curr_tag)
+
             if not HomeListing.objects.filter(description=listing["property_id"]).exists():
                 home_data = {
                     'zip_code': zip_object,
@@ -330,6 +344,7 @@ def create_home_listings(results, status):
                     'sqft': sqft,
                     'description': listing["property_id"],
                 }
+
                 homes_to_create.append(HomeListing(**home_data))
 
             else:
@@ -357,14 +372,6 @@ def create_home_listings(results, status):
                 home_listing.heating = heating
                 home_listing.sqft = sqft
                 homes_to_update.append(home_listing)
-
-            if "tags" in listing:
-                if listing["tags"] is not None:
-                    for tag in listing["tags"]:
-                        curr_tag, _ = HomeListingTags.objects.get_or_create(
-                            tag=tag
-                        )
-                        home_listing.tag.add(curr_tag)
 
             # if "branding" in listing:
             #     if listing["branding"] is not None:
