@@ -1,6 +1,6 @@
 amqp==5.1.1
 apify-client==1.4.0
-argon2-cffi==21.3.0
+argon2-cffi==23.1.0
 argon2-cffi-bindings==21.2.0
 asgiref==3.7.2
 async-timeout==4.0.2
@@ -23,7 +23,7 @@ constantly==15.1.0
 coreapi==2.3.3
 coreschema==0.0.4
 coverage==7.2.7
-cryptography==41.0.3
+cryptography==41.0.4
 cssselect==1.2.0
 decorator==5.1.1
 defusedxml==0.7.1
@@ -48,7 +48,7 @@ environ==1.0
 exceptiongroup==1.1.3
 filelock==3.11.0
 flake8==6.1.0
-gunicorn==20.1.0
+gunicorn==21.2.0
 hyperlink==21.0.0
 idna==3.4
 incremental==22.10.0
@@ -63,9 +63,10 @@ jmespath==1.0.1
 jsonfield==3.1.0
 jwcrypto==1.5.0
 kombu==5.3.1
-loguru==0.6.0
+loguru==0.7.2
 lxml==4.9.3
 MarkupSafe==2.1.2
+modal==0.53.3735
 numpy==1.25.2
 oauthlib==3.2.2
 packaging==23.1
@@ -86,7 +87,7 @@ pyflakes==3.1.0
 PyJWT==2.8.0
 pyOpenSSL==23.2.0
 pyotp==2.8.0
-pytest==7.4.1
+pytest==7.4.2
 pytest-django==4.5.2
 python-dateutil==2.8.2
 python-dotenv==0.19.1
@@ -119,11 +120,12 @@ Twisted==22.10.0rc1
 typing_extensions==4.7.1
 tzdata==2023.3
 uritemplate==4.1.1
-urllib3==2.0.3
+urllib3==2.0.6
+uszipcode==1.0.1
 vine==5.0.0
 w3lib==2.1.2
 wcwidth==0.2.6
-whitenoise==6.4.0
+whitenoise==6.5.0
 wrapt==1.15.0
 zeep==4.2.1
 zope.interface==6.0

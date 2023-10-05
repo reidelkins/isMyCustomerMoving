@@ -24,7 +24,7 @@ function ClientDetailsTable({ price, yearBuilt, housingType, equipmentInstalledD
               <TableHead>
                 <TableRow>
                   <TableCell>Price</TableCell>
-                  <TableCell>Year Built</TableCell>
+                  {/* <TableCell>Year Built</TableCell> */}
                   <TableCell>Housing Type</TableCell>
                   <TableCell style={{ width: '25%' }}>Installation Date</TableCell>
                 </TableRow>
@@ -32,7 +32,7 @@ function ClientDetailsTable({ price, yearBuilt, housingType, equipmentInstalledD
               <TableBody>
                 <TableRow>
                   <TableCell>{price && price > 0 ? price.toLocaleString() : 'N/A'}</TableCell>
-                  <TableCell>{yearBuilt !== 0 ? yearBuilt : 'N/A'}</TableCell>
+                  {/* <TableCell>{yearBuilt !== 0 ? yearBuilt : 'N/A'}</TableCell> */}
                   <TableCell>
                     {housingType && housingType !== ' '
                       ? housingType

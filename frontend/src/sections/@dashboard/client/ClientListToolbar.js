@@ -100,6 +100,10 @@ ClientListToolbar.propTypes = {
   customerDataFilters: PropTypes.array,
   uspsChanged: PropTypes.bool,
   setUspsChanged: PropTypes.func,
+  minRevenue: PropTypes.string,
+  setMinRevenue: PropTypes.func,
+  maxRevenue: PropTypes.string,
+  setMaxRevenue: PropTypes.func,
 };
 
 export default function ClientListToolbar({
@@ -157,6 +161,10 @@ export default function ClientListToolbar({
   customerDataFilters,
   uspsChanged,
   setUspsChanged,
+  minRevenue,
+  setMinRevenue,
+  maxRevenue,
+  setMaxRevenue,
 }) {
   const dispatch = useDispatch();
   const [showAlert, setShowAlert] = useState(false);
@@ -271,6 +279,10 @@ export default function ClientListToolbar({
           setSavedFilter={setSavedFilter}
           uspsChanged={uspsChanged}
           setUspsChanged={setUspsChanged}
+          minRevenue={minRevenue}
+          setMinRevenue={setMinRevenue}
+          maxRevenue={maxRevenue}
+          setMaxRevenue={setMaxRevenue}
         />
       )}
       {showAlert && (

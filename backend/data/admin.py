@@ -6,7 +6,6 @@ from .models import (
     ZipCode,
     HomeListing,
     Task,
-    ScrapeResponse,
     HomeListingTags,
     Realtor,
     SavedFilter,
@@ -21,6 +20,7 @@ class ClientAdmin(admin.ModelAdmin):
         "revenue",
         "display_company_name",
         "serv_titan_id",
+        "email",
         "phone_number",
         "price",
         "year_built",
@@ -116,11 +116,6 @@ class TaskAdmin(admin.ModelAdmin):
     list_display = ("id", "completed", "deleted_clients")
 
 
-class ScrapeResponseAdmin(admin.ModelAdmin):
-    list_display = ("id", "date", "zip", "status", "url")
-    search_fields = ["id", "date", "zip", "status", "url"]
-
-
 class HomeListingTagsAdmin(admin.ModelAdmin):
     list_display = ("id", "tag")
     search_fields = ["id", "tag"]
@@ -140,7 +135,6 @@ admin.site.register(HomeListing, HomeListingAdmin)
 admin.site.register(ZipCode, ZipcodeAdmin)
 admin.site.register(Client, ClientAdmin)
 admin.site.register(Task, TaskAdmin)
-admin.site.register(ScrapeResponse, ScrapeResponseAdmin)
 admin.site.register(ClientUpdate, ClientUpdateAdmin)
 admin.site.register(HomeListingTags, HomeListingTagsAdmin)
 admin.site.register(Realtor, RealtorAdmin)

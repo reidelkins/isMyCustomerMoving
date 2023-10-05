@@ -92,6 +92,10 @@ CustomerDataFilter.propTypes = {
   customerDataFilters: PropTypes.array,
   uspsChanged: PropTypes.bool,
   setUspsChanged: PropTypes.func,
+  minRevenue: PropTypes.string,
+  handleChangeMinRevenue: PropTypes.func,
+  maxRevenue: PropTypes.string,
+  handleChangeMaxRevenue: PropTypes.func,
 };
 
 export default function CustomerDataFilter({
@@ -143,6 +147,10 @@ export default function CustomerDataFilter({
   customerDataFilters,
   uspsChanged,
   setUspsChanged: handleUspsChanged,
+  minRevenue,
+  setMinRevenue: handleChangeMinRevenue,
+  maxRevenue,
+  setMaxRevenue: handleChangeMaxRevenue,
 }) {
   const classes = useStyles();
   const [showFilters, setShowFilters] = useState(false);
@@ -198,7 +206,9 @@ export default function CustomerDataFilter({
       savedFilter || 
       customerSinceMin ||
       customerSinceMax ||
-      uspsChanged
+      uspsChanged ||
+      minRevenue ||
+      maxRevenue
     ) {
       setShowClearFilters(true);
     } else {
@@ -228,6 +238,8 @@ export default function CustomerDataFilter({
     customerSinceMin,
     customerSinceMax,
     uspsChanged,
+    minRevenue,
+    maxRevenue
   ]);
 
   const tagOptions = [
@@ -310,7 +322,9 @@ export default function CustomerDataFilter({
         minLotSqft,
         maxLotSqft,
         savedFilter,
-        uspsChanged
+        uspsChanged,
+        minRevenue,
+        maxRevenue
       )
     );
     setShowFilters(false);
@@ -349,6 +363,8 @@ export default function CustomerDataFilter({
     handleChangeMaxLotSqft('');
     handleChangeSavedFilter('');
     handleUspsChanged(false);
+    handleChangeMinRevenue('');
+    handleChangeMaxRevenue('');
     dispatch(clientsAsync(1));
   };
 
@@ -399,7 +415,9 @@ export default function CustomerDataFilter({
         customerSinceMin,
         customerSinceMax,
         statusFilters,
-        uspsChanged
+        uspsChanged,
+        minRevenue,
+        maxRevenue
       )
     );
   };
@@ -523,6 +541,33 @@ export default function CustomerDataFilter({
                     </Tooltip>
                 </Grid>
                 <Grid item xs={12}>
+                  <Tooltip title="This will filter for customers lifetime revenue">
+                    <Box mt={2}>
+                      <Typography variant="h6" mb={2}>
+                        Customer Revenue
+                      </Typography>
+                      <Stack direction="row" spacing={2} alignItems="space-between">
+                        <FormControl fullWidth>
+                          <InputLabel>Min Revenue</InputLabel>
+                          <Input
+                            type="number"
+                            value={minRevenue}
+                            onChange={(event) => handleChangeMinRevenue(event.target.value)}
+                          />
+                        </FormControl>
+                        <FormControl fullWidth>
+                          <InputLabel>Max Revenue</InputLabel>
+                          <Input
+                            type="number"
+                            value={maxRevenue}
+                            onChange={(event) => handleChangeMaxRevenue(event.target.value)}
+                          />
+                        </FormControl>
+                      </Stack>
+                    </Box>
+                  </Tooltip>
+                </Grid>
+                <Grid item xs={12}>
                   <Tooltip title="This will filter for the price that the house was either sold or listed for">
                     <Box mt={2}>
                       <Typography variant="h6" mb={2}>
@@ -605,7 +650,7 @@ export default function CustomerDataFilter({
                   </Tooltip>
                 </Grid>
 
-                <Grid item xs={12}>
+                {/* <Grid item xs={12}>
                   <Tooltip title="Year the house was built">
                     <Box mt={2}>
                       <Typography variant="h6" mb={2}>
@@ -631,7 +676,7 @@ export default function CustomerDataFilter({
                       </Stack>
                     </Box>
                   </Tooltip>
-                </Grid>
+                </Grid> */}
                 <Grid item xs={12}>
                   <Tooltip title="How many bedrooms the house has">
                     <Box mt={2}>
@@ -740,7 +785,7 @@ export default function CustomerDataFilter({
                     </Box>
                   </Tooltip>
                 </Grid>
-                <Grid item xs={12}>
+                {/* <Grid item xs={12}>
                   <FormControl component="fieldset">
                     <FormLabel component="legend">Tags</FormLabel>
                     <Grid container spacing={1}>
@@ -759,7 +804,7 @@ export default function CustomerDataFilter({
                       ))}
                     </Grid>
                   </FormControl>
-                </Grid>
+                </Grid> */}
               </Grid>
               <Box mt={2} alignItems="center" display="flex" justifyContent="space-between">
                 <Button onClick={handleOpenSaveFilter} variant="contained" color="primary">

@@ -137,24 +137,6 @@ class ClientUpdate(models.Model):
     error_flag = models.BooleanField(blank=True, null=True, default=False)
 
 
-# ScrapeResponse model
-class ScrapeResponse(models.Model):
-    id = models.UUIDField(
-        primary_key=True, unique=True, default=uuid.uuid4, editable=False
-    )
-    date = models.DateField(default=format_today)
-    response = models.TextField(default="")
-    zip = models.IntegerField(blank=True, null=True)
-    status = models.CharField(
-        max_length=25,
-        choices=STATUS,
-        default="No Change",
-        blank=True,
-        null=True,
-    )
-    url = models.CharField(max_length=100, blank=True, null=True)
-
-
 # class RealtorWithListingCountManager(models.Manager):
 #     def get_queryset(self, service_area_zip_codes=None):
 #         queryset = super().get_queryset()
@@ -299,6 +281,7 @@ class HomeListing(models.Model):
         max_length=100, default=" ", blank=True, null=True
     )
     description = models.TextField(default=" ", blank=True, null=True)
+    url = models.CharField(max_length=100, blank=True, null=True)
     realtor = models.ForeignKey(
         Realtor,
         blank=True,

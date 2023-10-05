@@ -84,12 +84,6 @@ def mock_get_service_titan_equipment():
 
 
 @pytest.fixture
-def mock_do_it_all():
-    with patch("data.serviceTitan.do_it_all.delay") as mock:
-        yield mock
-
-
-@pytest.fixture
 def mock_get_service_titan_customers():
     with patch("data.serviceTitan.get_service_titan_customers.delay") as mock:
         yield mock
@@ -972,11 +966,10 @@ class TestSyncClientFunctions(TestCase):
     @patch("data.serviceTitan.get_service_titan_locations")
     @patch("data.serviceTitan.delete_extra_clients.delay")
     @patch("data.serviceTitan.get_service_titan_equipment.delay")
-    @patch("data.serviceTitan.do_it_all.delay")
     @patch("data.serviceTitan.get_service_titan_customers.delay")
     @patch("data.serviceTitan.get_service_titan_invoices.delay")
     @patch("data.utils.verify_address.delay")
-    def test_complete_service_titan_sync(self, mock_verify_address, mock_get_service_titan_invoices, mock_get_service_titan_customers, mock_do_it_all, mock_get_service_titan_equipment, mock_delete_extra_clients, mock_get_service_titan_locations):
+    def test_complete_service_titan_sync(self, mock_verify_address, mock_get_service_titan_invoices, mock_get_service_titan_customers, mock_get_service_titan_equipment, mock_delete_extra_clients, mock_get_service_titan_locations):
         # Call the function
         complete_service_titan_sync(self.company.id, "task_id")
 
@@ -987,8 +980,6 @@ class TestSyncClientFunctions(TestCase):
             self.company.id, "task_id")
         mock_get_service_titan_equipment.assert_called_once_with(
             self.company.id, self.company.tenant_id)
-        mock_do_it_all.assert_called_once_with(
-            self.company.id)
         mock_get_service_titan_customers.assert_not_called()
         mock_get_service_titan_invoices.assert_called_once_with(
             self.company.id, self.company.tenant_id)
@@ -1000,7 +991,6 @@ class TestSyncClientFunctions(TestCase):
             self.company_option1.id, "task_id", automated=True)
 
         # Assertions
-        assert mock_do_it_all.call_count == 1
         mock_get_service_titan_customers.assert_called_once_with(
             self.company_option1.id, self.company_option1.tenant_id)
 

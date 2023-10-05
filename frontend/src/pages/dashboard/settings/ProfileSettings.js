@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-nested-ternary */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import * as Yup from 'yup';
 import { useFormik, Form, FormikProvider } from 'formik';
@@ -46,7 +46,7 @@ import { addUser, selectUsers, makeAdminAsync } from '../../../redux/actions/use
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'employee', label: 'Name', alignRight: false },
+  { id: 'first_name', label: 'Name', alignRight: false },
   { id: 'email', label: 'Email', alignRight: false },
   { id: 'status', label: 'Status', alignRight: false },
   // { id: 'status', label: 'Account Created', alignRight: false },

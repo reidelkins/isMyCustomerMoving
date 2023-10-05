@@ -50,6 +50,8 @@ const commonFields = [
   { id: 'contacted', label: 'Contacted', alignRight: false },
   { id: 'note', label: 'Note', alignRight: false },
   { id: 'phone', label: 'Phone Number', alignRight: false },
+  { id: 'email', label: 'Email', alignRight: false },
+
 ];
 
 CustomerData.propTypes = {
@@ -66,8 +68,8 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
         const updatedFields = [...commonFields];
 
         if (userInfo && userInfo.company.crm === 'ServiceTitan') {
-        updatedFields.unshift({ id: 'serviceTitanLifetimeRevenue', label: 'Lifetime Revenue', alignRight: false });
-        updatedFields.unshift({ id: 'serviceTitanCustomerSinceYear', label: 'Customer Since', alignRight: false });        
+        updatedFields.unshift({ id: 'service_titan_lifetime_revenue', label: 'Lifetime Revenue', alignRight: false });
+        updatedFields.unshift({ id: 'service_titan_customer_since_year', label: 'Customer Since', alignRight: false });        
         }
         if (userInfo && (userInfo.company.enterprise || userInfo.email === 'reid@gmail.com' ||
         userInfo.email === 'reid@ismycustomermoving.com' ||
@@ -179,6 +181,8 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
     const [customerSinceMax, setCustomerSinceMax] = useState('');
     const [savedFilter, setSavedFilter] = useState('');
     const [uspsChanged, setUspsChanged] = useState(false);
+    const [minRevenue, setMinRevenue] = useState('');
+    const [maxRevenue, setMaxRevenue] = useState('');
     const handleUspsChange = () => {
         setUspsChanged(!uspsChanged);
         setSavedFilter('');
@@ -270,6 +274,17 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
     const handleSavedFilterChange = (newSavedFilter) => {
         setSavedFilter(newSavedFilter);
     };
+
+    const handleMinRevenueChange = (newMinRevenue) => {
+        setMinRevenue(newMinRevenue);
+        setSavedFilter('');
+    };
+
+    const handleMaxRevenueChange = (newMaxRevenue) => {
+        setMaxRevenue(newMaxRevenue);
+        setSavedFilter('');
+    };
+
     const [selected, setSelected] = useState([]);
     const [selectedClients, setSelectedClients] = useState([]);
     const [page, setPage] = useState(0);
@@ -310,7 +325,9 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
             minLotSqft,
             maxLotSqft,
             savedFilter,
-            uspsChanged
+            uspsChanged,
+            minRevenue,
+            maxRevenue
         )
         );
     };
@@ -381,6 +398,10 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                     setSavedFilter={handleSavedFilterChange}
                     uspsChanged={uspsChanged}
                     setUspsChanged={handleUspsChange}
+                    minRevenue={minRevenue}
+                    setMinRevenue={handleMinRevenueChange}
+                    maxRevenue={maxRevenue}
+                    setMaxRevenue={handleMaxRevenueChange}
                 />
                 {loading ? (
                     <Box sx={{ width: '100%' }}>
@@ -425,6 +446,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                                         error_flag: errorFlag,
                                         service_titan_customer_since_year: serviceTitanCustomerSinceYear,
                                         service_titan_lifetime_revenue: serviceTitanLifetimeRevenue,
+                                        email
                                     } = row;
                                     const isItemSelected = selected.indexOf(address) !== -1;
 
@@ -534,6 +556,9 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                                                     6
                                                     )}-${phoneNumber.slice(6, 10)}`
                                                 : 'N/A'}
+                                            </TableCell>
+                                            <TableCell>
+                                                {email}
                                             </TableCell>
                                             {(userInfo.company.enterprise ||
                                                 userInfo.email === 'reid@gmail.com' ||

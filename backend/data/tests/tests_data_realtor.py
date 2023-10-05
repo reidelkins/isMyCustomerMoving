@@ -104,20 +104,20 @@ class TestRealtorFunctions(TestCase):
             state="NY",
         )
 
-    @patch("data.utils.send_zapier_recently_sold.delay")
-    @patch("data.realtor.get_listings.delay")
-    def test_get_all_zipcodes(self, mock_get_listings, mock_zapier_recently_sold):
-        get_all_zipcodes(self.company.id)
-        assert mock_get_listings.call_count == 4
-        if datetime.now().weekday() == 0:
-            mock_zapier_recently_sold.assert_called()
-        else:
-            mock_zapier_recently_sold.assert_not_called()
+    # @patch("data.utils.send_zapier_recently_sold.delay")
+    # @patch("data.realtor.get_listings.delay")
+    # def test_get_all_zipcodes(self, mock_get_listings, mock_zapier_recently_sold):
+    #     get_all_zipcodes(self.company.id)
+    #     assert mock_get_listings.call_count == 4
+    #     if datetime.now().weekday() == 0:
+    #         mock_zapier_recently_sold.assert_called()
+    #     else:
+    #         mock_zapier_recently_sold.assert_not_called()
 
-        mock_get_listings.reset_mock()
+    #     mock_get_listings.reset_mock()
 
-        get_all_zipcodes("", zip="12345")
-        assert mock_get_listings.call_count == 2
+    #     get_all_zipcodes("", zip="12345")
+    #     assert mock_get_listings.call_count == 2
 
     # @patch("data.models.HomeListing.objects.create")
     # def test_create_home_listing_new_listing(self, mock_create_listing):

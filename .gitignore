@@ -206,3 +206,7 @@ backend/downloadedData/
 data/db/
 old_data/
 frontend/package-lock.json
+get-zip-data/
+backend/jack_all.json
+backend/jack_clients.json
+backend/jack.json

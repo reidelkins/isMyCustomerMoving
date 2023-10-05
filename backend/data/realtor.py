@@ -1,66 +1,13 @@
-from apify_client import ApifyClient
 from celery import shared_task
 from datetime import datetime
+from io import StringIO
 import logging
-
-from accounts.models import Company
-from config.settings import APIFY_TOKEN
-from data.models import Client, HomeListing, Realtor, ZipCode
-
-from .utils import (
-    del_variables,
-    format_address_for_scraper,
-    parse_streets,
-    send_zapier_recently_sold
-)
-
-# Initialize the ApifyClient with your API token
-client = ApifyClient(APIFY_TOKEN)
+import modal
+from pandas import isna, read_csv
 
 
-@shared_task
-def get_listings(zip_code=None, status=None, addresses=None):
-
-    location = [zip_code] if addresses is None else [addresses]
-    search_type = "sell" if status == "House For Sale" else "sold"
-    limit = 5 if addresses else 1000
-    if addresses:
-        memory = 256
-    elif status == "House For Sale":
-        memory = 2048
-    else:
-        memory = 4096
-
-    # Prepare the Actor input
-    run_input = {
-        "location": location,
-        "limit": limit,
-        "sort": "newest",
-        "search_type": search_type,
-        "category": "category1",
-        "includes:description": True,
-        "includes:foreClosure": True,
-        "includes:homeInsights": True,
-        "includes:attributionInfo": True,
-        "includes:resoFacts": True,
-
-    }
-
-    # Run the Actor and wait for it to finish
-    run = client.actor(
-        "jupri/zillow-scraper").call(
-        run_input=run_input, memory_mbytes=memory, wait_secs=120)
-
-    # Fetch and print Actor results from the run's dataset (if there are any)
-    items = []
-    for item in client.dataset(run["defaultDatasetId"]).iterate_items():
-        items.append(item)
-    del_variables([run_input, run])
-    if addresses:
-        if items:
-            edit_client_with_housing_data.delay(items)
-    else:
-        create_home_listings(items, zip_code)
+from .models import Client, HomeListing, ZipCode
+from .utils import del_variables
 
 
 @shared_task
@@ -71,165 +18,172 @@ def get_all_zipcodes(company, zip=None):
     # Initialization of variables
     company_object, zip_code_objects, zip_codes, zips = "", "", "", ""
     try:
-        company = Company.objects.get(id=company)
-        if company.service_area_zip_codes.count() > 0:
-            zip_codes = company.service_area_zip_codes.values_list(
-                'zip_code', flat=True).distinct()
-        else:
-            zip_codes = list(Client.objects.filter(
-                company=company, active=True
-            ).values_list('zip_code', flat=True).distinct())
-            zip_codes = ZipCode.objects.filter(
-                zip_code__in=zip_codes
-            ).values_list('zip_code', flat=True).distinct()
-        zips = list(zip_codes.filter(
-            last_updated__lt=(datetime.today()).strftime("%Y-%m-%d"),
-        ))
-        zip_codes.update(last_updated=datetime.today().strftime("%Y-%m-%d"))
+        # Get distinct zip codes related to the company
+        zip_codes = Client.objects.filter(company_id=company, active=True
+                                          ).values_list(
+                                              "zip_code", flat=True).distinct()
+        print(f"Zip codes to process 1: {len(zip_codes)}")
+
+        # Filter ZipCode objects and update their last_updated field
+        zip_codes_to_update = ZipCode.objects.filter(
+            zip_code__in=zip_codes,
+            last_updated__lt=datetime.today().date()
+        )
+        print(f"Zip codes to process 2: {len(zip_codes_to_update)}")
+
+        # Create a list of zip codes for further processing
+        zips = list(zip_codes_to_update.order_by(
+            "zip_code").values("zip_code"))
+        print(f"Zip codes to process 3: {len(zips)}")
+
+        zip_codes_to_update.update(last_updated=datetime.today().date())
 
     except Exception as e:
         if zip:
-            zips = [str(zip)]
+            zips = [{"zip_code": str(zip)}]
         else:
             logging.error(e)
 
-    # Additional logic and task delays
-    for zip in zips:
-        get_listings.delay(
-            zip_code=zip, status="House For Sale")
-        get_listings.delay(
-            zip_code=zip, status="House Recently Sold (6)")
+    site_name = "realtor.com"
+    listing_types = ["for_sale", "sold"]
+    zip_tuples = [(zip_code['zip_code'], site_name, listing_type)
+                  for zip_code in zips for listing_type in listing_types]
+    print(f"Zip tuples to process: {len(zip_tuples)}")
+    f = modal.Function.lookup("imcm-scraper", "get_addresses")
+    count = 0
+    for results in f.starmap(zip_tuples):
+        print(f"Processing {count} of {len(zip_tuples)}")
+        count += 1
+        if not results.empty:
+            # update_or_create_listing.delay(results.to_csv(index=False))
+            # testing without celery to see if it gets rid of errors
+            try:
+                update_or_create_listing(results.to_csv(index=False))
+            except Exception as e:
+                logging.error(e)
+                print(e)
 
     # send listings to zapier
-    days_to_run = [0]  # Only on Monday
-    current_day = datetime.now().weekday()
+    # days_to_run = [0]  # Only on Monday
+    # current_day = datetime.now().weekday()
 
-    if current_day in days_to_run:
-        send_zapier_recently_sold.delay(company)
+    # if current_day in days_to_run:
+    #     send_zapier_recently_sold.delay(company)
     del_variables(
         [company_object, zip_code_objects, zip_codes, zips, company]
     )
 
 
-@shared_task
-def get_all_client_housing_details(company):
-    company = Company.objects.get(id=company)
-    client_ids = list(Client.objects.filter(
-        company=company, active=True, year_built=0
-    ).values_list('id', flat=True).distinct())
-    # addresses = []
-    for client_id in client_ids:
-        address = format_address_for_scraper(client_id)
-        get_listings.delay(addresses=address)
-    #     addresses.append(format_address_for_scraper(client_id))
-    #     if len(addresses) == 5:
-    #         get_listings.delay(addresses=addresses)
-    #         addresses = []
-    # if len(addresses) > 0:
-    #     get_listings.delay(addresses=addresses)
-    del_variables(
-        [company, client_ids]
-    )
+def safe_assign(value, default=None):
+    return default if isna(value) else value
+
+
+def get_status(listing_type):
+    mapping = {
+        'for_sale': 'House For Sale',
+        'sold': 'House Recently Sold (6)',
+        # Add other mappings here as required
+    }
+    return mapping.get(listing_type, 'Off Market')
+
+
+def get_zipcode_instances(zip_codes):
+    # Fetch existing zip codes from the database
+    existing_zip_codes = ZipCode.objects.filter(zip_code__in=zip_codes)
+    zip_code_map = {zc.zip_code: zc for zc in existing_zip_codes}
+
+    # Create missing zip code instances
+    missing_zip_codes = set(zip_codes) - set(zip_code_map.keys())
+    for missing_zip in missing_zip_codes:
+        zip_code_map[missing_zip], _ = ZipCode.objects.get_or_create(
+            zip_code=missing_zip)
+
+    return zip_code_map
 
 
 @shared_task
-def edit_client_with_housing_data(addresses):
-    for address in addresses:
-        try:
-            clients = Client.objects.filter(
-                address=parse_streets(address["address"]["streetAddress"]),
-                city=address["address"]["city"],
-                state=address["address"]["state"],
-                zip_code=ZipCode.objects.get(
-                    zip_code=address["address"]["zipcode"]
-                ),
-            )
-            if clients.exists():
-                for client in clients:
-                    client.housing_type = address.get("propertyType", "")
-                    client.year_built = address.get("yearBuilt", 0)
-                    client.bedrooms = address.get("bedrooms", 0)
-                    client.bathrooms = int(address.get("bathrooms", 0))
-                    client.sqft = address.get("livingArea", 0)
-                    client.lot_sqft = address.get("lotSize", 0)
-                    client.description = address.get("description", "")
-                    client.save()
-        except Exception as e:
-            print(e)
+def update_or_create_listing(df):
+    df = read_csv(StringIO(df))
+    df = df.dropna(subset=['address_one', 'state', 'city', 'zip_code'])
+    df = df.drop_duplicates(
+        subset=['address_one', 'address_two', 'city', 'state'], keep='first')
+    # Pre-fetch all relevant ZipCode instances
+    zip_code_map = get_zipcode_instances(df['zip_code'].unique().tolist())
+
+    df['full_address'] = df['address_one']
+    mask = df['address_two'] != '#'
+    df.loc[mask, 'full_address'] = df['address_one'] + ' ' + df['address_two']
+
+    # Fetch all existing records that match the addresses in the dataframe
+    existing_listings = HomeListing.objects.filter(
+        address__in=df['full_address'].tolist(),
+        city__in=df['city'].tolist(),
+        state__in=df['state'].tolist()
+    ).values('address', 'city', 'state')
+
+    existing_addresses = {(x['address'], x['city'], x['state'])
+                          for x in existing_listings}
+
+    to_update = []
+    to_create = []
+
+    for _, row in df.iterrows():
+        address = row['address_one']
+        if row['address_two'] != '#':
+            address += f' {row["address_two"]}'
+        city = row['city']
+        state = row['state']
+        status = get_status(row['listing_type'])
+        list_date = safe_assign(row.get(
+            'list_date', datetime.now().date().strftime('%Y-%m-%d')))
+        if list_date:
+            # See if list date is less than 6 months from today
+            if status == "House Recently Sold (6)":
+                list_date_str = datetime.strptime(list_date, '%Y-%m-%d')
+                if (datetime.now().date() - list_date_str.date()).days > 180:
+                    status = 'Off Market'
+            list_date = list_date.split('T')[0]
+        else:
+            continue
+
+        data = {
+            # Get the ZipCode instance from the map
+            'zip_code': zip_code_map[row['zip_code']],
+            'address': address,
+            'status': status,
+            'price': safe_assign(row.get('price_min', row.get('price_max', 0))),
+            'year_built': safe_assign(row.get('year_built', 1900)),
+            'city': city,
+            'state': state,
+            'bedrooms': safe_assign(row.get('beds_min', row.get('beds_max', 0))),
+            'bathrooms': safe_assign(row.get('baths_min', row.get('baths_max', 0))),
+            'sqft': safe_assign(row['sqft_min']),
+            'lot_sqft': safe_assign(row.get('lot_area_value', 0)),
+            'latitude': safe_assign(row['latitude']),
+            'longitude': safe_assign(row['longitude']),
+            'url': row['property_url'],
+            'garage': safe_assign(row.get('garage', 0)),
+            'description': safe_assign(row.get('description', '')),
+            'listed': list_date,
 
 
-@shared_task
-def create_home_listings(listings, zip_code):
-    realtor, home_listing = "", ""
-    # try:
-    home_listings = []
-    for listing in listings:
-        try:
-            home_listing, _ = HomeListing.objects.get_or_create(
-                address=parse_streets(listing["address"]["streetAddress"]),
-                city=listing["address"]["city"],
-                state=listing["address"]["state"],
-                zip_code=ZipCode.objects.get(
-                    zip_code=zip_code
-                ),
-            )
-            if listing["homeStatus"] == "FOR_SALE":
-                home_listing.status = "House For Sale"
-            elif listing["homeStatus"] == "RECENTLY_SOLD":
-                home_listing.status = "House Recently Sold (6)"
-            # NOTE: I really don't care about anything over 6 months.
-            # Our new source has data going back years
-            # elif listing["homeStatus"] == "SOLD":
-            #     home_listing.status = "House Recently Sold (12)"
-            elif listing["homeStatus"] == "PENDING":
-                home_listing.status = "Pending"
-            else:
-                home_listing.delete()
-                continue
+        }
 
-            timestamp_ms = listing["listingDateTimeOnZillow"] \
-                if home_listing.status == "House For Sale" \
-                else listing["lastSoldDate"]
-            # Convert milliseconds to seconds
-            timestamp_seconds = timestamp_ms / 1000
-            # Create a datetime object from the Unix timestamp
-            datetime_obj = datetime.utcfromtimestamp(timestamp_seconds)
-            # Format the datetime object as a string
-            formatted_date = datetime_obj.strftime("%Y-%m-%d %H:%M:%S")
-            home_listing.listed = formatted_date[:10]
-            if listing.get("price"):
-                home_listing.price = listing["price"].get("value", 0)
-            home_listing.housing_type = listing.get("propertyType", "")
-            home_listing.year_built = listing.get("yearBuilt", 0)
-            home_listing.bedrooms = listing.get("bedrooms", 0)
-            home_listing.bathrooms = listing.get("bathrooms", 0)
-            # home_listing.sqft = listing["livingArea"]
-            # home_listing.lot_sqft = listing["lotSize"]
-            if listing.get("location"):
-                home_listing.latitude = listing["location"].get("latitude", 0)
-                home_listing.longitude = listing["location"].get(
-                    "longitude", 0)
+        listing_obj = HomeListing(**data)
 
-            realtor_info = listing["attributionInfo"]
-            agent_name = realtor_info.get("agentName", "")
-            if agent_name != "":
-                realtor, _ = Realtor.objects_with_listing_count.get_or_create(
-                    name=agent_name,
-                    company=realtor_info.get("brokerName", ""),
-                    agent_phone=realtor_info.get("agentPhoneNumber", ""),
-                    brokerage_phone=realtor_info.get("brokerPhoneNumber", "")
-                )
-                home_listing.realtor = realtor
+        if (address, city, state) in existing_addresses:
+            to_update.append(listing_obj)
+        else:
+            to_create.append(listing_obj)
 
-            # TODO: Get all the description fields and tags
-            home_listings.append(home_listing)
-        except Exception as e:
-            print(e)
-    HomeListing.objects.bulk_update(home_listings, [
-        "status", "listed", "price", "housing_type", "year_built",
-        "bedrooms", "bathrooms", "latitude", "longitude", "realtor"
-    ])
+    if to_update:
+        HomeListing.objects.bulk_update(to_update, [
+            'zip_code', 'status', 'price', 'year_built', 'bedrooms',
+            'bathrooms', 'sqft', 'lot_sqft', 'latitude', 'longitude',
+            'url'  # Add other fields as required
+        ])
+        print(f"Updated {len(to_update)} listings")
 
-    del_variables(
-        [realtor, listing, home_listing, listings]
-    )
+    if to_create:
+        HomeListing.objects.bulk_create(to_create)
+        print(f"Created {len(to_create)} new listings")

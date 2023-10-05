@@ -1,5 +1,4 @@
 from re import sub
-from time import sleep
 from accounts.models import Company, CustomUser
 from config import settings
 from .models import (
@@ -349,7 +348,6 @@ def save_client_list(clients, company_id, task=None):
         ).values_list("id", flat=True)
         for i in range(len(clients_to_verify)):
             verify_address(client[i])
-        do_it_all.delay(company_id)
     del clients_to_add, clients, company, company_id, bad_streets
 
 
@@ -448,6 +446,7 @@ def update_status(zip_code, company_id, status):
         zip_code, company_id, status)
 
     scrapfly_count = 0
+    updated_clients = []
     for to_list in newly_listed:
 
         to_update = check_if_needs_update(to_list.id, status)
@@ -460,8 +459,12 @@ def update_status(zip_code, company_id, status):
             to_list.price = home_listing.price
             to_list.year_built = home_listing.year_built
             to_list.housing_type = home_listing.housing_type
-            to_list.save()
-            to_list.tag.add(*home_listing.tag.all())
+            to_list.bedrooms = home_listing.bedrooms
+            to_list.bathrooms = home_listing.bathrooms
+            to_list.sqft = home_listing.sqft
+            to_list.lot_sqft = home_listing.lot_sqft
+            updated_clients.append(to_list)
+            # to_list.tag.add(*home_listing.tag.all())
 
             zapier_url = (
                 company.zapier_for_sale
@@ -488,6 +491,10 @@ def update_status(zip_code, company_id, status):
             )
         except Exception as e:
             logging.error(f"Cant find listing to list {e}")
+
+    Client.objects.bulk_update(updated_clients, [
+        "status", "price", "year_built", "housing_type", "bedrooms", "bathrooms"
+    ])
 
     clients_to_update = [
         client
@@ -1094,25 +1101,6 @@ def send_update_email(templateName):
         logging.error(traceback.format_exc())
 
 
-@shared_task(rate_limit="1/s")
-def do_it_all(company):
-    try:
-        auto_update.delay(
-            company_id=company
-        )  # Schedule auto_update task
-        sleep(3600)  # TODO Calculate ETA for update_clients_statuses task
-        update_clients_statuses(
-            company
-        )  # Schedule update_clients_statuses task
-        sleep(360)
-        send_daily_email.delay(company.id)
-
-    except Exception as e:
-        logging.error("doItAll failed")
-        logging.error(f"ERROR: {e}")
-        logging.error(traceback.format_exc())
-
-
 def filter_home_listings(query_params, queryset, company_id, filter_type):
     """
     Filter all home listings based on the provided query parameters.
@@ -1287,6 +1275,12 @@ def filter_clients(query_params, queryset, company_id):
         elif param == 'usps_changed':
             queryset = queryset.filter(
                 Q(usps_different=True) | Q(usps_address="Error"))
+        elif param == "min_revenue":
+            queryset = queryset.filter(
+                service_titan_lifetime_revenue__gte=query_params[param])
+        elif param == "max_revenue":
+            queryset = queryset.filter(
+                service_titan_lifetime_revenue__lte=query_params[param])
 
     return queryset
 

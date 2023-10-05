@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 import PropTypes from 'prop-types';
 import {
   Button,
@@ -119,15 +120,33 @@ const FileUploader = ({ fileType }) => {
   // eslint-disable-next-line arrow-body-style
   const readFile = (file) => {
     return new Promise((resolve, reject) => {
-      Papa.parse(file, {
-        header: true,
-        complete: (results) => {
-          resolve(results.data);
-        },
-        error: (error) => {
+      if (file.name.endsWith('.csv')) {
+        Papa.parse(file, {
+          header: true,
+          complete: (results) => {
+            resolve(results.data);
+          },
+          error: (error) => {
+            reject(error);
+          },
+        });
+      } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls') || file.name.endsWith('.xlsm')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const data = new Uint8Array(event.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          resolve(json);
+        };
+        reader.onerror = (error) => {
           reject(error);
-        },
-      });
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        reject(new Error('Unsupported file type'));
+      }
     });
   };
 
@@ -337,7 +356,7 @@ const FileUploader = ({ fileType }) => {
 };
 
 FileUploader.propTypes = {
-  fileType: PropTypes.any
+  fileType: PropTypes.string.isRequired,
 };
 
 export default FileUploader;
