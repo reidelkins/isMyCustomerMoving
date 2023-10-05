@@ -120,7 +120,7 @@ Twisted==22.10.0rc1
 typing_extensions==4.7.1
 tzdata==2023.3
 uritemplate==4.1.1
-urllib3==2.0.3
+urllib3==2.0.6
 uszipcode==1.0.1
 vine==5.0.0
 w3lib==2.1.2
