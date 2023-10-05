@@ -22,17 +22,21 @@ def get_all_zipcodes(company, zip=None):
         zip_codes = Client.objects.filter(company_id=company, active=True
                                           ).values_list(
                                               "zip_code", flat=True).distinct()
+        print(f"Zip codes to process 1: {len(zip_codes)}")
 
         # Filter ZipCode objects and update their last_updated field
         zip_codes_to_update = ZipCode.objects.filter(
             zip_code__in=zip_codes,
             last_updated__lt=datetime.today().date()
         )
-        zip_codes_to_update.update(last_updated=datetime.today().date())
+        print(f"Zip codes to process 2: {len(zip_codes_to_update)}")
 
         # Create a list of zip codes for further processing
         zips = list(zip_codes_to_update.order_by(
             "zip_code").values("zip_code"))
+        print(f"Zip codes to process 3: {len(zips)}")
+
+        zip_codes_to_update.update(last_updated=datetime.today().date())
 
     except Exception as e:
         if zip:
@@ -44,12 +48,20 @@ def get_all_zipcodes(company, zip=None):
     listing_types = ["for_sale", "sold"]
     zip_tuples = [(zip_code['zip_code'], site_name, listing_type)
                   for zip_code in zips for listing_type in listing_types]
+    print(f"Zip tuples to process: {len(zip_tuples)}")
     f = modal.Function.lookup("imcm-scraper", "get_addresses")
+    count = 0
     for results in f.starmap(zip_tuples):
+        print(f"Processing {count} of {len(zip_tuples)}")
+        count += 1
         if not results.empty:
             # update_or_create_listing.delay(results.to_csv(index=False))
             # testing without celery to see if it gets rid of errors
-            update_or_create_listing(results.to_csv(index=False))
+            try:
+                update_or_create_listing(results.to_csv(index=False))
+            except Exception as e:
+                logging.error(e)
+                print(e)
 
     # send listings to zapier
     # days_to_run = [0]  # Only on Monday
@@ -94,13 +106,17 @@ def update_or_create_listing(df):
     df = read_csv(StringIO(df))
     df = df.dropna(subset=['address_one', 'state', 'city', 'zip_code'])
     df = df.drop_duplicates(
-        subset=['address_one', 'city', 'state'], keep='first')
+        subset=['address_one', 'address_two', 'city', 'state'], keep='first')
     # Pre-fetch all relevant ZipCode instances
     zip_code_map = get_zipcode_instances(df['zip_code'].unique().tolist())
 
+    df['full_address'] = df['address_one']
+    mask = df['address_two'] != '#'
+    df.loc[mask, 'full_address'] = df['address_one'] + ' ' + df['address_two']
+
     # Fetch all existing records that match the addresses in the dataframe
     existing_listings = HomeListing.objects.filter(
-        address__in=df['address_one'].tolist(),
+        address__in=df['full_address'].tolist(),
         city__in=df['city'].tolist(),
         state__in=df['state'].tolist()
     ).values('address', 'city', 'state')
@@ -118,6 +134,17 @@ def update_or_create_listing(df):
         city = row['city']
         state = row['state']
         status = get_status(row['listing_type'])
+        list_date = safe_assign(row.get(
+            'list_date', datetime.now().date().strftime('%Y-%m-%d')))
+        if list_date:
+            # See if list date is less than 6 months from today
+            if status == "House Recently Sold (6)":
+                list_date_str = datetime.strptime(list_date, '%Y-%m-%d')
+                if (datetime.now().date() - list_date_str.date()).days > 180:
+                    status = 'Off Market'
+            list_date = list_date.split('T')[0]
+        else:
+            continue
 
         data = {
             # Get the ZipCode instance from the map
@@ -137,8 +164,8 @@ def update_or_create_listing(df):
             'url': row['property_url'],
             'garage': safe_assign(row.get('garage', 0)),
             'description': safe_assign(row.get('description', '')),
-            'listed': safe_assign(row.get(
-                'list_date', datetime.now().date())).split('T')[0],
+            'listed': list_date,
+
 
         }
 
