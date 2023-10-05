@@ -116,7 +116,6 @@ class TaskAdmin(admin.ModelAdmin):
     list_display = ("id", "completed", "deleted_clients")
 
 
-
 class HomeListingTagsAdmin(admin.ModelAdmin):
     list_display = ("id", "tag")
     search_fields = ["id", "tag"]
