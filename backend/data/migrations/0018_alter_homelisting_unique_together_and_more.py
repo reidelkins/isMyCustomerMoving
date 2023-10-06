@@ -14,11 +14,7 @@ class Migration(migrations.Migration):
         migrations.AlterUniqueTogether(
             name='homelisting',
             unique_together=set(),
-        ),
-        migrations.RemoveField(
-            model_name='client',
-            name='usps_address',
-        ),
+        ),        
         migrations.AddField(
             model_name='client',
             name='new_address',
