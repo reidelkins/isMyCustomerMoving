@@ -14,7 +14,11 @@ class Migration(migrations.Migration):
         migrations.AlterUniqueTogether(
             name='homelisting',
             unique_together=set(),
-        ),        
+        ),
+        migrations.RemoveField(
+            model_name='client',
+            name='usps_address',
+        ),
         migrations.AddField(
             model_name='client',
             name='new_address',
@@ -33,7 +37,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='client',
             name='new_zip_code',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='client_new_zip_code', to='data.zipcode'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                    related_name='client_new_zip_code', to='data.zipcode'),
         ),
         migrations.AddField(
             model_name='client',
@@ -63,12 +68,15 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='client',
             name='status',
-            field=models.CharField(choices=[('House For Sale', 'House For Sale'), ('Pending', 'Pending'), ('House Recently Sold (6)', 'House Recently Sold (6)'), ('House Recently Sold (12)', 'House Recently Sold (12)'), ('Off Market', 'Off Market')], default='No Change', max_length=25),
+            field=models.CharField(choices=[('House For Sale', 'House For Sale'), ('Pending', 'Pending'), ('House Recently Sold (6)', 'House Recently Sold (6)'), (
+                'House Recently Sold (12)', 'House Recently Sold (12)'), ('Off Market', 'Off Market')], default='No Change', max_length=25),
+
         ),
         migrations.AlterField(
             model_name='clientupdate',
             name='status',
-            field=models.CharField(blank=True, choices=[('House For Sale', 'House For Sale'), ('Pending', 'Pending'), ('House Recently Sold (6)', 'House Recently Sold (6)'), ('House Recently Sold (12)', 'House Recently Sold (12)'), ('Off Market', 'Off Market')], default='No Change', max_length=25, null=True),
+            field=models.CharField(blank=True, choices=[('House For Sale', 'House For Sale'), ('Pending', 'Pending'), ('House Recently Sold (6)', 'House Recently Sold (6)'), (
+                'House Recently Sold (12)', 'House Recently Sold (12)'), ('Off Market', 'Off Market')], default='No Change', max_length=25, null=True),
         ),
         migrations.AlterField(
             model_name='homelisting',
@@ -78,12 +86,14 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='homelisting',
             name='status',
-            field=models.CharField(choices=[('House For Sale', 'House For Sale'), ('Pending', 'Pending'), ('House Recently Sold (6)', 'House Recently Sold (6)'), ('House Recently Sold (12)', 'House Recently Sold (12)'), ('Off Market', 'Off Market')], default='Off Market', max_length=25),
+            field=models.CharField(choices=[('House For Sale', 'House For Sale'), ('Pending', 'Pending'), ('House Recently Sold (6)', 'House Recently Sold (6)'), (
+                'House Recently Sold (12)', 'House Recently Sold (12)'), ('Off Market', 'Off Market')], default='Off Market', max_length=25),
         ),
         migrations.AlterField(
             model_name='scraperesponse',
             name='status',
-            field=models.CharField(blank=True, choices=[('House For Sale', 'House For Sale'), ('Pending', 'Pending'), ('House Recently Sold (6)', 'House Recently Sold (6)'), ('House Recently Sold (12)', 'House Recently Sold (12)'), ('Off Market', 'Off Market')], default='No Change', max_length=25, null=True),
+            field=models.CharField(blank=True, choices=[('House For Sale', 'House For Sale'), ('Pending', 'Pending'), ('House Recently Sold (6)', 'House Recently Sold (6)'), (
+                'House Recently Sold (12)', 'House Recently Sold (12)'), ('Off Market', 'Off Market')], default='No Change', max_length=25, null=True),
         ),
         migrations.AlterUniqueTogether(
             name='homelisting',

@@ -138,11 +138,11 @@ def update_or_create_listing(df):
             'list_date', datetime.now().date().strftime('%Y-%m-%d')))
         if list_date:
             # See if list date is less than 6 months from today
+            list_date = list_date.split('T')[0]
             if status == "House Recently Sold (6)":
                 list_date_str = datetime.strptime(list_date, '%Y-%m-%d')
                 if (datetime.now().date() - list_date_str.date()).days > 180:
                     status = 'Off Market'
-            list_date = list_date.split('T')[0]
         else:
             continue
 
