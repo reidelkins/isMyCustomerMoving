@@ -128,53 +128,57 @@ def update_or_create_listing(df):
     to_create = []
 
     for _, row in df.iterrows():
-        address = row['address_one']
-        if row['address_two'] != '#':
-            address += f' {row["address_two"]}'
-        city = row['city']
-        state = row['state']
-        status = get_status(row['listing_type'])
-        list_date = safe_assign(row.get(
-            'list_date', datetime.now().date().strftime('%Y-%m-%d')))
-        if list_date:
-            # See if list date is less than 6 months from today
-            list_date = list_date.split('T')[0]
-            if status == "House Recently Sold (6)":
-                list_date_str = datetime.strptime(list_date, '%Y-%m-%d')
-                if (datetime.now().date() - list_date_str.date()).days > 180:
-                    status = 'Off Market'
-        else:
-            continue
-
-        data = {
-            # Get the ZipCode instance from the map
-            'zip_code': zip_code_map[row['zip_code']],
-            'address': address,
-            'status': status,
-            'price': safe_assign(row.get('price_min', row.get('price_max', 0))),
-            'year_built': safe_assign(row.get('year_built', 1900)),
-            'city': city,
-            'state': state,
-            'bedrooms': safe_assign(row.get('beds_min', row.get('beds_max', 0))),
-            'bathrooms': safe_assign(row.get('baths_min', row.get('baths_max', 0))),
-            'sqft': safe_assign(row['sqft_min']),
-            'lot_sqft': safe_assign(row.get('lot_area_value', 0)),
-            'latitude': safe_assign(row['latitude']),
-            'longitude': safe_assign(row['longitude']),
-            'url': row['property_url'],
-            'garage': safe_assign(row.get('garage', 0)),
-            'description': safe_assign(row.get('description', '')),
-            'listed': list_date,
-
-
-        }
-
-        listing_obj = HomeListing(**data)
-
-        if (address, city, state) in existing_addresses:
-            to_update.append(listing_obj)
-        else:
-            to_create.append(listing_obj)
+        try:
+            address = row['address_one']
+            if row['address_two'] != '#':
+                address += f' {row["address_two"]}'
+            city = row['city']
+            state = row['state']
+            status = get_status(row['listing_type'])
+            list_date = safe_assign(row.get(
+                'list_date', datetime.now().date().strftime('%Y-%m-%d')))
+            if list_date:
+                # See if list date is less than 6 months from today
+                list_date = list_date.split('T')[0]
+                if status == "House Recently Sold (6)":
+                    list_date_str = datetime.strptime(list_date, '%Y-%m-%d')
+                    if (datetime.now().date() - list_date_str.date()).days > 180:
+                        status = 'Off Market'
+            else:
+                continue
+    
+            data = {
+                # Get the ZipCode instance from the map
+                'zip_code': zip_code_map[row['zip_code']],
+                'address': address,
+                'status': status,
+                'price': safe_assign(row.get('price_min', row.get('price_max', 0))),
+                'year_built': safe_assign(row.get('year_built', 1900)),
+                'city': city,
+                'state': state,
+                'bedrooms': safe_assign(row.get('beds_min', row.get('beds_max', 0))),
+                'bathrooms': safe_assign(row.get('baths_min', row.get('baths_max', 0))),
+                'sqft': safe_assign(row['sqft_min']),
+                'lot_sqft': safe_assign(row.get('lot_area_value', 0)),
+                'latitude': safe_assign(row['latitude']),
+                'longitude': safe_assign(row['longitude']),
+                'url': row['property_url'],
+                'garage': safe_assign(row.get('garage', 0)),
+                'description': safe_assign(row.get('description', '')),
+                'listed': list_date,
+    
+    
+            }
+    
+            listing_obj = HomeListing(**data)
+    
+            if (address, city, state) in existing_addresses:
+                to_update.append(listing_obj)
+            else:
+                to_create.append(listing_obj)
+        except Exception as e:
+            logging.error(e)
+            print(e)
 
     if to_update:
         HomeListing.objects.bulk_update(to_update, [
