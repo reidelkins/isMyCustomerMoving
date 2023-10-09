@@ -213,6 +213,9 @@ def format_zip(zip_code):
     :param zip_code: Zip code
     :return: Formatted zip code
     """
+    if zip_code is None:
+        return None
+
     try:
         if isinstance(zip_code, float):
             zip_code = int(zip_code)
@@ -234,12 +237,13 @@ def save_service_area_list(zip_codes, company_id):
         zip = zip.get("Zip_Code", "")
         if zip:
             zip_code = format_zip(zip)
-            if int(zip_code) < 500 or int(zip_code) > 99951:
-                continue
-            zip_code_obj, _ = ZipCode.objects.get_or_create(
-                zip_code=str(zip_code)
-            )
-            company.service_area_zip_codes.add(zip_code_obj)
+            if zip_code:
+                if int(zip_code) < 500 or int(zip_code) > 99951:
+                    continue
+                zip_code_obj, _ = ZipCode.objects.get_or_create(
+                    zip_code=str(zip_code)
+                )
+                company.service_area_zip_codes.add(zip_code_obj)
 
 
 @shared_task
@@ -291,12 +295,12 @@ def save_client_list(clients, company_id, task=None):
                 if street.lower() in bad_streets or "tbd" in street.lower():
                     continue
 
-                if int(zip_code) < 500 or int(zip_code) > 99951:
-                    continue
-
-                zip_code_obj = ZipCode.objects.get_or_create(
-                    zip_code=str(zip_code)
-                )[0]
+                if zip_code is False or int(zip_code) < 500 or int(zip_code) > 99951:
+                    zip_code_obj = ZipCode.objects.get(zip_code="0")
+                else:
+                    zip_code_obj = ZipCode.objects.get_or_create(
+                        zip_code=str(zip_code)
+                    )[0]
                 if len(name) > 100:
                     name = name[:100]
                 if is_service_titan:
