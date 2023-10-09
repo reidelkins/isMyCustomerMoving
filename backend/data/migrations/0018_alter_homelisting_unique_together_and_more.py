@@ -70,6 +70,7 @@ class Migration(migrations.Migration):
             name='status',
             field=models.CharField(choices=[('House For Sale', 'House For Sale'), ('Pending', 'Pending'), ('House Recently Sold (6)', 'House Recently Sold (6)'), (
                 'House Recently Sold (12)', 'House Recently Sold (12)'), ('Off Market', 'Off Market')], default='No Change', max_length=25),
+
         ),
         migrations.AlterField(
             model_name='clientupdate',
