@@ -51,6 +51,7 @@ const FileUploader = ({ fileType }) => {
     state: '',
     'zip code': '',
     'phone number': '',
+    'email': '',
   });
 
   const listClient = useSelector(selectClients);
@@ -58,8 +59,8 @@ const FileUploader = ({ fileType }) => {
 
   const exportTemplate = () => {
     let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += 'Customer Name,Street Address,City,State,ZipCode,Phone\r\n';
-    csvContent += `Example Name, 123 Main St, Nashville, TN, 12345, 8882224444\r\n`;
+    csvContent += 'Customer Name,Street Address,City,State,ZipCode,Phone,Email\r\n';
+    csvContent += `Example Name, 123 Main St, Nashville, TN, 12345, 8882224444, test@email.com\r\n`;
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
@@ -256,7 +257,7 @@ const FileUploader = ({ fileType }) => {
                           style={{ minWidth: '200px' }}
                         >
                           <MenuItem value={headers.includes(header.toLowerCase()) ? header : ''} />
-                          {header !== 'phone number'
+                          {header !== 'phone number' && header !== 'email'
                             ? headers.map((headerName) => (
                                 <MenuItem key={headerName} value={headerName}>
                                   {headerName}
@@ -340,6 +341,7 @@ const FileUploader = ({ fileType }) => {
               <b>State</b> <br />
               <b>Zip Code</b> <br />
               <b>Phone Number (Optional)</b> <br />
+              <b>Email (Optional)</b> <br />
               <br />
               You can match your column headers to the above names after you choose your file and then just click
               submit! <br />

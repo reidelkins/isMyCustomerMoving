@@ -213,6 +213,9 @@ def format_zip(zip_code):
     :param zip_code: Zip code
     :return: Formatted zip code
     """
+    if zip_code is None:
+        return None
+
     try:
         if isinstance(zip_code, float):
             zip_code = int(zip_code)
@@ -234,12 +237,13 @@ def save_service_area_list(zip_codes, company_id):
         zip = zip.get("Zip_Code", "")
         if zip:
             zip_code = format_zip(zip)
-            if int(zip_code) < 500 or int(zip_code) > 99951:
-                continue
-            zip_code_obj, _ = ZipCode.objects.get_or_create(
-                zip_code=str(zip_code)
-            )
-            company.service_area_zip_codes.add(zip_code_obj)
+            if zip_code:
+                if int(zip_code) < 500 or int(zip_code) > 99951:
+                    continue
+                zip_code_obj, _ = ZipCode.objects.get_or_create(
+                    zip_code=str(zip_code)
+                )
+                company.service_area_zip_codes.add(zip_code_obj)
 
 
 @shared_task
@@ -291,12 +295,13 @@ def save_client_list(clients, company_id, task=None):
                 if street.lower() in bad_streets or "tbd" in street.lower():
                     continue
 
-                if int(zip_code) < 500 or int(zip_code) > 99951:
-                    continue
-
-                zip_code_obj = ZipCode.objects.get_or_create(
-                    zip_code=str(zip_code)
-                )[0]
+                if zip_code is False or int(zip_code) < 500 or int(zip_code) > 99951:
+                    zip_code_obj = ZipCode.objects.get_or_create(
+                        zip_code="00000")[0]
+                else:
+                    zip_code_obj = ZipCode.objects.get_or_create(
+                        zip_code=str(zip_code)
+                    )[0]
                 if len(name) > 100:
                     name = name[:100]
                 if is_service_titan:
@@ -333,21 +338,24 @@ def save_client_list(clients, company_id, task=None):
                             name=name,
                             company=company,
                             phone_number=phone_number,
+                            email=client["email"] if "email" in client else "",
                         )
                     )
         except Exception as e:
             logging.error("create error")
             logging.error(e)
+            logging.error(client)
 
     Client.objects.bulk_create(clients_to_add, ignore_conflicts=True)
 
     if task:
         delete_extra_clients.delay(company_id, task)
-        clients_to_verify = Client.objects.filter(
+        clients_to_verify = list(Client.objects.filter(
             company=company, old_address=None
-        ).values_list("id", flat=True)
-        for i in range(len(clients_to_verify)):
-            verify_address(client[i])
+        ).values_list("id", flat=True))
+        verify_address(clients_to_verify)
+        auto_update.delay(company_id)
+
     del clients_to_add, clients, company, company_id, bad_streets
 
 
@@ -642,19 +650,18 @@ def auto_update(company_id=None, zip=None):
     if company_id:
         try:
             company = Company.objects.get(id=company_id)
-            get_all_zipcodes(company_id)
-
         except Exception as e:
             logging.error(f"Company does not exist {e}")
             return
+        get_all_zipcodes(company_id)
         del_variables([company_id, company])
     elif zip:
         try:
             ZipCode.objects.get_or_create(zip_code=zip)
-            get_all_zipcodes("", zip=zip)
         except Exception as e:
             logging.error(f"Zip does not exist {e}")
             return
+        get_all_zipcodes("", zip=zip)
     else:
         company, companies = "", ""
         companies = Company.objects.all()
@@ -1307,12 +1314,12 @@ def verify_address(client_ids):
     Returns:
     None
     """
-    for client_id in client_ids:
-        try:
-            client = Client.objects.get(id=client_id)
-        except Exception as e:
-            logging.error(f"Client with id {client_id} does not exist. {e}")
-            return
+    try:
+        clients = Client.objects.filter(id__in=client_ids)
+    except Exception as e:
+        print(e)
+        return
+    for client in clients:
         zip_code = client.zip_code.zip_code
         base_url = "http://production.shippingapis.com/ShippingAPI.dll"
         user_id = settings.USPS_USER_ID

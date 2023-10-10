@@ -1,5 +1,6 @@
 from celery import shared_task
 from datetime import datetime
+from django.db import IntegrityError
 from io import StringIO
 import logging
 import modal
@@ -44,9 +45,8 @@ def get_all_zipcodes(company, zip=None):
         else:
             logging.error(e)
 
-    site_name = "realtor.com"
     listing_types = ["for_sale", "sold"]
-    zip_tuples = [(zip_code['zip_code'], site_name, listing_type)
+    zip_tuples = [(zip_code['zip_code'], listing_type)
                   for zip_code in zips for listing_type in listing_types]
     print(f"Zip tuples to process: {len(zip_tuples)}")
     f = modal.Function.lookup("imcm-scraper", "get_addresses")
@@ -55,8 +55,6 @@ def get_all_zipcodes(company, zip=None):
         print(f"Processing {count} of {len(zip_tuples)}")
         count += 1
         if not results.empty:
-            # update_or_create_listing.delay(results.to_csv(index=False))
-            # testing without celery to see if it gets rid of errors
             try:
                 update_or_create_listing(results.to_csv(index=False))
             except Exception as e:
@@ -80,8 +78,9 @@ def safe_assign(value, default=None):
 
 def get_status(listing_type):
     mapping = {
-        'for_sale': 'House For Sale',
-        'sold': 'House Recently Sold (6)',
+        'FOR_SALE': 'House For Sale',
+        'SOLD': 'House Recently Sold (6)',
+        'PENDING': 'Pending'
         # Add other mappings here as required
     }
     return mapping.get(listing_type, 'Off Market')
@@ -104,19 +103,22 @@ def get_zipcode_instances(zip_codes):
 @shared_task
 def update_or_create_listing(df):
     df = read_csv(StringIO(df))
-    df = df.dropna(subset=['address_one', 'state', 'city', 'zip_code'])
+    df = df.dropna(subset=['street', 'state', 'city', 'zip_code'])
     df = df.drop_duplicates(
-        subset=['address_one', 'address_two', 'city', 'state'], keep='first')
+        subset=['street', 'unit', 'city', 'state'], keep='first')
     # Pre-fetch all relevant ZipCode instances
     zip_code_map = get_zipcode_instances(df['zip_code'].unique().tolist())
 
-    df['full_address'] = df['address_one']
-    mask = df['address_two'] != '#'
-    df.loc[mask, 'full_address'] = df['address_one'] + ' ' + df['address_two']
+    df['full_address'] = df['street']
+    # Create a full address field, only include unit if it's not '#' or 'nan'
+    mask = df['unit'] != '#'
+    df.loc[mask, 'full_address'] = df['street'] + ' ' + df['unit']
+    possible_addresses = df['full_address'].tolist() + \
+        df['street'].tolist()
 
     # Fetch all existing records that match the addresses in the dataframe
     existing_listings = HomeListing.objects.filter(
-        address__in=df['full_address'].tolist(),
+        address__in=possible_addresses,
         city__in=df['city'].tolist(),
         state__in=df['state'].tolist()
     ).values('address', 'city', 'state')
@@ -126,68 +128,115 @@ def update_or_create_listing(df):
 
     to_update = []
     to_create = []
-
     for _, row in df.iterrows():
         try:
-            address = row['address_one']
-            if row['address_two'] != '#':
-                address += f' {row["address_two"]}'
+            address = row['street']
+            unit = safe_assign(row['unit'])
+            if unit:
+                address = row['street'] + ' ' + unit
             city = row['city']
             state = row['state']
-            status = get_status(row['listing_type'])
-            list_date = safe_assign(row.get(
-                'list_date', datetime.now().date().strftime('%Y-%m-%d')))
-            if list_date:
-                # See if list date is less than 6 months from today
-                list_date = list_date.split('T')[0]
-                if status == "House Recently Sold (6)":
-                    list_date_str = datetime.strptime(list_date, '%Y-%m-%d')
-                    if (datetime.now().date() - list_date_str.date()).days > 180:
-                        status = 'Off Market'
+            status = get_status(row['status'])
+            today = datetime.today().date().strftime('%Y-%m-%d')
+            if status == 'House For Sale':
+                listed = safe_assign(row.get('list_date', ''))
             else:
-                continue
-
+                listed = safe_assign(row.get('last_sold_date', ''))
+            if not listed:
+                listed = today
             data = {
                 # Get the ZipCode instance from the map
                 'zip_code': zip_code_map[row['zip_code']],
                 'address': address,
                 'status': status,
-                'price': safe_assign(row.get('price_min', row.get('price_max', 0))),
+                'price': safe_assign(row.get('list_price',
+                                             row.get('sold_price', 0))),
                 'year_built': safe_assign(row.get('year_built', 1900)),
                 'city': city,
                 'state': state,
-                'bedrooms': safe_assign(row.get('beds_min', row.get('beds_max', 0))),
-                'bathrooms': safe_assign(row.get('baths_min', row.get('baths_max', 0))),
-                'sqft': safe_assign(row['sqft_min']),
-                'lot_sqft': safe_assign(row.get('lot_area_value', 0)),
-                'latitude': safe_assign(row['latitude']),
-                'longitude': safe_assign(row['longitude']),
+                'bedrooms': safe_assign(row.get('beds', 0)),
+                'bathrooms': safe_assign(row.get('full_baths', 0)),
+                'sqft': safe_assign(row.get('sqft', 0)),
+                'lot_sqft': safe_assign(row.get('lot_sqft', 0)),
+                'latitude': safe_assign(row.get('latitude', 0)),
+                'longitude': safe_assign(row.get('longitude', 0)),
                 'url': row['property_url'],
-                'garage': safe_assign(row.get('garage', 0)),
+                'garage': safe_assign(row.get('parking_garage', 0)),
                 'description': safe_assign(row.get('description', '')),
-                'listed': list_date,
-
-
+                'listed': listed
             }
 
             listing_obj = HomeListing(**data)
 
-            if (address, city, state) in existing_addresses:
-                to_update.append(listing_obj)
-            else:
-                to_create.append(listing_obj)
+            if address is not None and address != "None None None" \
+                    and city is not None and state is not None:
+                if (address, city, state) in existing_addresses:
+                    to_update.append(listing_obj)
+                else:
+                    to_create.append(listing_obj)
         except Exception as e:
             logging.error(e)
             print(e)
 
-    if to_update:
-        HomeListing.objects.bulk_update(to_update, [
-            'zip_code', 'status', 'price', 'year_built', 'bedrooms',
-            'bathrooms', 'sqft', 'lot_sqft', 'latitude', 'longitude',
-            'url'  # Add other fields as required
-        ])
-        print(f"Updated {len(to_update)} listings")
-
-    if to_create:
-        HomeListing.objects.bulk_create(to_create)
-        print(f"Created {len(to_create)} new listings")
+    try:
+        if to_update:
+            HomeListing.objects.bulk_update(to_update, [
+                'zip_code', 'status', 'price', 'year_built', 'bedrooms',
+                'bathrooms', 'sqft', 'lot_sqft', 'latitude', 'longitude',
+                'url'  # Add other fields as required
+            ])
+            print(f"Updated {len(to_update)} listings")
+    except IntegrityError as e:
+        print(f"UPDATE: {e}")
+        print(len(to_update))
+        successful_counts = 0
+        for update in to_update:
+            try:
+                HomeListing.objects.filter(
+                    address=update.address,
+                    city=update.city,
+                    state=update.state
+                ).update(
+                    zip_code=update.zip_code,
+                    status=update.status,
+                    price=update.price,
+                    year_built=update.year_built,
+                    bedrooms=update.bedrooms,
+                    bathrooms=update.bathrooms,
+                    sqft=update.sqft,
+                    lot_sqft=update.lot_sqft,
+                    latitude=update.latitude,
+                    longitude=update.longitude,
+                    url=update.url
+                )
+                successful_counts += 1
+            except IntegrityError as e:
+                print("ERROR:", e)
+        print(f"Updated {successful_counts} listings")
+    try:
+        if to_create:
+            HomeListing.objects.bulk_create(to_create)
+            print(f"Created {len(to_create)} new listings")
+    except IntegrityError as e:
+        print(f"CREATE: {e}")
+        print(len(to_create))
+        successful_counts = 0
+        for create in to_create:
+            try:
+                HomeListing.objects.create(
+                    zip_code=create.zip_code,
+                    status=create.status,
+                    price=create.price,
+                    year_built=create.year_built,
+                    bedrooms=create.bedrooms,
+                    bathrooms=create.bathrooms,
+                    sqft=create.sqft,
+                    lot_sqft=create.lot_sqft,
+                    latitude=create.latitude,
+                    longitude=create.longitude,
+                    url=create.url
+                )
+                successful_counts += 1
+            except IntegrityError as e:
+                print(e)
+        print(f"Created {successful_counts} new listings")
