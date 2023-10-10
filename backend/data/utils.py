@@ -1314,7 +1314,10 @@ def verify_address(client_ids):
     Returns:
     None
     """
-    clients = Client.objects.filter(id__in=client_ids)
+    try:
+        clients = Client.objects.filter(id__in=client_ids)
+    except:
+        return
     for client in clients:
         zip_code = client.zip_code.zip_code
         base_url = "http://production.shippingapis.com/ShippingAPI.dll"

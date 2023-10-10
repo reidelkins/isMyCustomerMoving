@@ -138,8 +138,10 @@ def update_or_create_listing(df):
             state = row['state']
             status = get_status(row['status'])
             today = datetime.today().date().strftime('%Y-%m-%d')
-            listed = safe_assign(row.get('list_date', '')) if status == 'House For Sale' else safe_assign(
-                row.get('last_sold_date', ''))
+            if status == 'House For Sale':
+                listed = safe_assign(row.get('list_date', ''))
+            else:
+                listed = safe_assign(row.get('last_sold_date', ''))
             if not listed:
                 listed = today
             data = {
@@ -147,7 +149,8 @@ def update_or_create_listing(df):
                 'zip_code': zip_code_map[row['zip_code']],
                 'address': address,
                 'status': status,
-                'price': safe_assign(row.get('list_price', row.get('sold_price', 0))),
+                'price': safe_assign(row.get('list_price',
+                                             row.get('sold_price', 0))),
                 'year_built': safe_assign(row.get('year_built', 1900)),
                 'city': city,
                 'state': state,
@@ -165,7 +168,8 @@ def update_or_create_listing(df):
 
             listing_obj = HomeListing(**data)
 
-            if address != None and address != "None None None" and city != None and state != None:
+            if address is not None and address != "None None None" \
+                    and city is not None and state is not None:
                 if (address, city, state) in existing_addresses:
                     to_update.append(listing_obj)
                 else:
