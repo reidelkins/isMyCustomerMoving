@@ -144,6 +144,7 @@ def update_or_create_listing(df):
                 listed = safe_assign(row.get('last_sold_date', ''))
             if not listed:
                 listed = today
+
             data = {
                 # Get the ZipCode instance from the map
                 'zip_code': zip_code_map[row['zip_code']],
