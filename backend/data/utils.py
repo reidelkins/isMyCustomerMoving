@@ -1316,7 +1316,8 @@ def verify_address(client_ids):
     """
     try:
         clients = Client.objects.filter(id__in=client_ids)
-    except:
+    except Exception as e:
+        print(e)
         return
     for client in clients:
         zip_code = client.zip_code.zip_code
