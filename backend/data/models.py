@@ -291,7 +291,7 @@ class HomeListing(models.Model):
     )
 
     class Meta:
-        unique_together = ("address", "city", "state")
+        unique_together = ("address", "city", "state", "description")
 
     def __str__(self):
         return f"{self.address}_{self.status}"
