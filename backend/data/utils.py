@@ -7,7 +7,6 @@ from .models import (
     HomeListing,
     ClientUpdate,
     Task,
-    HomeListingTags,
     SavedFilter,
 )
 from .serializers import ZapierClientSerializer, HomeListingSerializer
@@ -1170,17 +1169,11 @@ def filter_home_listings(query_params, queryset, company_id, filter_type):
                     ).strftime("%Y-%m-%d")
                 }
             )
-
         elif param == "tags":
-            try:
-                tags = query_params[param].split(",")
-                if tags[0]:
-                    matching_tags = HomeListingTags.objects.filter(
-                        tag__in=tags
-                    )
-                    queryset = queryset.filter(tag__in=matching_tags)
-            except Exception as e:
-                logging.error(e)
+            tags_list = [tag.strip().lower().replace("_", " ")
+                         for tag in query_params['tags'].split(',')]
+            if tags_list != ['']:
+                queryset = queryset.filter(tags__contains=tags_list)
         elif param in ["state", "city"]:
             filter_key = f"{param}__iexact"
             queryset = queryset.filter(**{filter_key: query_params[param]})
@@ -1255,9 +1248,10 @@ def filter_clients(query_params, queryset, company_id):
             if zip_code.exists():
                 queryset = queryset.filter(zip_code=zip_code.first())
         elif param == "tags":
-            tags = query_params[param].split(",")
-            matching_tags = HomeListingTags.objects.filter(tag__in=tags)
-            queryset = queryset.filter(tag__in=matching_tags)
+            tags_list = [tag.strip().lower().replace("_", " ")
+                         for tag in query_params['tags'].split(',')]
+            if tags_list != ['']:
+                queryset = queryset.filter(tags__contains=tags_list)
         elif param == "status":
             statuses = []
             if "For Sale" in query_params[param]:

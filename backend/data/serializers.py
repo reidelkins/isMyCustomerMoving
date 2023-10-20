@@ -6,7 +6,6 @@ from .models import (
     Client,
     ClientUpdate,
     HomeListing,
-    HomeListingTags,
     Realtor,
     Referral
 )
@@ -33,12 +32,8 @@ class ClientUpdateSerializer(serializers.ModelSerializer):
 
 class ClientListSerializer(serializers.ModelSerializer):
     # zip_code = serializers.CharField(source='zip_code.zip_code')
-    tag = serializers.SerializerMethodField()
     service_titan_customer_since_year = serializers.IntegerField(default=1900)
     client_updates_client = ClientUpdateSerializer(many=True, read_only=True)
-
-    def get_tag(self, obj):
-        return [tag.tag for tag in obj.tag.all()]
 
     class Meta:
         model = Client
@@ -47,7 +42,6 @@ class ClientListSerializer(serializers.ModelSerializer):
             for f in Client._meta.fields
             if f.name != "service_titan_customer_since"
         ] + [
-            "tag",
             "service_titan_customer_since_year",
             "client_updates_client",
         ]
@@ -70,21 +64,14 @@ class ZapierClientSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class HomeListingTagsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = HomeListingTags
-        fields = ["tag"]
-
-
 class HomeListingSerializer(serializers.ModelSerializer):
     zip_code = serializers.CharField(source='zip_code.zip_code')
-    tags = HomeListingTagsSerializer(many=True, read_only=True)
 
     class Meta:
         model = HomeListing
         fields = [
             f.name for f in HomeListing._meta.fields if f.name != "zip_code"
-        ] + ["zip_code", "tags"]
+        ] + ["zip_code"]
 
 
 class ReferralSerializer(serializers.ModelSerializer):

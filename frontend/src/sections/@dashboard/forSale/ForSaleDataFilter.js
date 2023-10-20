@@ -372,6 +372,8 @@ export default function ForSaleDataFilter({
       )
     );
   };
+
+  const tagColors = [  '#E57373',  '#81C784',  '#64B5F6', '#FFC107', '#BA68C8'];
   return (
     <div className={classes.root}>
       <Stack direction="row" spacing={2} alignItems="space-between">
@@ -515,7 +517,7 @@ export default function ForSaleDataFilter({
                     </Box>
                   </Tooltip>
                 </Grid>
-                {/* <Grid item xs={12}>
+                <Grid item xs={12}>
                   <Tooltip title="Year the house was built">
                     <Box mt={2}>
                       <Typography variant="h6" mb={2}>
@@ -541,7 +543,7 @@ export default function ForSaleDataFilter({
                       </Stack>
                     </Box>
                   </Tooltip>
-                </Grid> */}
+                </Grid>
                 <Grid item xs={12}>
                   <Tooltip title="How many bedrooms the house has">
                     <Box mt={2}>
@@ -650,28 +652,40 @@ export default function ForSaleDataFilter({
                     </Box>
                   </Tooltip>
                 </Grid>
-                {/* <Grid item xs={12}>
+                <Grid item xs={12}>
                   <FormControl component="fieldset">
                     <Typography variant="h6" mb={2}>
                       Tags
                     </Typography>
                     <Grid container spacing={1}>
-                      {sortedTagOptions.map((option) => (
-                        <FormControlLabel
-                          key={option.value}
-                          control={
-                            <Checkbox
-                              checked={tagFilters.includes(option.value)}
-                              onChange={handleTagFilterChange}
-                              value={option.value}
-                            />
-                          }
-                          label={option.label}
-                        />
+                      {sortedTagOptions.map((option, index) => (
+                          <Grid item key={option.value}>
+                              <Box
+                                  component="label"
+                                  display="flex"
+                                  alignItems="center"
+                                  style={{
+                                      cursor: 'pointer',
+                                      padding: '5px',
+                                      borderRadius: '15px',
+                                      backgroundColor: tagColors[index % tagColors.length],
+                                      color: 'white',
+                                      fontWeight: 'bold',
+                                  }}
+                              >
+                                  <Checkbox
+                                      checked={tagFilters.includes(option.value)}
+                                      onChange={handleTagFilterChange}
+                                      value={option.value}
+                                      style={{ color: 'white' }}
+                                  />
+                                  {option.label}
+                              </Box>
+                          </Grid>
                       ))}
-                    </Grid>
+                  </Grid>
                   </FormControl>
-                </Grid> */}
+                </Grid>
               </Grid>
               <Box mt={2} alignItems="center" display="flex" justifyContent="space-between">
                 <Button onClick={handleOpenSaveFilter} variant="contained" color="primary">
