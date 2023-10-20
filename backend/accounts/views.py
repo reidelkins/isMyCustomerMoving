@@ -22,7 +22,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 import logging
 
-from data.models import HomeListingTags, ZipCode
+from data.models import ZipCode
 from data.serializers import HomeListingSerializer
 
 from payments.models import Product
@@ -804,8 +804,9 @@ class ZapierRecentlySoldSubscribeView(APIView):
         """
         try:
             zip_code = ZipCode(zip_code=10001)
-            tags = list(HomeListingTags.objects.all(
-            ).values_list("pk", flat=True))[:3]
+            # TODO
+            # tags = list(HomeListingTags.objects.all(
+            # ).values_list("pk", flat=True))[:3]
             test_recently_sold_home_listing = {
                 "address": "123 Main St",
                 "city": "New York",
@@ -821,7 +822,7 @@ class ZapierRecentlySoldSubscribeView(APIView):
                 "latitude": 40.7128,
                 "longitude": 74.0060,
                 "garage": 2,
-                "tags": tags,
+                # "tags": tags,
                 "filterName": "Test Filter",
                 "listed": "01-01-2023"
             }

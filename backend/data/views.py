@@ -104,7 +104,7 @@ class ClientListView(generics.ListAPIView):
         user = self.request.user
         query_params = self.request.query_params
         queryset = Client.objects.prefetch_related(
-            "client_updates_client", "tag"
+            "client_updates_client",
         ).filter(company=user.company, active=True).annotate(
             service_titan_customer_since_year=ExtractYear(
                 'service_titan_customer_since')

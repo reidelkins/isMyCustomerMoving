@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.core.exceptions import ValidationError
 from datetime import datetime, timedelta
@@ -87,9 +88,8 @@ class Client(models.Model):
         max_length=100, default=" ", blank=True, null=True
     )
     year_built = models.IntegerField(default=0, blank=True, null=True)
-    tag = models.ManyToManyField(
-        "HomeListingTags", blank=True, related_name="client_tags"
-    )
+    tags = ArrayField(models.CharField(max_length=200),
+                      blank=True, null=True, default=list)
     description = models.TextField(default=" ", blank=True, null=True)
 
     new_address = models.CharField(max_length=150, blank=True, null=True)
@@ -136,48 +136,6 @@ class ClientUpdate(models.Model):
     contacted = models.BooleanField(blank=True, null=True, default=False)
     error_flag = models.BooleanField(blank=True, null=True, default=False)
 
-
-# class RealtorWithListingCountManager(models.Manager):
-#     def get_queryset(self, service_area_zip_codes=None):
-#         queryset = super().get_queryset()
-
-#         base_filter = models.Q(home_listing_realtor__status="House For Sale")
-
-#         if service_area_zip_codes:
-#             queryset = queryset.annotate(
-#                 listing_count=models.Count(
-#                     'home_listing_realtor',
-#                     filter=models.Q(
-#                         home_listing_realtor__zip_code__in=service_area_zip_codes,
-#                     ),
-#                     distinct=True
-#                 )
-#             )
-#         else:
-#             queryset = queryset.annotate(
-#                 listing_count=models.Count('home_listing_realtor')
-#             )
-
-#         return queryset
-
-#     def get_realtors_with_filtered_listings(self, service_area_zip_codes=None):
-#         queryset = super().get_queryset()
-
-#         if service_area_zip_codes:
-#             queryset = queryset.annotate(
-#                 listing_count=models.Count(
-#                     'home_listing_realtor',
-#                     filter=models.Q(
-#                         home_listing_realtor__zip_code__in=service_area_zip_codes),
-#                     distinct=True
-#                 )
-#             )
-#         else:
-#             queryset = queryset.annotate(
-#                 listing_count=models.Count('home_listing_realtor')
-#             )
-
-#         return queryset.filter(listing_count__gt=0)
 
 class RealtorWithListingCountManager(models.Manager):
     def get_queryset(self, service_area_zip_codes=None):
@@ -242,9 +200,8 @@ class HomeListing(models.Model):
         max_length=100, default=" ", blank=True, null=True
     )
     year_built = models.IntegerField(default=0, blank=True, null=True)
-    tag = models.ManyToManyField(
-        "HomeListingTags", blank=True, related_name="home_listing_tag"
-    )
+    tags = ArrayField(models.CharField(max_length=200),
+                      blank=True, null=True, default=list)
     city = models.CharField(max_length=40, blank=True, null=True)
     state = models.CharField(max_length=31, blank=True, null=True)
     bedrooms = models.IntegerField(default=0, blank=True, null=True)
@@ -254,58 +211,47 @@ class HomeListing(models.Model):
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
     year_renovated = models.IntegerField(default=0, blank=True, null=True)
-    roofing = models.CharField(
-        max_length=100, default=" ", blank=True, null=True
-    )
-    garage_type = models.CharField(
-        max_length=100, default=" ", blank=True, null=True
-    )
+    # roofing = models.CharField(
+    #     max_length=100, default=" ", blank=True, null=True
+    # )
+    # garage_type = models.CharField(
+    #     max_length=100, default=" ", blank=True, null=True
+    # )
     garage = models.IntegerField(default=0, blank=True, null=True)
-    heating = models.CharField(
-        max_length=100, default=" ", blank=True, null=True
-    )
-    cooling = models.CharField(
-        max_length=100, default=" ", blank=True, null=True
-    )
-    heating_cooling_description = models.TextField(
-        default=" ", blank=True, null=True)
-    interior_features_description = models.TextField(
-        default=" ", blank=True, null=True)
-    exterior = models.CharField(
-        max_length=100, default=" ", blank=True, null=True
-    )
-    pool = models.CharField(
-        max_length=100, default=" ", blank=True, null=True
-    )
-    fireplace = models.CharField(
-        max_length=100, default=" ", blank=True, null=True
-    )
+    # heating = models.CharField(
+    #     max_length=100, default=" ", blank=True, null=True
+    # )
+    # cooling = models.CharField(
+    #     max_length=100, default=" ", blank=True, null=True
+    # )
+    # heating_cooling_description = models.TextField(
+    #     default=" ", blank=True, null=True)
+    # interior_features_description = models.TextField(
+    #     default=" ", blank=True, null=True)
+    # exterior = models.CharField(
+    #     max_length=100, default=" ", blank=True, null=True
+    # )
+    # pool = models.CharField(
+    #     max_length=100, default=" ", blank=True, null=True
+    # )
+    # fireplace = models.CharField(
+    #     max_length=100, default=" ", blank=True, null=True
+    # )
     description = models.TextField(default=" ", blank=True, null=True)
     url = models.CharField(max_length=100, blank=True, null=True)
-    realtor = models.ForeignKey(
-        Realtor,
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
-        related_name="home_listing_realtor",
-    )
+    # realtor = models.ForeignKey(
+    #     Realtor,
+    #     blank=True,
+    #     null=True,
+    #     on_delete=models.SET_NULL,
+    #     related_name="home_listing_realtor",
+    # )
 
     class Meta:
         unique_together = ("address", "city", "state")
 
     def __str__(self):
         return f"{self.address}_{self.status}"
-
-
-# HomeListingTags model
-class HomeListingTags(models.Model):
-    id = models.UUIDField(
-        primary_key=True, unique=True, default=uuid.uuid4, editable=False
-    )
-    tag = models.CharField(max_length=100, unique=True)
-
-    def __str__(self):
-        return self.tag
 
 
 # Task model

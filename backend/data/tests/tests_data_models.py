@@ -4,7 +4,6 @@ from data.models import (
     ZipCode,
     Client,
     ClientUpdate,
-    HomeListingTags,
     HomeListing,
     Realtor,
     SavedFilter,
@@ -63,7 +62,6 @@ class TestClientModel(TestCase):
     def setUp(self):
         self.company = Company.objects.create(name="Test Company")
         self.zip_code = ZipCode.objects.create(zip_code="12345")
-        self.tag = HomeListingTags.objects.create(tag="Test Tag")
 
     def test_client_creation(self):
         """
@@ -121,20 +119,6 @@ class TestClientModel(TestCase):
                 company=self.company,
                 status="Off Market",
             )
-
-    def test_client_tag_relation(self):
-        """
-        Test the ManyToMany relation with HomeListingTags.
-        """
-        client = Client.objects.create(
-            name="Test Client",
-            address="123 Test Street",
-            zip_code=self.zip_code,
-            company=self.company,
-            status="No Change",
-        )
-        client.tag.add(self.tag)
-        self.assertEqual(client.tag.first(), self.tag)
 
 
 class TestClientUpdateModel(TestCase):
