@@ -90,6 +90,8 @@ class Client(models.Model):
     year_built = models.IntegerField(default=0, blank=True, null=True)
     tags = ArrayField(models.CharField(max_length=200),
                       blank=True, null=True, default=list)
+    client_tags = ArrayField(models.CharField(max_length=200),
+                             blank=True, null=True, default=list)
     description = models.TextField(default=" ", blank=True, null=True)
 
     new_address = models.CharField(max_length=150, blank=True, null=True)

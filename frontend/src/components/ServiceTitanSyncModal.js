@@ -65,7 +65,7 @@ export default function ServiceTitanSyncModal(serviceTitanCustomerSyncOption) {
       >
         Sync With Service Titan
       </Button>
-      <Dialog open={open} onClose={handleClose} sx={{ padding: '2px' }}>
+      <Dialog open={open} onClose={handleClose} sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} >
         <DialogTitle>Sync With Service Titan</DialogTitle>
         <Divider />
         <DialogContent>

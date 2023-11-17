@@ -394,6 +394,7 @@ export default function ForSaleDataFilter({
         <Dialog
           open={showFilters}
           onClose={() => setShowFilters(false)}
+          sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} 
         >
           <DialogTitle>For Sale Filter</DialogTitle>
           <Divider />
@@ -705,6 +706,7 @@ export default function ForSaleDataFilter({
         <Dialog
           open={showSaveFilter}
           onClose={() => setShowSaveFilter(false)}
+          sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} 
         >
           <DialogTitle>Save Filter</DialogTitle>
           <Divider />

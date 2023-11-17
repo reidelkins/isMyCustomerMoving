@@ -442,6 +442,7 @@ export default function CustomerDataFilter({
         <Dialog
           open={showFilters}
           onClose={() => setShowFilters(false)}
+          sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} 
         >
           <DialogTitle>Customer Data Filter </DialogTitle>
           <Divider />
@@ -824,6 +825,7 @@ export default function CustomerDataFilter({
         <Dialog
           open={showSaveFilter}
           onClose={() => setShowSaveFilter(false)}
+          sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} 
         >
           <DialogTitle>Save Filter</DialogTitle>
           <Divider />

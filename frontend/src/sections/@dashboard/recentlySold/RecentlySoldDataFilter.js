@@ -393,7 +393,10 @@ export default function RecentlySoldDataFilter({
         )}
       </Stack>
       {showFilters && (
-        <Dialog open={showFilters} onClose={() => setShowFilters(false)}>
+        <Dialog 
+          open={showFilters}
+          onClose={() => setShowFilters(false)}
+          sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} >
           <DialogTitle>Recently Sold Filter</DialogTitle>
           <Divider />
           <DialogContent>
@@ -701,7 +704,10 @@ export default function RecentlySoldDataFilter({
         </Dialog>
       )}
       {showSaveFilter && (
-        <Dialog open={showSaveFilter} onClose={() => setShowSaveFilter(false)}>
+        <Dialog 
+          open={showSaveFilter} 
+          onClose={() => setShowSaveFilter(false)}
+          sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} >
           <DialogTitle>Save Filter</DialogTitle>
           <Divider />
           <DialogContent>

@@ -13,6 +13,7 @@ export const userSlice = createSlice({
       CLIENTLIST: [],
       NEWADDRESSLIST: [],
       customerDataFilters: [],
+      clientTags: [],
       count: 0,
       forSale: {
         current: 0,
@@ -88,6 +89,7 @@ export const userSlice = createSlice({
       state.clientsInfo.recentlySold.current = action.payload.results.recentlySold;
       state.clientsInfo.recentlySold.total = action.payload.results.recentlySoldAllTime;
       state.clientsInfo.customerDataFilters = action.payload.results.savedFilters;
+      state.clientsInfo.clientTags = action.payload.results.clientTags;
       state.clientsInfo.loading = false;
       state.clientsInfo.error = null;
       state.clientsInfo.done = false;
@@ -667,8 +669,6 @@ export const uploadServiceAreasAsync = (zipCodes, refreshed = false) => async (d
     }
   }
 };
-
-
 
 
 export const filterClientsAsync =
@@ -1871,6 +1871,26 @@ export const getCompanyDashboardDataAsync = (refreshed = false) => async (dispat
     } else {
       dispatch(logout());
     }
+  }
+}
+
+export const saveClientTagAsync = (tag) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const { userInfo } = reduxStore.auth.userInfo;    
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access_token}`,
+      },
+    };
+    const { data } = await axios.post(`${DOMAIN}/api/v1/data/client_tags/`, {tag }, config);
+    dispatch(clients(data));
+  }
+  catch (error) {
+    dispatch(
+      clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message)
+    );
   }
 }
 
