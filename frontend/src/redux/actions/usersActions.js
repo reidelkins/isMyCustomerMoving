@@ -471,9 +471,9 @@ export const deleteUserAsync = (ids, refreshed = false) => async (dispatch, getS
 };
 
 export const clientsAsync =
-  (page, refreshed = false) =>
+  (page, startOver = false, refreshed = false) =>
   async (dispatch, getState) => {
-    try {
+    try {      
       const reduxStore = getState();
       const { userInfo } = reduxStore.auth.userInfo;
       const config = {
@@ -482,10 +482,10 @@ export const clientsAsync =
           Authorization: `Bearer ${userInfo.access_token}`,
         },
       };
-      if (page === 1 && reduxStore.user.clientsInfo.highestPage === 0) {
+      if (page === 1 && reduxStore.user.clientsInfo.highestPage === 0 || startOver) {
         dispatch(clientsLoading());
       }
-      if (page > reduxStore.user.clientsInfo.highestPage) {
+      if (page > reduxStore.user.clientsInfo.highestPage || startOver) {
         const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/?page=${page}`, config);
         if (page === 1) {
           dispatch(clients(data));
@@ -698,6 +698,7 @@ export const filterClientsAsync =
     uspsChanged,
     minRevenue,
     maxRevenue,
+    clientTagFilters,
     refreshed = false
   ) =>
   async (dispatch, getState) => {
@@ -786,6 +787,9 @@ export const filterClientsAsync =
       if (maxRevenue) {
         filters += `&max_revenue=${maxRevenue}`;
       }
+      if (clientTagFilters.length > 0) {
+        filters += `&client_tags=${clientTagFilters.join('&client_tags=')}`;
+      }
       const { data } = await axios.get(`${DOMAIN}/api/v1/data/clients/?page=1${filters}`, config);
       dispatch(clients(data));
     } catch (error) {
@@ -820,6 +824,7 @@ export const filterClientsAsync =
               uspsChanged,
               minRevenue,
               maxRevenue,
+              clientTagFilters,
               true
             )
           )
@@ -1386,7 +1391,8 @@ export const getClientsCSV = (
   savedFilter,
   uspsChanged,
   minRevenue,
-  maxRevenue
+  maxRevenue,
+  clientTags
   // eslint-disable-next-line arrow-body-style
 ) => {
   return async (dispatch, getState) => {
@@ -1475,6 +1481,9 @@ export const getClientsCSV = (
       }
       if (maxRevenue) {
         filters += `&max_revenue=${maxRevenue}`;
+      }
+      if (clientTags) {
+        filters += `&client_tags=${clientTags.join(',')}`;
       }
       const response = await axios.get(`${DOMAIN}/api/v1/data/downloadclients/?${filters}`, config);
       const csvBlob = new Blob([response.data], { type: 'text/csv' }); // Convert binary response to a blob
@@ -1884,8 +1893,8 @@ export const saveClientTagAsync = (tag) => async (dispatch, getState) => {
         Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
-    const { data } = await axios.post(`${DOMAIN}/api/v1/data/client_tags/`, {tag }, config);
-    dispatch(clients(data));
+    await axios.put(`${DOMAIN}/api/v1/accounts/company/`, {'client_tag': tag}, config);
+    
   }
   catch (error) {
     dispatch(
@@ -1893,4 +1902,54 @@ export const saveClientTagAsync = (tag) => async (dispatch, getState) => {
     );
   }
 }
+
+export const addClientTagsAsync = (tags, clientIds) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const { userInfo } = reduxStore.auth.userInfo;
+    const config = {
+      headers: {      
+        'Content-type': 'application/json',  
+        Authorization: `Bearer ${userInfo.access_token}`,
+      },
+    };
+    const body = {
+      tags,
+      client_ids: clientIds
+    }
+    await axios.post(`${DOMAIN}/api/v1/data/clients/tags/`, body, config);    
+
+  }
+  catch (error) {
+    dispatch(
+      clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message)
+    );
+  }
+}
+
+export const removeClientTagsAsync = (tags, clientIds) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const { userInfo } = reduxStore.auth.userInfo;
+    const config = {
+      headers: {      
+        'Content-type': 'application/json',  
+        Authorization: `Bearer ${userInfo.access_token}`,
+      },
+    };
+    const body = {
+      tags,
+      client_ids: clientIds,
+      delete: true
+    }
+    await axios.post(`${DOMAIN}/api/v1/data/clients/tags/`, body, config);    
+
+  }
+  catch (error) {
+    dispatch(
+      clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message)
+    );
+  }
+}
+
 

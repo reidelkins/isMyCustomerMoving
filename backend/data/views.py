@@ -361,6 +361,41 @@ class ClientListView(generics.ListAPIView):
             )
 
 
+class ClientTags(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            company_client_tags = request.user.company.client_tags
+            clients = Client.objects.filter(id__in=request.data["client_ids"])
+            tags = set([tag for tag in request.data["tags"]
+                        if tag in company_client_tags])
+            for client in clients:
+                # Convert current tags to a set
+                current_tags = set(client.client_tags)
+
+                # Union of current and new tags
+                if "delete" in request.data:
+                    updated_tags = current_tags.difference(tags)
+                else:
+                    updated_tags = current_tags.union(tags)
+                    # Convert the updated set back to a list
+
+                client.client_tags = list(updated_tags)
+                client.save()
+
+            return Response(
+                {"status": "Client Updated"},
+                status=status.HTTP_201_CREATED,
+                headers="",
+            )
+        except Exception as e:
+            logging.error(e)
+            return Response(
+                {"status": "Data Error"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+
 class RecentlySoldView(generics.ListAPIView):
     serializer_class = HomeListingSerializer
     pagination_class = CustomPagination
@@ -379,10 +414,10 @@ class RecentlySoldView(generics.ListAPIView):
                 ).values('zip_code').distinct()
             queryset = HomeListing.objects.filter(
                 zip_code__in=zip_code_objects,
-                status="House Recently Sold (6)",
-                listed__gt=(
-                    datetime.today() - timedelta(days=30)
-                ).strftime("%Y-%m-%d"),
+                # status="House Recently Sold (6)",
+                # listed__gt=(
+                #     datetime.today() - timedelta(days=30)
+                # ).strftime("%Y-%m-%d"),
             ).order_by("-listed").select_related('zip_code')
             return filter_home_listings(
                 query_params, queryset, company.id, "Recently Sold"
@@ -496,12 +531,13 @@ class AllRecentlySoldView(generics.ListAPIView):
     def get(self, request, format=None):
         queryset = self.get_queryset()
         header = [
-            "address",
-            "city",
-            "state",
-            "zip_code",
-            "listing_price",
-            "year_built",
+            "Sold Date",
+            "Address",
+            "City",
+            "State",
+            "Zip Code",
+            "Listing Price",
+            "Year Built",
         ]
         response = HttpResponse(content_type="text/csv")
         response[
@@ -512,6 +548,8 @@ class AllRecentlySoldView(generics.ListAPIView):
 
         for home_listing in queryset:
             row = [
+                datetime.strptime(home_listing.listed,
+                                  "%Y-%m-%d").strftime("%b %d, %Y"),
                 home_listing.address,
                 home_listing.city,
                 home_listing.state,
@@ -536,9 +574,9 @@ class AllRecentlySoldView(generics.ListAPIView):
             queryset = HomeListing.objects.filter(
                 zip_code__in=zip_code_objects,
                 status="House Recently Sold (6)",
-                listed__gt=(
-                    datetime.today() - timedelta(days=30)
-                ).strftime("%Y-%m-%d"),
+                # listed__gt=(
+                #     datetime.today() - timedelta(days=30)
+                # ).strftime("%Y-%m-%d"),
             ).order_by("-listed").select_related('zip_code')
             return filter_home_listings(
                 query_params, queryset, company.id, "Recently Sold"

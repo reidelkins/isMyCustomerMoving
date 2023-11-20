@@ -285,11 +285,11 @@ export default function RecentlySoldDataFilter({
       } else {
         handleChangeMaxDaysAgo(0);
       }
-    } else if (value > 30) {
+    } else if (value > 180) {
       if (type === 'min') {
-        handleChangeMinDaysAgo(30);
+        handleChangeMinDaysAgo(180);
       } else {
-        handleChangeMaxDaysAgo(30);
+        handleChangeMaxDaysAgo(180);
       }
     } else {
       /* eslint-disable no-lonely-if */
@@ -488,7 +488,7 @@ export default function RecentlySoldDataFilter({
                   </Tooltip>
                 </Grid>
                 <Grid item xs={12}>
-                  <Tooltip title="How long ago was the house sold, this data only goes back 30 days">
+                  <Tooltip title="How long ago was the house sold, this will go back up to 180 days">
                     <Box mt={2}>
                       <Typography variant="h6" mb={2}>
                         Days Ago Sold

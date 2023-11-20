@@ -10,12 +10,12 @@ client_patterns = [
         "",
         views.ClientListView.as_view(),
         name="client-list",
-    )
-    # path(
-    #     "",
-    #     views.ClientListView.as_view(),
-    #     name="save-client-filter",
-    # ),
+    ),
+    path(
+        "tags/",
+        views.ClientTags.as_view(),
+        name="client-tags",
+    ),
 ]
 
 recently_sold_patterns = [
@@ -106,5 +106,6 @@ urlpatterns = [
     path("company_dashboard/", views.CompanyDashboardView.as_view(),
          name="company-dashboard"),
     path("zapier/client/", views.ZapierCreateClientView.as_view(),
-         name="zapier-client-create",)
+         name="zapier-client-create",),
+
 ]

@@ -487,7 +487,7 @@ export default function ForSaleDataFilter({
                   </Tooltip>
                 </Grid>
                 <Grid item xs={12}>
-                  <Tooltip title="How long ago was the house sold, this data only goes back 30 days">
+                  <Tooltip title="How long ago was the house put up for sale">
                     <Box mt={2}>
                       <Typography variant="h6" mb={2}>
                         Days Ago Sold

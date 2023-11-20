@@ -34,6 +34,7 @@ import { ForSaleListToolbar } from '../../sections/@dashboard/forSale';
 import ForSaleListCall from '../../redux/calls/ForSaleListCall';
 import { selectForSale, getForSaleCSV } from '../../redux/actions/usersActions';
 import { showLoginInfo } from '../../redux/actions/authActions';
+import { capitalizeWords } from '../../utils/capitalizeWords';
 import { makeDate } from '../../utils/makeDate';
 import { handleChangePage, handleChangeRowsPerPage } from '../../utils/dataTableFunctions';
 import { getComparator, applySortFilter } from '../../utils/filterFunctions';
@@ -219,9 +220,7 @@ export default function ForSaleData() {
   }, [count]);
 
   const tagColors = [  '#E57373',  '#81C784',  '#64B5F6', '#FFC107', '#BA68C8'];
-  function capitalizeWords(str) {
-    return str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
-  }
+  
   return (
     <Page title="For Sale" userInfo={userInfo}>
       <Container>
@@ -328,22 +327,23 @@ export default function ForSaleData() {
                                 <TableCell align="left">{yearBuilt}</TableCell>
                                 <TableCell align="left">
                                   {tags.map((tag, index) => (
-                                    <span 
-                                        key={tag} 
-                                        style={{
-                                            backgroundColor: tagColors[index % tagColors.length],
-                                            color: 'white',
-                                            borderRadius: '15px',
-                                            padding: '5px 10px',
-                                            margin: '5px 2px',
-                                            display: 'inline-block',
-                                            fontWeight: 'bold'
-                                        }}
-                                    >
-                                        {capitalizeWords(tag)}
-                                    </span>
-                                ))}
-                                </TableCell>
+                                      <span 
+                                          key={tag} 
+                                          style={{                                            
+                                              backgroundColor: tagColors[index % tagColors.length],
+                                              color: 'white',
+                                              borderRadius: '10px', // Smaller border-radius
+                                              padding: '3px 8px', // Reduced padding
+                                              margin: '5px 2px',
+                                              display: 'inline-block',
+                                              fontWeight: 'bold',
+                                              fontSize: '0.5em' // Smaller font size
+                                          }}
+                                      >
+                                          {capitalizeWords(tag)}
+                                      </span>
+                                  ))}
+                              </TableCell>
                               </TableRow>
                             </React.Fragment>
                           );

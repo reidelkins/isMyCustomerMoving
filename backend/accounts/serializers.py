@@ -72,7 +72,8 @@ class CompanySerializer(serializers.ModelSerializer):
             "service_titan_customer_sync_option",
             "product",
             "service_titan_app_version",
-            "service_area_zip_codes"
+            "service_area_zip_codes",
+            "client_tags"
         ]
 
     def create(self, validated_data):

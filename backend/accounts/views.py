@@ -938,7 +938,16 @@ class CompanyView(APIView):
 
     def put(self, request, *args, **kwargs):
         try:
-            company = Company.objects.get(id=request.data["company"])
+            company = request.user.company
+            # TODO BAD CODE BUT DOING THIS TO BE QUICK - should not be here necessarily
+            if 'client_tag' in request.data:
+                if request.data["client_tag"] not in company.client_tags:
+                    company.client_tags.append(request.data["client_tag"])
+                company.save()
+                serializer = UserSerializerWithToken(request.user, many=False)
+                return Response(
+                    serializer.data, status=status.HTTP_201_CREATED, headers=""
+                )
             if request.data["email"] != "":
                 company.email = request.data["email"]
             if request.data["phone"] != "":
@@ -978,9 +987,9 @@ class CompanyView(APIView):
                 )
             if request.data["crm"] != "":
                 company.crm = request.data["crm"]
+
             company.save()
-            user = CustomUser.objects.get(id=request.data["user"])
-            serializer = UserSerializerWithToken(user, many=False)
+            serializer = UserSerializerWithToken(request.user, many=False)
             return Response(
                 serializer.data, status=status.HTTP_201_CREATED, headers=""
             )

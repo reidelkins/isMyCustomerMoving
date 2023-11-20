@@ -318,10 +318,10 @@ export default function RecentlySoldData() {
                                 <TableCell align="left">{city}</TableCell>
                                 <TableCell align="left">{state}</TableCell>
                                 <TableCell align="left">{zipCode}</TableCell>
-                                <TableCell align="left">{price.toLocaleString()}</TableCell>
+                                <TableCell align="left">{price ? price.toLocaleString() : "$0"}</TableCell>
                                 <TableCell align="left">{yearBuilt}</TableCell>
                                 <TableCell align="left">
-                                  {tags.map((tag, index) => (
+                                  {tags && tags.map((tag, index) => (
                                     <span 
                                         key={tag} 
                                         style={{
