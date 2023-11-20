@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import { makeStyles } from '@mui/styles';
+// import { makeStyles } from '@mui/styles';
 import {
   Alert,
   Box,
@@ -31,16 +31,16 @@ import {
   saveFilterSuccess,
 } from '../../../redux/actions/usersActions';
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    position: 'relative',
-  },
-  filterButton: {
-    position: 'absolute',
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-  },
-}));
+// const useStyles = makeStyles((theme) => ({
+//   root: {
+//     position: 'relative',
+//   },
+//   filterButton: {
+//     position: 'absolute',
+//     right: theme.spacing(1),
+//     top: theme.spacing(1),
+//   },
+// }));
 
 ForSaleDataFilter.propTypes = {
   minPrice: PropTypes.string,
@@ -125,7 +125,7 @@ export default function ForSaleDataFilter({
   setSavedFilter: handleChangeSavedFilter,
   forSaleFilters,
 }) {
-  const classes = useStyles();
+  // const classes = useStyles();
   const [showFilters, setShowFilters] = useState(false);
   const [showSaveFilter, setShowSaveFilter] = useState(false);
   const [filterName, setFilterName] = useState('');

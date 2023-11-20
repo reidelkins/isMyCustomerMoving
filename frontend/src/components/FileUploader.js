@@ -17,22 +17,20 @@ import {
   Fade,
   Modal,
 } from '@mui/material';
-import { makeStyles } from '@mui/styles';
+// import { makeStyles } from '@mui/styles';
 import Iconify from './Iconify';
 import { uploadClientsAsync, selectClients, uploadServiceAreasAsync } from '../redux/actions/usersActions';
 
-const useStyles = makeStyles(() => ({
-  uploaderDiv: {
-    backgroundColor: '#f1f0ef',
-    height: '80px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '5px',
-  },
-}));
-
-
+// const useStyles = makeStyles(() => ({
+//   uploaderDiv: {
+//     backgroundColor: '#f1f0ef',
+//     height: '80px',
+//     display: 'flex',
+//     alignItems: 'center',
+//     justifyContent: 'center',
+//     borderRadius: '5px',
+//   },
+// }));
 
 const FileUploader = ({ fileType }) => {
   const dispatch = useDispatch();
