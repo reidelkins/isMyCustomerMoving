@@ -158,7 +158,7 @@ export default function CustomerDataFilter({
   setClientTagFilters: handleClientTagFiltersChange,
   clientTags,
 }) {
-  // const classes = useStyles();
+  
   const [showFilters, setShowFilters] = useState(false);
   const [showClearFilters, setShowClearFilters] = useState(false);
   const [showSaveFilter, setShowSaveFilter] = useState(false);
@@ -443,7 +443,7 @@ export default function CustomerDataFilter({
   };
 
   return (
-    <div className={classes.root}>
+    <div> 
       <Stack direction="row" spacing={2} alignItems="space-between">
         <Tooltip title="Filter list">
           <IconButton onClick={handleShowFilters}>

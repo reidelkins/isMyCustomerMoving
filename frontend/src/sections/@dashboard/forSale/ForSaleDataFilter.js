@@ -375,7 +375,7 @@ export default function ForSaleDataFilter({
 
   const tagColors = [  '#E57373',  '#81C784',  '#64B5F6', '#FFC107', '#BA68C8'];
   return (
-    <div className={classes.root}>
+    <div>
       <Stack direction="row" spacing={2} alignItems="space-between">
         <Tooltip title="Filter list">
           <IconButton onClick={() => setShowFilters(true)}>

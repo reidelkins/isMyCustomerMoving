@@ -34,7 +34,7 @@ import { uploadClientsAsync, selectClients, uploadServiceAreasAsync } from '../r
 
 const FileUploader = ({ fileType }) => {
   const dispatch = useDispatch();
-  const classes = useStyles();
+  // const classes = useStyles();
 
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState('');
@@ -221,7 +221,7 @@ const FileUploader = ({ fileType }) => {
             <div
               onDrop={(event) => handleDrop(event)}
               onDragOver={(event) => handleDragOver(event)}
-              className={classes.uploaderDiv}
+              // className={classes.uploaderDiv}
             >
               <label htmlFor="file" style={{ cursor: 'pointer', textDecoration: 'underline' }}>
                 {!file && uploaded && `Success! ${fileName} has been uploaded.`}
