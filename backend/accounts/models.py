@@ -4,6 +4,7 @@ from django_rest_passwordreset.signals import reset_password_token_created
 from django.core.mail import EmailMessage
 from django.db import models
 from django.utils.translation import gettext as _
+from django.contrib.postgres.fields import ArrayField
 import uuid
 from datetime import datetime, timedelta
 from django.utils.crypto import get_random_string
@@ -172,6 +173,8 @@ class Company(models.Model):
     service_area_zip_codes = models.ManyToManyField(
         "data.ZipCode", blank=True, related_name="service_area_zip_codes"
     )
+    client_tags = ArrayField(models.CharField(max_length=200),
+                             blank=True, null=True, default=list)
 
     def __str__(self):
         return self.name

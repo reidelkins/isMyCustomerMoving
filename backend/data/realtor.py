@@ -2,6 +2,7 @@ from celery import shared_task
 from datetime import datetime
 from django.db import IntegrityError
 from io import StringIO
+import ast
 import logging
 import modal
 from pandas import isna, read_csv
@@ -144,7 +145,10 @@ def update_or_create_listing(df):
                 listed = safe_assign(row.get('last_sold_date', ''))
             if not listed:
                 listed = today
-
+            tags = safe_assign(row.get('tags', []))
+            if isinstance(tags, str):
+                tags = tags.replace('_', ' ')
+                tags = ast.literal_eval(tags)
             data = {
                 # Get the ZipCode instance from the map
                 'zip_code': zip_code_map[row['zip_code']],
@@ -164,7 +168,9 @@ def update_or_create_listing(df):
                 'url': row['property_url'],
                 'garage': safe_assign(row.get('parking_garage', 0)),
                 'description': safe_assign(row.get('description', '')),
-                'listed': listed
+                'listed': listed,
+                'tags': tags
+
             }
 
             listing_obj = HomeListing(**data)

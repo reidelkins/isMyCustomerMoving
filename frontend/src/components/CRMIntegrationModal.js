@@ -52,7 +52,7 @@ const ServiceTitan = ({ open, setOpen, dispatch }) => {
   const { errors, touched, values, handleSubmit, getFieldProps } = formik;
   return (
     <div>
-      <Dialog open={open} onClose={handleClose} sx={{ padding: '2px' }}>
+      <Dialog open={open} onClose={handleClose} sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} >
         <DialogTitle>Service Titan</DialogTitle>
         <Divider />
         <DialogContent>
@@ -443,7 +443,7 @@ const CRMIntegrationModal = ({ user }) => {
       <Button variant="contained" color="primary" aria-label="Create Company" component="label" onClick={handleOpen}>
         {user.company.crm === 'None' ? 'Connect' : 'Change'} Your CRM
       </Button>
-      <Dialog open={open} onClose={handleClose} sx={{ margin: '12px' }}>
+      <Dialog open={open} onClose={handleClose} sx={{ margin: '12px', padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} >
         <DialogTitle> {user.company.crm === 'None' ? 'Pick' : 'Change'} Your CRM</DialogTitle>
         <Divider />
 

@@ -40,7 +40,11 @@ export default function NewUserModal() {
       <Button variant="contained" color="primary" aria-label="Add User" component="label" onClick={handleOpen}>
         Add User
       </Button>
-      <Dialog open={open} onClose={handleClose} sx={{ padding: '2px' }} data-testid="add-user-modal">
+      <Dialog 
+        open={open}
+        onClose={handleClose} 
+        sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} 
+        data-testid="add-user-modal">
         <DialogTitle>Add a User</DialogTitle>
         <FormikProvider value={formik}>
           <Form autoComplete="off" noValidate onSubmit={handleSubmit}>

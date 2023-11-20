@@ -38,9 +38,11 @@ import UpgradeFromFree from './UpgradeFromFree';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
 import { getClientsCSV, salesForceSync,  updateClientAsync, update, updateCounts } from '../redux/actions/usersActions';
 import { applySortFilter, getComparator } from '../utils/filterFunctions';
+import { capitalizeWords } from '../utils/capitalizeWords';
 import { handleChangePage, handleChangeRowsPerPage, handleRequestSort } from '../utils/dataTableFunctions';
 
 const commonFields = [
+  { id: 'client_tags', label: 'Tags', alignRight: false },
   { id: 'name', label: 'Name', alignRight: false },
   { id: 'address', label: 'Address', alignRight: false },
   { id: 'city', label: 'City', alignRight: false },
@@ -48,9 +50,9 @@ const commonFields = [
   { id: 'zipCode', label: 'Zip Code', alignRight: false },
   { id: 'status', label: 'Status', alignRight: false },
   { id: 'contacted', label: 'Contacted', alignRight: false },
-  { id: 'note', label: 'Note', alignRight: false },
   { id: 'phone', label: 'Phone Number', alignRight: false },
   { id: 'email', label: 'Email', alignRight: false },
+  { id: 'note', label: 'Note', alignRight: false },
 
 ];
 
@@ -164,6 +166,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
     const [minYear, setMinYear] = useState('');
     const [maxYear, setMaxYear] = useState('');
     const [tagFilters, setTagFilters] = useState([]);
+    const [clientTags, setClientTags] = useState([]);
     const [equipInstallDateMin, setEquipInstallDateMin] = useState('');
     const [equipInstallDateMax, setEquipInstallDateMax] = useState('');
     const [zipCode, setZipCode] = useState('');
@@ -187,6 +190,11 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
         setUspsChanged(!uspsChanged);
         setSavedFilter('');
     };
+    const handleClientTagsChange = (newClientTags) => {
+        setClientTags(newClientTags);
+        setSavedFilter('');
+    };
+
     const handleMinRoomsChange = (newMinRooms) => {
         setMinRooms(newMinRooms);
         setSavedFilter('');
@@ -291,6 +299,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [shownClients, setShownClients] = useState(0);
     const [clientListLength, setClientListLength] = useState(0);
+    
     useEffect(() => {
         if (CLIENTLIST.length < clientListLength) {
         setPage(0);
@@ -327,7 +336,8 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
             savedFilter,
             uspsChanged,
             minRevenue,
-            maxRevenue
+            maxRevenue,
+            clientTags
         )
         );
     };
@@ -338,6 +348,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
       dispatch(salesForceSync());
     };
     const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
+    const tagColors = [  '#E57373',  '#81C784',  '#64B5F6', '#FFC107', '#BA68C8'];
     return (
         <>
             <Card sx={{ marginBottom: '3%' }} data-testid="customer-data-card">
@@ -346,8 +357,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                     filterName={filterName}
                     onFilterName={handleFilterByName}
                     selectedClients={selectedClients}
-                    setSelected
-                    setSelectedClients
+                    clearSelectedClients={()=>setSelected([])}                    
                     product={userInfo.company.product.id}
                     customerDataFilters={customerDataFilters}
                     minPrice={minPrice}
@@ -402,6 +412,9 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                     setMinRevenue={handleMinRevenueChange}
                     maxRevenue={maxRevenue}
                     setMaxRevenue={handleMaxRevenueChange}
+                    clientTagFilters={clientTags}
+                    setClientTagFilters={handleClientTagsChange}
+                    clientTags={userInfo.company.client_tags}
                 />
                 {loading ? (
                     <Box sx={{ width: '100%' }}>
@@ -446,7 +459,8 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                                         error_flag: errorFlag,
                                         service_titan_customer_since_year: serviceTitanCustomerSinceYear,
                                         service_titan_lifetime_revenue: serviceTitanLifetimeRevenue,
-                                        email
+                                        email,
+                                        client_tags: clientTags,
                                     } = row;
                                     const isItemSelected = selected.indexOf(address) !== -1;
 
@@ -484,6 +498,24 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                                                     </TableCell>
                                                 </>
                                             )}
+                                            <TableCell align="left">
+                                                {clientTags.map((tag, index) => (
+                                                    <span 
+                                                        key={tag} 
+                                                        style={{
+                                                            backgroundColor: tagColors[index % tagColors.length],
+                                                            color: 'white',
+                                                            borderRadius: '15px',
+                                                            padding: '5px 10px',
+                                                            margin: '5px 2px',
+                                                            display: 'inline-block',
+                                                            fontWeight: 'bold'
+                                                        }}
+                                                    >
+                                                        {capitalizeWords(tag)}
+                                                    </span>
+                                                ))}
+                                            </TableCell>
                                             <TableCell component="th" scope="row" padding="none">
                                                 <Stack direction="row" alignItems="center" spacing={2}>
                                                 <Typography variant="subtitle2" noWrap>
@@ -545,9 +577,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                                                 return null;
                                                 })()}
                                             </TableCell>
-                                            <TableCell>
-                                                <NoteModal passedNote={note} id={id} name={name} />
-                                            </TableCell>
+                                            
                                             <TableCell>
                                                 {/* make phone number look like (123) 456-7890 */}
                                                 {phoneNumber
@@ -559,6 +589,9 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                                             </TableCell>
                                             <TableCell>
                                                 {email}
+                                            </TableCell>
+                                            <TableCell>
+                                                <NoteModal passedNote={note} id={id} name={name} />
                                             </TableCell>
                                             {(userInfo.company.enterprise ||
                                                 userInfo.email === 'reid@gmail.com' ||

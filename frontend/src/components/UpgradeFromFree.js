@@ -59,7 +59,7 @@ const UpgradeFromFree = () => {
           Upgrade to Premium
         </Button>
       </Tooltip>
-      <Dialog open={open} onClose={() => setOpen(false)}>
+      <Dialog open={open} onClose={() => setOpen(false)} sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} >
         <DialogTitle>Upgrade to a Premium Plan</DialogTitle>
         <Divider />
         <DialogContent>

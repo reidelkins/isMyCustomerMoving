@@ -28,7 +28,7 @@ function RemoveErrorFlagButton({ clientId }) {
       <Button variant="outlined" color="primary" fullWidth onClick={handleOpen}>
         Want To Remove The Error Flag
       </Button>
-      <Dialog open={open} onClose={handleClose} sx={{ padding: '2px' }}>
+      <Dialog open={open} onClose={handleClose} sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} >
         <DialogTitle>Remove Error Flag</DialogTitle>
         <Divider />
         <DialogContent>

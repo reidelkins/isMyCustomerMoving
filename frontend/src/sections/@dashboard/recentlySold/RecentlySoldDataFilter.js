@@ -285,11 +285,11 @@ export default function RecentlySoldDataFilter({
       } else {
         handleChangeMaxDaysAgo(0);
       }
-    } else if (value > 30) {
+    } else if (value > 180) {
       if (type === 'min') {
-        handleChangeMinDaysAgo(30);
+        handleChangeMinDaysAgo(180);
       } else {
-        handleChangeMaxDaysAgo(30);
+        handleChangeMaxDaysAgo(180);
       }
     } else {
       /* eslint-disable no-lonely-if */
@@ -373,6 +373,9 @@ export default function RecentlySoldDataFilter({
       )
     );
   };
+
+  const tagColors = [  '#E57373',  '#81C784',  '#64B5F6', '#FFC107', '#BA68C8'];
+
   return (
     <div className={classes.root}>
       <Stack direction="row" spacing={2} alignItems="space-between">
@@ -390,7 +393,10 @@ export default function RecentlySoldDataFilter({
         )}
       </Stack>
       {showFilters && (
-        <Dialog open={showFilters} onClose={() => setShowFilters(false)}>
+        <Dialog 
+          open={showFilters}
+          onClose={() => setShowFilters(false)}
+          sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} >
           <DialogTitle>Recently Sold Filter</DialogTitle>
           <Divider />
           <DialogContent>
@@ -482,7 +488,7 @@ export default function RecentlySoldDataFilter({
                   </Tooltip>
                 </Grid>
                 <Grid item xs={12}>
-                  <Tooltip title="How long ago was the house sold, this data only goes back 30 days">
+                  <Tooltip title="How long ago was the house sold, this will go back up to 180 days">
                     <Box mt={2}>
                       <Typography variant="h6" mb={2}>
                         Days Ago Sold
@@ -513,7 +519,7 @@ export default function RecentlySoldDataFilter({
                     </Box>
                   </Tooltip>
                 </Grid>
-                {/* <Grid item xs={12}>
+                <Grid item xs={12}>
                   <Tooltip title="Year the house was built">
                     <Box mt={2}>
                       <Typography variant="h6" mb={2}>
@@ -539,7 +545,7 @@ export default function RecentlySoldDataFilter({
                       </Stack>
                     </Box>
                   </Tooltip>
-                </Grid> */}
+                </Grid>
                 <Grid item xs={12}>
                   <Tooltip title="How many bedrooms the house has">
                     <Box mt={2}>
@@ -648,28 +654,40 @@ export default function RecentlySoldDataFilter({
                     </Box>
                   </Tooltip>
                 </Grid>
-                {/* <Grid item xs={12}>
+                <Grid item xs={12}>
                   <FormControl component="fieldset">
                     <Typography variant="h6" mb={2}>
                       Tags
-                    </Typography>
+                    </Typography>                    
                     <Grid container spacing={1}>
-                      {sortedTagOptions.map((option) => (
-                        <FormControlLabel
-                          key={option.value}
-                          control={
-                            <Checkbox
-                              checked={tagFilters.includes(option.value)}
-                              onChange={handleTagFilterChange}
-                              value={option.value}
-                            />
-                          }
-                          label={option.label}
-                        />
+                      {sortedTagOptions.map((option, index) => (
+                          <Grid item key={option.value}>
+                              <Box
+                                  component="label"
+                                  display="flex"
+                                  alignItems="center"
+                                  style={{
+                                      cursor: 'pointer',
+                                      padding: '5px',
+                                      borderRadius: '15px',
+                                      backgroundColor: tagColors[index % tagColors.length],
+                                      color: 'white',
+                                      fontWeight: 'bold',
+                                  }}
+                              >
+                                  <Checkbox
+                                      checked={tagFilters.includes(option.value)}
+                                      onChange={handleTagFilterChange}
+                                      value={option.value}
+                                      style={{ color: 'white' }}
+                                  />
+                                  {option.label}
+                              </Box>
+                          </Grid>
                       ))}
-                    </Grid>
+                  </Grid>
                   </FormControl>
-                </Grid> */}
+                </Grid>
               </Grid>
               <Box mt={2} alignItems="center" display="flex" justifyContent="space-between">
                 <Button onClick={handleOpenSaveFilter} variant="contained" color="primary">
@@ -686,7 +704,10 @@ export default function RecentlySoldDataFilter({
         </Dialog>
       )}
       {showSaveFilter && (
-        <Dialog open={showSaveFilter} onClose={() => setShowSaveFilter(false)}>
+        <Dialog 
+          open={showSaveFilter} 
+          onClose={() => setShowSaveFilter(false)}
+          sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} >
           <DialogTitle>Save Filter</DialogTitle>
           <Divider />
           <DialogContent>

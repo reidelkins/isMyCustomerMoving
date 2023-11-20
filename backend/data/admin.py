@@ -6,7 +6,6 @@ from .models import (
     ZipCode,
     HomeListing,
     Task,
-    HomeListingTags,
     Realtor,
     SavedFilter,
 )
@@ -116,11 +115,6 @@ class TaskAdmin(admin.ModelAdmin):
     list_display = ("id", "completed", "deleted_clients")
 
 
-class HomeListingTagsAdmin(admin.ModelAdmin):
-    list_display = ("id", "tag")
-    search_fields = ["id", "tag"]
-
-
 class RealtorAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "company")
     search_fields = ["id", "name", "company"]
@@ -136,6 +130,5 @@ admin.site.register(ZipCode, ZipcodeAdmin)
 admin.site.register(Client, ClientAdmin)
 admin.site.register(Task, TaskAdmin)
 admin.site.register(ClientUpdate, ClientUpdateAdmin)
-admin.site.register(HomeListingTags, HomeListingTagsAdmin)
 admin.site.register(Realtor, RealtorAdmin)
 admin.site.register(SavedFilter, SavedFilterAdmin)

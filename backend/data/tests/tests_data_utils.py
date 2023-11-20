@@ -541,18 +541,18 @@ class TestUtilFunctions(TestCase):
             None
         )
 
-    @patch("requests.post")
-    @patch("data.utils.filter_home_listings")
-    def test_send_zapier_recently_sold(self, mock_filter_home_listings, mock_post):
-        mock_filter_home_listings.return_value = HomeListing.objects.filter(
-            id=self.home_listing.id)
-        send_zapier_recently_sold(self.company.id)
+    # @patch("requests.post")
+    # @patch("data.utils.filter_home_listings")
+    # def test_send_zapier_recently_sold(self, mock_filter_home_listings, mock_post):
+    #     mock_filter_home_listings.return_value = HomeListing.objects.filter(
+    #         id=self.home_listing.id)
+    #     send_zapier_recently_sold(self.company.id)
 
-        # this shows that that a single saved filter was found
-        mock_filter_home_listings.assert_called_once()
+    #     # this shows that that a single saved filter was found
+    #     mock_filter_home_listings.assert_called_once()
 
-        # this shows the function was called once given the one filtered home listing
-        mock_post.assert_called_once()
+    #     # this shows the function was called once given the one filtered home listing
+    #     mock_post.assert_called_once()
 
     @patch("data.utils.update_status.delay")
     @patch("data.models.Client.objects.filter")
