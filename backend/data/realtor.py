@@ -149,7 +149,6 @@ def update_or_create_listing(df):
             if isinstance(tags, str):
                 tags = tags.replace('_', ' ')
                 tags = ast.literal_eval(tags)
-
             data = {
                 # Get the ZipCode instance from the map
                 'zip_code': zip_code_map[row['zip_code']],
@@ -171,6 +170,7 @@ def update_or_create_listing(df):
                 'description': safe_assign(row.get('description', '')),
                 'listed': listed,
                 'tags': tags
+
             }
 
             listing_obj = HomeListing(**data)
