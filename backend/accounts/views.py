@@ -939,7 +939,7 @@ class CompanyView(APIView):
     def put(self, request, *args, **kwargs):
         try:
             company = request.user.company
-            # TODO BAD CODE BUT DOING THIS TO BE QUICK - should not be here necessarily
+            # TODO BAD CODE BUT DOING THIS TO BE QUICK - should not be here
             if 'client_tag' in request.data:
                 if request.data["client_tag"] not in company.client_tags:
                     company.client_tags.append(request.data["client_tag"])

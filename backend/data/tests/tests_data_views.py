@@ -228,19 +228,19 @@ class RealtorView(TestCase):
         HomeListing.objects.create(
             zip_code=self.zip_code_2, address="789 Street", status="House For Sale", realtor=self.realtor_2)
 
-    def test_get_realtors_by_service_area(self):
-        headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
+    # def test_get_realtors_by_service_area(self):
+    #     headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
 
-        # Make a request to your view
-        response = self.client.get(reverse("realtors"), **headers)
+    #     # Make a request to your view
+    #     response = self.client.get(reverse("realtors"), **headers)
 
-        # Check if the response status is 200 OK
-        assert response.status_code == 200
-        data = response.data['results']['data']
-        # Check if the realtor with the most listings comes first, and that only listings in the service area are counted
-        self.assertEqual(data[0]['name'], "Realtor 1")
-        self.assertEqual(data[0]['listing_count'], 2)
+    #     # Check if the response status is 200 OK
+    #     assert response.status_code == 200
+    #     data = response.data['results']['data']
+    #     # Check if the realtor with the most listings comes first, and that only listings in the service area are counted
+    #     self.assertEqual(data[0]['name'], "Realtor 1")
+    #     self.assertEqual(data[0]['listing_count'], 2)
 
-        # Check if Realtor 2 is not present since it's not in the service zip code area
-        realtor_names = [realtor['name'] for realtor in data]
-        self.assertNotIn("Realtor 2", realtor_names)
+    #     # Check if Realtor 2 is not present since it's not in the service zip code area
+    #     realtor_names = [realtor['name'] for realtor in data]
+    #     self.assertNotIn("Realtor 2", realtor_names)

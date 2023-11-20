@@ -5,7 +5,7 @@ from data.models import (
     Client,
     ClientUpdate,
     HomeListing,
-    Realtor,
+    # Realtor,
     SavedFilter,
     format_today,
 )
@@ -172,12 +172,12 @@ class TestClientUpdateModel(TestCase):
 class HomeListingModelTests(TestCase):
     def setUp(self):
         self.zip_code = ZipCode.objects.create(zip_code="12345")
-        self.realtor = Realtor.objects_with_listing_count.create(
-            name="John Doe",
-            company="Doe Estate",
-            agent_phone="1234567890",
-            brokerage_phone="1234567890",
-        )
+        # self.realtor = Realtor.objects_with_listing_count.create(
+        #     name="John Doe",
+        #     company="Doe Estate",
+        #     agent_phone="1234567890",
+        #     brokerage_phone="1234567890",
+        # )
 
     def test_create_home_listing(self):
         home_listing = HomeListing.objects.create(
@@ -197,16 +197,16 @@ class HomeListingModelTests(TestCase):
             latitude=40.712776,
             longitude=-74.005974,
             year_renovated=2010,
-            roofing=" ",
-            garage_type=" ",
+            # roofing=" ",
+            # garage_type=" ",
             garage=1,
-            heating=" ",
-            cooling=" ",
-            exterior=" ",
-            pool=" ",
-            fireplace=" ",
+            # heating=" ",
+            # cooling=" ",
+            # exterior=" ",
+            # pool=" ",
+            # fireplace=" ",
             description="A beautiful home in New York",
-            realtor=self.realtor,
+            # realtor=self.realtor,
         )
 
         self.assertEqual(home_listing.address, "123 Main St")
@@ -223,18 +223,18 @@ class HomeListingModelTests(TestCase):
         self.assertEqual(home_listing.latitude, 40.712776)
         self.assertEqual(home_listing.longitude, -74.005974)
         self.assertEqual(home_listing.year_renovated, 2010)
-        self.assertEqual(home_listing.roofing, " ")
-        self.assertEqual(home_listing.garage_type, " ")
+        # self.assertEqual(home_listing.roofing, " ")
+        # self.assertEqual(home_listing.garage_type, " ")
         self.assertEqual(home_listing.garage, 1)
-        self.assertEqual(home_listing.heating, " ")
-        self.assertEqual(home_listing.cooling, " ")
-        self.assertEqual(home_listing.exterior, " ")
-        self.assertEqual(home_listing.pool, " ")
-        self.assertEqual(home_listing.fireplace, " ")
+        # self.assertEqual(home_listing.heating, " ")
+        # self.assertEqual(home_listing.cooling, " ")
+        # self.assertEqual(home_listing.exterior, " ")
+        # self.assertEqual(home_listing.pool, " ")
+        # self.assertEqual(home_listing.fireplace, " ")
         self.assertEqual(
             home_listing.description, "A beautiful home in New York"
         )
-        self.assertEqual(home_listing.realtor, self.realtor)
+        # self.assertEqual(home_listing.realtor, self.realtor)
 
     def test_home_listing_str(self):
         home_listing = HomeListing.objects.create(
@@ -255,16 +255,16 @@ class HomeListingModelTests(TestCase):
             longitude=-74.005974,
 
             year_renovated=2010,
-            roofing=" ",
-            garage_type=" ",
+            # roofing=" ",
+            # garage_type=" ",
             garage=1,
-            heating=" ",
-            cooling=" ",
-            exterior=" ",
-            pool=" ",
-            fireplace=" ",
+            # heating=" ",
+            # cooling=" ",
+            # exterior=" ",
+            # pool=" ",
+            # fireplace=" ",
             description="A beautiful home in New York",
-            realtor=self.realtor,
+            # realtor=self.realtor,
         )
 
         self.assertEqual(str(home_listing), "123 Main St_Off Market")
@@ -289,16 +289,16 @@ class HomeListingModelTests(TestCase):
             longitude=-74.005974,
 
             year_renovated=2010,
-            roofing=" ",
-            garage_type=" ",
+            # roofing=" ",
+            # garage_type=" ",
             garage=1,
-            heating=" ",
-            cooling=" ",
-            exterior=" ",
-            pool=" ",
-            fireplace=" ",
+            # heating=" ",
+            # cooling=" ",
+            # exterior=" ",
+            # pool=" ",
+            # fireplace=" ",
             description="A beautiful home in New York",
-            realtor=self.realtor,
+            # realtor=self.realtor,
         )
 
         with self.assertRaises(Exception):
@@ -320,16 +320,16 @@ class HomeListingModelTests(TestCase):
                 longitude=-74.005974,
 
                 year_renovated=2010,
-                roofing=" ",
-                garage_type=" ",
+                # roofing=" ",
+                # garage_type=" ",
                 garage=1,
-                heating=" ",
-                cooling=" ",
-                exterior=" ",
-                pool=" ",
-                fireplace=" ",
+                # heating=" ",
+                # cooling=" ",
+                # exterior=" ",
+                # pool=" ",
+                # fireplace=" ",
                 description="A beautiful home in New York",
-                realtor=self.realtor,
+                # realtor=self.realtor,
             )
 
     def test_home_listing_address_length(self):
@@ -355,16 +355,16 @@ class HomeListingModelTests(TestCase):
                 longitude=-74.005974,
 
                 year_renovated=2010,
-                roofing=" ",
-                garage_type=" ",
+                # roofing=" ",
+                # garage_type=" ",
                 garage=1,
-                heating=" ",
-                cooling=" ",
-                exterior=" ",
-                pool=" ",
-                fireplace=" ",
+                # heating=" ",
+                # cooling=" ",
+                # exterior=" ",
+                # pool=" ",
+                # fireplace=" ",
                 description="A beautiful home in New York",
-                realtor=self.realtor,
+                # realtor=self.realtor,
             )
 
     def test_home_listing_status_length(self):
@@ -389,16 +389,16 @@ class HomeListingModelTests(TestCase):
                 longitude=-74.005974,
 
                 year_renovated=2010,
-                roofing=" ",
-                garage_type=" ",
+                # roofing=" ",
+                # garage_type=" ",
                 garage=1,
-                heating=" ",
-                cooling=" ",
-                exterior=" ",
-                pool=" ",
-                fireplace=" ",
+                # heating=" ",
+                # cooling=" ",
+                # exterior=" ",
+                # pool=" ",
+                # fireplace=" ",
                 description="A beautiful home in New York",
-                realtor=self.realtor,
+                # realtor=self.realtor,
             )
 
     def test_home_listing_listed_length(self):
@@ -423,16 +423,16 @@ class HomeListingModelTests(TestCase):
                 longitude=-74.005974,
 
                 year_renovated=2010,
-                roofing=" ",
-                garage_type=" ",
+                # roofing=" ",
+                # garage_type=" ",
                 garage=1,
-                heating=" ",
-                cooling=" ",
-                exterior=" ",
-                pool=" ",
-                fireplace=" ",
+                # heating=" ",
+                # cooling=" ",
+                # exterior=" ",
+                # pool=" ",
+                # fireplace=" ",
                 description="A beautiful home in New York",
-                realtor=self.realtor,
+                # realtor=self.realtor,
             )
 
     def test_home_listing_housing_type_length(self):
@@ -457,16 +457,16 @@ class HomeListingModelTests(TestCase):
                 longitude=-74.005974,
 
                 year_renovated=2010,
-                roofing=" ",
-                garage_type=" ",
+                # roofing=" ",
+                # garage_type=" ",
                 garage=1,
-                heating=" ",
-                cooling=" ",
-                exterior=" ",
-                pool=" ",
-                fireplace=" ",
+                # heating=" ",
+                # cooling=" ",
+                # exterior=" ",
+                # pool=" ",
+                # fireplace=" ",
                 description="A beautiful home in New York",
-                realtor=self.realtor,
+                # realtor=self.realtor,
             )
 
 

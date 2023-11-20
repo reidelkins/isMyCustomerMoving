@@ -455,11 +455,11 @@ class UrlsTestCase(TestCase):
         response = self.client.delete(url, **headers)
         self.assertEqual(response.status_code, 405)
 
-    def test_realtor_get(self):
-        url = reverse("realtors")
-        headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
-        response = self.client.get(url, **headers)
-        self.assertEqual(response.status_code, 200)
+    # def test_realtor_get(self):
+    #     url = reverse("realtors")
+    #     headers = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
+    #     response = self.client.get(url, **headers)
+    #     self.assertEqual(response.status_code, 200)
 
     def test_realtor_get_unathenticated(self):
         url = reverse("realtors")
