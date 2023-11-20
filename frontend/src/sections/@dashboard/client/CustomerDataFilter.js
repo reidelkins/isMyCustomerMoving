@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import { makeStyles } from '@mui/styles';
+// import { makeStyles } from '@mui/styles';
 import {
   Alert,
   Box,
@@ -32,16 +32,16 @@ import {
 } from '../../../redux/actions/usersActions';
 import { capitalizeWords } from '../../../utils/capitalizeWords';
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    position: 'relative',
-  },
-  filterButton: {
-    position: 'absolute',
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-  }
-}));
+// const useStyles = makeStyles((theme) => ({
+//   root: {
+//     position: 'relative',
+//   },
+//   filterButton: {
+//     position: 'absolute',
+//     right: theme.spacing(1),
+//     top: theme.spacing(1),
+//   }
+// }));
 
 CustomerDataFilter.propTypes = {
   product: PropTypes.string.isRequired,
@@ -158,7 +158,7 @@ export default function CustomerDataFilter({
   setClientTagFilters: handleClientTagFiltersChange,
   clientTags,
 }) {
-  const classes = useStyles();
+  
   const [showFilters, setShowFilters] = useState(false);
   const [showClearFilters, setShowClearFilters] = useState(false);
   const [showSaveFilter, setShowSaveFilter] = useState(false);
@@ -443,7 +443,7 @@ export default function CustomerDataFilter({
   };
 
   return (
-    <div className={classes.root}>
+    <div> 
       <Stack direction="row" spacing={2} alignItems="space-between">
         <Tooltip title="Filter list">
           <IconButton onClick={handleShowFilters}>

@@ -17,26 +17,24 @@ import {
   Fade,
   Modal,
 } from '@mui/material';
-import { makeStyles } from '@mui/styles';
+// import { makeStyles } from '@mui/styles';
 import Iconify from './Iconify';
 import { uploadClientsAsync, selectClients, uploadServiceAreasAsync } from '../redux/actions/usersActions';
 
-const useStyles = makeStyles(() => ({
-  uploaderDiv: {
-    backgroundColor: '#f1f0ef',
-    height: '80px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '5px',
-  },
-}));
-
-
+// const useStyles = makeStyles(() => ({
+//   uploaderDiv: {
+//     backgroundColor: '#f1f0ef',
+//     height: '80px',
+//     display: 'flex',
+//     alignItems: 'center',
+//     justifyContent: 'center',
+//     borderRadius: '5px',
+//   },
+// }));
 
 const FileUploader = ({ fileType }) => {
   const dispatch = useDispatch();
-  const classes = useStyles();
+  // const classes = useStyles();
 
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState('');
@@ -223,7 +221,7 @@ const FileUploader = ({ fileType }) => {
             <div
               onDrop={(event) => handleDrop(event)}
               onDragOver={(event) => handleDragOver(event)}
-              className={classes.uploaderDiv}
+              // className={classes.uploaderDiv}
             >
               <label htmlFor="file" style={{ cursor: 'pointer', textDecoration: 'underline' }}>
                 {!file && uploaded && `Success! ${fileName} has been uploaded.`}
