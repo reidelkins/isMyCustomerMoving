@@ -28,7 +28,7 @@ function IncorrectDataButton({ clientId }) {
       <Button variant="outlined" color="error" fullWidth onClick={handleOpen}>
         Error In Data?
       </Button>
-      <Dialog open={open} onClose={handleClose} sx={{ padding: '2px' }}>
+      <Dialog open={open} onClose={handleClose} sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} >
         <DialogTitle>Wrong Housing Status?</DialogTitle>
         <Divider />
         <DialogContent>

@@ -41,7 +41,7 @@ export default function NoteModal({ passedNote, id, name }) {
       <IconButton color="primary" aria-label="View/Edit Note" component="label" onClick={handleOpen}>
         <Iconify icon="eva:edit-fill" />
       </IconButton>
-      <Dialog open={open} onClose={handleClose} sx={{ padding: '2px' }}>
+      <Dialog open={open} onClose={handleClose} sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} >
         <DialogTitle>Note for {name}</DialogTitle>
         <FormikProvider value={formik}>
           <Form autoComplete="off" noValidate onSubmit={handleSubmit}>

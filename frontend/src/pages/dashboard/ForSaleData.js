@@ -34,6 +34,7 @@ import { ForSaleListToolbar } from '../../sections/@dashboard/forSale';
 import ForSaleListCall from '../../redux/calls/ForSaleListCall';
 import { selectForSale, getForSaleCSV } from '../../redux/actions/usersActions';
 import { showLoginInfo } from '../../redux/actions/authActions';
+import { capitalizeWords } from '../../utils/capitalizeWords';
 import { makeDate } from '../../utils/makeDate';
 import { handleChangePage, handleChangeRowsPerPage } from '../../utils/dataTableFunctions';
 import { getComparator, applySortFilter } from '../../utils/filterFunctions';
@@ -48,7 +49,8 @@ const TABLE_HEAD = [
   { id: 'state', label: 'State', alignRight: false },
   { id: 'zipCode', label: 'Zip Code', alignRight: false },
   { id: 'price', label: 'Price', alignRight: false },
-  // { id: 'year_built', label: 'Year Built', alignRight: false },
+  { id: 'year_built', label: 'Year Built', alignRight: false },
+  { id: 'tags', label: 'Tags', alignRight: false },
 ];
 
 export default function ForSaleData() {
@@ -217,6 +219,8 @@ export default function ForSaleData() {
     setShownClients(count);
   }, [count]);
 
+  const tagColors = [  '#E57373',  '#81C784',  '#64B5F6', '#FFC107', '#BA68C8'];
+  
   return (
     <Page title="For Sale" userInfo={userInfo}>
       <Container>
@@ -301,7 +305,8 @@ export default function ForSaleData() {
                             zip_code: zipCode,
                             listed,
                             price,
-                            // year_built: yearBuilt,
+                            year_built: yearBuilt,
+                            tags,
                           } = row;
 
                           return (
@@ -319,7 +324,26 @@ export default function ForSaleData() {
                                 <TableCell align="left">{state}</TableCell>
                                 <TableCell align="left">{zipCode}</TableCell>
                                 <TableCell align="left">{price.toLocaleString()}</TableCell>
-                                {/* <TableCell align="left">{yearBuilt}</TableCell> */}
+                                <TableCell align="left">{yearBuilt}</TableCell>
+                                <TableCell align="left">
+                                  {tags.map((tag, index) => (
+                                      <span 
+                                          key={tag} 
+                                          style={{                                            
+                                              backgroundColor: tagColors[index % tagColors.length],
+                                              color: 'white',
+                                              borderRadius: '10px', // Smaller border-radius
+                                              padding: '3px 8px', // Reduced padding
+                                              margin: '5px 2px',
+                                              display: 'inline-block',
+                                              fontWeight: 'bold',
+                                              fontSize: '0.5em' // Smaller font size
+                                          }}
+                                      >
+                                          {capitalizeWords(tag)}
+                                      </span>
+                                  ))}
+                              </TableCell>
                               </TableRow>
                             </React.Fragment>
                           );

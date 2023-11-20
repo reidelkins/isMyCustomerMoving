@@ -10,7 +10,6 @@ import {
   Checkbox,
   FormControl,
   FormControlLabel,
-  FormLabel,
   Grid,
   Input,
   InputLabel,
@@ -31,6 +30,7 @@ import {
   saveCustomerDataFilterAsync,
   saveFilterSuccess,
 } from '../../../redux/actions/usersActions';
+import { capitalizeWords } from '../../../utils/capitalizeWords';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -93,9 +93,12 @@ CustomerDataFilter.propTypes = {
   uspsChanged: PropTypes.bool,
   setUspsChanged: PropTypes.func,
   minRevenue: PropTypes.string,
-  handleChangeMinRevenue: PropTypes.func,
+  setMinRevenue: PropTypes.func,
   maxRevenue: PropTypes.string,
-  handleChangeMaxRevenue: PropTypes.func,
+  setMaxRevenue: PropTypes.func,
+  clientTagFilters: PropTypes.array,
+  setClientTagFilters: PropTypes.func,
+  clientTags: PropTypes.array,
 };
 
 export default function CustomerDataFilter({
@@ -151,6 +154,9 @@ export default function CustomerDataFilter({
   setMinRevenue: handleChangeMinRevenue,
   maxRevenue,
   setMaxRevenue: handleChangeMaxRevenue,
+  clientTagFilters,
+  setClientTagFilters: handleClientTagFiltersChange,
+  clientTags,
 }) {
   const classes = useStyles();
   const [showFilters, setShowFilters] = useState(false);
@@ -208,7 +214,8 @@ export default function CustomerDataFilter({
       customerSinceMax ||
       uspsChanged ||
       minRevenue ||
-      maxRevenue
+      maxRevenue || 
+      clientTagFilters.length > 0
     ) {
       setShowClearFilters(true);
     } else {
@@ -239,7 +246,8 @@ export default function CustomerDataFilter({
     customerSinceMax,
     uspsChanged,
     minRevenue,
-    maxRevenue
+    maxRevenue,
+    clientTagFilters
   ]);
 
   const tagOptions = [
@@ -289,6 +297,16 @@ export default function CustomerDataFilter({
     });
   };
 
+  const handleClientTagFilterChange = (event) => {
+    const { value } = event.target;
+    handleClientTagFiltersChange((prevFilters) => {
+      if (prevFilters.includes(value)) {
+        return prevFilters.filter((filter) => filter !== value);
+      }
+      return [...prevFilters, value];
+    });
+  };
+
   const statusOptions = [
     { value: 'For Sale', label: 'For Sale' },
     { value: 'Recently Sold', label: 'Recently Sold' },
@@ -324,7 +342,8 @@ export default function CustomerDataFilter({
         savedFilter,
         uspsChanged,
         minRevenue,
-        maxRevenue
+        maxRevenue,
+        clientTagFilters
       )
     );
     setShowFilters(false);
@@ -365,7 +384,8 @@ export default function CustomerDataFilter({
     handleUspsChanged(false);
     handleChangeMinRevenue('');
     handleChangeMaxRevenue('');
-    dispatch(clientsAsync(1));
+    handleClientTagFiltersChange([]);
+    dispatch(clientsAsync(1, true, false));
   };
 
   const handleSavedFilterChange = (event) => {
@@ -442,6 +462,7 @@ export default function CustomerDataFilter({
         <Dialog
           open={showFilters}
           onClose={() => setShowFilters(false)}
+          sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} 
         >
           <DialogTitle>Customer Data Filter </DialogTitle>
           <Divider />
@@ -471,8 +492,33 @@ export default function CustomerDataFilter({
                     ))}
                   </Grid>
                 </Tooltip>
-                {customerDataFilters && (
+                {Array.isArray(clientTagFilters) && clientTags && clientTags.length > 0 && (                                    
+                  <Grid item xs={12}>                                        
+                    <FormControl component="fieldset">
+                      <Typography variant="h6" mb={2}>
+                        Client Tags
+                      </Typography>
+                      <Grid item xs={12}>
+                        {clientTags.map((option) => (
+                          <FormControlLabel
+                            key={option}
+                            control={
+                              <Checkbox
+                                checked={clientTagFilters.includes(option)}
+                                onChange={handleClientTagFilterChange}
+                                value={option}
+                              />
+                            }
+                            label={capitalizeWords(option)}
+                          />
+                        ))}
+                      </Grid>
+                    </FormControl>
+                  </Grid>
+                )}
+                {customerDataFilters.length > 0 && (                  
                   <Grid item xs={12}>
+                    {console.log(customerDataFilters)}
                     <FormControl component="fieldset">
                       <Typography variant="h6" mb={2}>
                         Saved Filters
@@ -824,6 +870,7 @@ export default function CustomerDataFilter({
         <Dialog
           open={showSaveFilter}
           onClose={() => setShowSaveFilter(false)}
+          sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} 
         >
           <DialogTitle>Save Filter</DialogTitle>
           <Divider />

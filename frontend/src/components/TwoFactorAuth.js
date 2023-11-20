@@ -70,7 +70,7 @@ const TwoFactorAuth = ({ userInfo }) => {
           Setup 2FA
         </Button>
       )}
-      <Dialog open={open} onClose={handleClose} sx={{ padding: '2px' }}>
+      <Dialog open={open} onClose={handleClose} sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} >
         <DialogTitle>Two-Factor Authentication (2FA)</DialogTitle>
         <Divider />
         <div style={{ padding: '20px', fontSize: '1.2rem' }}>

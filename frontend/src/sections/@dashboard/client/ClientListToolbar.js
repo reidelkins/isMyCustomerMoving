@@ -1,9 +1,16 @@
 import { useState } from 'react';
+import * as Yup from 'yup';
 import PropTypes from 'prop-types';
 import { useDispatch } from 'react-redux';
 // material
 import { styled } from '@mui/material/styles';
 import {
+  Box,
+  Checkbox,
+  Dialog,
+  DialogTitle,
+  Grid,
+  TextField,  
   Toolbar,
   Tooltip,
   IconButton,
@@ -14,12 +21,22 @@ import {
   Button,
   Alert,
 } from '@mui/material';
+import {
+  List,
+  Map,
+  Add,
+  Remove
+} from '@mui/icons-material';
+
+import { useFormik, Form, FormikProvider } from 'formik';
 
 // component
 import Iconify from '../../../components/Iconify';
 import CustomerDataFilter from './CustomerDataFilter';
 // redux
-import { deleteClientAsync } from '../../../redux/actions/usersActions';
+import { deleteClientAsync, saveClientTagAsync, addClientTagsAsync, removeClientTagsAsync } from '../../../redux/actions/usersActions';
+import { capitalizeWords } from '../../../utils/capitalizeWords';
+
 
 // ----------------------------------------------------------------------
 
@@ -50,6 +67,7 @@ ClientListToolbar.propTypes = {
   filterName: PropTypes.string,
   onFilterName: PropTypes.func,
   selectedClients: PropTypes.array,
+  clearSelectedClients: PropTypes.func,
   product: PropTypes.string,
   minPrice: PropTypes.string,
   setMinPrice: PropTypes.func,
@@ -104,6 +122,9 @@ ClientListToolbar.propTypes = {
   setMinRevenue: PropTypes.func,
   maxRevenue: PropTypes.string,
   setMaxRevenue: PropTypes.func,
+  clientTagFilters: PropTypes.array,
+  setClientTagFilters: PropTypes.func,
+  clientTags: PropTypes.array,
 };
 
 export default function ClientListToolbar({
@@ -111,6 +132,7 @@ export default function ClientListToolbar({
   filterName,
   onFilterName,
   selectedClients,
+  clearSelectedClients,
   product,
   minPrice,
   setMinPrice,
@@ -165,9 +187,54 @@ export default function ClientListToolbar({
   setMinRevenue,
   maxRevenue,
   setMaxRevenue,
+  clientTagFilters,
+  setClientTagFilters,
+  clientTags
 }) {
   const dispatch = useDispatch();
   const [showAlert, setShowAlert] = useState(false);
+  const [createClientTagModalOpen, setCreateClientTagModalOpen] = useState(false);
+  const [editClientTagsModalOpen ,setEditClientTagsModalOpen] = useState(false);
+  const [removeClientTagsModalOpen, setRemoveClientTagsModalOpen] = useState(false);
+  const [selectedClientTags ,setSelectedClientTags] = useState([]);
+  const tagColors = [  '#E57373',  '#81C784',  '#64B5F6', '#FFC107', '#BA68C8'];
+  
+  const handleSelectedClientTagsChange = (event) => {
+    const { value } = event.target;
+
+    // Check if the value is already in the selectedClientTags array
+    const index = selectedClientTags.indexOf(value);
+
+    if (index === -1) {
+      // If not in the array, add it
+      setSelectedClientTags([...selectedClientTags, value]);
+    } else {
+      // If already in the array, remove it
+      const updatedTags = [...selectedClientTags];
+      updatedTags.splice(index, 1);
+      setSelectedClientTags(updatedTags);
+    }
+  };
+
+  const closeClientTagModal = () => {
+    setEditClientTagsModalOpen(false);
+    setRemoveClientTagsModalOpen(false);
+    setSelectedClientTags([]);
+  };
+
+  const addClientsToTagGroup = () => {
+    dispatch(addClientTagsAsync(selectedClientTags, selectedClients));    
+    closeClientTagModal();
+    clearSelectedClients();
+    window.location.reload();
+  };
+
+  const removeTagsFromClients = () => {
+    dispatch(removeClientTagsAsync(selectedClientTags, selectedClients));    
+    closeClientTagModal();
+    clearSelectedClients();
+    window.location.reload();
+  };
 
   const clickDelete = (event, clients) => {
     dispatch(deleteClientAsync(clients));
@@ -189,6 +256,23 @@ export default function ClientListToolbar({
     }
   };
 
+  const NewClientTag = Yup.object().shape({
+    clientTag: Yup.string().required('Client Tag is required'),
+  });
+
+  const formik = useFormik({
+    initialValues: {
+      clientTag: '',
+    },    
+    validationSchema: NewClientTag,
+    onSubmit: () => {
+      dispatch(saveClientTagAsync(values.clientTag));      
+      values.clientTag = '';
+      setCreateClientTagModalOpen(false);
+
+    },
+  });
+  const { errors, touched, values, handleSubmit, getFieldProps } = formik;
   return (
     <RootStyle
       sx={{
@@ -204,16 +288,27 @@ export default function ClientListToolbar({
         </Typography>
       ) : (
         <Stack direction="row" alignItems="center" spacing={1}>
-          <Button onClick={handleClickList} variant={listOrMap === 'list' ? 'contained' : 'outlined'}>
+          <Button 
+            startIcon={<List />}
+            onClick={handleClickList} 
+            variant={listOrMap === 'list' ? 'contained' : 'outlined'}>
             List
           </Button>
-          <Button onClick={handleClickMap} variant={listOrMap === 'map' ? 'contained' : 'outlined'}>
+          <Button 
+            startIcon={<Map />}
+            onClick={handleClickMap} 
+            variant={listOrMap === 'map' ? 'contained' : 'outlined'}>
             Map
           </Button>
           <SearchStyle
             value={filterName}
             onChange={onFilterName}
             placeholder="Search user..."
+            variant="outlined"
+            sx={{
+              borderRadius: '25px',
+              backgroundColor: 'background.paper',
+            }}
             startAdornment={
               <InputAdornment position="start">
                 <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled', width: 20, height: 20 }} />
@@ -224,66 +319,96 @@ export default function ClientListToolbar({
       )}
 
       {numSelected > 0 ? (
-        <Tooltip title="Delete">
-          <IconButton onClick={(event) => clickDelete(event, selectedClients)}>
-            <Iconify icon="eva:trash-2-fill" />
-          </IconButton>
-        </Tooltip>
+        <Box display="flex" flexDirection="row" gap={1}>
+          <Button 
+              onClick={()=>setEditClientTagsModalOpen(true)}
+              variant={'contained'}
+              startIcon={<Add />}
+          >
+              Add Client Tag
+          </Button>
+          <Button 
+              onClick={()=>setRemoveClientTagsModalOpen(true)}
+              variant={'contained'}
+              startIcon={<Remove />}
+          >
+              Remove Client Tag
+          </Button> 
+          <Tooltip title="Delete">
+            <IconButton onClick={(event) => clickDelete(event, selectedClients)}>
+              <Iconify icon="eva:trash-2-fill" />
+            </IconButton>
+          </Tooltip>
+        </Box>
       ) : (
-        <CustomerDataFilter
-          customerDataFilters={customerDataFilters}
-          product={product}
-          minPrice={minPrice}
-          setMinPrice={setMinPrice}
-          maxPrice={maxPrice}
-          setMaxPrice={setMaxPrice}
-          minYear={minYear}
-          setMinYear={setMinYear}
-          maxYear={maxYear}
-          setMaxYear={setMaxYear}
-          equipInstallDateMin={equipInstallDateMin}
-          setEquipInstallDateMin={setEquipInstallDateMin}
-          equipInstallDateMax={equipInstallDateMax}
-          setEquipInstallDateMax={setEquipInstallDateMax}
-          statusFilters={statusFilters}
-          setStatusFilters={setStatusFilters}
-          tagFilters={tagFilters}
-          setTagFilters={setTagFilters}
-          zipCode={zipCode}
-          setZipCode={setZipCode}
-          city={city}
-          setCity={setCity}
-          state={state}
-          setState={setState}
-          customerSinceMin={customerSinceMin}
-          setCustomerSinceMin={setCustomerSinceMin}
-          customerSinceMax={customerSinceMax}
-          setCustomerSinceMax={setCustomerSinceMax}
-          minRooms={minRooms}
-          setMinRooms={setMinRooms}
-          maxRooms={maxRooms}
-          setMaxRooms={setMaxRooms}
-          minBaths={minBaths}
-          setMinBaths={setMinBaths}
-          maxBaths={maxBaths}
-          setMaxBaths={setMaxBaths}
-          minSqft={minSqft}
-          setMinSqft={setMinSqft}
-          maxSqft={maxSqft}
-          setMaxSqft={setMaxSqft}
-          minLotSqft={minLotSqft}
-          setMinLotSqft={setMinLotSqft}
-          maxLotSqft={maxLotSqft}
-          setMaxLotSqft={setMaxLotSqft}
-          savedFilter={savedFilter}
-          setSavedFilter={setSavedFilter}
-          uspsChanged={uspsChanged}
-          setUspsChanged={setUspsChanged}
-          minRevenue={minRevenue}
-          setMinRevenue={setMinRevenue}
-          maxRevenue={maxRevenue}
-          setMaxRevenue={setMaxRevenue}
-        />
+        <Box display="flex" flexDirection="row" gap={3}> 
+          {/* Use 'gap' for spacing. Adjust '1' to the desired spacing value. */}
+          <Button 
+              onClick={()=>setCreateClientTagModalOpen(true)}
+              variant={'outlined'}
+              startIcon={<Add />}
+          >
+              Create Client Tag
+          </Button>
+
+          <CustomerDataFilter          
+            customerDataFilters={customerDataFilters}
+            product={product}
+            minPrice={minPrice}
+            setMinPrice={setMinPrice}
+            maxPrice={maxPrice}
+            setMaxPrice={setMaxPrice}
+            minYear={minYear}
+            setMinYear={setMinYear}
+            maxYear={maxYear}
+            setMaxYear={setMaxYear}
+            equipInstallDateMin={equipInstallDateMin}
+            setEquipInstallDateMin={setEquipInstallDateMin}
+            equipInstallDateMax={equipInstallDateMax}
+            setEquipInstallDateMax={setEquipInstallDateMax}
+            statusFilters={statusFilters}
+            setStatusFilters={setStatusFilters}
+            tagFilters={tagFilters}
+            setTagFilters={setTagFilters}
+            zipCode={zipCode}
+            setZipCode={setZipCode}
+            city={city}
+            setCity={setCity}
+            state={state}
+            setState={setState}
+            customerSinceMin={customerSinceMin}
+            setCustomerSinceMin={setCustomerSinceMin}
+            customerSinceMax={customerSinceMax}
+            setCustomerSinceMax={setCustomerSinceMax}
+            minRooms={minRooms}
+            setMinRooms={setMinRooms}
+            maxRooms={maxRooms}
+            setMaxRooms={setMaxRooms}
+            minBaths={minBaths}
+            setMinBaths={setMinBaths}
+            maxBaths={maxBaths}
+            setMaxBaths={setMaxBaths}
+            minSqft={minSqft}
+            setMinSqft={setMinSqft}
+            maxSqft={maxSqft}
+            setMaxSqft={setMaxSqft}
+            minLotSqft={minLotSqft}
+            setMinLotSqft={setMinLotSqft}
+            maxLotSqft={maxLotSqft}
+            setMaxLotSqft={setMaxLotSqft}
+            savedFilter={savedFilter}
+            setSavedFilter={setSavedFilter}
+            uspsChanged={uspsChanged}
+            setUspsChanged={setUspsChanged}
+            minRevenue={minRevenue}
+            setMinRevenue={setMinRevenue}
+            maxRevenue={maxRevenue}
+            setMaxRevenue={setMaxRevenue}
+            clientTagFilters={clientTagFilters}
+            setClientTagFilters={setClientTagFilters}
+            clientTags={clientTags}
+          />
+        </Box>        
       )}
       {showAlert && (
         <Alert
@@ -295,6 +420,120 @@ export default function ClientListToolbar({
           Our customer map is a premium feature, please upgrade to access it.
         </Alert>
       )}
+    <Dialog 
+      open={createClientTagModalOpen} 
+      onClose={()=>setCreateClientTagModalOpen(false)} 
+      sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }}
+      data-testid="create-client-tag-modal"
+    >
+        <DialogTitle>Add A Client Tag</DialogTitle>
+        <FormikProvider value={formik}>
+          <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
+            <Stack spacing={3}>
+              <TextField
+                fullWidth                
+                label="Client Tag"
+                placeholder="Club Member"
+                {...getFieldProps('clientTag')}
+                error={Boolean(touched.clientTag && errors.clientTag)}
+                helperText={touched.clientTag && errors.clientTag}
+              />
+            </Stack>
+          </Form>
+        </FormikProvider>
+        <Stack direction="row" justifyContent="right">
+          <Button color="error" onClick={()=>setCreateClientTagModalOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit}>Submit</Button>
+        </Stack>
+      </Dialog>
+    <Dialog 
+      open={editClientTagsModalOpen} 
+      onClose={closeClientTagModal} 
+      sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }}
+      data-testid="edit-client-tag-modal"
+      >
+        <DialogTitle>Add Clients To Tag Groups</DialogTitle>        
+        <Grid container spacing={1} sx={{padding: '10px'}}>
+            {clientTags.map((option, index) => (                
+                <Grid item key={index}>
+                    <Box
+                        component="label"
+                        display="flex"
+                        alignItems="center"
+                        style={{
+                            cursor: 'pointer',
+                            padding: '5px',
+                            borderRadius: '15px',
+                            backgroundColor: tagColors[index % tagColors.length],
+                            color: 'white',
+                            fontWeight: 'bold',
+                        }}
+                    >
+                        <Checkbox
+                            checked={selectedClientTags.includes(option)}
+                            onChange={handleSelectedClientTagsChange}
+                            value={option}
+                            style={{ color: 'white' }}
+                        />
+                        {capitalizeWords(option)}
+                    </Box>
+                </Grid>
+            ))}
+        </Grid>
+        
+        
+        <Stack direction="row" justifyContent="right">
+          <Button color="error" onClick={closeClientTagModal}>
+            Cancel
+          </Button>
+          <Button onClick={addClientsToTagGroup}>Submit</Button>
+        </Stack>
+      </Dialog>
+      <Dialog 
+        open={removeClientTagsModalOpen} 
+        onClose={closeClientTagModal} 
+        sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }}
+        data-testid="remove-client-tags-modal"
+      >
+        <DialogTitle>Remove Tags From Clients</DialogTitle>        
+        <Grid container spacing={1} sx={{padding: '10px'}}>
+            {clientTags.map((option, index) => (                
+                <Grid item key={index}>
+                    <Box
+                        component="label"
+                        display="flex"
+                        alignItems="center"
+                        style={{
+                            cursor: 'pointer',
+                            padding: '5px',
+                            borderRadius: '15px',
+                            backgroundColor: tagColors[index % tagColors.length],
+                            color: 'white',
+                            fontWeight: 'bold',
+                        }}
+                    >
+                        <Checkbox
+                            checked={selectedClientTags.includes(option)}
+                            onChange={handleSelectedClientTagsChange}
+                            value={option}
+                            style={{ color: 'white' }}
+                        />
+                        {capitalizeWords(option)}
+                    </Box>
+                </Grid>
+            ))}
+        </Grid>
+        
+        
+        <Stack direction="row" justifyContent="right">
+          <Button color="error" onClick={closeClientTagModal}>
+            Cancel
+          </Button>
+          <Button onClick={removeTagsFromClients}>Submit</Button>
+        </Stack>
+      </Dialog>
     </RootStyle>
   );
 }

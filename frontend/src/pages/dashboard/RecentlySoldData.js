@@ -48,7 +48,8 @@ const TABLE_HEAD = [
   { id: 'state', label: 'State', alignRight: false },
   { id: 'zipCode', label: 'Zip Code', alignRight: false },
   { id: 'price', label: 'Price', alignRight: false },
-  // { id: 'year_built', label: 'Year Built', alignRight: false },
+  { id: 'year_built', label: 'Year Built', alignRight: false },
+  { id: 'tags', label: 'Tags', alignRight: false },
 ];
 
 
@@ -211,6 +212,10 @@ export default function RecentlySoldData() {
     setShownClients(count);
   }, [count]);
 
+  const tagColors = [  '#E57373',  '#81C784',  '#64B5F6', '#FFC107', '#BA68C8'];
+  function capitalizeWords(str) {
+    return str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+  }
   return (
     <Page title="Recently Sold" userInfo={userInfo}>
       <Container>
@@ -295,7 +300,8 @@ export default function RecentlySoldData() {
                             zip_code: zipCode,
                             listed,
                             price,
-                            // year_built: yearBuilt,
+                            year_built: yearBuilt,
+                            tags
                           } = row;
 
                           return (
@@ -312,8 +318,26 @@ export default function RecentlySoldData() {
                                 <TableCell align="left">{city}</TableCell>
                                 <TableCell align="left">{state}</TableCell>
                                 <TableCell align="left">{zipCode}</TableCell>
-                                <TableCell align="left">{price.toLocaleString()}</TableCell>
-                                {/* <TableCell align="left">{yearBuilt}</TableCell> */}
+                                <TableCell align="left">{price ? price.toLocaleString() : "$0"}</TableCell>
+                                <TableCell align="left">{yearBuilt}</TableCell>
+                                <TableCell align="left">
+                                  {tags && tags.map((tag, index) => (
+                                    <span 
+                                        key={tag} 
+                                        style={{
+                                            backgroundColor: tagColors[index % tagColors.length],
+                                            color: 'white',
+                                            borderRadius: '15px',
+                                            padding: '5px 10px',
+                                            margin: '5px 2px',
+                                            display: 'inline-block',
+                                            fontWeight: 'bold'
+                                        }}
+                                    >
+                                        {capitalizeWords(tag)}
+                                    </span>
+                                ))}
+                                </TableCell>
                               </TableRow>
                             </React.Fragment>
                           );
