@@ -109,7 +109,7 @@ service-identity==23.1.0
 simple-salesforce==1.12.3
 six==1.16.0
 social-auth-app-django==5.2.0
-social-auth-core==4.4.1
+social-auth-core==4.5.1
 soupsieve==2.4.1
 sqlparse==0.4.4
 stone==3.3.1
