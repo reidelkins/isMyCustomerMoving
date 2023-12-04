@@ -90,7 +90,7 @@
     "@playwright/test": "^1.37.0",
     "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.4.3",
-    "eslint": "^8.54.0",
+    "eslint": "^8.55.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^9.0.0",
     "eslint-config-react-app": "^7.0.0",
