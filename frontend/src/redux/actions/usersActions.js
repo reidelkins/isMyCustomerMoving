@@ -1482,7 +1482,7 @@ export const getClientsCSV = (
       if (maxRevenue) {
         filters += `&max_revenue=${maxRevenue}`;
       }
-      if (clientTags) {
+      if (clientTags.length > 0) {
         filters += `&client_tags=${clientTags.join(',')}`;
       }
       const response = await axios.get(`${DOMAIN}/api/v1/data/downloadclients/?${filters}`, config);
