@@ -1054,7 +1054,7 @@ export const filterForSaleAsync =
       if (maxDaysAgo) {
         filters += `&max_days_ago=${maxDaysAgo}`;
       }
-      if (tagFilters) {
+      if (tagFilters.length > 0) {
         filters += `&tags=${tagFilters.join(',')}`;
       }
       if (city) {
@@ -1251,7 +1251,7 @@ export const filterRecentlySoldAsync =
       if (maxDaysAgo) {
         filters += `&max_days_ago=${maxDaysAgo}`;
       }
-      if (tagFilters) {
+      if (tagFilters.length > 0) {
         filters += `&tags=${tagFilters.join(',')}`;
       }
       if (city) {
@@ -1482,7 +1482,7 @@ export const getClientsCSV = (
       if (maxRevenue) {
         filters += `&max_revenue=${maxRevenue}`;
       }
-      if (clientTags) {
+      if (clientTags.length > 0) {
         filters += `&client_tags=${clientTags.join(',')}`;
       }
       const response = await axios.get(`${DOMAIN}/api/v1/data/downloadclients/?${filters}`, config);
@@ -1546,7 +1546,7 @@ export const getRecentlySoldCSV =
       if (maxDaysAgo) {
         filters += `&max_days_ago=${maxDaysAgo}`;
       }
-      if (tagFilters) {
+      if (tagFilters.length > 0) {
         filters += `&tags=${tagFilters.join(',')}`;
       }
       if (city) {
@@ -1625,7 +1625,7 @@ export const getForSaleCSV =
       if (maxDaysAgo) {
         filters += `&max_days_ago=${maxDaysAgo}`;
       }
-      if (tagFilters) {
+      if (tagFilters.length > 0) {
         filters += `&tags=${tagFilters.join(',')}`;
       }
       if (city) {

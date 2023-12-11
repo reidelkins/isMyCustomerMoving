@@ -490,7 +490,7 @@ export default function ForSaleDataFilter({
                   <Tooltip title="How long ago was the house put up for sale">
                     <Box mt={2}>
                       <Typography variant="h6" mb={2}>
-                        Days Ago Sold
+                        Days Ago Listed
                       </Typography>
                       {error && (
                         <Grid item xs={12}>
