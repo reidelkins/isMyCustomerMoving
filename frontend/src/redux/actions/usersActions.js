@@ -1054,7 +1054,7 @@ export const filterForSaleAsync =
       if (maxDaysAgo) {
         filters += `&max_days_ago=${maxDaysAgo}`;
       }
-      if (tagFilters) {
+      if (tagFilters.length > 0) {
         filters += `&tags=${tagFilters.join(',')}`;
       }
       if (city) {
@@ -1251,7 +1251,7 @@ export const filterRecentlySoldAsync =
       if (maxDaysAgo) {
         filters += `&max_days_ago=${maxDaysAgo}`;
       }
-      if (tagFilters) {
+      if (tagFilters.length > 0) {
         filters += `&tags=${tagFilters.join(',')}`;
       }
       if (city) {
@@ -1546,7 +1546,7 @@ export const getRecentlySoldCSV =
       if (maxDaysAgo) {
         filters += `&max_days_ago=${maxDaysAgo}`;
       }
-      if (tagFilters) {
+      if (tagFilters.length > 0) {
         filters += `&tags=${tagFilters.join(',')}`;
       }
       if (city) {
@@ -1625,7 +1625,7 @@ export const getForSaleCSV =
       if (maxDaysAgo) {
         filters += `&max_days_ago=${maxDaysAgo}`;
       }
-      if (tagFilters) {
+      if (tagFilters.length > 0) {
         filters += `&tags=${tagFilters.join(',')}`;
       }
       if (city) {
