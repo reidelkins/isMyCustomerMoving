@@ -1171,6 +1171,7 @@ def filter_home_listings(query_params, queryset, company_id, filter_type):
             )
         elif param == "tags":
             tags = query_params.getlist('tags')
+            tags = [tag.replace("_", " ") for tag in tags]
             queryset = queryset.filter(tags__contains=tags)
         elif param in ["state", "city"]:
             filter_key = f"{param}__iexact"
@@ -1252,6 +1253,7 @@ def filter_clients(query_params, queryset, company_id):
                 queryset = queryset.filter(zip_code=zip_code.first())
         elif param == "tags":
             tags = query_params.getlist('tags')
+            tags = [tag.replace("_", " ") for tag in tags]
             queryset = queryset.filter(tags__contains=tags)
         elif param == "client_tags":
             client_tags = query_params.getlist('client_tags')

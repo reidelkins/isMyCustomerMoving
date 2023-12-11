@@ -326,24 +326,23 @@ export default function ForSaleData() {
                                 <TableCell align="left">{price.toLocaleString()}</TableCell>
                                 <TableCell align="left">{yearBuilt}</TableCell>
                                 <TableCell align="left">
-                                  {tags.map((tag, index) => (
-                                      <span 
-                                          key={tag} 
-                                          style={{                                            
-                                              backgroundColor: tagColors[index % tagColors.length],
-                                              color: 'white',
-                                              borderRadius: '10px', // Smaller border-radius
-                                              padding: '3px 8px', // Reduced padding
-                                              margin: '5px 2px',
-                                              display: 'inline-block',
-                                              fontWeight: 'bold',
-                                              fontSize: '0.5em' // Smaller font size
-                                          }}
-                                      >
-                                          {capitalizeWords(tag)}
-                                      </span>
-                                  ))}
-                              </TableCell>
+                                  {tags && tags.map((tag, index) => (
+                                    <span 
+                                        key={tag} 
+                                        style={{
+                                            backgroundColor: tagColors[index % tagColors.length],
+                                            color: 'white',
+                                            borderRadius: '15px',
+                                            padding: '5px 10px',
+                                            margin: '5px 2px',
+                                            display: 'inline-block',
+                                            fontWeight: 'bold'
+                                        }}
+                                    >
+                                        {capitalizeWords(tag)}
+                                    </span>
+                                ))}
+                                </TableCell>
                               </TableRow>
                             </React.Fragment>
                           );
