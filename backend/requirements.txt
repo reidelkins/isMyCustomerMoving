@@ -23,7 +23,7 @@ constantly==15.1.0
 coreapi==2.3.3
 coreschema==0.0.4
 coverage==7.2.7
-cryptography==41.0.4
+cryptography==41.0.7
 cssselect==1.2.0
 decorator==5.1.1
 defusedxml==0.7.1
@@ -66,8 +66,8 @@ kombu==5.3.1
 loguru==0.7.2
 lxml==4.9.3
 MarkupSafe==2.1.2
-modal==0.53.3735
-numpy==1.25.2
+modal==0.56.4254
+numpy==1.26.2
 oauthlib==3.2.2
 packaging==23.1
 pandas==2.0.3
@@ -75,7 +75,7 @@ parsel==1.7.0
 platformdirs==3.10.0
 pluggy==1.2.0
 ply==3.11
-prompt-toolkit==3.0.40
+prompt-toolkit==3.0.41
 Protego==0.3.0
 psycopg2==2.9.5
 pyasn1==0.5.0
@@ -109,7 +109,7 @@ service-identity==23.1.0
 simple-salesforce==1.12.3
 six==1.16.0
 social-auth-app-django==5.2.0
-social-auth-core==4.4.1
+social-auth-core==4.5.1
 soupsieve==2.4.1
 sqlparse==0.4.4
 stone==3.3.1
@@ -124,7 +124,7 @@ urllib3==2.0.6
 uszipcode==1.0.1
 vine==5.0.0
 w3lib==2.1.2
-wcwidth==0.2.9
+wcwidth==0.2.12
 whitenoise==6.5.0
 wrapt==1.15.0
 zeep==4.2.1
