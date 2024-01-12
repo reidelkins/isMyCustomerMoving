@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from datetime import datetime
 from accounts.models import Company
 from payments.models import Product
-from data.serviceTitan import complete_service_titan_sync
+from backend.data.crms.serviceTitan_old import complete_service_titan_sync
 
 
 class Command(BaseCommand):

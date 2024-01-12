@@ -10,7 +10,7 @@ def create_report():
     free_product = Product.objects.get(id="price_1MhxfPAkLES5P4qQbu8O45xy")
 
     companies_with_invoice_count = Company.objects.annotate(
-        invoice_count=Count('client_company__servicetitaninvoice')
+        invoice_count=Count('client_company__CRMInvoice')
     ).filter(
         invoice_count__gt=0).exclude(
             product=free_product).values(

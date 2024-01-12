@@ -237,7 +237,8 @@ export const companyAsync =
     soldContactedTag,
     forSaleDateCustomFieldID,
     soldDateCustomFieldID,
-    crm
+    crm,
+    hubspotAccessToken
   ) =>
   async (dispatch, getState) => {
     try {
@@ -265,6 +266,7 @@ export const companyAsync =
         forSaleDateCustomFieldID,
         soldDateCustomFieldID,
         crm,
+        hubspotAccessToken,
         user: userInfo.id,
       };
       const { data } = await axios.put(`${DOMAIN}/api/v1/accounts/company/`, body, config);
@@ -286,7 +288,11 @@ export const companyAsync =
               forRentTag,
               soldTag,
               forSaleContactedTag,
-              soldContactedTag
+              soldContactedTag,
+              forSaleDateCustomFieldID,
+              soldDateCustomFieldID,
+              crm,
+              hubspotAccessToken
             )
           )
         );

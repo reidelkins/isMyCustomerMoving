@@ -133,6 +133,8 @@ class Company(models.Model):
         null=True,
         related_name="companies",
     )
+    # Hubspot
+    hubspot_api_key = models.CharField(max_length=100, blank=True, null=True)
 
     # Service Titan
     service_titan_app_version = models.IntegerField(blank=True, null=True)

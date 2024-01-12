@@ -77,6 +77,14 @@ class Client(models.Model):
     service_titan_lifetime_revenue = models.FloatField(
         default=0, blank=True, null=True
     )
+
+    # hubspot fields
+    hubspot_id = models.CharField(max_length=100, blank=True, null=True)
+    customer_since = models.DateField(blank=True, null=True)
+    customer_lifetime_value = models.FloatField(
+        default=0, blank=True, null=True
+    )
+
     old_address = models.CharField(max_length=200, blank=True, null=True)
     usps_different = models.BooleanField(default=False)
 

@@ -21,7 +21,7 @@ class Product(models.Model):
             return f"${self.amount}/year"
 
 
-class ServiceTitanInvoice(models.Model):
+class CRMInvoice(models.Model):
     id = models.UUIDField(
         primary_key=True, unique=True, default=uuid.uuid4, editable=False
     )
