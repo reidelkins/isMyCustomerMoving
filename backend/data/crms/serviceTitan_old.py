@@ -9,8 +9,8 @@ from django.db.models import Q
 from django.db import transaction
 
 from accounts.models import Company
-from .models import Client, ClientUpdate, ServiceTitanJob
-from .utils import (
+from ..models import Client, ClientUpdate, ServiceTitanJob
+from ..utils import (
     auto_update,
     save_client_list,
     delete_extra_clients,
@@ -19,7 +19,7 @@ from .utils import (
     verify_address,
     parse_streets
 )
-from payments.models import ServiceTitanInvoice
+from payments.models import CRMInvoice
 
 
 @shared_task
@@ -306,7 +306,7 @@ def get_service_titan_invoices(company_id, tenant):
     company = Company.objects.get(id=company_id)
     all_clients = Client.objects.filter(company=company)
 
-    if ServiceTitanInvoice.objects.filter(client__in=all_clients).exists():
+    if CRMInvoice.objects.filter(client__in=all_clients).exists():
         rfc339 = (datetime.now()-timedelta(days=365)
                   ).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         rfc_url_param = f"&createdOnOrAfter={rfc339}"
@@ -358,7 +358,7 @@ def save_invoices(company_id, invoices):
     client_lookup = {client.serv_titan_id: client for client in all_clients}
 
     existing_invoice_ids = set(
-        ServiceTitanInvoice.objects.values_list('invoice_id', flat=True))
+        CRMInvoice.objects.values_list('invoice_id', flat=True))
     invoices_to_create = []
     # invoices_to_update = []
     count = 0
@@ -369,7 +369,7 @@ def save_invoices(company_id, invoices):
         if client is None:
             continue
         if len(invoices_to_create) > 500:
-            ServiceTitanInvoice.objects.bulk_create(invoices_to_create)
+            CRMInvoice.objects.bulk_create(invoices_to_create)
             invoices_to_create = []
         # Parse the createdOn date from the invoice data
         created_on = datetime.strptime(invoice["createdOn"], "%Y-%m-%d").date()
@@ -392,7 +392,7 @@ def save_invoices(company_id, invoices):
                 ):
                     attributed = True
             invoices_to_create.append(
-                ServiceTitanInvoice(
+                CRMInvoice(
                     invoice_id=invoice["id"],
                     amount=invoice["amount"],
                     client=client,
@@ -402,7 +402,7 @@ def save_invoices(company_id, invoices):
                 )
             )
         # else:
-        #     invoice_obj = ServiceTitanInvoice.objects.get(
+        #     invoice_obj = CRMInvoice.objects.get(
         #         invoice_id=invoice["id"])
         #     if invoice['amount'] != invoice_obj.amount:
         #         invoice_obj.amount = invoice['amount']
@@ -410,9 +410,9 @@ def save_invoices(company_id, invoices):
 
     # Bulk operations
     if invoices_to_create:
-        ServiceTitanInvoice.objects.bulk_create(invoices_to_create)
+        CRMInvoice.objects.bulk_create(invoices_to_create)
     # if invoices_to_update:
-    #     ServiceTitanInvoice.objects.bulk_update(invoices_to_update, ['amount'])
+    #     CRMInvoice.objects.bulk_update(invoices_to_update, ['amount'])
 
     # Clean up variables to free up memory
     del_variables([company, invoices_to_create])
@@ -425,7 +425,7 @@ def get_customer_since_data_from_invoices(company_id):
         company=company
     )
     for client in clients:
-        invoices = ServiceTitanInvoice.objects.filter(
+        invoices = CRMInvoice.objects.filter(
             client=client
         ).order_by("created_on")
 

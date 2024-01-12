@@ -1,3 +1,4 @@
+import importlib
 from re import sub
 from accounts.models import Company, CustomUser
 from config import settings
@@ -271,13 +272,18 @@ def save_client_list(clients, company_id, task=None):
     company = Company.objects.get(id=company_id)
 
     for i, client in enumerate(clients):
+
         try:
             is_service_titan = "active" in client
+            is_hubspot = "hs_object_id" in client
 
             if (
                 is_service_titan and client["active"]
             ) or not is_service_titan:
-                name = client["name"]
+                if is_hubspot:
+                    name = client["firstname"] + " " + client["lastname"]
+                else:
+                    name = client["name"]
                 if is_service_titan:
                     street = parse_streets(
                         client["address"]["street"].title()
@@ -313,6 +319,28 @@ def save_client_list(clients, company_id, task=None):
                             name=name,
                             company=company,
                             serv_titan_id=client["customerId"],
+                        )
+                    )
+                elif is_hubspot:
+                    phone_number = (
+                        sub("[^0-9]", "", client["phone"])
+
+                    )
+                    created_date = datetime.fromisoformat(
+                        client["created"].rstrip('Z')).date()
+
+                    clients_to_add.append(
+                        Client(
+                            address=street,
+                            zip_code=zip_code_obj,
+                            city=city,
+                            state=state,
+                            name=name,
+                            company=company,
+                            hubspot_id=client["hs_object_id"],
+                            email=client["email"],
+                            phone_number=phone_number,
+                            customer_since=created_date
                         )
                     )
                 else:
@@ -908,7 +936,7 @@ def update_service_titan_clients(clients_to_update, company, status):
                 logging.error(response.json())
 
         if clients_to_update:
-            from .serviceTitan import update_sold_listed_date_on_location
+            from .crms.serviceTitan_old import update_sold_listed_date_on_location
             for client in clients_to_update:
                 client = Client.objects.filter(
                     serv_titan_id=client, company=company).first()
@@ -1170,7 +1198,15 @@ def filter_home_listings(query_params, queryset, company_id, filter_type):
                 }
             )
         elif param == "tags":
-            tags = query_params.getlist('tags')
+            if isinstance(query_params, dict):
+                # It's a standard dict, use standard dict access
+                tags = query_params.get('tags', [])
+                if isinstance(tags, str):
+                    # If 'tags' is a single string value, put it in a list
+                    tags = [tags]
+            else:
+                # It's a QueryDict, use the getlist method
+                tags = query_params.getlist('tags')
             tags = [tag.replace("_", " ") for tag in tags]
             queryset = queryset.filter(tags__contains=tags)
         elif param in ["state", "city"]:
@@ -1462,3 +1498,38 @@ def format_address_for_scraper(client_id):
               f"{client.zip_code.zip_code}"
     address = address.replace(" ", "-")
     return address
+
+
+@shared_task
+def generic_crm_task(crm_class_name, company_id, method_name, **kwargs):
+    """
+    Generic Celery task to handle various CRM operations.
+
+    Args:
+    crm_class_name (str): The name of the CRM class to be instantiated.
+    company_id (int): The ID of the company using the CRM.
+    method_name (str): The name of the CRM method to call.
+    **kwargs: Variable keyword arguments to pass to the CRM method.
+
+    Returns:
+    The result of the CRM method call.
+    """
+    # Construct the module path dynamically
+    module_path = f'data.crms.{crm_class_name}'
+
+    # Import the CRM class dynamically
+    crm_module = importlib.import_module(module_path)
+    crm_class = getattr(crm_module, crm_class_name)
+
+    # Instantiate the CRM class
+    crm = crm_class(company_id)
+
+    # Dynamically call the specified method of the CRM instance
+    method = getattr(crm, method_name)
+    return method(**kwargs)
+
+
+def chunk_list(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]

@@ -45,7 +45,7 @@ const ServiceTitan = ({ open, setOpen, dispatch }) => {
     validationSchema: IntegrateSTSchema,
     onSubmit: () => {
       setOpen(false);
-      dispatch(companyAsync('', '', values.tenantID, '', '', '', '', '', '', '', '', '', 'ServiceTitan'));
+      dispatch(companyAsync('', '', values.tenantID, '', '', '', '', '', '', '', '', '', 'ServiceTitan', ''));
     },
   });
 
@@ -133,6 +133,111 @@ const ServiceTitan = ({ open, setOpen, dispatch }) => {
 
 // prop validation
 ServiceTitan.propTypes = {
+  open: PropTypes.bool.isRequired,
+  setOpen: PropTypes.func.isRequired,
+  dispatch: PropTypes.func.isRequired,
+};
+
+// Dialog for Service Titan Integration
+const Hubspot = ({ open, setOpen, dispatch }) => {
+  const [integrateInfo, setIntegrateInfo] = useState(false);
+  const handleClose = () => {
+    setOpen(false);
+  };
+  const IntegrateHSSchema = Yup.object().shape({
+    access_token: Yup.string('The access token is a  long string').required('HupSpot App Access Token is required'),
+  });
+
+  const formik = useFormik({
+    initialValues: {
+      access_token: '',
+    },
+    validationSchema: IntegrateHSSchema,
+    onSubmit: () => {      
+      setOpen(false);
+      dispatch(companyAsync('', '', '', '', '', '', '', '', '', '', '', '', 'HubSpot', values.access_token));
+    },
+  });
+
+  const { errors, touched, values, handleSubmit, getFieldProps } = formik;
+  return (
+    <div>
+      <Dialog open={open} onClose={handleClose} sx={{ padding: '2px', borderRadius: '15px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)' }} >
+        <DialogTitle>Hubspot</DialogTitle>
+        <Divider />
+        <DialogContent>
+          <p>
+            To get started with Hubspot, submit your access token for the private app you created.
+            <span>
+              <IconButton onClick={() => setIntegrateInfo(true)}>
+                <Iconify icon="bi:question-circle-fill" />
+              </IconButton>
+            </span>
+          </p>
+          <FormikProvider value={formik}>
+            <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
+              <Stack spacing={3}>
+                <TextField
+                  fullWidth
+                  label=""
+                  placeholder="998190247"
+                  {...getFieldProps('access_token')}
+                  error={Boolean(touched.access_token && errors.access_token)}
+                  helperText={touched.access_token && errors.access_token}
+                />
+              </Stack>
+            </Form>
+          </FormikProvider>
+          <Stack direction="row" justifyContent="right">
+            <Button color="error" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit}>Submit</Button>
+          </Stack>
+        </DialogContent>
+      </Dialog>
+      <Modal
+        open={integrateInfo}
+        onClose={() => setIntegrateInfo(false)}
+        closeAfterTransition
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+        padding="10"
+      >
+        <Fade in={integrateInfo}>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 400,
+              bgcolor: 'white',
+              border: '2px solid #000',
+              boxShadow: '24px',
+              p: '4%',
+            }}
+          >
+            <Typography id="modal-modal-title" variant="h5" component="h2">
+              Integrate IMCM With Your HubSpot Account
+            </Typography>
+            <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+              1. Log in to your hubspot account, go to settings, then click private apps which is under the integrations menu. <br />
+              <br />
+              2. Create a new app, give it a new name like IMCM, then click on scopes. Here, under CRM select read/write for crm.objects.contacts, read/write for crm.objects.custom, and read for crm.objects.deals <br />
+              <br />
+              3. On the next page, click show token and then copy it. You can also find this value later by going to an app, selecting Auth and then it will be there. <br />
+              
+            </Typography>
+          </Box>
+        </Fade>
+      </Modal>
+    </div>
+  );
+};
+
+// prop validation
+Hubspot.propTypes = {
   open: PropTypes.bool.isRequired,
   setOpen: PropTypes.func.isRequired,
   dispatch: PropTypes.func.isRequired,
@@ -308,21 +413,7 @@ const Selected = () => (
   </div>
 );
 
-// // Dialog for Salesforce Integration
-// const Hubspot = ({open, setOpen}) => {
-//     const handleClose = () => {
-//         setOpen(false);
-//     }
-//     return (
-//         <div>
-//             <Dialog open={open} onClose={handleClose} sx={{margin:"12px"}}>
-//                 <DialogTitle >Salesforce</DialogTitle>
-//             </Dialog>
-//         </div>
-//     )
-// }
-
-// // Dialog for Salesforce Integration
+// // Dialog for Zoho Integration
 // const Zoho = ({open, setOpen}) => {
 //     const handleClose = () => {
 //         setOpen(false);
@@ -339,7 +430,7 @@ const Selected = () => (
 const CRMIntegrationModal = ({ user }) => {
   const [open, setOpen] = useState(false);
   const [stOpen, setStOpen] = useState(false);
-  // const [sfOpen, setSfOpen] = useState(false);
+  const [sfOpen, setSfOpen] = useState(false);
   const [hsOpen, setHsOpen] = useState(false);
   const [zohoOpen, setZohoOpen] = useState(false);
 
@@ -385,12 +476,14 @@ const CRMIntegrationModal = ({ user }) => {
         setOpen(false);
         setStOpen(true);
       } else if (name === 'Salesforce') {
-        setOpen(false);
-        // setSfOpen(true);
+        // setOpen(false);
+        setSfOpen(true);
         // window.location.href = `https://login.salesforce.com/services/oauth2/authorize?response_type=code+token&client_id=${salesForce.key}&redirect_uri=${window.location.href}&scope=full%20refresh_token%20offline_access`;
       } else if (name === 'salesforce') {
-        window.location.href = `https://login.salesforce.com/services/oauth2/authorize?response_type=code&client_id=${salesForce.key}&redirect_uri=${window.location.href}&scope=full%20refresh_token%20offline_access`;
+        // window.location.href = `https://login.salesforce.com/services/oauth2/authorize?response_type=code&client_id=${salesForce.key}&redirect_uri=${window.location.href}&scope=full%20refresh_token%20offline_access`;
+        setSfOpen(true);
       } else if (name === 'HubSpot') {
+        setOpen(false);
         setHsOpen(true);
       } else if (name === 'Zoho') {
         setZohoOpen(true);
@@ -439,6 +532,14 @@ const CRMIntegrationModal = ({ user }) => {
           </Button>
         </div>
       )}
+      {user.company.crm === 'HubSpot' && (
+        <div style={{ marginBottom: '5%' }}>
+          <Typography variant="h6" color="textSecondary">
+            You've Chosen Hubspot              
+          </Typography>
+          {/* {user.companyhubspot_api_key && <ServiceTitanTags userInfo={user} />}           */}
+        </div>
+      )}
 
       <Button variant="contained" color="primary" aria-label="Create Company" component="label" onClick={handleOpen}>
         {user.company.crm === 'None' ? 'Connect' : 'Change'} Your CRM
@@ -460,7 +561,7 @@ const CRMIntegrationModal = ({ user }) => {
                   <div style={{ width: 72, height: 72 }}>
                     <img alt={`${crm.name} logo`} src={crm.icon} style={{ width: '100%', height: '100%' }} />
                     {crm.name === 'Zoho' && zohoOpen && <ComingSoon />}
-                    {crm.name === 'HubSpot' && hsOpen && <ComingSoon />}
+                    {crm.name === 'Salesforce' && hsOpen && <ComingSoon />}
                     {crm.name === user.company.crm && <Selected />}
                   </div>
                 </Button>
@@ -491,9 +592,9 @@ const CRMIntegrationModal = ({ user }) => {
         </DialogContent>
       </Dialog>
       <ServiceTitan open={stOpen} setOpen={setStOpen} dispatch={dispatch} sx={{ margin: '12px' }} />
+      <Hubspot open={hsOpen} setOpen={setHsOpen} dispatch={dispatch} sx={{margin:"12px"}}/>
       {/* <Salesforce open={sfOpen} setOpen={setSfOpen} sx={{ margin: '12px' }} /> */}
-      {/* <Hubspot open={hsOpen} setOpen={setHsOpen} sx={{margin:"12px"}}/>
-        <Zoho open={zohoOpen} setOpen={setZohoOpen} sx={{margin:"12px"}}/> */}
+      {/* <Zoho open={zohoOpen} setOpen={setZohoOpen} sx={{margin:"12px"}}/> */}
     </div>
   );
 };

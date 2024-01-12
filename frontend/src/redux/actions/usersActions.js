@@ -863,8 +863,7 @@ export const serviceTitanUpdateAsync = (id, refreshed = false) => async (dispatc
 };
 
 export const serviceTitanSync = (option, ) => async (dispatch, getState) => {
-  try {
-    dispatch(clientsLoading());
+  try {    
     const reduxStore = getState();
     const { userInfo } = reduxStore.auth.userInfo;
 
@@ -874,6 +873,8 @@ export const serviceTitanSync = (option, ) => async (dispatch, getState) => {
         Authorization: `Bearer ${userInfo.access_token}`,
       },
     };
+
+    dispatch(clientsLoading());
     const { data } = await axios.put(`${DOMAIN}/api/v1/data/servicetitan/`, { option }, config);
     dispatch(serviceTitanUpdateAsync(data.task));
   } catch (error) {
@@ -894,10 +895,60 @@ export const salesForceSync = () => async (dispatch, getState) => {
       },
     };
     // dispatch(clientsLoading());
-    await axios.put(`${DOMAIN}/api/v1/data/salesforce/`, config);
+    await axios.put(`${DOMAIN}/api/v1/data/salesforce/`, { }, config);
     dispatch(clientsAsync(1));
   } catch (error) {
     throw new Error(error);
+    // dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+  }
+};
+
+export const hubspotUpdateAsync = (id, refreshed = false) => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const { userInfo } = reduxStore.auth.userInfo;
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access_token}`,
+      },
+    };
+
+    const { data } = await axios.get(`${DOMAIN}/api/v1/data/hubspot/${id}/`, config);
+    if (data.status === 'SUCCESS') {
+      dispatch(clientsNotAdded(data.deleted));
+      dispatch(clientsUpload(data.data));
+      dispatch(clientsAsync(1));
+    } else {
+      setTimeout(() => {
+        dispatch(hubspotUpdateAsync(id));
+      }, 100);
+    }
+  } catch (error) {
+    dispatch(clientsError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
+    if (error.response.status === 403 && !refreshed) {
+      dispatch(getRefreshToken(dispatch, hubspotUpdateAsync(id, true)));
+    }
+  }
+};
+
+export const hubspotSync = () => async (dispatch, getState) => {
+  try {
+    const reduxStore = getState();
+    const { userInfo } = reduxStore.auth.userInfo;
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.access_token}`,
+      },
+    };
+    dispatch(clientsLoading());    
+    const { data } = await axios.put(`${DOMAIN}/api/v1/data/hubspot/`, { }, config);
+    dispatch(hubspotUpdateAsync(data.task));    
+  } catch (error) {
+    // throw new Error(error);
+    console.log('error', error)
     // dispatch(usersError(error.response && error.response.data.detail ? error.response.data.detail : error.message));
   }
 };

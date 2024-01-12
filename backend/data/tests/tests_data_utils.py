@@ -9,7 +9,7 @@ import pytest
 from accounts.models import Company
 from data.models import Client, HomeListing, SavedFilter, ZipCode
 from payments.models import Product
-from data.serviceTitan import (
+from backend.data.crms.serviceTitan_old import (
     complete_service_titan_sync,
     get_service_titan_locations,
     get_service_titan_equipment,
@@ -32,7 +32,7 @@ from data.utils import (
     reactivate_clients,
     save_service_area_list
 )
-from payments.models import ServiceTitanInvoice
+from payments.models import CRMInvoice
 
 
 @pytest.fixture
@@ -202,13 +202,13 @@ def mock_get_customer_since_data_from_invoices():
 
 @pytest.fixture
 def mock_invoice():
-    with patch("payments.models.ServiceTitanInvoice.objects") as mock:
+    with patch("payments.models.CRMInvoice.objects") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_invoice_filter():
-    with patch("payments.models.ServiceTitanInvoice.objects.filter") as mock:
+    with patch("payments.models.CRMInvoice.objects.filter") as mock:
         yield mock
 
 
@@ -759,13 +759,13 @@ class TestSyncClientFunctions(TestCase):
             zip_code=ZipCode.objects.get(zip_code="12345"),
             company=self.company,
             serv_titan_id=240000002)
-        self.invoice1 = ServiceTitanInvoice(
+        self.invoice1 = CRMInvoice(
             client=self.client1,
             id="12345",
             created_on=date.today(),
             amount=100,
         )
-        self.invoice2 = ServiceTitanInvoice(
+        self.invoice2 = CRMInvoice(
             client=self.client1,
             id="123456",
             created_on=date.today() - timedelta(days=100),
@@ -1103,7 +1103,7 @@ class TestSyncClientFunctions(TestCase):
 
     @patch("accounts.models.Company.objects.get")
     @patch("data.models.Client.objects.filter")
-    @patch("payments.models.ServiceTitanInvoice.objects.filter")
+    @patch("payments.models.CRMInvoice.objects.filter")
     @patch("data.serviceTitan.get_service_titan_access_token")
     @patch("data.serviceTitan.get_customer_since_data_from_invoices.delay")
     @patch("data.serviceTitan.save_invoices.delay")
@@ -1615,7 +1615,7 @@ class TestSyncClientFunctions(TestCase):
         assert "createdOnOrAfter" in mock_get.call_args[1]["url"]
 
     @patch("data.models.Client.objects.filter")
-    @patch("payments.models.ServiceTitanInvoice.objects")
+    @patch("payments.models.CRMInvoice.objects")
     @patch("accounts.models.Company.objects.get")
     def test_save_invoices(self, mock_company, mock_invoice, mock_client):
         # Mock the Company and Client objects
@@ -1624,7 +1624,7 @@ class TestSyncClientFunctions(TestCase):
         mock_queryset.update = Mock()
         mock_client.return_value = mock_queryset
 
-        # Mock the ServiceTitanInvoice.objects and its methods
+        # Mock the CRMInvoice.objects and its methods
         mock_invoice.exists.return_value = False
 
         # Define the invoice data
@@ -1643,13 +1643,13 @@ class TestSyncClientFunctions(TestCase):
             }
         ]
         # invoices_to_create = [
-        #     ServiceTitanInvoice(
+        #     CRMInvoice(
         #         id=303350483,
         #         amount='25.69',
         #         client=self.client1,
         #         created_on=datetime.strptime("2023-04-21", "%Y-%m-%d").date()
         #     ),
-        #     ServiceTitanInvoice(
+        #     CRMInvoice(
         #         id=384053303,
         #         amount='12303.24',
         #         client=self.client2,
@@ -1664,11 +1664,11 @@ class TestSyncClientFunctions(TestCase):
         mock_company.assert_called_once_with(id="company_id")
         assert mock_client.call_count == 1
         # TODO: Need to figure out way to test this part
-        # if not ServiceTitanInvoice.objects.filter(id=invoice["id"]).exists():
-        # and actually add ServiceTitanInvoice to invoices_to_create
+        # if not CRMInvoice.objects.filter(id=invoice["id"]).exists():
+        # and actually add CRMInvoice to invoices_to_create
         assert mock_invoice.bulk_create.call_count == 1
 
-    @patch("payments.models.ServiceTitanInvoice.objects")
+    @patch("payments.models.CRMInvoice.objects")
     @patch("data.models.Client.objects.filter")
     @patch("accounts.models.Company.objects.get")
     def test_get_customer_since_data_from_invoices(self, mock_company, mock_client, mock_invoice):
@@ -1686,7 +1686,7 @@ class TestSyncClientFunctions(TestCase):
         mock_client.assert_called_once_with(company=self.company)
         assert mock_invoice.filter.call_count == 2
 
-    @patch("payments.models.ServiceTitanInvoice.objects.filter")
+    @patch("payments.models.CRMInvoice.objects.filter")
     @patch("data.models.Client.objects.filter")
     @patch("accounts.models.Company.objects.get")
     def test_get_customer_since_data_from_invoices(self, mock_company, mock_client, mock_invoice_filter):
@@ -1698,7 +1698,7 @@ class TestSyncClientFunctions(TestCase):
             [self.client1, self.client2])
 
         # Prepare invoice queryset and configure invoice amounts
-        mock_invoice_queryset = QuerySet(model=ServiceTitanInvoice)
+        mock_invoice_queryset = QuerySet(model=CRMInvoice)
         mock_invoice_filter.return_value = mock_invoice_queryset
         # TODO: Figure out why this is not working
         mock_invoice_queryset.__iter__ = iter(

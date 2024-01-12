@@ -1,6 +1,6 @@
 from accounts.models import Company
 from data.models import Client, ZipCode
-from payments.models import Product, ServiceTitanInvoice
+from payments.models import Product, CRMInvoice
 from django.test import TestCase
 
 
@@ -26,7 +26,7 @@ class TestProductModel(TestCase):
         self.assertEqual(product.interval, "month")
 
 
-class TestServiceTitanInvoiceModel(TestCase):
+class TestCRMInvoiceModel(TestCase):
     """
     Setup test environment.
     """
@@ -42,9 +42,9 @@ class TestServiceTitanInvoiceModel(TestCase):
 
     def test_service_titan_invoice_creation(self):
         """
-        Test the creation of a ServiceTitanInvoice object.
+        Test the creation of a CRMInvoice object.
         """
-        invoice = ServiceTitanInvoice.objects.create(
+        invoice = CRMInvoice.objects.create(
             invoice_id="123", amount=150.0, created_on="2020-01-01", client=self.client_object
         )
         self.assertEqual(invoice.invoice_id, "123")
@@ -54,9 +54,9 @@ class TestServiceTitanInvoiceModel(TestCase):
 
     def test_service_titan_invoice_default_values(self):
         """
-        Test the default values for the street and created_on fields in a ServiceTitanInvoice object.
+        Test the default values for the street and created_on fields in a CRMInvoice object.
         """
-        invoice = ServiceTitanInvoice.objects.create(
+        invoice = CRMInvoice.objects.create(
             invoice_id="123", client=self.client_object)
         self.assertEqual(invoice.created_on, None)
         self.assertEqual(invoice.amount, 0)

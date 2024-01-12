@@ -53,6 +53,19 @@ service_titan_patterns = [
     ),
 ]
 
+hubspot_patterns = [
+    path(
+        "",
+        views.HubspotView.as_view(),
+        name="hubspot",
+    ),
+    path(
+        "<str:task>/",
+        views.HubspotView.as_view(),
+        name="hubspot-with-task",
+    ),
+]
+
 upload_file_patterns = [
     path(
         "clients/",
@@ -103,6 +116,7 @@ urlpatterns = [
         name="salesforce",
     ),
     path("servicetitan/", include(service_titan_patterns)),
+    path("hubspot/", include(hubspot_patterns)),
     path("company_dashboard/", views.CompanyDashboardView.as_view(),
          name="company-dashboard"),
     path("zapier/client/", views.ZapierCreateClientView.as_view(),
