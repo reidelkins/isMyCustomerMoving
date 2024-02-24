@@ -75,6 +75,7 @@
     "react-router-dom": "6.20.1",
     "react-scripts": "^5.0.0",
     "redux": "^5.0.0",
+    "redux-thunk": "^3.1.0",
     "simplebar": "^6.2.5",
     "simplebar-react": "^3.2.4",
     "styled-components": "^6.0.7",
