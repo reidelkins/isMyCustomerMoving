@@ -69,6 +69,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
     useEffect(() => {
         const updatedFields = [...commonFields];
         if (userInfo && userInfo.company.crm === 'ServiceTitan') {
+            console.log("HEREEREERERE")
             updatedFields.unshift({ id: 'service_titan_lifetime_revenue', label: 'Lifetime Revenue', alignRight: false });
         }
         if (userInfo && userInfo.company.crm === 'ServiceTitan' || userInfo.company.crm === 'HubSpot') {
@@ -464,7 +465,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                                         equipment_installed_date: equipmentInstalledDate,
                                         error_flag: errorFlag,
                                         service_titan_customer_since_year: serviceTitanCustomerSinceYear,
-                                        customer_lifetime_value: serviceTitanLifetimeRevenue,
+                                        service_titan_lifetime_revenue: serviceTitanLifetimeRevenue,
                                         customer_since: customerSince,
                                         customer_lifetime_value: customerLifetimeValue,
                                         email,
