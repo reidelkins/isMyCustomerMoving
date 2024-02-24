@@ -99,9 +99,10 @@ class HubspotCRM(CRM):
         invoices_to_save = []
         for client in clients:
             batch_ids = BatchInputPublicObjectId([{'id': client.id}])
-            associations = api_client.crm.associations.batch_api.read(from_object_type="contacts",
-                                                                      to_object_type="deals",
-                                                                      batch_input_public_object_id=batch_ids)
+            associations = api_client.crm.associations.batch_api.read(
+                from_object_type="contacts",
+                to_object_type="deals",
+                batch_input_public_object_id=batch_ids)
             for association in associations.results:
                 deal = api_client.crm.deals.basic_api.get_by_id(
                     association.to[0].id)

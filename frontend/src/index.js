@@ -1,7 +1,7 @@
 // scroll bar
 import 'simplebar/dist/simplebar.css';
 
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client'; // Updated import
 import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -20,7 +20,8 @@ const { REACT_APP_GOOGLE_CLIENT_ID } = process.env;
 
 // ----------------------------------------------------------------------
 
-ReactDOM.render(
+const root = createRoot(document.getElementById('root'));
+root.render(
   <HelmetProvider>
     <Helmet>
       <title>Is My Customer Moving</title>
