@@ -82,7 +82,8 @@ export default function ServiceTitanTags({ userInfo }) {
           values.recentlySold_contacted,
           values.forSaleDate,
           values.soldDate,
-          ''
+          '',
+          '',
         )
       );
     },

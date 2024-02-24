@@ -6,7 +6,7 @@ from rest_framework.test import APIClient
 from accounts.models import Company, CustomUser
 from accounts.serializers import MyTokenObtainPairSerializer
 from data.models import Client, ClientUpdate, HomeListing, Realtor, ZipCode
-from payments.models import ServiceTitanInvoice
+from payments.models import CRMInvoice
 
 
 @pytest.fixture
@@ -86,20 +86,20 @@ class CompanyDashboardView(TestCase):
         # TODO: Create clients with join dates of a couple months ago and then of less than a year ago
         # but in the previous year and test that the math works out correctly
 
-        attributed_invoice1 = ServiceTitanInvoice.objects.create(
+        attributed_invoice1 = CRMInvoice.objects.create(
             client=client, amount=250.0, attributed=True, invoice_id="1", created_on=last_day_of_previous_month
         )
-        attributed_invoice2 = ServiceTitanInvoice.objects.create(
+        attributed_invoice2 = CRMInvoice.objects.create(
             client=client, amount=100.0, attributed=True, invoice_id="2", created_on=last_day_of_two_months_prior
         )
-        unattributed_invoice = ServiceTitanInvoice.objects.create(
+        unattributed_invoice = CRMInvoice.objects.create(
             client=client, amount=150.0, attributed=False, invoice_id="3", created_on=last_day_of_two_months_prior
         )
         # Need these to make sure other company invoices are not being shown to current user
-        diff_company_invoice = ServiceTitanInvoice.objects.create(
+        diff_company_invoice = CRMInvoice.objects.create(
             client=client2, amount=100.0, attributed=True, invoice_id="4", created_on=last_day_of_previous_month
         )
-        diff_company_invoice_2 = ServiceTitanInvoice.objects.create(
+        diff_company_invoice_2 = CRMInvoice.objects.create(
             client=client2, amount=100.0, attributed=True, invoice_id="5", created_on=last_day_of_two_months_prior
         )
 

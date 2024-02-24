@@ -987,6 +987,10 @@ class CompanyView(APIView):
                 )
             if request.data["crm"] != "":
                 company.crm = request.data["crm"]
+            if request.data["hubspotAccessToken"] != "":
+                company.hubspot_api_key = request.data[
+                    "hubspotAccessToken"
+                ]
 
             company.save()
             serializer = UserSerializerWithToken(request.user, many=False)

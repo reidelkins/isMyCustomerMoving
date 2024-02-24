@@ -30,13 +30,13 @@ import IncorrectDataButton from './IncorrectDataButton';
 import RemoveErrorFlagButton from './RemoveErrorFlagButton';
 import ClientDetailsTable from './ClientDetailsTable';
 import ClientEventTable from './ClientEventTable';
+import CRMSyncButtons from './CRMSyncButtons';
 import Iconify from './Iconify';
 import ReferralModal from './ReferralModal';
 import NoteModal from './NoteModal';
-import ServiceTitanSyncModal from './ServiceTitanSyncModal';
 import UpgradeFromFree from './UpgradeFromFree';
 import { ClientListHead, ClientListToolbar } from '../sections/@dashboard/client';
-import { getClientsCSV, salesForceSync,  updateClientAsync, update, updateCounts } from '../redux/actions/usersActions';
+import { getClientsCSV,  updateClientAsync, update, updateCounts } from '../redux/actions/usersActions';
 import { applySortFilter, getComparator } from '../utils/filterFunctions';
 import { capitalizeWords } from '../utils/capitalizeWords';
 import { handleChangePage, handleChangeRowsPerPage, handleRequestSort } from '../utils/dataTableFunctions';
@@ -68,11 +68,14 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
     const [TABLE_HEAD, setTableHead] = useState(commonFields);
     useEffect(() => {
         const updatedFields = [...commonFields];
-
-        if (userInfo && userInfo.company.crm === 'ServiceTitan') {
-        updatedFields.unshift({ id: 'service_titan_lifetime_revenue', label: 'Lifetime Revenue', alignRight: false });
+        if (userInfo && userInfo.company.crm === 'ServiceTitan') {            
+            updatedFields.unshift({ id: 'service_titan_lifetime_revenue', label: 'Lifetime Revenue', alignRight: false });
+        }
+        if (userInfo && userInfo.company.crm === 'ServiceTitan' || userInfo.company.crm === 'HubSpot') {
+        // updatedFields.unshift({ id: 'service_titan_lifetime_revenue', label: 'Lifetime Revenue', alignRight: false });
         updatedFields.unshift({ id: 'service_titan_customer_since_year', label: 'Customer Since', alignRight: false });        
         }
+
         if (userInfo && (userInfo.company.enterprise || userInfo.email === 'reid@gmail.com' ||
         userInfo.email === 'reid@ismycustomermoving.com' ||
         userInfo.email === 'jb@aquaclearws.com')) {
@@ -349,9 +352,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
     const updateStatus = () => {
       dispatch(update());
     };
-    const sfSync = () => {
-      dispatch(salesForceSync());
-    };
+    
     const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
     const tagColors = [  '#E57373',  '#81C784',  '#64B5F6', '#FFC107', '#BA68C8'];
     return (
@@ -464,6 +465,8 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                                         error_flag: errorFlag,
                                         service_titan_customer_since_year: serviceTitanCustomerSinceYear,
                                         service_titan_lifetime_revenue: serviceTitanLifetimeRevenue,
+                                        customer_since: customerSince,
+                                        customer_lifetime_value: customerLifetimeValue,
                                         email,
                                         client_tags: clientTags,
                                     } = row;
@@ -501,6 +504,22 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                                                             ${Math.floor(serviceTitanLifetimeRevenue)}
                                                         </Label>
                                                     </TableCell>
+                                                </>
+                                            )}
+                                            {userInfo.company.crm === 'HubSpot' && (
+                                                <>
+                                                    <TableCell component="th" scope="row" padding="none">
+                                                        <Label variant="ghost" color="info">
+                                                            {customerSince && customerSince !== 1
+                                                            ? customerSince.substring(0, 4)
+                                                            : '1900'}
+                                                        </Label>
+                                                    </TableCell>
+                                                    {/* <TableCell component="th" scope="row" padding="none">
+                                                        <Label variant="ghost" color="info">
+                                                            ${Math.floor(customerLifetimeValue)}
+                                                        </Label>
+                                                    </TableCell> */}
                                                 </>
                                             )}
                                             <TableCell align="left">
@@ -717,17 +736,8 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
                 )}
 
                 {userInfo.status === 'admin' &&
-                    (userInfo.company.crm === 'ServiceTitan' ? (
-                    <ServiceTitanSyncModal
-                        serviceTitanCustomerSyncOption={userInfo.company.service_titan_customer_sync_option}
-                    />
-                    ) : (
-                    userInfo.company.crm === 'Salesforce' && (
-                        <Button onClick={sfSync} variant="contained">
-                        Sync With Salesforce
-                        </Button>
-                    )
-                    ))}
+                    <CRMSyncButtons userInfo={userInfo}/>
+                    }
                 {csvLoading
                     ? userInfo.status === 'admin' && (
                         <Button variant="contained">

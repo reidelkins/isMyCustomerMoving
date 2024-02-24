@@ -1,5 +1,5 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import thunk from 'redux-thunk';
+import {thunk} from 'redux-thunk';
 import authReducer from './actions/authActions';
 import userReducer from './actions/usersActions';
 import enterpriseReducer from './actions/enterpriseActions';

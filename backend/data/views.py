@@ -17,7 +17,7 @@ from re import sub
 from accounts.models import CustomUser
 from accounts.serializers import UserSerializerWithToken
 from config import settings
-from payments.models import ServiceTitanInvoice
+from payments.models import CRMInvoice
 from .models import (
     Client,
     ClientUpdate,
@@ -33,10 +33,10 @@ from .serializers import (
     HomeListingSerializer,
     RealtorSerializer
 )
-from .salesforce import get_salesforce_clients
-from .serviceTitan import complete_service_titan_sync
+from .crms.SalesforceCRM import get_salesforce_clients
 from .realtor import get_all_zipcodes
 from .utils import (
+    generic_crm_task,
     save_service_area_list,
     save_client_list,
     add_service_titan_contacted_tag,
@@ -564,7 +564,7 @@ class AllRecentlySoldView(generics.ListAPIView):
         query_params = self.request.query_params
         company = self.request.user.company
         if company.recently_sold_purchased:
-            if company.service_area_zip_codes.count() > 0:
+            if company.service_area_zip_codes.exists():
                 zip_code_objects = company.service_area_zip_codes.values(
                     'zip_code')
             else:
@@ -573,7 +573,6 @@ class AllRecentlySoldView(generics.ListAPIView):
                 ).values('zip_code')
             queryset = HomeListing.objects.filter(
                 zip_code__in=zip_code_objects,
-                status="House Recently Sold (6)",
                 # listed__gt=(
                 #     datetime.today() - timedelta(days=30)
                 # ).strftime("%Y-%m-%d"),
@@ -958,11 +957,71 @@ class ServiceTitanView(APIView):
             )
 
     def put(self, request, *args, **kwargs):
-        company_id = self.request.user.company.id
         option = request.data.get("option", "")
         try:
             task = Task.objects.create()
-            complete_service_titan_sync.delay(company_id, task.id, option)
+            generic_crm_task.delay(
+                'ServiceTitanCRM', self.request.user.company.id,
+                'complete_sync', task_id=task.id, option=option)
+            return Response(
+                {"status": "Success", "task": task.id},
+                status=status.HTTP_201_CREATED,
+                headers="",
+            )
+        except Exception as e:
+            logging.error(e)
+            return Response(
+                {"status": "error"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class HubspotView(APIView):
+    """
+    An API view to handle the process related to Hubspot clients.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        try:
+            try:
+                task = Task.objects.get(id=kwargs["task"])
+                if task.completed:
+                    deleted = task.deleted_clients
+                    task.delete()
+                    return Response(
+                        {
+                            "status": "SUCCESS",
+                            "data": """Clients Synced!
+                                Come back in about an hour to see your results.""",
+                            "deleted": deleted,
+                        },
+                        status=status.HTTP_201_CREATED,
+                        headers="",
+                    )
+                else:
+                    return Response(
+                        {"status": "UNFINISHED", "clients": []},
+                        status=status.HTTP_201_CREATED,
+                    )
+            except Exception as e:
+                logging.error(e)
+                return Response(
+                    {"status": "Task Error"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        except Exception as e:
+            logging.error(e)
+            return Response(
+                {"status": "error"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def put(self, request, *args, **kwargs):
+        try:
+            task = Task.objects.create()
+            generic_crm_task.delay(
+                'HubspotCRM', self.request.user.company.id,
+                'complete_sync', task_id=task.id)
             return Response(
                 {"status": "Success", "task": task.id},
                 status=status.HTTP_201_CREATED,
@@ -1139,7 +1198,7 @@ class CompanyDashboardView(APIView):
         """
         self.revenue_by_month = blank_dictionary.copy()
         clients = Client.objects.filter(company=self.request.user.company)
-        invoices = ServiceTitanInvoice.objects.filter(
+        invoices = CRMInvoice.objects.filter(
             client__in=clients, attributed=True
         )
 
