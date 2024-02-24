@@ -68,8 +68,7 @@ export default function CustomerData({ userInfo, CLIENTLIST, loading, customerDa
     const [TABLE_HEAD, setTableHead] = useState(commonFields);
     useEffect(() => {
         const updatedFields = [...commonFields];
-        if (userInfo && userInfo.company.crm === 'ServiceTitan') {
-            console.log("HEREEREERERE")
+        if (userInfo && userInfo.company.crm === 'ServiceTitan') {            
             updatedFields.unshift({ id: 'service_titan_lifetime_revenue', label: 'Lifetime Revenue', alignRight: false });
         }
         if (userInfo && userInfo.company.crm === 'ServiceTitan' || userInfo.company.crm === 'HubSpot') {
